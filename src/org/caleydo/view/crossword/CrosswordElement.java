@@ -24,6 +24,7 @@ import org.caleydo.core.data.selection.SelectionManager;
 import org.caleydo.core.data.selection.TablePerspectiveSelectionMixin;
 import org.caleydo.core.event.EventListenerManager.DeepScan;
 import org.caleydo.core.view.opengl.layout2.GLElement;
+import org.caleydo.core.view.opengl.layout2.GLGraphics;
 
 /**
  * the root element of this view holding a {@link TablePerspective}
@@ -48,6 +49,12 @@ public class CrosswordElement extends GLElement implements TablePerspectiveSelec
 	 */
 	public TablePerspective getTablePerspective() {
 		return tablePerspective;
+	}
+
+	@Override
+	protected void renderImpl(GLGraphics g, float w, float h) {
+		g.color(tablePerspective.getDataDomain().getColor()).fillRect(0, 0, w, h);
+		super.renderImpl(g, w, h);
 	}
 
 	@Override

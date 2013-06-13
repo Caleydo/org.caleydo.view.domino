@@ -66,10 +66,12 @@ public class GLCrosswordView extends AMultiTablePerspectiveElementView {
 			List<TablePerspective> added, List<TablePerspective> removed) {
 		if (root.getContent() == null)
 			root.setContent(crossword);
-		for (Iterator<CrosswordElement> it = Iterators.filter(crossword.iterator(), CrosswordElement.class); it
-				.hasNext();) {
-			if (removed.contains(it.next().getTablePerspective()))
-				it.remove();
+		if (!removed.isEmpty()) {
+			for (Iterator<CrosswordElement> it = Iterators.filter(crossword.iterator(), CrosswordElement.class); it
+					.hasNext();) {
+				if (removed.contains(it.next().getTablePerspective()))
+					it.remove();
+			}
 		}
 		for (TablePerspective t : added)
 			crossword.add(new CrosswordElement(t));

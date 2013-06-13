@@ -43,7 +43,7 @@
    <extension
          point="org.eclipse.ui.commands">
       <command
-            defaultHandler="org.caleydo.view.crossword.OpenViewHandler"
+            defaultHandler="org.caleydo.view.crossword.internal.OpenViewHandler"
             id="org.caleydo.view.crossword.command.opencrossword"
             name="CrossWord">
       </command>
