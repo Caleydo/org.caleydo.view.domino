@@ -17,53 +17,36 @@
  * You should have received a copy of the GNU General Public License along with
  * this program. If not, see <http://www.gnu.org/licenses/>
  *******************************************************************************/
-package org.caleydo.view.crossword;
+package org.caleydo.view.crossword.api;
 
 import org.caleydo.core.data.perspective.table.TablePerspective;
-import org.caleydo.core.data.selection.SelectionManager;
-import org.caleydo.core.data.selection.TablePerspectiveSelectionMixin;
-import org.caleydo.core.event.EventListenerManager.DeepScan;
-import org.caleydo.core.view.opengl.layout2.GLElement;
+import org.caleydo.core.view.opengl.layout2.GLElementContainer;
 import org.caleydo.core.view.opengl.layout2.GLGraphics;
+import org.caleydo.view.crossword.internal.Activator;
+import org.caleydo.view.crossword.internal.ui.CrosswordLayout;
 
 /**
  * the root element of this view holding a {@link TablePerspective}
- *
+ * 
  * @author Samuel Gratzl
- *
+ * 
  */
-public class CrosswordElement extends GLElement implements TablePerspectiveSelectionMixin.ITablePerspectiveMixinCallback {
-
-	private final TablePerspective tablePerspective;
-
-	@DeepScan
-	private final TablePerspectiveSelectionMixin selection;
-
-	public CrosswordElement(TablePerspective tablePerspective) {
-		this.tablePerspective = tablePerspective;
-		this.selection = new TablePerspectiveSelectionMixin(tablePerspective, this);
+public class CrosswordRootElement extends GLElementContainer {
+	public CrosswordRootElement() {
+		super(new CrosswordLayout());
 	}
-
-	/**
-	 * @return the tablePerspective, see {@link #tablePerspective}
-	 */
-	public TablePerspective getTablePerspective() {
-		return tablePerspective;
-	}
-
 	@Override
 	protected void renderImpl(GLGraphics g, float w, float h) {
-		g.color(tablePerspective.getDataDomain().getColor()).fillRect(0, 0, w, h);
+		g.pushResourceLocator(Activator.getResourceLocator());
 		super.renderImpl(g, w, h);
+		g.popResourceLocator();
 	}
 
 	@Override
-	public void onSelectionUpdate(SelectionManager manager) {
-		repaintAll();
+	protected void renderPickImpl(GLGraphics g, float w, float h) {
+		g.pushResourceLocator(Activator.getResourceLocator());
+		super.renderPickImpl(g, w, h);
+		g.popResourceLocator();
 	}
 
-	@Override
-	public void onVAUpdate(TablePerspective tablePerspective) {
-		relayout();
-	}
 }

@@ -17,39 +17,30 @@
  * You should have received a copy of the GNU General Public License along with
  * this program. If not, see <http://www.gnu.org/licenses/>
  *******************************************************************************/
-package org.caleydo.view.crossword;
+package org.caleydo.view.crossword.internal.ui;
 
-import org.caleydo.core.data.perspective.table.TablePerspective;
-import org.caleydo.core.view.opengl.layout2.GLElementContainer;
-import org.caleydo.core.view.opengl.layout2.GLGraphics;
-import org.caleydo.core.view.opengl.layout2.layout.GLLayouts;
-import org.caleydo.view.crossword.internal.Activator;
+import org.caleydo.core.view.opengl.picking.IPickingListener;
+import org.caleydo.core.view.opengl.picking.Pick;
 
 /**
- * the root element of this view holding a {@link TablePerspective}
+ * layout specific information
  * 
  * @author Samuel Gratzl
  * 
  */
-public class CrosswordRootElement extends GLElementContainer {
-	/**
-	 *
-	 */
-	public CrosswordRootElement() {
-		super(GLLayouts.flowHorizontal(3));
-	}
-	@Override
-	protected void renderImpl(GLGraphics g, float w, float h) {
-		g.pushResourceLocator(Activator.getResourceLocator());
-		super.renderImpl(g, w, h);
-		g.popResourceLocator();
-	}
+public class CrosswordLayoutInfo implements IPickingListener {
+	private boolean hovered;
+	private boolean dragged;
 
 	@Override
-	protected void renderPickImpl(GLGraphics g, float w, float h) {
-		g.pushResourceLocator(Activator.getResourceLocator());
-		super.renderPickImpl(g, w, h);
-		g.popResourceLocator();
+	public void pick(Pick pick) {
+		switch (pick.getPickingMode()) {
+		case MOUSE_OVER:
+			hovered = true;
+			break;
+		case MOUSE_OUT:
+			hovered = false;
+			break;
+		}
 	}
-
 }

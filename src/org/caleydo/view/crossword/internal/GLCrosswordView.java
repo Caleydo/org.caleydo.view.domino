@@ -27,8 +27,8 @@ import org.caleydo.core.view.opengl.canvas.IGLCanvas;
 import org.caleydo.core.view.opengl.layout2.AGLElementDecorator;
 import org.caleydo.core.view.opengl.layout2.GLElement;
 import org.caleydo.core.view.opengl.layout2.view.AMultiTablePerspectiveElementView;
-import org.caleydo.view.crossword.CrosswordElement;
-import org.caleydo.view.crossword.CrosswordRootElement;
+import org.caleydo.view.crossword.api.CrosswordRootElement;
+import org.caleydo.view.crossword.internal.ui.CrosswordElement;
 
 import com.google.common.collect.Iterators;
 
