@@ -3,18 +3,18 @@
  * Copyright (c) The Caleydo Team. All rights reserved.
  * Licensed under the new BSD license, available at http://caleydo.org/license
  ******************************************************************************/
-package org.caleydo.view.crossword.internal;
+package org.caleydo.view.crossword.internal.serial;
 
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
 
 import org.caleydo.core.serialize.ASerializedMultiTablePerspectiveBasedView;
 import org.caleydo.core.view.IMultiTablePerspectiveBasedView;
+import org.caleydo.view.crossword.internal.GLCrosswordView;
 
 /**
- * Serialized <INSERT VIEW NAME> view.
- *
- * @author <INSERT_YOUR_NAME>
+ * 
+ * @author Samuel Gratzl
  */
 @XmlRootElement
 @XmlType

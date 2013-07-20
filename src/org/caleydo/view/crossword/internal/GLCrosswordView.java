@@ -13,11 +13,12 @@ import org.caleydo.core.data.datadomain.IDataSupportDefinition;
 import org.caleydo.core.data.perspective.table.TablePerspective;
 import org.caleydo.core.serialize.ASerializedView;
 import org.caleydo.core.view.opengl.canvas.IGLCanvas;
-import org.caleydo.core.view.opengl.layout2.AGLElementDecorator;
+import org.caleydo.core.view.opengl.layout2.GLElementDecorator;
 import org.caleydo.core.view.opengl.layout2.GLElement;
 import org.caleydo.core.view.opengl.layout2.view.AMultiTablePerspectiveElementView;
-import org.caleydo.view.crossword.api.CrosswordRootElement;
+import org.caleydo.view.crossword.internal.serial.SerializedCrosswordView;
 import org.caleydo.view.crossword.internal.ui.CrosswordElement;
+import org.caleydo.view.crossword.ui.CrosswordMultiElement;
 
 import com.google.common.collect.Iterators;
 
@@ -31,11 +32,11 @@ public class GLCrosswordView extends AMultiTablePerspectiveElementView {
 	public static final String VIEW_TYPE = "org.caleydo.view.crossword";
 	public static final String VIEW_NAME = "CrossWord";
 
-	private final CrosswordRootElement crossword;
+	private final CrosswordMultiElement crossword;
 
 	public GLCrosswordView(IGLCanvas glCanvas) {
 		super(glCanvas, VIEW_TYPE, VIEW_NAME);
-		this.crossword = new CrosswordRootElement();
+		this.crossword = new CrosswordMultiElement();
 	}
 
 	@Override
@@ -51,7 +52,7 @@ public class GLCrosswordView extends AMultiTablePerspectiveElementView {
 	}
 
 	@Override
-	protected void applyTablePerspectives(AGLElementDecorator root, List<TablePerspective> all,
+	protected void applyTablePerspectives(GLElementDecorator root, List<TablePerspective> all,
 			List<TablePerspective> added, List<TablePerspective> removed) {
 		if (root.getContent() == null)
 			root.setContent(crossword);

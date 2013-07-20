@@ -6,6 +6,7 @@
 package org.caleydo.view.crossword.internal;
 
 import org.caleydo.core.view.ARcpGLViewPart;
+import org.caleydo.view.crossword.internal.serial.SerializedCrosswordView;
 import org.eclipse.swt.widgets.Composite;
 
 /**

@@ -3,7 +3,7 @@
  * Copyright (c) The Caleydo Team. All rights reserved.
  * Licensed under the new BSD license, available at http://caleydo.org/license
  ******************************************************************************/
-package org.caleydo.view.crossword.api;
+package org.caleydo.view.crossword.ui;
 
 import org.caleydo.core.data.perspective.table.TablePerspective;
 import org.caleydo.core.view.opengl.layout2.GLElementContainer;
@@ -17,8 +17,8 @@ import org.caleydo.view.crossword.internal.ui.CrosswordLayout;
  * @author Samuel Gratzl
  *
  */
-public class CrosswordRootElement extends GLElementContainer {
-	public CrosswordRootElement() {
+public class CrosswordMultiElement extends GLElementContainer {
+	public CrosswordMultiElement() {
 		super(new CrosswordLayout());
 	}
 	@Override

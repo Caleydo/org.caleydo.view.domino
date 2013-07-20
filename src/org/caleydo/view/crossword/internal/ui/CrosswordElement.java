@@ -11,7 +11,7 @@ import org.caleydo.core.data.selection.TablePerspectiveSelectionMixin;
 import org.caleydo.core.event.EventListenerManager.DeepScan;
 import org.caleydo.core.view.opengl.layout2.GLGraphics;
 import org.caleydo.core.view.opengl.layout2.PickableGLElement;
-import org.caleydo.core.view.opengl.layout2.layout.CompositeGLLayoutData;
+import org.caleydo.core.view.opengl.layout2.layout.GLLayoutDatas;
 
 /**
  * the root element of this view holding a {@link TablePerspective}
@@ -35,7 +35,7 @@ public class CrosswordElement extends PickableGLElement implements
 		this.selection = new TablePerspectiveSelectionMixin(tablePerspective, this);
 		this.info = new CrosswordLayoutInfo();
 		this.onPick(this.info);
-		setLayoutData(CompositeGLLayoutData.combine(tablePerspective, info));
+		setLayoutData(GLLayoutDatas.combine(tablePerspective, info));
 	}
 
 	/**
