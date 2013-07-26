@@ -5,16 +5,17 @@
  ******************************************************************************/
 package org.caleydo.view.crossword.internal;
 
-import org.caleydo.core.view.ARcpGLViewPart;
+import org.caleydo.core.view.ARcpGLElementViewPart;
+import org.caleydo.core.view.opengl.canvas.IGLCanvas;
+import org.caleydo.core.view.opengl.layout2.AGLElementView;
 import org.caleydo.view.crossword.internal.serial.SerializedCrosswordView;
-import org.eclipse.swt.widgets.Composite;
 
 /**
  *
  * @author Samuel Gratzl
- * 
+ *
  */
-public class RcpGLCrosswordView extends ARcpGLViewPart {
+public class RcpGLCrosswordView extends ARcpGLElementViewPart {
 
 	/**
 	 * Constructor.
@@ -24,23 +25,7 @@ public class RcpGLCrosswordView extends ARcpGLViewPart {
 	}
 
 	@Override
-	public void createPartControl(Composite parent) {
-		super.createPartControl(parent);
-
-		view = new GLCrosswordView(glCanvas);
-		initializeView();
-		createPartControlGL();
+	protected AGLElementView createView(IGLCanvas canvas) {
+		return new GLCrosswordView(canvas);
 	}
-
-	@Override
-	public void createDefaultSerializedView() {
-		serializedView = new SerializedCrosswordView();
-		determineDataConfiguration(serializedView);
-	}
-
-	@Override
-	public String getViewGUIID() {
-		return GLCrosswordView.VIEW_TYPE;
-	}
-
 }

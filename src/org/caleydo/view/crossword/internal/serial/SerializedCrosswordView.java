@@ -13,7 +13,7 @@ import org.caleydo.core.view.IMultiTablePerspectiveBasedView;
 import org.caleydo.view.crossword.internal.GLCrosswordView;
 
 /**
- * 
+ *
  * @author Samuel Gratzl
  */
 @XmlRootElement

@@ -13,8 +13,8 @@ import org.caleydo.core.data.datadomain.IDataSupportDefinition;
 import org.caleydo.core.data.perspective.table.TablePerspective;
 import org.caleydo.core.serialize.ASerializedView;
 import org.caleydo.core.view.opengl.canvas.IGLCanvas;
-import org.caleydo.core.view.opengl.layout2.GLElementDecorator;
 import org.caleydo.core.view.opengl.layout2.GLElement;
+import org.caleydo.core.view.opengl.layout2.GLElementDecorator;
 import org.caleydo.core.view.opengl.layout2.view.AMultiTablePerspectiveElementView;
 import org.caleydo.view.crossword.internal.serial.SerializedCrosswordView;
 import org.caleydo.view.crossword.internal.ui.CrosswordElement;
@@ -42,7 +42,6 @@ public class GLCrosswordView extends AMultiTablePerspectiveElementView {
 	@Override
 	public ASerializedView getSerializableRepresentation() {
 		SerializedCrosswordView serializedForm = new SerializedCrosswordView(this);
-		serializedForm.setViewID(this.getID());
 		return serializedForm;
 	}
 
