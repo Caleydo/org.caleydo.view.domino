@@ -243,6 +243,10 @@ public class CrosswordElement extends AnimatedGLElementContainer implements
 		final int nrDimensions = table.size();
 		recordIds = convert(recordIds, tablePerspective.getRecordPerspective(), nrRecords);
 		dimensionIds = convert(dimensionIds, tablePerspective.getRecordPerspective(), nrDimensions);
+
+		CrosswordMultiElement p = getMultiElement();
+		if (p != null)
+			p.onConnectionsChanged(this);
 	}
 
 	@Override
@@ -255,10 +259,10 @@ public class CrosswordElement extends AnimatedGLElementContainer implements
 			parent.remove(this);
 			break;
 		case "Split X":
-			parent.addAll(getTablePerspective().getDimensionSubTablePerspectives());
+			parent.split(this, getTablePerspective().getDimensionSubTablePerspectives());
 			break;
 		case "Split Y":
-			parent.addAll(getTablePerspective().getRecordSubTablePerspectives());
+			parent.split(this, getTablePerspective().getRecordSubTablePerspectives());
 			break;
 		default:
 			break;

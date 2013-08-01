@@ -13,9 +13,12 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 
+import org.apache.commons.lang.BitField;
 import org.caleydo.core.data.perspective.table.TablePerspective;
+import org.caleydo.core.id.IDType;
 import org.caleydo.core.view.opengl.layout2.GLElement;
 import org.caleydo.core.view.opengl.layout2.GLElementAccessor;
 import org.caleydo.core.view.opengl.layout2.GLGraphics;
@@ -23,8 +26,11 @@ import org.caleydo.core.view.opengl.layout2.IGLElementContext;
 import org.caleydo.core.view.opengl.layout2.IGLElementParent;
 import org.caleydo.core.view.opengl.layout2.basic.ScrollingDecorator.IHasMinSize;
 import org.caleydo.core.view.opengl.layout2.layout.IGLLayoutElement;
+import org.caleydo.view.crossword.internal.ui.band.ABandEdge;
+import org.caleydo.view.crossword.internal.ui.band.ParentChildBandEdge;
+import org.caleydo.view.crossword.internal.ui.band.SharedBandEdge;
+import org.caleydo.view.crossword.internal.ui.band.SisterBandEdge;
 import org.jgrapht.UndirectedGraph;
-import org.jgrapht.graph.DefaultEdge;
 import org.jgrapht.graph.Pseudograph;
 
 import com.google.common.collect.Iterables;
@@ -39,17 +45,18 @@ import com.google.common.collect.Iterators;
 public class CrosswordMultiElement extends GLElement implements IHasMinSize, IGLElementParent,
 		Iterable<CrosswordElement> {
 
-	private UndirectedGraph<CrosswordElement, BandEdge> graph = new Pseudograph<>(BandEdge.class);
+	private final UndirectedGraph<CrosswordElement, ABandEdge> graph = new Pseudograph<>(ABandEdge.class);
+	private final CrosswordBandLayer bands = new CrosswordBandLayer();
 	private boolean alwaysShowHeader;
 
 	/**
 	 *
 	 */
 	public CrosswordMultiElement() {
-
+		GLElementAccessor.setParent(bands, this);
 	}
 
-	public void doLayout(List<? extends IGLLayoutElement> children, float w, float h) {
+	public void doLayout(List<? extends IGLLayoutElement> children) {
 		float acc = 10;
 		float x_shift = 0;
 		float y_shift = 0;
@@ -120,16 +127,27 @@ public class CrosswordMultiElement extends GLElement implements IHasMinSize, IGL
 	@Override
 	public void layout(int deltaTimeMs) {
 		super.layout(deltaTimeMs);
+		bands.layout(deltaTimeMs);
 		for (GLElement child : this)
 			child.layout(deltaTimeMs);
 	}
 
 	@Override
+	public void relayout() {
+		super.relayout();
+		GLElementAccessor.relayoutDown(bands);
+	}
+
+	@Override
 	protected final void layoutImpl() {
 		super.layoutImpl();
-		List<IGLLayoutElement> l = asLayoutElements();
 		Vec2f size = getSize();
-		doLayout(l, size.x(), size.y());
+		GLElementAccessor.asLayoutElement(bands).setBounds(0, 0, size.x(), size.y());
+		List<IGLLayoutElement> l = asLayoutElements();
+		doLayout(l);
+		for (ABandEdge edge : graph.edgeSet()) {
+			edge.relayout();
+		}
 	}
 
 	private List<IGLLayoutElement> asLayoutElements() {
@@ -143,6 +161,7 @@ public class CrosswordMultiElement extends GLElement implements IHasMinSize, IGL
 
 	@Override
 	protected void takeDown() {
+		GLElementAccessor.takeDown(bands);
 		for (GLElement elem : this)
 			GLElementAccessor.takeDown(elem);
 		super.takeDown();
@@ -151,6 +170,7 @@ public class CrosswordMultiElement extends GLElement implements IHasMinSize, IGL
 	@Override
 	protected void init(IGLElementContext context) {
 		super.init(context);
+		GLElementAccessor.init(bands, context);
 		for (GLElement child : this)
 			GLElementAccessor.init(child, context);
 	}
@@ -169,6 +189,9 @@ public class CrosswordMultiElement extends GLElement implements IHasMinSize, IGL
 			GLElementAccessor.init(child, context);
 	}
 
+	private static final int FLAG_PARENT = 1;
+	private static final int FLAG_SISTER = 2;
+
 	/**
 	 * @param crosswordElement
 	 */
@@ -176,6 +199,50 @@ public class CrosswordMultiElement extends GLElement implements IHasMinSize, IGL
 		setup(child);
 		graph.addVertex(child);
 
+		final TablePerspective tablePerspective = child.getTablePerspective();
+		final IDType recIDType = tablePerspective.getRecordPerspective().getIdType();
+		final IDType dimIDType = tablePerspective.getDimensionPerspective().getIdType();
+		final TablePerspective parent = tablePerspective.getParentTablePerspective();
+
+		for (CrosswordElement other : graph.vertexSet()) {
+			if (other == child)
+				continue;
+			final TablePerspective tablePerspective2 = child.getTablePerspective();
+			final IDType recIDType2 = tablePerspective2.getRecordPerspective().getIdType();
+			final IDType dimIDType2 = tablePerspective2.getDimensionPerspective().getIdType();
+			int flags = 0;
+			boolean isParent = tablePerspective2.equals(parent);
+			boolean isSister = Objects.equals(tablePerspective2.getParentTablePerspective(), parent) && parent != null;
+			flags |= (isParent ? FLAG_PARENT : 0);
+			flags |= (isSister ? FLAG_SISTER : 0);
+			if (recIDType.resolvesTo(recIDType2))
+				graph.addEdge(child, other, createEdge(true, true, flags));
+			else if (dimIDType.resolvesTo(recIDType2))
+				graph.addEdge(child, other, createEdge(false, true, flags));
+			if (recIDType.resolvesTo(dimIDType2))
+				graph.addEdge(child, other, createEdge(true, false, flags));
+			else if (dimIDType.resolvesTo(dimIDType2))
+				graph.addEdge(child, other, createEdge(false, false, flags));
+		}
+		relayout();
+	}
+
+	private static ABandEdge createEdge(boolean hor1, boolean hor2, int flags) {
+		BitField mask = new BitField(flags);
+		if (mask.isSet(FLAG_PARENT))
+			return new ParentChildBandEdge(hor1, hor2);
+		if (mask.isSet(FLAG_SISTER))
+			return new SisterBandEdge(hor1, hor2);
+		return new SharedBandEdge(hor1, hor2);
+	}
+
+	/**
+	 * @param crosswordElement
+	 * @param dimensionSubTablePerspectives
+	 */
+	public void split(CrosswordElement child, List<TablePerspective> subElements) {
+		for (TablePerspective t : subElements)
+			add(t);
 	}
 
 	@Override
@@ -194,6 +261,7 @@ public class CrosswordMultiElement extends GLElement implements IHasMinSize, IGL
 	@Override
 	protected void renderImpl(GLGraphics g, float w, float h) {
 		super.renderImpl(g, w, h);
+		bands.render(g);
 		g.incZ();
 		for (GLElement child : graph.vertexSet())
 			child.render(g);
@@ -203,6 +271,7 @@ public class CrosswordMultiElement extends GLElement implements IHasMinSize, IGL
 	@Override
 	protected void renderPickImpl(GLGraphics g, float w, float h) {
 		super.renderPickImpl(g, w, h);
+		bands.renderPick(g);
 		g.incZ();
 		for (GLElement child : graph.vertexSet())
 			child.renderPick(g);
@@ -243,8 +312,15 @@ public class CrosswordMultiElement extends GLElement implements IHasMinSize, IGL
 			remove(r);
 	}
 
-
-	private static class BandEdge extends DefaultEdge {
-
+	public Iterable<ABandEdge> getBands() {
+		return Iterables.unmodifiableIterable(graph.edgeSet());
 	}
+	/**
+	 * @param crosswordElement
+	 */
+	public void onConnectionsChanged(CrosswordElement child) {
+		for (ABandEdge edge : graph.edgesOf(child))
+			edge.update();
+	}
+
 }
