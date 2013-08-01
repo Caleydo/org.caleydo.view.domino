@@ -8,7 +8,9 @@ package org.caleydo.view.crossword.internal;
 import org.caleydo.core.view.ARcpGLElementViewPart;
 import org.caleydo.core.view.opengl.canvas.IGLCanvas;
 import org.caleydo.core.view.opengl.layout2.AGLElementView;
+import org.caleydo.view.crossword.internal.action.SettingsAction;
 import org.caleydo.view.crossword.internal.serial.SerializedCrosswordView;
+import org.eclipse.jface.action.IToolBarManager;
 
 /**
  *
@@ -27,5 +29,11 @@ public class RcpGLCrosswordView extends ARcpGLElementViewPart {
 	@Override
 	protected AGLElementView createView(IGLCanvas canvas) {
 		return new GLCrosswordView(canvas);
+	}
+
+	@Override
+	protected void addToolBarContent(IToolBarManager toolBarManager) {
+		toolBarManager.add(new SettingsAction(view));
+		super.addToolBarContent(toolBarManager);
 	}
 }

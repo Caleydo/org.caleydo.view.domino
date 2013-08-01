@@ -183,14 +183,17 @@ public class CrosswordLayoutInfo implements IActiveChangedCallback, IGLLayout {
 		final float shift = 1;
 		final float shift2 = shift + shift;
 		content.setBounds(shift, shift, w - shift2, h - shift2);
-		if (hovered) {
-			final int tw = TOOLBAR_WIDTH + 2;
+
+		final int tw = TOOLBAR_WIDTH + 2;
+		if (hovered || parent.getMultiElement().isAlwaysShowHeader())
 			header.setBounds(-shift, -shift2 - tw, w + shift2, tw);
-			toolbar.setBounds(-shift - tw, -shift, tw, h + shift2);
-		} else {
+		else
 			header.setBounds(-shift, -shift, w + shift2, 0);
+		if (hovered)
+			toolbar.setBounds(-shift - tw, -shift, tw, h + shift2);
+		else
 			toolbar.setBounds(-shift, -shift, 0, h + shift2);
-		}
+
 		border.setBounds(0, 0, w, h);
 	}
 

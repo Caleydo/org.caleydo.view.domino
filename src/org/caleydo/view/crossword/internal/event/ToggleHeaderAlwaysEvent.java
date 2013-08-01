@@ -3,25 +3,14 @@
  * Copyright (c) The Caleydo Team. All rights reserved.
  * Licensed under the new BSD license, available at http://caleydo.org/license
  *******************************************************************************/
-package org.caleydo.view.crossword.internal;
+package org.caleydo.view.crossword.internal.event;
 
-import org.caleydo.core.util.color.Color;
+import org.caleydo.core.event.ADirectedEvent;
 
 /**
  * @author Samuel Gratzl
  *
  */
-public class Settings {
+public class ToggleHeaderAlwaysEvent extends ADirectedEvent {
 
-	public static final int TOOLBAR_WIDTH = 16;
-	public static final int TOOLBAR_TEXT_HEIGHT = 14;
-
-	public static Color TOOLBAR_TEXT_COLOR() {
-		return Color.WHITE;
-	}
-	public static Color TOOLBAR_BACKGROUND() {
-		return Color.BLACK;
-	}
-
-	public static final float SCROLLBAR_WIDTH = 10;
 }

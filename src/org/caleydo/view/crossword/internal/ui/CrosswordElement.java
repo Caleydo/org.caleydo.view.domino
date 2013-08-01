@@ -270,4 +270,11 @@ public class CrosswordElement extends AnimatedGLElementContainer implements
 			super.renderImpl(g, w, h);
 		}
 	}
+
+	/**
+	 * @return
+	 */
+	CrosswordMultiElement getMultiElement() {
+		return findParent(CrosswordMultiElement.class);
+	}
 }

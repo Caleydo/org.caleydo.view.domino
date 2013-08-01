@@ -4,21 +4,23 @@
  * Licensed under the new BSD license, available at http://caleydo.org/license
  ******************************************************************************/
 package org.caleydo.view.crossword.internal;
-
 import java.util.ArrayList;
 import java.util.List;
 
 import org.caleydo.core.data.datadomain.DataSupportDefinitions;
 import org.caleydo.core.data.datadomain.IDataSupportDefinition;
 import org.caleydo.core.data.perspective.table.TablePerspective;
+import org.caleydo.core.event.EventListenerManager.ListenTo;
 import org.caleydo.core.serialize.ASerializedView;
 import org.caleydo.core.view.opengl.canvas.IGLCanvas;
 import org.caleydo.core.view.opengl.layout2.GLElement;
 import org.caleydo.core.view.opengl.layout2.GLElementDecorator;
+import org.caleydo.core.view.opengl.layout2.basic.ScrollingDecorator;
 import org.caleydo.core.view.opengl.layout2.view.AMultiTablePerspectiveElementView;
+import org.caleydo.view.crossword.internal.event.ToggleHeaderAlwaysEvent;
 import org.caleydo.view.crossword.internal.serial.SerializedCrosswordView;
 import org.caleydo.view.crossword.internal.ui.CrosswordElement;
-import org.caleydo.view.crossword.ui.CrosswordMultiElement;
+import org.caleydo.view.crossword.internal.ui.CrosswordMultiElement;
 
 import com.google.common.collect.Iterables;
 
@@ -47,7 +49,7 @@ public class GLCrosswordView extends AMultiTablePerspectiveElementView {
 
 	@Override
 	protected GLElement createContent() {
-		return crossword;
+		return ScrollingDecorator.wrap(crossword, Settings.SCROLLBAR_WIDTH);
 	}
 
 	@Override
@@ -71,5 +73,10 @@ public class GLCrosswordView extends AMultiTablePerspectiveElementView {
 			crossword.add(new CrosswordElement(t));
 		}
 
+	}
+
+	@ListenTo(sendToMe = true)
+	private void onToggleHeaderAlwaysHeader(ToggleHeaderAlwaysEvent event) {
+		crossword.toggleAlwaysShowHeader();
 	}
 }
