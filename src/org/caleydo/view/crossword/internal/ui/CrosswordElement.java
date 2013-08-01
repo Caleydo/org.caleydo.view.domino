@@ -12,10 +12,14 @@ import static org.caleydo.view.crossword.internal.Settings.TOOLBAR_TEXT_HEIGHT;
 import static org.caleydo.view.crossword.internal.Settings.TOOLBAR_WIDTH;
 
 import java.net.URL;
+import java.util.Set;
 
+import org.caleydo.core.data.collection.table.Table;
 import org.caleydo.core.data.perspective.table.TablePerspective;
+import org.caleydo.core.data.perspective.variable.Perspective;
 import org.caleydo.core.data.selection.SelectionManager;
 import org.caleydo.core.data.selection.TablePerspectiveSelectionMixin;
+import org.caleydo.core.data.virtualarray.VirtualArray;
 import org.caleydo.core.event.EventListenerManager.DeepScan;
 import org.caleydo.core.event.EventPublisher;
 import org.caleydo.core.event.data.DataSetSelectedEvent;
@@ -53,10 +57,12 @@ import org.caleydo.core.view.opengl.layout2.renderer.RoundedRectRenderer;
 import org.caleydo.core.view.opengl.picking.IPickingListener;
 import org.caleydo.core.view.opengl.picking.Pick;
 import org.caleydo.view.crossword.internal.Resources;
+import org.caleydo.view.crossword.internal.util.BitSetSet;
 import org.eclipse.swt.SWT;
 
 import com.google.common.base.Predicates;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSortedSet;
 
 /**
  * the root element of this view holding a {@link TablePerspective}
@@ -69,6 +75,9 @@ public class CrosswordElement extends AnimatedGLElementContainer implements
 
 	@DeepScan
 	private final TablePerspectiveSelectionMixin selection;
+
+	private Set<Integer> recordIds;
+	private Set<Integer> dimensionIds;
 
 	@DeepScan
 	private final CrosswordLayoutInfo info;
@@ -93,6 +102,44 @@ public class CrosswordElement extends AnimatedGLElementContainer implements
 		this.add(animated(true,new Header(tablePerspective, switcher.size() > 1 ? switcher.createButtonBar() : null)));
 		this.add(animated(false, new VerticalToolBar(null, this, tablePerspective)));
 
+		onVAUpdate(tablePerspective);
+
+	}
+
+	/**
+	 * convert the ids in a perspective to a set
+	 *
+	 * @param set
+	 * @param recordPerspective
+	 */
+	private Set<Integer> convert(Set<Integer> set, Perspective recordPerspective, int total) {
+		VirtualArray va = recordPerspective.getVirtualArray();
+		int size = va.size();
+		if (size == 0)
+			return ImmutableSortedSet.of();
+		if (size < total / 4) { // less than 25% -> use ordinary instead of BitSet
+			return ImmutableSortedSet.copyOf(va.getIDs());
+		} else { // use BitSet
+			if (!(set instanceof BitSetSet))
+				set = new BitSetSet();
+			set.clear();
+			set.addAll(va.getIDs());
+			return set;
+		}
+	}
+
+	/**
+	 * @return the dimensionIds, see {@link #dimensionIds}
+	 */
+	public Set<Integer> getDimensionIds() {
+		return dimensionIds;
+	}
+
+	/**
+	 * @return the recordIds, see {@link #recordIds}
+	 */
+	public Set<Integer> getRecordIds() {
+		return recordIds;
 	}
 
 	private GLElement animated(boolean  hor, GLElement elem) {
@@ -189,6 +236,12 @@ public class CrosswordElement extends AnimatedGLElementContainer implements
 	@Override
 	public void onVAUpdate(TablePerspective tablePerspective) {
 		relayout();
+
+		Table table = tablePerspective.getDataDomain().getTable();
+		final int nrRecords = table.depth();
+		final int nrDimensions = table.size();
+		recordIds = convert(recordIds, tablePerspective.getRecordPerspective(), nrRecords);
+		dimensionIds = convert(dimensionIds, tablePerspective.getRecordPerspective(), nrDimensions);
 	}
 
 	@Override
