@@ -8,7 +8,7 @@ package org.caleydo.view.crossword.ui;
 import org.caleydo.core.data.perspective.table.TablePerspective;
 import org.caleydo.core.view.opengl.layout2.GLElementContainer;
 import org.caleydo.core.view.opengl.layout2.GLGraphics;
-import org.caleydo.view.crossword.internal.Activator;
+import org.caleydo.view.crossword.internal.Resources;
 import org.caleydo.view.crossword.internal.ui.CrosswordLayout;
 
 /**
@@ -18,21 +18,21 @@ import org.caleydo.view.crossword.internal.ui.CrosswordLayout;
  *
  */
 public class CrosswordMultiElement extends GLElementContainer {
+
 	public CrosswordMultiElement() {
 		super(new CrosswordLayout());
 	}
 	@Override
 	protected void renderImpl(GLGraphics g, float w, float h) {
-		g.pushResourceLocator(Activator.getResourceLocator());
+		g.pushResourceLocator(Resources.getResourceLocator());
 		super.renderImpl(g, w, h);
 		g.popResourceLocator();
 	}
 
 	@Override
 	protected void renderPickImpl(GLGraphics g, float w, float h) {
-		g.pushResourceLocator(Activator.getResourceLocator());
+		g.pushResourceLocator(Resources.getResourceLocator());
 		super.renderPickImpl(g, w, h);
 		g.popResourceLocator();
 	}
-
 }

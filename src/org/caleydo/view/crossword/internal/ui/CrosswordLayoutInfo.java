@@ -19,25 +19,29 @@
  *******************************************************************************/
 package org.caleydo.view.crossword.internal.ui;
 
+import static org.caleydo.view.crossword.internal.Settings.TOOLBAR_WIDTH;
 import gleem.linalg.Vec2f;
+
+import java.util.List;
 
 import org.caleydo.core.view.opengl.canvas.IGLMouseListener.IMouseEvent;
 import org.caleydo.core.view.opengl.layout2.basic.ScrollingDecorator.IHasMinSize;
+import org.caleydo.core.view.opengl.layout2.layout.IGLLayout;
 import org.caleydo.core.view.opengl.layout2.layout.IGLLayoutElement;
 import org.caleydo.core.view.opengl.layout2.layout.IHasGLLayoutData;
 import org.caleydo.core.view.opengl.layout2.manage.GLElementFactorySwitcher.IActiveChangedCallback;
-
 /**
  * layout specific information
  *
  * @author Samuel Gratzl
  *
  */
-public class CrosswordLayoutInfo implements IActiveChangedCallback {
+public class CrosswordLayoutInfo implements IActiveChangedCallback, IGLLayout {
 	private final CrosswordElement parent;
 
 	private float zoomFactorX = 1.0f;
 	private float zoomFactorY = 1.0f;
+	private boolean hovered = false;
 
 	/**
 	 * @param crosswordElement
@@ -45,6 +49,7 @@ public class CrosswordLayoutInfo implements IActiveChangedCallback {
 	public CrosswordLayoutInfo(CrosswordElement parent) {
 		this.parent = parent;
 	}
+
 
 	/**
 	 * @param zoomFactor
@@ -144,11 +149,56 @@ public class CrosswordLayoutInfo implements IActiveChangedCallback {
 		float sx = size.x() + xDir * x;
 		float sy = size.y() + yDir * y;
 		// convert to scale factor
-		sx -= 2; //borders and buttons
-		sy -= 16+2;
+		sx -= 2; // borders and buttons
+		sy -= 2;
 		Vec2f minSize = getMinSize(parent);
 		setZoomFactor(sx / minSize.x(), sy / minSize.y());
 		parent.setLocation(loc.x() + (xDir < 0 ? x : 0), loc.y() + (yDir < 0 ? y : 0));
+	}
+
+	/**
+	 * @param hovered
+	 *            setter, see {@link hovered}
+	 */
+	public void setHovered(boolean hovered) {
+		if (this.hovered == hovered)
+			return;
+		this.hovered = hovered;
+		parent.relayout();
+	}
+
+	/**
+	 * @return the hovered, see {@link #hovered}
+	 */
+	public boolean isHovered() {
+		return hovered;
+	}
+
+	@Override
+	public void doLayout(List<? extends IGLLayoutElement> children, float w, float h) {
+		IGLLayoutElement content = children.get(0);
+		IGLLayoutElement border = children.get(1);
+		IGLLayoutElement header = children.get(2);
+		IGLLayoutElement toolbar = children.get(3);
+		final float shift = 1;
+		final float shift2 = shift + shift;
+		content.setBounds(shift, shift, w - shift2, h - shift2);
+		if (hovered) {
+			final int tw = TOOLBAR_WIDTH + 2;
+			header.setBounds(-shift, -shift2 - tw, w + shift2, tw);
+			toolbar.setBounds(-shift - tw, -shift, tw, h + shift2);
+		} else {
+			header.setBounds(-shift, -shift, w + shift2, 0);
+			toolbar.setBounds(-shift, -shift, 0, h + shift2);
+		}
+		border.setBounds(0, 0, w, h);
+	}
+
+	void scale(Vec2f size) {
+		size.setX(size.x() * zoomFactorX);
+		size.setY(size.y() * zoomFactorY);
+		size.setX(size.x() + 2);
+		size.setY(size.y() + 2); // for buttons and border
 	}
 
 	Vec2f getLocation(IGLLayoutElement elem) {
@@ -160,13 +210,6 @@ public class CrosswordLayoutInfo implements IActiveChangedCallback {
 		if (minSize != null)
 			return minSize.getMinSize();
 		return elem.getLayoutDataAs(Vec2f.class, new Vec2f(100, 100));
-	}
-
-	void scale(Vec2f size) {
-		size.setX(size.x() * zoomFactorX);
-		size.setY(size.y() * zoomFactorY);
-		size.setX(size.x() + 2);
-		size.setY(size.y() + 16 + 2); // for buttons and border
 	}
 
 	void setBounds(IGLLayoutElement elem, Vec2f loc, Vec2f size) {

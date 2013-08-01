@@ -37,13 +37,4 @@ public class CrosswordLayout implements IGLLayout {
 
 		// FIXME
 	}
-
-	public static void doElementLayout(List<? extends IGLLayoutElement> children, float w, float h) {
-		IGLLayoutElement content = children.get(0);
-		IGLLayoutElement buttons = children.get(1);
-		IGLLayoutElement border = children.get(2);
-		content.setBounds(1, 1, w - 2, h - 16 - 2);
-		buttons.setBounds(1, h - 16 - 2, w - 2, 16);
-		border.setBounds(0, 0, w, h);
-	}
 }
