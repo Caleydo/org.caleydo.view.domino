@@ -48,6 +48,7 @@ import org.caleydo.core.view.opengl.layout2.manage.GLElementFactorySwitcher.ELaz
 import org.caleydo.core.view.opengl.layout2.renderer.Borders;
 import org.caleydo.core.view.opengl.layout2.renderer.Borders.IBorderGLRenderer;
 import org.caleydo.core.view.opengl.layout2.renderer.GLRenderers;
+import org.caleydo.core.view.opengl.layout2.renderer.IGLRenderer;
 import org.caleydo.core.view.opengl.layout2.renderer.RoundedRectRenderer;
 import org.caleydo.core.view.opengl.picking.IPickingListener;
 import org.caleydo.core.view.opengl.picking.Pick;
@@ -90,7 +91,7 @@ public class CrosswordElement extends AnimatedGLElementContainer implements
 		this.border = Borders.createBorder(tablePerspective.getDataDomain().getColor());
 		this.add(new ReScaleBorder(info).setRenderer(border));
 		this.add(animated(true,new Header(tablePerspective, switcher.size() > 1 ? switcher.createButtonBar() : null)));
-		this.add(animated(false,new VerticalToolBar(null, this)));
+		this.add(animated(false, new VerticalToolBar(null, this, tablePerspective)));
 
 	}
 
@@ -190,19 +191,20 @@ public class CrosswordElement extends AnimatedGLElementContainer implements
 		relayout();
 	}
 
-	/**
-	 *
-	 */
-	protected void close() {
-		EventPublisher.trigger(new RemoveTablePerspectiveEvent(getTablePerspective(),
-				(IMultiTablePerspectiveBasedView) context));
-	}
-
 	@Override
 	public void onSelectionChanged(GLButton button, boolean selected) {
+		CrosswordMultiElement parent = getMultiElement();
 		switch (button.getTooltip()) {
 		case "Close":
-			close();
+			EventPublisher.trigger(new RemoveTablePerspectiveEvent(getTablePerspective(),
+					(IMultiTablePerspectiveBasedView) context));
+			parent.remove(this);
+			break;
+		case "Split X":
+			parent.addAll(getTablePerspective().getDimensionSubTablePerspectives());
+			break;
+		case "Split Y":
+			parent.addAll(getTablePerspective().getRecordSubTablePerspectives());
 			break;
 		default:
 			break;
@@ -225,7 +227,7 @@ public class CrosswordElement extends AnimatedGLElementContainer implements
 		@Override
 		protected void renderImpl(GLGraphics g, float w, float h) {
 			g.color(TOOLBAR_BACKGROUND());
-			RoundedRectRenderer.render(g, 0, 0, w, h, h * 0.3f, 3, RoundedRectRenderer.FLAG_FILL
+			RoundedRectRenderer.render(g, 0, 0, w, h, Math.min(w, h) * 0.3f, 3, RoundedRectRenderer.FLAG_FILL
 					| RoundedRectRenderer.FLAG_TOP);
 			float start;
 			if (size() > 1) {
@@ -239,9 +241,13 @@ public class CrosswordElement extends AnimatedGLElementContainer implements
 	}
 
 	private static class VerticalToolBar extends GLElementContainer {
-		public VerticalToolBar(GLElementContainer buttonBar, GLButton.ISelectionCallback callback) {
+		public VerticalToolBar(GLElementContainer buttonBar, GLButton.ISelectionCallback callback, TablePerspective data) {
 			setLayout(new GLFlowLayout(false, 2, GLPadding.ONE));
-			addButton("Close", Resources.deleteIcon(), callback);
+			addButton("Close", Resources.deleteIcon(), callback, true);
+			addButton("Split X", Resources.cutDimension(), callback, data.getDimensionPerspective().getVirtualArray()
+					.getGroupList().size() > 1);
+			addButton("Split Y", Resources.cutRecord(), callback, data.getRecordPerspective().getVirtualArray()
+					.getGroupList().size() > 1);
 			if (buttonBar != null) {
 				buttonBar.setLayout(GLLayouts.flowVertical(2));
 				float bak = buttonBar.getSize().x();
@@ -253,21 +259,42 @@ public class CrosswordElement extends AnimatedGLElementContainer implements
 			setVisibility(EVisibility.PICKABLE); // pickable for my parent to have common area
 		}
 
-		private void addButton(String tooltip, URL icon, ISelectionCallback callback) {
+		private void addButton(String tooltip, URL icon, ISelectionCallback callback, boolean enable) {
 			GLButton b = new GLButton();
-			b.setRenderer(GLRenderers.fillImage(icon));
 			b.setTooltip(tooltip);
-			b.setCallback(callback);
+			b.setHoverEffect(GLRenderers.drawRoundedRect(Color.WHITE));
+			if (enable) {
+				b.setRenderer(GLRenderers.fillImage(icon));
+				b.setCallback(callback);
+			} else {
+				b.setVisibility(EVisibility.VISIBLE);
+				b.setRenderer(new DisabledImageRenderer(icon));
+			}
+
 			b.setSize(-1, TOOLBAR_WIDTH);
 			this.add(b);
 		}
 
+
 		@Override
 		protected void renderImpl(GLGraphics g, float w, float h) {
 			g.color(TOOLBAR_BACKGROUND());
-			RoundedRectRenderer.render(g, 0, 0, w, h, w * 0.3f, 3, RoundedRectRenderer.FLAG_FILL
+			RoundedRectRenderer.render(g, 0, 0, w, h, Math.min(w, h) * 0.3f, 3, RoundedRectRenderer.FLAG_FILL
 					| RoundedRectRenderer.FLAG_TOP_LEFT | RoundedRectRenderer.FLAG_BOTTOM_LEFT);
 			super.renderImpl(g, w, h);
+		}
+	}
+
+	private static class DisabledImageRenderer implements IGLRenderer {
+		private final URL url;
+
+		public DisabledImageRenderer(URL url) {
+			this.url = url;
+		}
+
+		@Override
+		public void render(GLGraphics g, float w, float h, GLElement parent) {
+			g.fillImage(g.getTexture(url), 0, 0, w, h, Color.GRAY);
 		}
 	}
 

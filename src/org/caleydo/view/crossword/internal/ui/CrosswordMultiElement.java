@@ -8,8 +8,11 @@ package org.caleydo.view.crossword.internal.ui;
 import gleem.linalg.Vec2f;
 import gleem.linalg.Vec4f;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
+import org.caleydo.core.data.perspective.table.TablePerspective;
 import org.caleydo.core.view.opengl.layout2.GLElement;
 import org.caleydo.core.view.opengl.layout2.GLElementContainer;
 import org.caleydo.core.view.opengl.layout2.basic.ScrollingDecorator.IHasMinSize;
@@ -95,5 +98,32 @@ public class CrosswordMultiElement extends GLElementContainer implements IGLLayo
 		this.alwaysShowHeader = !this.alwaysShowHeader;
 		for (CrosswordElement elem : Iterables.filter(this, CrosswordElement.class))
 			elem.relayout();
+	}
+
+	/**
+	 * @param dimensionSubTablePerspectives
+	 */
+	public void add(TablePerspective tablePerspective) {
+		this.add(new CrosswordElement(tablePerspective));
+	}
+
+	public void addAll(Iterable<TablePerspective> tablePerspectives) {
+		for (TablePerspective tablePerspective : tablePerspectives)
+			add(tablePerspective);
+	}
+
+	/**
+	 * @param removed
+	 */
+	public void removeAll(Collection<TablePerspective> removed) {
+		if (removed.isEmpty())
+			return;
+		List<CrosswordElement> toRemove = new ArrayList<>();
+		for (CrosswordElement elem : Iterables.filter(this, CrosswordElement.class)) {
+			if (removed.contains(elem.getTablePerspective()))
+				toRemove.add(elem);
+		}
+		for (CrosswordElement r : toRemove)
+			remove(r);
 	}
 }

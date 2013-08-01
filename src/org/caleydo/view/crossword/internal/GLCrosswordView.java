@@ -4,7 +4,6 @@
  * Licensed under the new BSD license, available at http://caleydo.org/license
  ******************************************************************************/
 package org.caleydo.view.crossword.internal;
-import java.util.ArrayList;
 import java.util.List;
 
 import org.caleydo.core.data.datadomain.DataSupportDefinitions;
@@ -19,10 +18,7 @@ import org.caleydo.core.view.opengl.layout2.basic.ScrollingDecorator;
 import org.caleydo.core.view.opengl.layout2.view.AMultiTablePerspectiveElementView;
 import org.caleydo.view.crossword.internal.event.ToggleHeaderAlwaysEvent;
 import org.caleydo.view.crossword.internal.serial.SerializedCrosswordView;
-import org.caleydo.view.crossword.internal.ui.CrosswordElement;
 import org.caleydo.view.crossword.internal.ui.CrosswordMultiElement;
-
-import com.google.common.collect.Iterables;
 
 /**
  * basic view based on {@link GLElement} with a {@link AMultiTablePerspectiveElementView}
@@ -60,18 +56,8 @@ public class GLCrosswordView extends AMultiTablePerspectiveElementView {
 	@Override
 	protected void applyTablePerspectives(GLElementDecorator root, List<TablePerspective> all,
 			List<TablePerspective> added, List<TablePerspective> removed) {
-		if (!removed.isEmpty()) {
-			List<CrosswordElement> toRemove = new ArrayList<>();
-			for (CrosswordElement elem : Iterables.filter(crossword, CrosswordElement.class)) {
-				if (removed.contains(elem.getTablePerspective()))
-					toRemove.add(elem);
-			}
-			for (CrosswordElement r : toRemove)
-				crossword.remove(r);
-		}
-		for (TablePerspective t : added) {
-			crossword.add(new CrosswordElement(t));
-		}
+		crossword.removeAll(removed);
+		crossword.addAll(added);
 
 	}
 

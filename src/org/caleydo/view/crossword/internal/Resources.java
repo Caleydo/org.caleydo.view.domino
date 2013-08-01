@@ -41,6 +41,14 @@ public class Resources {
 		return icon("cross.png");
 	}
 
+	public static final URL cutRecord() {
+		return icon("cut_red.png");
+	}
+
+	public static final URL cutDimension() {
+		return icon("cut.png");
+	}
+
 	/**
 	 * @param string
 	 * @return
