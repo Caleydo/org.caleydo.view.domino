@@ -7,6 +7,8 @@ package org.caleydo.view.crossword.internal.ui;
 
 import gleem.linalg.Vec2f;
 
+import java.util.List;
+
 import org.caleydo.core.data.perspective.table.TablePerspective;
 import org.caleydo.core.data.selection.SelectionManager;
 import org.caleydo.core.data.selection.TablePerspectiveSelectionMixin;
@@ -16,7 +18,8 @@ import org.caleydo.core.view.opengl.canvas.IGLMouseListener.IMouseEvent;
 import org.caleydo.core.view.opengl.layout2.GLElementContainer;
 import org.caleydo.core.view.opengl.layout2.IGLElementContext;
 import org.caleydo.core.view.opengl.layout2.layout.GLLayoutDatas;
-import org.caleydo.core.view.opengl.layout2.layout.GLLayouts;
+import org.caleydo.core.view.opengl.layout2.layout.IGLLayout;
+import org.caleydo.core.view.opengl.layout2.layout.IGLLayoutElement;
 import org.caleydo.core.view.opengl.layout2.manage.GLElementFactories;
 import org.caleydo.core.view.opengl.layout2.manage.GLElementFactories.GLElementSupplier;
 import org.caleydo.core.view.opengl.layout2.manage.GLElementFactoryContext;
@@ -24,6 +27,7 @@ import org.caleydo.core.view.opengl.layout2.manage.GLElementFactoryContext.Build
 import org.caleydo.core.view.opengl.layout2.manage.GLElementFactorySwitcher;
 import org.caleydo.core.view.opengl.layout2.manage.GLElementFactorySwitcher.ELazyiness;
 import org.caleydo.core.view.opengl.layout2.renderer.Borders;
+import org.caleydo.core.view.opengl.layout2.renderer.Borders.IBorderGLRenderer;
 import org.caleydo.core.view.opengl.picking.IPickingListener;
 import org.caleydo.core.view.opengl.picking.Pick;
 import org.eclipse.swt.SWT;
@@ -38,7 +42,7 @@ import com.google.common.collect.ImmutableList;
  *
  */
 public class CrosswordElement extends GLElementContainer implements
-		TablePerspectiveSelectionMixin.ITablePerspectiveMixinCallback, IPickingListener {
+		TablePerspectiveSelectionMixin.ITablePerspectiveMixinCallback, IPickingListener, IGLLayout {
 
 	private final TablePerspective tablePerspective;
 
@@ -48,19 +52,29 @@ public class CrosswordElement extends GLElementContainer implements
 	@DeepScan
 	private final CrosswordLayoutInfo info;
 
-	private boolean hovered;
 	private boolean dragged;
 
+	private final IBorderGLRenderer border;
+
 	public CrosswordElement(TablePerspective tablePerspective) {
-		setLayout(GLLayouts.LAYERS);
+		setLayout(this);
 		this.tablePerspective = tablePerspective;
 		this.selection = new TablePerspectiveSelectionMixin(tablePerspective, this);
 		this.info = new CrosswordLayoutInfo(this);
 		setLayoutData(GLLayoutDatas.combine(tablePerspective, info));
-		this.add(createContent(tablePerspective));
+		GLElementFactorySwitcher switcher = createContent(tablePerspective);
+		switcher.onActiveChanged(info);
+		this.add(switcher);
+		this.add(switcher.createButtonBar());
+		this.border = Borders.createBorder(tablePerspective.getDataDomain().getColor());
+		this.add(new ReScaleBorder(info).setRenderer(border));
 		this.onPick(this);
 		this.setVisibility(EVisibility.PICKABLE);
-		setRenderer(Borders.createBorder(tablePerspective.getDataDomain().getColor()));
+	}
+
+	@Override
+	public void doLayout(List<? extends IGLLayoutElement> children, float w, float h) {
+		CrosswordLayout.doElementLayout(children, w, h);
 	}
 
 	@Override
@@ -71,6 +85,7 @@ public class CrosswordElement extends GLElementContainer implements
 		return super.getLayoutDataAs(clazz, default_);
 	}
 
+
 	IGLElementContext getContext() {
 		return context;
 	}
@@ -80,10 +95,10 @@ public class CrosswordElement extends GLElementContainer implements
 		IMouseEvent event = ((IMouseEvent) pick);
 		switch (pick.getPickingMode()) {
 		case MOUSE_OVER:
-			hovered = true;
+			border.setColor(border.getColor().darker());
 			break;
 		case MOUSE_OUT:
-			hovered = false;
+			border.setColor(border.getColor().brighter());
 			break;
 		case CLICKED:
 			if (event.isCtrlDown() && !pick.isAnyDragging()) {
@@ -108,7 +123,8 @@ public class CrosswordElement extends GLElementContainer implements
 			break;
 		case MOUSE_WHEEL:
 			if (event.isCtrlDown() && event.getWheelRotation() != 0) {
-				setZoomFactor(info.getZoomFactor() * Math.pow(1.2, event.getWheelRotation()));
+				double factor = Math.pow(1.2, event.getWheelRotation());
+				info.zoom(factor);
 			}
 			break;
 		default:
@@ -128,14 +144,6 @@ public class CrosswordElement extends GLElementContainer implements
 	}
 
 	/**
-	 * @param zoomFactor
-	 *            setter, see {@link zoomFactor}
-	 */
-	public void setZoomFactor(double zoomFactor) {
-		info.setZoomFactor(zoomFactor);
-	}
-
-	/**
 	 * @param tablePerspective2
 	 * @return
 	 */
@@ -146,8 +154,10 @@ public class CrosswordElement extends GLElementContainer implements
 		builder.set("heatmap.forceTextures"); // force heatmap to use textures
 		ImmutableList<GLElementSupplier> extensions = GLElementFactories.getExtensions(builder.build(),
 				"crossword.block", Predicates.alwaysTrue());
-		return new GLElementFactorySwitcher(extensions, ELazyiness.DESTROY);
+		GLElementFactorySwitcher swicher = new GLElementFactorySwitcher(extensions, ELazyiness.DESTROY);
+		return swicher;
 	}
+
 
 	/**
 	 * @return the tablePerspective, see {@link #tablePerspective}
