@@ -19,28 +19,40 @@
  *******************************************************************************/
 package org.caleydo.view.crossword.internal.ui;
 
-import org.caleydo.core.view.opengl.picking.IPickingListener;
-import org.caleydo.core.view.opengl.picking.Pick;
 
 /**
  * layout specific information
- * 
+ *
  * @author Samuel Gratzl
- * 
+ *
  */
-public class CrosswordLayoutInfo implements IPickingListener {
-	private boolean hovered;
-	private boolean dragged;
+public class CrosswordLayoutInfo {
+	private final CrosswordElement parent;
 
-	@Override
-	public void pick(Pick pick) {
-		switch (pick.getPickingMode()) {
-		case MOUSE_OVER:
-			hovered = true;
-			break;
-		case MOUSE_OUT:
-			hovered = false;
-			break;
-		}
+	private double zoomFactor = 1.0f;
+
+	/**
+	 * @param crosswordElement
+	 */
+	public CrosswordLayoutInfo(CrosswordElement parent) {
+		this.parent = parent;
+	}
+
+	/**
+	 * @param zoomFactor
+	 *            setter, see {@link zoomFactor}
+	 */
+	public void setZoomFactor(double zoomFactor) {
+		if (this.zoomFactor == zoomFactor)
+			return;
+		this.zoomFactor = zoomFactor;
+		parent.getParent().relayout();
+	}
+
+	/**
+	 * @return the zoomFactor, see {@link #zoomFactor}
+	 */
+	public double getZoomFactor() {
+		return zoomFactor;
 	}
 }

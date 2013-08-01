@@ -5,7 +5,7 @@
  ******************************************************************************/
 package org.caleydo.view.crossword.internal;
 
-import java.util.Iterator;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.caleydo.core.data.datadomain.DataSupportDefinitions;
@@ -20,7 +20,7 @@ import org.caleydo.view.crossword.internal.serial.SerializedCrosswordView;
 import org.caleydo.view.crossword.internal.ui.CrosswordElement;
 import org.caleydo.view.crossword.ui.CrosswordMultiElement;
 
-import com.google.common.collect.Iterators;
+import com.google.common.collect.Iterables;
 
 /**
  * basic view based on {@link GLElement} with a {@link AMultiTablePerspectiveElementView}
@@ -46,6 +46,11 @@ public class GLCrosswordView extends AMultiTablePerspectiveElementView {
 	}
 
 	@Override
+	protected GLElement createContent() {
+		return crossword;
+	}
+
+	@Override
 	public IDataSupportDefinition getDataSupportDefinition() {
 		return DataSupportDefinitions.all;
 	}
@@ -53,19 +58,17 @@ public class GLCrosswordView extends AMultiTablePerspectiveElementView {
 	@Override
 	protected void applyTablePerspectives(GLElementDecorator root, List<TablePerspective> all,
 			List<TablePerspective> added, List<TablePerspective> removed) {
-		if (root.getContent() == null)
-			root.setContent(crossword);
 		if (!removed.isEmpty()) {
-			for (Iterator<CrosswordElement> it = Iterators.filter(crossword.iterator(), CrosswordElement.class); it
-					.hasNext();) {
-				if (removed.contains(it.next().getTablePerspective()))
-					it.remove();
+			List<CrosswordElement> toRemove = new ArrayList<>();
+			for (CrosswordElement elem : Iterables.filter(crossword, CrosswordElement.class)) {
+				if (removed.contains(elem.getTablePerspective()))
+					toRemove.add(elem);
 			}
+			for (CrosswordElement r : toRemove)
+				crossword.remove(r);
 		}
 		for (TablePerspective t : added) {
 			crossword.add(new CrosswordElement(t));
-			for (TablePerspective rt : t.getRecordSubTablePerspectives())
-				crossword.add(new CrosswordElement(rt));
 		}
 
 	}

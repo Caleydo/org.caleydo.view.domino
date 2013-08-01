@@ -5,13 +5,30 @@
  ******************************************************************************/
 package org.caleydo.view.crossword.internal.ui;
 
+import gleem.linalg.Vec2f;
+
 import org.caleydo.core.data.perspective.table.TablePerspective;
 import org.caleydo.core.data.selection.SelectionManager;
 import org.caleydo.core.data.selection.TablePerspectiveSelectionMixin;
 import org.caleydo.core.event.EventListenerManager.DeepScan;
-import org.caleydo.core.view.opengl.layout2.GLGraphics;
-import org.caleydo.core.view.opengl.layout2.PickableGLElement;
+import org.caleydo.core.view.opengl.canvas.EDetailLevel;
+import org.caleydo.core.view.opengl.canvas.IGLMouseListener.IMouseEvent;
+import org.caleydo.core.view.opengl.layout2.GLElementContainer;
+import org.caleydo.core.view.opengl.layout2.IGLElementContext;
 import org.caleydo.core.view.opengl.layout2.layout.GLLayoutDatas;
+import org.caleydo.core.view.opengl.layout2.layout.GLLayouts;
+import org.caleydo.core.view.opengl.layout2.manage.GLElementFactories;
+import org.caleydo.core.view.opengl.layout2.manage.GLElementFactories.GLElementSupplier;
+import org.caleydo.core.view.opengl.layout2.manage.GLElementFactoryContext;
+import org.caleydo.core.view.opengl.layout2.manage.GLElementFactoryContext.Builder;
+import org.caleydo.core.view.opengl.layout2.manage.GLElementFactorySwitcher;
+import org.caleydo.core.view.opengl.layout2.manage.GLElementFactorySwitcher.ELazyiness;
+import org.caleydo.core.view.opengl.picking.IPickingListener;
+import org.caleydo.core.view.opengl.picking.Pick;
+import org.eclipse.swt.SWT;
+
+import com.google.common.base.Predicates;
+import com.google.common.collect.ImmutableList;
 
 /**
  * the root element of this view holding a {@link TablePerspective}
@@ -19,8 +36,8 @@ import org.caleydo.core.view.opengl.layout2.layout.GLLayoutDatas;
  * @author Samuel Gratzl
  *
  */
-public class CrosswordElement extends PickableGLElement implements
-		TablePerspectiveSelectionMixin.ITablePerspectiveMixinCallback {
+public class CrosswordElement extends GLElementContainer implements
+		TablePerspectiveSelectionMixin.ITablePerspectiveMixinCallback, IPickingListener {
 
 	private final TablePerspective tablePerspective;
 
@@ -30,12 +47,102 @@ public class CrosswordElement extends PickableGLElement implements
 	@DeepScan
 	private final CrosswordLayoutInfo info;
 
+	private boolean hovered;
+	private boolean dragged;
+
 	public CrosswordElement(TablePerspective tablePerspective) {
+		setLayout(GLLayouts.LAYERS);
 		this.tablePerspective = tablePerspective;
 		this.selection = new TablePerspectiveSelectionMixin(tablePerspective, this);
-		this.info = new CrosswordLayoutInfo();
-		this.onPick(this.info);
+		this.info = new CrosswordLayoutInfo(this);
 		setLayoutData(GLLayoutDatas.combine(tablePerspective, info));
+		this.add(createContent(tablePerspective));
+		this.onPick(this);
+		this.setVisibility(EVisibility.PICKABLE);
+	}
+
+	@Override
+	public <T> T getLayoutDataAs(java.lang.Class<T> clazz, T default_) {
+		T v = get(0).getLayoutDataAs(clazz, null);
+		if (v != null)
+			return v;
+		return super.getLayoutDataAs(clazz, default_);
+	}
+
+	IGLElementContext getContext() {
+		return context;
+	}
+
+	@Override
+	public void pick(Pick pick) {
+		IMouseEvent event = ((IMouseEvent) pick);
+		switch (pick.getPickingMode()) {
+		case MOUSE_OVER:
+			hovered = true;
+			break;
+		case MOUSE_OUT:
+			hovered = false;
+			break;
+		case CLICKED:
+			if (event.isCtrlDown() && !pick.isAnyDragging()) {
+				context.getSWTLayer().setCursor(SWT.CURSOR_HAND);
+				pick.setDoDragging(true);
+				dragged = true;
+			}
+			break;
+		case DRAGGED:
+			if (!dragged)
+				return;
+			float dx = pick.getDx();
+			float dy = pick.getDy();
+			move(dx, dy);
+			break;
+		case MOUSE_RELEASED:
+			if (dragged) {
+				context.getSWTLayer().setCursor(-1);
+				break;
+			}
+			break;
+		case MOUSE_WHEEL:
+			if (event.isCtrlDown() && event.getWheelRotation() != 0) {
+				setZoomFactor(info.getZoomFactor() * Math.pow(1.2, event.getWheelRotation()));
+			}
+			break;
+		default:
+			break;
+		}
+	}
+
+	/**
+	 * @param dx
+	 * @param dy
+	 */
+	private void move(float dx, float dy) {
+		if (dx == 0 && dy == 0)
+			return;
+		Vec2f location = getLocation();
+		setLocation(location.x() + dx, location.y() + dy);
+	}
+
+	/**
+	 * @param zoomFactor
+	 *            setter, see {@link zoomFactor}
+	 */
+	public void setZoomFactor(double zoomFactor) {
+		info.setZoomFactor(zoomFactor);
+	}
+
+	/**
+	 * @param tablePerspective2
+	 * @return
+	 */
+	private static GLElementFactorySwitcher createContent(TablePerspective tablePerspective) {
+		Builder builder = GLElementFactoryContext.builder();
+		builder.withData(tablePerspective);
+		builder.put(EDetailLevel.class, EDetailLevel.MEDIUM);
+		ImmutableList<GLElementSupplier> extensions = GLElementFactories.getExtensions(builder.build(),
+				"crossword.block", Predicates.alwaysTrue());
+		return new GLElementFactorySwitcher(extensions, ELazyiness.DESTROY);
 	}
 
 	/**
@@ -43,12 +150,6 @@ public class CrosswordElement extends PickableGLElement implements
 	 */
 	public TablePerspective getTablePerspective() {
 		return tablePerspective;
-	}
-
-	@Override
-	protected void renderImpl(GLGraphics g, float w, float h) {
-		g.color(tablePerspective.getDataDomain().getColor()).fillRect(0, 0, w, h);
-		super.renderImpl(g, w, h);
 	}
 
 	@Override
