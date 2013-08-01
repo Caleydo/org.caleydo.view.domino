@@ -23,6 +23,7 @@ import org.caleydo.core.view.opengl.layout2.manage.GLElementFactoryContext;
 import org.caleydo.core.view.opengl.layout2.manage.GLElementFactoryContext.Builder;
 import org.caleydo.core.view.opengl.layout2.manage.GLElementFactorySwitcher;
 import org.caleydo.core.view.opengl.layout2.manage.GLElementFactorySwitcher.ELazyiness;
+import org.caleydo.core.view.opengl.layout2.renderer.Borders;
 import org.caleydo.core.view.opengl.picking.IPickingListener;
 import org.caleydo.core.view.opengl.picking.Pick;
 import org.eclipse.swt.SWT;
@@ -59,6 +60,7 @@ public class CrosswordElement extends GLElementContainer implements
 		this.add(createContent(tablePerspective));
 		this.onPick(this);
 		this.setVisibility(EVisibility.PICKABLE);
+		setRenderer(Borders.createBorder(tablePerspective.getDataDomain().getColor()));
 	}
 
 	@Override
@@ -100,6 +102,7 @@ public class CrosswordElement extends GLElementContainer implements
 		case MOUSE_RELEASED:
 			if (dragged) {
 				context.getSWTLayer().setCursor(-1);
+				dragged = false;
 				break;
 			}
 			break;
@@ -140,6 +143,7 @@ public class CrosswordElement extends GLElementContainer implements
 		Builder builder = GLElementFactoryContext.builder();
 		builder.withData(tablePerspective);
 		builder.put(EDetailLevel.class, EDetailLevel.MEDIUM);
+		builder.set("heatmap.forceTextures"); // force heatmap to use textures
 		ImmutableList<GLElementSupplier> extensions = GLElementFactories.getExtensions(builder.build(),
 				"crossword.block", Predicates.alwaysTrue());
 		return new GLElementFactorySwitcher(extensions, ELazyiness.DESTROY);

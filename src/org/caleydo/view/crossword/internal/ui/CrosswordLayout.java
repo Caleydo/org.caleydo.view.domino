@@ -5,7 +5,6 @@
  ******************************************************************************/
 package org.caleydo.view.crossword.internal.ui;
 
-import static org.caleydo.core.view.opengl.layout2.layout.GLLayouts.defaultValue;
 import gleem.linalg.Vec2f;
 
 import java.util.ArrayList;
@@ -34,8 +33,8 @@ public class CrosswordLayout implements IGLLayout {
 		float acc = 10;
 		for (LayoutHelper helper : elems) {
 			Vec2f loc = helper.getLocation();
-			loc.setX(defaultValue(loc.x(), acc));
-			loc.setY(defaultValue(loc.y(), 10));
+			loc.setX(Float.isNaN(loc.x()) ? acc : loc.x());
+			loc.setY(Float.isNaN(loc.y()) ? acc : loc.y());
 			Vec2f msize = helper.getMinSize();
 			msize.scale((float)helper.getZoomFactor());
 			helper.setBounds(loc,msize);
