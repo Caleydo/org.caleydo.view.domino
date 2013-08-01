@@ -10,16 +10,25 @@ import gleem.linalg.Vec4f;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 
 import org.caleydo.core.data.perspective.table.TablePerspective;
 import org.caleydo.core.view.opengl.layout2.GLElement;
-import org.caleydo.core.view.opengl.layout2.GLElementContainer;
+import org.caleydo.core.view.opengl.layout2.GLElementAccessor;
+import org.caleydo.core.view.opengl.layout2.GLGraphics;
+import org.caleydo.core.view.opengl.layout2.IGLElementContext;
+import org.caleydo.core.view.opengl.layout2.IGLElementParent;
 import org.caleydo.core.view.opengl.layout2.basic.ScrollingDecorator.IHasMinSize;
-import org.caleydo.core.view.opengl.layout2.layout.IGLLayout;
 import org.caleydo.core.view.opengl.layout2.layout.IGLLayoutElement;
+import org.jgrapht.UndirectedGraph;
+import org.jgrapht.graph.DefaultEdge;
+import org.jgrapht.graph.Pseudograph;
 
 import com.google.common.collect.Iterables;
+import com.google.common.collect.Iterators;
 
 /**
  * layout implementation
@@ -27,18 +36,19 @@ import com.google.common.collect.Iterables;
  * @author Samuel Gratzl
  *
  */
-public class CrosswordMultiElement extends GLElementContainer implements IGLLayout, IHasMinSize {
+public class CrosswordMultiElement extends GLElement implements IHasMinSize, IGLElementParent,
+		Iterable<CrosswordElement> {
 
+	private UndirectedGraph<CrosswordElement, BandEdge> graph = new Pseudograph<>(BandEdge.class);
 	private boolean alwaysShowHeader;
 
 	/**
 	 *
 	 */
 	public CrosswordMultiElement() {
-		setLayout(this);
+
 	}
 
-	@Override
 	public void doLayout(List<? extends IGLLayoutElement> children, float w, float h) {
 		float acc = 10;
 		float x_shift = 0;
@@ -104,7 +114,113 @@ public class CrosswordMultiElement extends GLElementContainer implements IGLLayo
 	 * @param dimensionSubTablePerspectives
 	 */
 	public void add(TablePerspective tablePerspective) {
-		this.add(new CrosswordElement(tablePerspective));
+		add(new CrosswordElement(tablePerspective));
+	}
+
+	@Override
+	public void layout(int deltaTimeMs) {
+		super.layout(deltaTimeMs);
+		for (GLElement child : this)
+			child.layout(deltaTimeMs);
+	}
+
+	@Override
+	protected final void layoutImpl() {
+		super.layoutImpl();
+		List<IGLLayoutElement> l = asLayoutElements();
+		Vec2f size = getSize();
+		doLayout(l, size.x(), size.y());
+	}
+
+	private List<IGLLayoutElement> asLayoutElements() {
+		Set<CrosswordElement> s = graph.vertexSet();
+		List<IGLLayoutElement> l = new ArrayList<>(s.size());
+		for (CrosswordElement child : s)
+			if (child.getVisibility() != EVisibility.NONE)
+				l.add(GLElementAccessor.asLayoutElement(child));
+		return Collections.unmodifiableList(l);
+	}
+
+	@Override
+	protected void takeDown() {
+		for (GLElement elem : this)
+			GLElementAccessor.takeDown(elem);
+		super.takeDown();
+	}
+
+	@Override
+	protected void init(IGLElementContext context) {
+		super.init(context);
+		for (GLElement child : this)
+			GLElementAccessor.init(child, context);
+	}
+
+	private void setup(CrosswordElement child) {
+		IGLElementParent ex = child.getParent();
+		boolean doInit = ex == null;
+		if (ex == this) {
+			// internal move
+			graph.removeVertex(child);
+		} else if (ex != null) {
+			doInit = ex.moved(child);
+		}
+		GLElementAccessor.setParent(child, this);
+		if (doInit && context != null)
+			GLElementAccessor.init(child, context);
+	}
+
+	/**
+	 * @param crosswordElement
+	 */
+	private void add(CrosswordElement child) {
+		setup(child);
+		graph.addVertex(child);
+
+	}
+
+	@Override
+	public boolean moved(GLElement child) {
+		if (child instanceof CrosswordElement)
+			graph.removeVertex((CrosswordElement) child);
+		relayout();
+		return context != null;
+	}
+
+	@Override
+	public Iterator<CrosswordElement> iterator() {
+		return Iterators.unmodifiableIterator(graph.vertexSet().iterator());
+	}
+
+	@Override
+	protected void renderImpl(GLGraphics g, float w, float h) {
+		super.renderImpl(g, w, h);
+		g.incZ();
+		for (GLElement child : graph.vertexSet())
+			child.render(g);
+		g.decZ();
+	}
+
+	@Override
+	protected void renderPickImpl(GLGraphics g, float w, float h) {
+		super.renderPickImpl(g, w, h);
+		g.incZ();
+		for (GLElement child : graph.vertexSet())
+			child.renderPick(g);
+		g.decZ();
+	}
+
+	@Override
+	protected boolean hasPickAbles() {
+		return super.hasPickAbles() || !graph.vertexSet().isEmpty();
+	}
+	/**
+	 * @param r
+	 */
+	void remove(CrosswordElement child) {
+		if (graph.removeVertex(child)) {
+			GLElementAccessor.takeDown(child);
+			relayout();
+		}
 	}
 
 	public void addAll(Iterable<TablePerspective> tablePerspectives) {
@@ -125,5 +241,10 @@ public class CrosswordMultiElement extends GLElementContainer implements IGLLayo
 		}
 		for (CrosswordElement r : toRemove)
 			remove(r);
+	}
+
+
+	private static class BandEdge extends DefaultEdge {
+
 	}
 }

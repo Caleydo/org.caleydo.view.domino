@@ -216,7 +216,8 @@ public class CrosswordElement extends AnimatedGLElementContainer implements
 		ImmutableList<GLElementSupplier> extensions = GLElementFactories.getExtensions(builder.build(),
  "crossword",
 				Predicates.alwaysTrue());
-		GLElementFactorySwitcher swicher = new GLElementFactorySwitcher(extensions, ELazyiness.DESTROY);
+		GLElementFactorySwitcher swicher = new GLElementFactorySwitcher(extensions, ELazyiness.DESTROY,
+				GLRenderers.fillRect(Color.BLUE));
 		return swicher;
 	}
 
