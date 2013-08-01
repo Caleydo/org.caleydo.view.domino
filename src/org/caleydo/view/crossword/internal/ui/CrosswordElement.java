@@ -5,8 +5,6 @@
  ******************************************************************************/
 package org.caleydo.view.crossword.internal.ui;
 
-import gleem.linalg.Vec2f;
-
 import java.util.List;
 
 import org.caleydo.core.data.perspective.table.TablePerspective;
@@ -110,9 +108,7 @@ public class CrosswordElement extends GLElementContainer implements
 		case DRAGGED:
 			if (!dragged)
 				return;
-			float dx = pick.getDx();
-			float dy = pick.getDy();
-			move(dx, dy);
+			info.shift(pick.getDx(), pick.getDy());
 			break;
 		case MOUSE_RELEASED:
 			if (dragged) {
@@ -122,25 +118,11 @@ public class CrosswordElement extends GLElementContainer implements
 			}
 			break;
 		case MOUSE_WHEEL:
-			if (event.isCtrlDown() && event.getWheelRotation() != 0) {
-				double factor = Math.pow(1.2, event.getWheelRotation());
-				info.zoom(factor);
-			}
+			info.zoom(event);
 			break;
 		default:
 			break;
 		}
-	}
-
-	/**
-	 * @param dx
-	 * @param dy
-	 */
-	private void move(float dx, float dy) {
-		if (dx == 0 && dy == 0)
-			return;
-		Vec2f location = getLocation();
-		setLocation(location.x() + dx, location.y() + dy);
 	}
 
 	/**

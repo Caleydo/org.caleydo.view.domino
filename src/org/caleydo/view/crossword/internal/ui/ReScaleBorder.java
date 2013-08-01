@@ -140,7 +140,7 @@ public class ReScaleBorder extends GLElement implements IPickingListener {
 	@Override
 	protected void renderPickImpl(GLGraphics g, float w, float h) {
 		super.renderPickImpl(g, w, h);
-		g.lineWidth(3).decZ();
+		g.lineWidth(3);
 		final float t = Math.min(w, h) * 0.05f;
 		final float t2 = t*2;
 		final float x = -1;
@@ -157,7 +157,7 @@ public class ReScaleBorder extends GLElement implements IPickingListener {
 		g.pushName(pickingIds[SOUTHWEST]).drawLine(x, h - t, x, t).drawLine(x, h, t, h).popName();
 		g.pushName(pickingIds[NORTHWEST]).drawLine(x, y, t, y).drawLine(x, y, x, t).popName();
 
-		g.lineWidth(1).incZ();
+		g.lineWidth(1);
 	}
 
 	@Override

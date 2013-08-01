@@ -21,6 +21,7 @@ package org.caleydo.view.crossword.internal.ui;
 
 import gleem.linalg.Vec2f;
 
+import org.caleydo.core.view.opengl.canvas.IGLMouseListener.IMouseEvent;
 import org.caleydo.core.view.opengl.layout2.basic.ScrollingDecorator.IHasMinSize;
 import org.caleydo.core.view.opengl.layout2.layout.IGLLayoutElement;
 import org.caleydo.core.view.opengl.layout2.layout.IHasGLLayoutData;
@@ -83,16 +84,50 @@ public class CrosswordLayoutInfo implements IActiveChangedCallback {
 	/**
 	 * @param factor
 	 */
-	public void zoom(double factor) {
+	public boolean zoom(float factor) {
 		if (factor == 1.0f || Double.isNaN(factor) || Double.isInfinite(factor) || factor <= 0)
-			return;
-		this.zoomFactorX = zoomFactorX * (float) factor;
-		this.zoomFactorY = zoomFactorY * (float) factor;
+			return false;
+		this.zoomFactorX = zoomFactorX * factor;
+		this.zoomFactorY = zoomFactorY * factor;
 		parent.getParent().relayout();
+		return true;
 	}
 
+	/**
+	 * zoom implementation of the given picking event
+	 *
+	 * @param event
+	 */
+	public void zoom(IMouseEvent event) {
+		if (!event.isCtrlDown() || event.getWheelRotation() == 0)
+			return;
+		float factor = (float) Math.pow(1.2, event.getWheelRotation());
+		boolean isCenteredZoom = !event.isShiftDown();
+		zoom(factor);
+		if (isCenteredZoom) {
+			Vec2f pos = parent.toRelative(event.getDIPPoint());
+			// compute the new new mouse pos considers zoom
+			Vec2f new_ = pos.times(factor);
+			pos.sub(new_);
+			// shift the location according to the delta
+			shift(pos.x(), pos.y());
+		}
+	}
 
-		/**
+	/**
+	 * shift the location the item
+	 *
+	 * @param x
+	 * @param y
+	 */
+	public void shift(float x, float y) {
+		if (x == 0 && y == 0)
+			return;
+		Vec2f loc = parent.getLocation();
+		parent.setLocation(loc.x() + x, loc.y() + y);
+	}
+
+	/**
 	 * enlarge the view by moving and rescaling
 	 *
 	 * @param x
