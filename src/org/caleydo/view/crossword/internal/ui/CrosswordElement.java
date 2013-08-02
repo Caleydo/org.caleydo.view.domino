@@ -6,10 +6,10 @@
 package org.caleydo.view.crossword.internal.ui;
 
 import static org.caleydo.core.view.opengl.layout2.animation.Transitions.LINEAR;
-import static org.caleydo.view.crossword.internal.Settings.TOOLBAR_BACKGROUND;
 import static org.caleydo.view.crossword.internal.Settings.TOOLBAR_TEXT_COLOR;
 import static org.caleydo.view.crossword.internal.Settings.TOOLBAR_TEXT_HEIGHT;
 import static org.caleydo.view.crossword.internal.Settings.TOOLBAR_WIDTH;
+import static org.caleydo.view.crossword.internal.Settings.toolbarBackground;
 
 import java.net.URL;
 import java.util.Set;
@@ -99,7 +99,9 @@ public class CrosswordElement extends AnimatedGLElementContainer implements
 		this.add(switcher);
 		this.border = Borders.createBorder(tablePerspective.getDataDomain().getColor());
 		this.add(new ReScaleBorder(info).setRenderer(border));
-		this.add(animated(true,new Header(tablePerspective, switcher.size() > 1 ? switcher.createButtonBar() : null)));
+		final Header header = new Header(tablePerspective, switcher.size() > 1 ? switcher.createButtonBar() : null);
+		header.onPick(this);
+		this.add(animated(true, header));
 		this.add(animated(false, new VerticalToolBar(null, this, tablePerspective)));
 
 		onVAUpdate(tablePerspective);
@@ -168,33 +170,41 @@ public class CrosswordElement extends AnimatedGLElementContainer implements
 	@Override
 	public void pick(Pick pick) {
 		IMouseEvent event = ((IMouseEvent) pick);
+		boolean isToolBar = pick.getObjectID() == 1;
 		switch (pick.getPickingMode()) {
 		case MOUSE_OVER:
-			EventPublisher.trigger(new DataSetSelectedEvent(getTablePerspective()));
-			border.setColor(border.getColor().darker());
-			info.setHovered(true);
+			if (!isToolBar) {
+				EventPublisher.trigger(new DataSetSelectedEvent(getTablePerspective()));
+				border.setColor(border.getColor().darker());
+				info.setHovered(true);
+			}
 			break;
 		case MOUSE_OUT:
 			// doesn't work EventPublisher.trigger(new DataSetSelectedEvent((TablePerspective) null));
-			border.setColor(border.getColor().brighter());
-			info.setHovered(false);
+			if (!isToolBar) {
+				border.setColor(border.getColor().brighter());
+				info.setHovered(false);
+			}
 			break;
 		case CLICKED:
-			if (event.isCtrlDown() && !pick.isAnyDragging()) {
-				context.getSWTLayer().setCursor(SWT.CURSOR_HAND);
+			if (((isToolBar && !event.isCtrlDown()) || (!isToolBar && event.isCtrlDown())) && !pick.isAnyDragging()) {
 				pick.setDoDragging(true);
 			}
+			if (isToolBar)
+				info.setSelected(true);
 			break;
 		case DRAGGED:
 			if (!pick.isDoDragging())
 				return;
+			context.getSWTLayer().setCursor(SWT.CURSOR_HAND);
 			info.shift(pick.getDx(), pick.getDy());
 			break;
 		case MOUSE_RELEASED:
 			if (pick.isDoDragging()) {
 				context.getSWTLayer().setCursor(-1);
-				break;
 			}
+			if (isToolBar)
+				info.setSelected(event.isCtrlDown()); // multi selection
 			break;
 		case MOUSE_WHEEL:
 			info.zoom(event);
@@ -269,24 +279,48 @@ public class CrosswordElement extends AnimatedGLElementContainer implements
 		}
 	}
 
-	private static class Header extends GLElementContainer {
+	private static class AToolBar extends GLElementContainer {
+		private final int roundedRectFlags;
+
+		public AToolBar(int roundedRectFlags) {
+			setVisibility(EVisibility.PICKABLE);// pickable for my parent to have common area
+			this.roundedRectFlags = roundedRectFlags;
+		}
+
+		protected final CrosswordLayoutInfo getInfo() {
+			return getParent().getLayoutDataAs(CrosswordLayoutInfo.class, null);
+		}
+
+		@Override
+		protected void renderImpl(GLGraphics g, float w, float h) {
+			g.color(toolbarBackground(getInfo().isSelected()));
+			RoundedRectRenderer.render(g, 0, 0, w, h, Math.min(w, h) * 0.3f, 3, RoundedRectRenderer.FLAG_FILL
+					| roundedRectFlags);
+			super.renderImpl(g, w, h);
+		}
+	}
+
+	private static class Header extends AToolBar {
 		private final ILabeled label;
 
 		public Header(ILabeled label, GLElementContainer buttonBar) {
+			super(RoundedRectRenderer.FLAG_TOP);
 			setLayout(new GLFlowLayout(true, 2, GLPadding.ONE));
 			if (buttonBar != null) {
 				add(new GLElement()); // spacer
 				this.add(buttonBar);
 			}
 			this.label = label;
-			setVisibility(EVisibility.PICKABLE);
+		}
+
+		@Override
+		protected int getPickingObjectId() {
+			return 1;
 		}
 
 		@Override
 		protected void renderImpl(GLGraphics g, float w, float h) {
-			g.color(TOOLBAR_BACKGROUND());
-			RoundedRectRenderer.render(g, 0, 0, w, h, Math.min(w, h) * 0.3f, 3, RoundedRectRenderer.FLAG_FILL
-					| RoundedRectRenderer.FLAG_TOP);
+			super.renderImpl(g, w, h);
 			float start;
 			if (size() > 1) {
 				start = get(1).getLocation().x();
@@ -294,12 +328,12 @@ public class CrosswordElement extends AnimatedGLElementContainer implements
 				start = w;
 			g.textColor(TOOLBAR_TEXT_COLOR()).drawText(label, 2, 1, start - 2 - 4, TOOLBAR_TEXT_HEIGHT)
 					.textColor(Color.BLACK);
-			super.renderImpl(g, w, h);
 		}
 	}
 
-	private static class VerticalToolBar extends GLElementContainer {
+	private static class VerticalToolBar extends AToolBar {
 		public VerticalToolBar(GLElementContainer buttonBar, GLButton.ISelectionCallback callback, TablePerspective data) {
+			super(RoundedRectRenderer.FLAG_LEFT);
 			setLayout(new GLFlowLayout(false, 2, GLPadding.ONE));
 			addButton("Close", Resources.deleteIcon(), callback, true);
 			addButton("Split X", Resources.cutDimension(), callback, data.getDimensionPerspective().getVirtualArray()
@@ -314,7 +348,11 @@ public class CrosswordElement extends AnimatedGLElementContainer implements
 				this.add(buttonBar);
 			}
 			setSize(-1, TOOLBAR_WIDTH);
-			setVisibility(EVisibility.PICKABLE); // pickable for my parent to have common area
+		}
+
+		@Override
+		protected int getPickingObjectId() {
+			return 2;
 		}
 
 		private void addButton(String tooltip, URL icon, ISelectionCallback callback, boolean enable) {
@@ -331,15 +369,6 @@ public class CrosswordElement extends AnimatedGLElementContainer implements
 
 			b.setSize(-1, TOOLBAR_WIDTH);
 			this.add(b);
-		}
-
-
-		@Override
-		protected void renderImpl(GLGraphics g, float w, float h) {
-			g.color(TOOLBAR_BACKGROUND());
-			RoundedRectRenderer.render(g, 0, 0, w, h, Math.min(w, h) * 0.3f, 3, RoundedRectRenderer.FLAG_FILL
-					| RoundedRectRenderer.FLAG_TOP_LEFT | RoundedRectRenderer.FLAG_BOTTOM_LEFT);
-			super.renderImpl(g, w, h);
 		}
 	}
 

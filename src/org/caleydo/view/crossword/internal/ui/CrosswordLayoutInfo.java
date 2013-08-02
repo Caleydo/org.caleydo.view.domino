@@ -25,6 +25,7 @@ import gleem.linalg.Vec2f;
 import java.util.List;
 
 import org.caleydo.core.view.opengl.canvas.IGLMouseListener.IMouseEvent;
+import org.caleydo.core.view.opengl.layout2.GLElementAccessor;
 import org.caleydo.core.view.opengl.layout2.basic.ScrollingDecorator.IHasMinSize;
 import org.caleydo.core.view.opengl.layout2.layout.IGLLayout;
 import org.caleydo.core.view.opengl.layout2.layout.IGLLayoutElement;
@@ -42,6 +43,8 @@ public class CrosswordLayoutInfo implements IActiveChangedCallback, IGLLayout {
 	private float zoomFactorX = 1.0f;
 	private float zoomFactorY = 1.0f;
 	private boolean hovered = false;
+
+	private boolean selected;
 
 	/**
 	 * @param crosswordElement
@@ -168,6 +171,23 @@ public class CrosswordLayoutInfo implements IActiveChangedCallback, IGLLayout {
 	}
 
 	/**
+	 * @param b
+	 */
+	public void setSelected(boolean selected) {
+		if (this.selected == selected)
+			return;
+		this.selected = selected;
+		repaintToolBars();
+	}
+
+	/**
+	 * @return the selected, see {@link #selected}
+	 */
+	public boolean isSelected() {
+		return selected;
+	}
+
+	/**
 	 * @return the hovered, see {@link #hovered}
 	 */
 	public boolean isHovered() {
@@ -195,6 +215,14 @@ public class CrosswordLayoutInfo implements IActiveChangedCallback, IGLLayout {
 			toolbar.setBounds(-shift, -shift, 0, h + shift2);
 
 		border.setBounds(0, 0, w, h);
+	}
+
+	/**
+	 *
+	 */
+	private void repaintToolBars() {
+		GLElementAccessor.repaintDown(parent.get(2));
+		GLElementAccessor.repaintDown(parent.get(3));
 	}
 
 	void scale(Vec2f size) {

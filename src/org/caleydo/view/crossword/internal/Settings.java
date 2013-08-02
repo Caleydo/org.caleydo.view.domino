@@ -19,8 +19,9 @@ public class Settings {
 	public static Color TOOLBAR_TEXT_COLOR() {
 		return Color.WHITE;
 	}
-	public static Color TOOLBAR_BACKGROUND() {
-		return Color.BLACK;
+
+	public static Color toolbarBackground(boolean isSelected) {
+		return !isSelected ? Color.BLACK : Color.DARK_BLUE;
 	}
 
 	public static final float SCROLLBAR_WIDTH = 10;
