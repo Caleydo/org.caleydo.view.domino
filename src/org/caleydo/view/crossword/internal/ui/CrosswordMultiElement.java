@@ -210,21 +210,28 @@ public class CrosswordMultiElement extends GLElement implements IHasMinSize, IGL
 			final TablePerspective tablePerspective2 = child.getTablePerspective();
 			final IDType recIDType2 = tablePerspective2.getRecordPerspective().getIdType();
 			final IDType dimIDType2 = tablePerspective2.getDimensionPerspective().getIdType();
+			final TablePerspective parent2 = tablePerspective2.getParentTablePerspective();
 			int flags = 0;
 			boolean isParent = tablePerspective2.equals(parent);
-			boolean isSister = Objects.equals(tablePerspective2.getParentTablePerspective(), parent) && parent != null;
+			boolean isSister = Objects.equals(parent2, parent) && parent != null;
 			flags |= (isParent ? FLAG_PARENT : 0);
 			flags |= (isSister ? FLAG_SISTER : 0);
 			if (recIDType.resolvesTo(recIDType2))
-				graph.addEdge(child, other, createEdge(true, true, flags));
+				addEdge(child, other, true, true, flags);
 			else if (dimIDType.resolvesTo(recIDType2))
-				graph.addEdge(child, other, createEdge(false, true, flags));
+				addEdge(child, other, false, true, flags);
 			if (recIDType.resolvesTo(dimIDType2))
-				graph.addEdge(child, other, createEdge(true, false, flags));
+				addEdge(child, other, true, false, flags);
 			else if (dimIDType.resolvesTo(dimIDType2))
-				graph.addEdge(child, other, createEdge(false, false, flags));
+				addEdge(child, other, false, false, flags);
 		}
 		relayout();
+	}
+
+	private void addEdge(CrosswordElement child, CrosswordElement other, boolean hor1, boolean hor2, int flags) {
+		final ABandEdge edge = createEdge(true, true, flags);
+		graph.addEdge(child, other, edge);
+		edge.update();
 	}
 
 	private static ABandEdge createEdge(boolean hor1, boolean hor2, int flags) {

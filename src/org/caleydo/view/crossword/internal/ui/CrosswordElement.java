@@ -183,7 +183,7 @@ public class CrosswordElement extends AnimatedGLElementContainer implements
 			// doesn't work EventPublisher.trigger(new DataSetSelectedEvent((TablePerspective) null));
 			if (!isToolBar) {
 				border.setColor(border.getColor().brighter());
-				info.setHovered(false);
+				info.setHovered(info.isSelected());
 			}
 			break;
 		case CLICKED:
