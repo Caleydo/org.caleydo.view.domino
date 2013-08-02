@@ -217,19 +217,19 @@ public class CrosswordMultiElement extends GLElement implements IHasMinSize, IGL
 			flags |= (isParent ? FLAG_PARENT : 0);
 			flags |= (isSister ? FLAG_SISTER : 0);
 			if (recIDType.resolvesTo(recIDType2))
-				addEdge(child, other, true, true, flags);
-			else if (dimIDType.resolvesTo(recIDType2))
-				addEdge(child, other, false, true, flags);
-			if (recIDType.resolvesTo(dimIDType2))
-				addEdge(child, other, true, false, flags);
-			else if (dimIDType.resolvesTo(dimIDType2))
 				addEdge(child, other, false, false, flags);
+			if (dimIDType.resolvesTo(recIDType2))
+				addEdge(child, other, true, false, flags);
+			if (recIDType.resolvesTo(dimIDType2))
+				addEdge(child, other, false, true, flags);
+			if (dimIDType.resolvesTo(dimIDType2))
+				addEdge(child, other, true, true, flags);
 		}
 		relayout();
 	}
 
 	private void addEdge(CrosswordElement child, CrosswordElement other, boolean hor1, boolean hor2, int flags) {
-		final ABandEdge edge = createEdge(true, true, flags);
+		final ABandEdge edge = createEdge(hor1, hor2, flags);
 		graph.addEdge(child, other, edge);
 		edge.update();
 	}
