@@ -113,7 +113,7 @@ public class CrosswordLayoutInfo implements IActiveChangedCallback, IGLLayout {
 		boolean isCenteredZoom = !event.isShiftDown();
 		zoom(factor);
 		if (isCenteredZoom) {
-			Vec2f pos = parent.toRelative(event.getDIPPoint());
+			Vec2f pos = parent.toRelative(event.getPoint());
 			// compute the new new mouse pos considers zoom
 			Vec2f new_ = pos.times(factor);
 			pos.sub(new_);
