@@ -8,10 +8,6 @@
 		<version>3.0.2-SNAPSHOT</version>
 		<relativePath>../caleydo/org.caleydo.parent</relativePath>
 	</parent>
-	<artifactId>org.caleydo.core</artifactId>
+	<artifactId>org.caleydo.view.crossword</artifactId>
 	<packaging>eclipse-plugin</packaging>
-	
-	<build>
-		<sourceDirectory>src</sourceDirectory>
-	</build>
 </project>
