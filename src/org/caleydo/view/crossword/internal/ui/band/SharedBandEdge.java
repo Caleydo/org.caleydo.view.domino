@@ -14,6 +14,11 @@ import org.caleydo.core.util.color.Color;
 public class SharedBandEdge extends ABandEdge {
 
 	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 6400784633888705942L;
+
+	/**
 	 * @param sHor
 	 * @param tHor
 	 */
