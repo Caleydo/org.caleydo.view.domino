@@ -227,7 +227,7 @@ public class CrosswordElement extends AnimatedGLElementContainer implements
  "crossword",
 				Predicates.alwaysTrue());
 		GLElementFactorySwitcher swicher = new GLElementFactorySwitcher(extensions, ELazyiness.DESTROY,
-				GLRenderers.fillRect(Color.BLUE));
+				GLRenderers.fillRect(tablePerspective.getDataDomain().getColor()));
 		return swicher;
 	}
 
@@ -269,10 +269,10 @@ public class CrosswordElement extends AnimatedGLElementContainer implements
 			parent.remove(this);
 			break;
 		case "Split X":
-			parent.split(this, getTablePerspective().getDimensionSubTablePerspectives());
+			parent.splitDim(this);
 			break;
 		case "Split Y":
-			parent.split(this, getTablePerspective().getRecordSubTablePerspectives());
+			parent.splitRec(this);
 			break;
 		default:
 			break;

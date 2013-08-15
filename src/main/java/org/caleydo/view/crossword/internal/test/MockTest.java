@@ -11,6 +11,7 @@ import java.util.Random;
 import org.caleydo.core.view.opengl.layout2.GLElement;
 import org.caleydo.core.view.opengl.layout2.GLElementDecorator;
 import org.caleydo.core.view.opengl.layout2.GLSandBox;
+import org.caleydo.core.view.opengl.layout2.basic.ScrollingDecorator;
 import org.caleydo.core.view.opengl.layout2.layout.GLPadding;
 import org.caleydo.datadomain.mock.MockDataDomain;
 import org.caleydo.view.crossword.internal.ui.CrosswordMultiElement;
@@ -28,7 +29,6 @@ public class MockTest extends GLSandBox {
 		((GLElementDecorator) getRoot()).setContent(createScene());
 	}
 
-
 	/**
 	 * @return
 	 */
@@ -37,7 +37,11 @@ public class MockTest extends GLSandBox {
 		Random r = new Random();
 		MockDataDomain numerical = MockDataDomain.createNumerical(100, 100, r);
 		m.add(numerical.getDefaultTablePerspective());
-		return m;
+		m.add(numerical.addDimGrouping(true, 10, 20, 50));
+		m.add(numerical.addRecGrouping(false, 10, 40));
+
+
+		return ScrollingDecorator.wrap(m, 10);
 	}
 
 	public static void main(String[] args) {

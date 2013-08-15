@@ -13,8 +13,10 @@ import org.caleydo.core.view.opengl.layout2.GLGraphics;
 import org.caleydo.view.crossword.internal.ui.band.ABandEdge;
 
 /**
+ * a dedicated layer for the bands for better caching behavior
+ * 
  * @author Samuel Gratzl
- *
+ * 
  */
 public class CrosswordBandLayer extends GLElement implements MultiSelectionManagerMixin.ISelectionMixinCallback {
 	@DeepScan

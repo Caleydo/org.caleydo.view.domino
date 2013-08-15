@@ -11,7 +11,7 @@ import org.caleydo.core.util.color.Color;
  * @author Samuel Gratzl
  *
  */
-public class SisterBandEdge extends ABandEdge {
+public class SiblingBandEdge extends ABandEdge {
 
 	/**
 	 * 
@@ -22,7 +22,7 @@ public class SisterBandEdge extends ABandEdge {
 	 * @param sHor
 	 * @param tHor
 	 */
-	public SisterBandEdge(boolean sHor, boolean tHor) {
+	public SiblingBandEdge(boolean sHor, boolean tHor) {
 		super(sHor, tHor, new Color(0, 0.9f, 0f, 0.5f));
 	}
 

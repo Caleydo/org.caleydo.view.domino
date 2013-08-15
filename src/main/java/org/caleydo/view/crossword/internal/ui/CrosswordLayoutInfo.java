@@ -24,6 +24,7 @@ import gleem.linalg.Vec2f;
 
 import java.util.List;
 
+import org.caleydo.core.data.perspective.table.TablePerspective;
 import org.caleydo.core.view.opengl.canvas.IGLMouseListener.IMouseEvent;
 import org.caleydo.core.view.opengl.layout2.GLElementAccessor;
 import org.caleydo.core.view.opengl.layout2.basic.ScrollingDecorator.IHasMinSize;
@@ -240,7 +241,9 @@ public class CrosswordLayoutInfo implements IActiveChangedCallback, IGLLayout {
 		IHasMinSize minSize = elem.getLayoutDataAs(IHasMinSize.class, null);
 		if (minSize != null)
 			return minSize.getMinSize();
-		return elem.getLayoutDataAs(Vec2f.class, new Vec2f(100, 100));
+		TablePerspective tablePerspective = parent.getTablePerspective();
+		return elem.getLayoutDataAs(Vec2f.class,
+				new Vec2f(tablePerspective.getNrDimensions(), tablePerspective.getNrRecords()));
 	}
 
 	void setBounds(IGLLayoutElement elem, Vec2f loc, Vec2f size) {

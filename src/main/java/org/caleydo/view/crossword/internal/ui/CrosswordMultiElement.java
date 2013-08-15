@@ -13,10 +13,8 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Objects;
 import java.util.Set;
 
-import org.apache.commons.lang.BitField;
 import org.caleydo.core.data.perspective.table.TablePerspective;
 import org.caleydo.core.id.IDType;
 import org.caleydo.core.view.opengl.layout2.GLElement;
@@ -29,12 +27,15 @@ import org.caleydo.core.view.opengl.layout2.layout.IGLLayoutElement;
 import org.caleydo.view.crossword.internal.ui.band.ABandEdge;
 import org.caleydo.view.crossword.internal.ui.band.ParentChildBandEdge;
 import org.caleydo.view.crossword.internal.ui.band.SharedBandEdge;
-import org.caleydo.view.crossword.internal.ui.band.SisterBandEdge;
+import org.caleydo.view.crossword.internal.ui.band.SiblingBandEdge;
 import org.jgrapht.UndirectedGraph;
 import org.jgrapht.graph.Pseudograph;
 
+import com.google.common.base.Function;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Iterators;
+import com.google.common.collect.Lists;
 
 /**
  * layout implementation
@@ -44,6 +45,13 @@ import com.google.common.collect.Iterators;
  */
 public class CrosswordMultiElement extends GLElement implements IHasMinSize, IGLElementParent,
 		Iterable<CrosswordElement> {
+
+	private final static Function<TablePerspective, CrosswordElement> toCrosswordElement = new Function<TablePerspective, CrosswordElement>() {
+		@Override
+		public CrosswordElement apply(TablePerspective input) {
+			return new CrosswordElement(input);
+		}
+	};
 
 	private final UndirectedGraph<CrosswordElement, ABandEdge> graph = new Pseudograph<>(ABandEdge.class);
 	private final CrosswordBandLayer bands = new CrosswordBandLayer();
@@ -61,7 +69,7 @@ public class CrosswordMultiElement extends GLElement implements IHasMinSize, IGL
 		float x_shift = 0;
 		float y_shift = 0;
 
-		for(IGLLayoutElement elem : children) {
+		for (IGLLayoutElement elem : children) {
 			CrosswordLayoutInfo helper = elem.getLayoutDataAs(CrosswordLayoutInfo.class, null);
 			assert helper != null;
 			Vec2f loc = helper.getLocation(elem);
@@ -69,7 +77,7 @@ public class CrosswordMultiElement extends GLElement implements IHasMinSize, IGL
 			loc.setY(Float.isNaN(loc.y()) ? acc : loc.y());
 			Vec2f msize = helper.getMinSize(elem);
 			helper.scale(msize);
-			helper.setBounds(elem, loc,msize);
+			helper.setBounds(elem, loc, msize);
 			// new loc
 			loc = elem.getLocation();
 			x_shift = Math.min(loc.x(), x_shift);
@@ -86,7 +94,7 @@ public class CrosswordMultiElement extends GLElement implements IHasMinSize, IGL
 				elem.setLocation(location.x() - x_shift, location.y() - y_shift);
 			}
 		}
-		relayoutParent(); // trigger update of the parent
+		relayoutParent(); // trigger update of the parent for min size changes
 	}
 
 	@Override
@@ -189,67 +197,81 @@ public class CrosswordMultiElement extends GLElement implements IHasMinSize, IGL
 			GLElementAccessor.init(child, context);
 	}
 
-	private static final int FLAG_PARENT = 1;
-	private static final int FLAG_SISTER = 2;
-
 	/**
 	 * @param crosswordElement
 	 */
 	private void add(CrosswordElement child) {
+		addImpl(child);
+		createBands(child, ImmutableSet.of(child));
+	}
+
+	private void addImpl(CrosswordElement child) {
 		setup(child);
 		graph.addVertex(child);
+		relayout();
+	}
 
+	private void createBands(CrosswordElement child, Set<CrosswordElement> ignores) {
 		final TablePerspective tablePerspective = child.getTablePerspective();
 		final IDType recIDType = tablePerspective.getRecordPerspective().getIdType();
 		final IDType dimIDType = tablePerspective.getDimensionPerspective().getIdType();
-		final TablePerspective parent = tablePerspective.getParentTablePerspective();
 
 		for (CrosswordElement other : graph.vertexSet()) {
-			if (other == child)
+			if (ignores.contains(other))
 				continue;
 			final TablePerspective tablePerspective2 = child.getTablePerspective();
 			final IDType recIDType2 = tablePerspective2.getRecordPerspective().getIdType();
 			final IDType dimIDType2 = tablePerspective2.getDimensionPerspective().getIdType();
-			final TablePerspective parent2 = tablePerspective2.getParentTablePerspective();
-			int flags = 0;
-			boolean isParent = tablePerspective2.equals(parent);
-			boolean isSister = Objects.equals(parent2, parent) && parent != null;
-			flags |= (isParent ? FLAG_PARENT : 0);
-			flags |= (isSister ? FLAG_SISTER : 0);
 			if (recIDType.resolvesTo(recIDType2))
-				addEdge(child, other, false, false, flags);
+				addEdgeImpl(child, other, new SharedBandEdge(false, false));
 			if (dimIDType.resolvesTo(recIDType2))
-				addEdge(child, other, true, false, flags);
+				addEdgeImpl(child, other, new SharedBandEdge(true, false));
 			if (recIDType.resolvesTo(dimIDType2))
-				addEdge(child, other, false, true, flags);
+				addEdgeImpl(child, other, new SharedBandEdge(false, true));
 			if (dimIDType.resolvesTo(dimIDType2))
-				addEdge(child, other, true, true, flags);
+				addEdgeImpl(child, other, new SharedBandEdge(true, true));
 		}
-		relayout();
 	}
 
-	private void addEdge(CrosswordElement child, CrosswordElement other, boolean hor1, boolean hor2, int flags) {
-		final ABandEdge edge = createEdge(hor1, hor2, flags);
+	private void addEdgeImpl(CrosswordElement child, CrosswordElement other, final ABandEdge edge) {
 		graph.addEdge(child, other, edge);
 		edge.update();
-	}
-
-	private static ABandEdge createEdge(boolean hor1, boolean hor2, int flags) {
-		BitField mask = new BitField(flags);
-		if (mask.isSet(FLAG_PARENT))
-			return new ParentChildBandEdge(hor1, hor2);
-		if (mask.isSet(FLAG_SISTER))
-			return new SisterBandEdge(hor1, hor2);
-		return new SharedBandEdge(hor1, hor2);
 	}
 
 	/**
 	 * @param crosswordElement
 	 * @param dimensionSubTablePerspectives
 	 */
-	public void split(CrosswordElement child, List<TablePerspective> subElements) {
-		for (TablePerspective t : subElements)
-			add(t);
+	private void split(CrosswordElement base, boolean inDim) {
+		TablePerspective table = base.getTablePerspective();
+		boolean hor = !inDim;
+		final List<TablePerspective> datas = inDim ? table.getDimensionSubTablePerspectives() : table
+				.getRecordSubTablePerspectives();
+		List<CrosswordElement> children = new ArrayList<>(Lists.transform(datas, toCrosswordElement));
+
+		ImmutableSet<CrosswordElement> ignore = ImmutableSet.<CrosswordElement> builder().addAll(children).add(base)
+				.build();
+		for (int i = 0; i < children.size(); ++i) {
+			CrosswordElement child = children.get(i);
+			addImpl(child);
+			createBands(child, ignore);
+			addEdgeImpl(child, base, new ParentChildBandEdge(hor, hor)); // add parent edge
+			for (int j = 0; j < i; ++j) {
+				CrosswordElement child2 = children.get(j);
+				addEdgeImpl(child, child2, new SiblingBandEdge(hor, hor)); // add sibling edge
+			}
+		}
+	}
+
+	/**
+	 * @param crosswordElement
+	 */
+	public void splitDim(CrosswordElement child) {
+		split(child, true);
+	}
+
+	public void splitRec(CrosswordElement child) {
+		split(child, false);
 	}
 
 	@Override
@@ -289,6 +311,7 @@ public class CrosswordMultiElement extends GLElement implements IHasMinSize, IGL
 	protected boolean hasPickAbles() {
 		return super.hasPickAbles() || !graph.vertexSet().isEmpty();
 	}
+
 	/**
 	 * @param r
 	 */
@@ -322,6 +345,7 @@ public class CrosswordMultiElement extends GLElement implements IHasMinSize, IGL
 	public Iterable<ABandEdge> getBands() {
 		return Iterables.unmodifiableIterable(graph.edgeSet());
 	}
+
 	/**
 	 * @param crosswordElement
 	 */
