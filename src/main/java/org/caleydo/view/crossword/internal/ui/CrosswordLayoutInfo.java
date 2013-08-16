@@ -224,14 +224,12 @@ public class CrosswordLayoutInfo implements IActiveChangedCallback, IGLLayout {
 		if (hovered || parent.getMultiElement().isAlwaysShowHeader()) {
 			header.setBounds(-shift, -shift2 - tw, w + shift2, tw);
 			corner.setBounds(-shift - tw, -shift2 - tw, tw, tw);
+			toolbar.setBounds(-shift - tw, -shift, tw, h + shift2);
 		} else {
 			header.setBounds(-shift, -shift, w + shift2, 0);
 			corner.setBounds(-shift, -shift, 0, 0);
-		}
-		if (hovered)
-			toolbar.setBounds(-shift - tw, -shift, tw, h + shift2);
-		else
 			toolbar.setBounds(-shift, -shift, 0, h + shift2);
+		}
 
 		border.setBounds(0, 0, w, h);
 	}
@@ -251,20 +249,12 @@ public class CrosswordLayoutInfo implements IActiveChangedCallback, IGLLayout {
 		size.setY(size.y() + 2); // for buttons and border
 	}
 
-	Vec2f getLocation(IGLLayoutElement elem) {
-		return elem.getSetLocation().copy();
-	}
-
 	Vec2f getMinSize(IHasGLLayoutData elem) {
 		IHasMinSize minSize = elem.getLayoutDataAs(IHasMinSize.class, null);
 		if (minSize != null)
 			return minSize.getMinSize();
-		TablePerspective tablePerspective = parent.getTablePerspective();
+		TablePerspective tablePerspective = elem.getLayoutDataAs(TablePerspective.class, null);
 		return elem.getLayoutDataAs(Vec2f.class,
 				new Vec2f(tablePerspective.getNrDimensions(), tablePerspective.getNrRecords()));
-	}
-
-	void setBounds(IGLLayoutElement elem, Vec2f loc, Vec2f size) {
-		elem.setBounds(loc.x(), loc.y(), size.x(), size.y());
 	}
 }

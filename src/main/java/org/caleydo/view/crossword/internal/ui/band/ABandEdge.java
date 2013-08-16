@@ -15,6 +15,7 @@ import org.caleydo.core.view.opengl.layout2.GLGraphics;
 import org.caleydo.core.view.opengl.layout2.geom.Rect;
 import org.caleydo.core.view.opengl.layout2.renderer.IGLRenderer;
 import org.caleydo.view.crossword.internal.ui.CrosswordElement;
+import org.caleydo.view.crossword.internal.ui.layout.IGraphEdge;
 import org.caleydo.view.crossword.internal.util.SetUtils;
 import org.jgrapht.graph.DefaultEdge;
 
@@ -23,7 +24,7 @@ import org.jgrapht.graph.DefaultEdge;
  * @author Samuel Gratzl
  *
  */
-public abstract class ABandEdge extends DefaultEdge implements IGLRenderer {
+public abstract class ABandEdge extends DefaultEdge implements IGLRenderer, IGraphEdge {
 	private static final long serialVersionUID = 6090738439785805856L;
 
 	private final Connector source;
@@ -44,15 +45,16 @@ public abstract class ABandEdge extends DefaultEdge implements IGLRenderer {
 	}
 
 	@Override
-	protected CrosswordElement getSource() {
+	public CrosswordElement getSource() {
 		return (CrosswordElement) super.getSource();
 	}
 
 	@Override
-	protected CrosswordElement getTarget() {
+	public CrosswordElement getTarget() {
 		return (CrosswordElement) super.getTarget();
 	}
 
+	@Override
 	public void relayout() {
 		Rect s = getSource().getRectBounds();
 		Rect t = getTarget().getRectBounds();

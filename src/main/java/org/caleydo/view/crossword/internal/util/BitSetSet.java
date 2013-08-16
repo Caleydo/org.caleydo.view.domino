@@ -8,7 +8,6 @@ package org.caleydo.view.crossword.internal.util;
 import java.util.AbstractSet;
 import java.util.BitSet;
 import java.util.Iterator;
-import java.util.Set;
 
 import com.google.common.base.Preconditions;
 
@@ -102,12 +101,4 @@ public class BitSetSet extends AbstractSet<Integer> {
 		return bitSet.cardinality();
 	}
 
-	/**
-	 * @param b
-	 * @return
-	 */
-	public Set<Integer> intersect(Set<Integer> b) {
-		// TODO Auto-generated method stub
-		return null;
-	}
 }

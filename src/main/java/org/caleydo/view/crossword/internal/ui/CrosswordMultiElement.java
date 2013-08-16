@@ -10,7 +10,6 @@ import gleem.linalg.Vec4f;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
@@ -36,6 +35,10 @@ import org.caleydo.view.crossword.internal.ui.band.ABandEdge;
 import org.caleydo.view.crossword.internal.ui.band.ParentChildBandEdge;
 import org.caleydo.view.crossword.internal.ui.band.SharedBandEdge;
 import org.caleydo.view.crossword.internal.ui.band.SiblingBandEdge;
+import org.caleydo.view.crossword.internal.ui.layout.DefaultGraphLayout;
+import org.caleydo.view.crossword.internal.ui.layout.IGraphEdge;
+import org.caleydo.view.crossword.internal.ui.layout.IGraphLayout;
+import org.caleydo.view.crossword.internal.ui.layout.IGraphVertex;
 import org.jgrapht.UndirectedGraph;
 import org.jgrapht.graph.Pseudograph;
 
@@ -54,6 +57,9 @@ public class CrosswordMultiElement extends GLElement implements IHasMinSize, IGL
 
 	private final UndirectedGraph<CrosswordElement, ABandEdge> graph = new Pseudograph<>(ABandEdge.class);
 	private final CrosswordBandLayer bands = new CrosswordBandLayer();
+
+	private final IGraphLayout layout = new DefaultGraphLayout();
+
 	private boolean alwaysShowHeader;
 
 	/**
@@ -61,39 +67,6 @@ public class CrosswordMultiElement extends GLElement implements IHasMinSize, IGL
 	 */
 	public CrosswordMultiElement() {
 		GLElementAccessor.setParent(bands, this);
-	}
-
-	public void doLayout(List<? extends IGLLayoutElement> children) {
-		float acc = 10;
-		float x_shift = 0;
-		float y_shift = 0;
-
-		for (IGLLayoutElement elem : children) {
-			CrosswordLayoutInfo helper = elem.getLayoutDataAs(CrosswordLayoutInfo.class, null);
-			assert helper != null;
-			Vec2f loc = helper.getLocation(elem);
-			loc.setX(Float.isNaN(loc.x()) ? acc : loc.x());
-			loc.setY(Float.isNaN(loc.y()) ? acc : loc.y());
-			Vec2f msize = helper.getMinSize(elem);
-			helper.scale(msize);
-			helper.setBounds(elem, loc, msize);
-			// new loc
-			loc = elem.getLocation();
-			x_shift = Math.min(loc.x(), x_shift);
-			y_shift = Math.min(loc.y(), y_shift);
-
-			// FIXME
-			acc += msize.x() + 10;
-		}
-
-		if (x_shift < 0 || y_shift < 0) {
-			// shift all
-			for (IGLLayoutElement elem : children) {
-				Vec2f location = elem.getLocation();
-				elem.setLocation(location.x() - x_shift, location.y() - y_shift);
-			}
-		}
-		relayoutParent(); // trigger update of the parent for min size changes
 	}
 
 	@Override
@@ -150,20 +123,18 @@ public class CrosswordMultiElement extends GLElement implements IHasMinSize, IGL
 		super.layoutImpl();
 		Vec2f size = getSize();
 		GLElementAccessor.asLayoutElement(bands).setBounds(0, 0, size.x(), size.y());
-		List<IGLLayoutElement> l = asLayoutElements();
-		doLayout(l);
-		for (ABandEdge edge : graph.edgeSet()) {
-			edge.relayout();
-		}
+
+		layout.doLayout(asGraphVertices(), graph.edgeSet());
+		relayoutParent(); // trigger update of the parent for min size changes
 	}
 
-	private List<IGLLayoutElement> asLayoutElements() {
+	private List<IGraphVertex> asGraphVertices() {
 		Set<CrosswordElement> s = graph.vertexSet();
-		List<IGLLayoutElement> l = new ArrayList<>(s.size());
+		List<IGraphVertex> l = new ArrayList<>(s.size());
 		for (CrosswordElement child : s)
 			if (child.getVisibility() != EVisibility.NONE)
-				l.add(GLElementAccessor.asLayoutElement(child));
-		return Collections.unmodifiableList(l);
+				l.add(new GraphVertex(child));
+		return l;
 	}
 
 	@Override
@@ -397,5 +368,48 @@ public class CrosswordMultiElement extends GLElement implements IHasMinSize, IGL
 		if (context instanceof CrosswordView) {
 			((CrosswordView) context).replaceTablePerspectiveInternally(old, newT);
 		}
+	}
+
+	private class GraphVertex implements IGraphVertex {
+		private final IGLLayoutElement elem;
+		private final CrosswordLayoutInfo info;
+
+		public GraphVertex(CrosswordElement elem) {
+			this.elem = GLElementAccessor.asLayoutElement(elem);
+			this.info = elem.getLayoutDataAs(CrosswordLayoutInfo.class, null);
+		}
+
+		@Override
+		public Vec2f getLocation() {
+			return elem.getLocation();
+		}
+
+		/**
+		 * @return
+		 */
+		@Override
+		public Vec2f getSize() {
+			Vec2f size = info.getMinSize(elem);
+			info.scale(size);
+			return size;
+		}
+
+
+		@Override
+		public void setBounds(Vec2f location, Vec2f size) {
+			elem.setBounds(location.x(), location.y(), size.x(), size.y());
+		}
+
+		@Override
+		public void move(float x, float y) {
+			Vec2f l = elem.getLocation();
+			elem.setLocation(l.x() + x, l.y() + y);
+		}
+
+		@Override
+		public Set<? extends IGraphEdge> getEdges() {
+			return graph.edgesOf((CrosswordElement) elem.asElement());
+		}
+
 	}
 }
