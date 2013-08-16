@@ -56,14 +56,16 @@ public abstract class ABandEdge extends DefaultEdge implements IGLRenderer {
 	public void relayout() {
 		Rect s = getSource().getRectBounds();
 		Rect t = getTarget().getRectBounds();
-		source.relayout(s, t, getSource(), overlap);
-		target.relayout(t, s, getTarget(), overlap);
+		source.relayout(s, t);
+		target.relayout(t, s);
 	}
 
 	public void update() {
 		Set<Integer> s = source.getIds(getSource());
 		Set<Integer> t = target.getIds(getTarget());
 		overlap = SetUtils.intersection(s, t);
+		source.update(getSource(), overlap);
+		target.update(getTarget(), overlap);
 	}
 
 	@Override
@@ -114,14 +116,16 @@ public abstract class ABandEdge extends DefaultEdge implements IGLRenderer {
 		 * @param selfO
 		 * @param source
 		 */
-		public void relayout(Rect self, Rect opposite, CrosswordElement selfO, Set<Integer> overlap) {
+		public void relayout(Rect self, Rect opposite) {
 			size = horizontal ? self.width() : self.height();
 			position = self.xy();
 			if (horizontal && self.y2() < opposite.y())
 				position.setY(self.y2());
 			else if (!horizontal && self.x2() < opposite.x())
 				position.setX(self.x2());
+		}
 
+		public void update(CrosswordElement selfO, Set<Integer> overlap) {
 			final Set<Integer> myIds = getIds(selfO);
 			sizePercentage = overlapPercentage(myIds, overlap);
 			offsetPercentage = offsetPercentage(myIds, overlap);

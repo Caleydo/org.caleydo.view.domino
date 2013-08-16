@@ -119,7 +119,7 @@ public class CrosswordElement extends AnimatedGLElementContainer implements
 
 	/**
 	 * set a new {@link TablePerspective}
-	 * 
+	 *
 	 * @param tablePerspective
 	 */
 	public void setTablePerspective(TablePerspective tablePerspective) {
@@ -300,7 +300,7 @@ public class CrosswordElement extends AnimatedGLElementContainer implements
 		final int nrRecords = table.depth();
 		final int nrDimensions = table.size();
 		recordIds = convert(recordIds, tablePerspective.getRecordPerspective(), nrRecords);
-		dimensionIds = convert(dimensionIds, tablePerspective.getRecordPerspective(), nrDimensions);
+		dimensionIds = convert(dimensionIds, tablePerspective.getDimensionPerspective(), nrDimensions);
 
 		CrosswordMultiElement p = getMultiElement();
 		if (p != null)

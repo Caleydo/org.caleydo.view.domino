@@ -218,7 +218,7 @@ public class CrosswordLayoutInfo implements IActiveChangedCallback, IGLLayout {
 		IGLLayoutElement toolbar = children.get(4);
 		final float shift = 1;
 		final float shift2 = shift + shift;
-		content.setBounds(shift, shift, w - shift2, h - shift2);
+		content.setBounds(0, 0, w, h);
 
 		final int tw = TOOLBAR_WIDTH + 2;
 		if (hovered || parent.getMultiElement().isAlwaysShowHeader()) {
