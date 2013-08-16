@@ -21,23 +21,28 @@ import org.jgrapht.graph.DefaultEdge;
 /**
  *
  * @author Samuel Gratzl
- * 
+ *
  */
 public abstract class ABandEdge extends DefaultEdge implements IGLRenderer {
 	private static final long serialVersionUID = 6090738439785805856L;
 
-	private final Connector source = new Connector();
-	private final Connector target = new Connector();
+	private final Connector source;
+	private final Connector target;
 
 	private Set<Integer> overlap;
 
 	private Color color;
 
-	public ABandEdge(boolean sHor, boolean tHor, Color color) {
-		source.horizontal = sHor;
-		target.horizontal = tHor;
+	public ABandEdge(Connector source, Connector target, Color color) {
+		this.source = source;
+		this.target = target;
 		this.color = color;
 	}
+
+	public ABandEdge(boolean sHor, boolean tHor, Color color) {
+		this(new Connector(sHor), new Connector(tHor), color);
+	}
+
 	@Override
 	protected CrosswordElement getSource() {
 		return (CrosswordElement) super.getSource();
@@ -51,8 +56,8 @@ public abstract class ABandEdge extends DefaultEdge implements IGLRenderer {
 	public void relayout() {
 		Rect s = getSource().getRectBounds();
 		Rect t = getTarget().getRectBounds();
-		source.relayout(s, t, getSource());
-		target.relayout(t, s, getTarget());
+		source.relayout(s, t, getSource(), overlap);
+		target.relayout(t, s, getTarget(), overlap);
 	}
 
 	public void update() {
@@ -71,22 +76,22 @@ public abstract class ABandEdge extends DefaultEdge implements IGLRenderer {
 		g.fillPolygon(a, b, bs, as);
 	}
 
-	/**
-	 * @param ids
-	 * @return
-	 */
-	public float overlapPercentage(Set<Integer> ids) {
-		int max = ids.size();
-		int have = overlap.size();
-		return have / (float) max;
-	}
 
-	private class Connector {
+
+	protected static class Connector {
+		final boolean horizontal;
+
 		Vec2f position;
 		float size;
-		boolean horizontal = true;
 		float offsetPercentage = 0;
 		float sizePercentage = 1;
+
+		/**
+		 *
+		 */
+		public Connector(boolean horizontal) {
+			this.horizontal = horizontal;
+		}
 
 		Vec2f getPos() {
 			Vec2f v = position.copy();
@@ -109,7 +114,7 @@ public abstract class ABandEdge extends DefaultEdge implements IGLRenderer {
 		 * @param selfO
 		 * @param source
 		 */
-		public void relayout(Rect self, Rect opposite, CrosswordElement selfO) {
+		public void relayout(Rect self, Rect opposite, CrosswordElement selfO, Set<Integer> overlap) {
 			size = horizontal ? self.width() : self.height();
 			position = self.xy();
 			if (horizontal && self.y2() < opposite.y())
@@ -117,8 +122,23 @@ public abstract class ABandEdge extends DefaultEdge implements IGLRenderer {
 			else if (!horizontal && self.x2() < opposite.x())
 				position.setX(self.x2());
 
-			sizePercentage = overlapPercentage(getIds(selfO));
-			offsetPercentage = (1 - sizePercentage) * 0.5f;
+			final Set<Integer> myIds = getIds(selfO);
+			sizePercentage = overlapPercentage(myIds, overlap);
+			offsetPercentage = offsetPercentage(myIds, overlap);
+		}
+
+		/**
+		 * @param ids
+		 * @return
+		 */
+		protected float overlapPercentage(Set<Integer> ids, Set<Integer> overlap) {
+			int max = ids.size();
+			int have = overlap.size();
+			return have / (float) max;
+		}
+
+		protected float offsetPercentage(Set<Integer> ids, Set<Integer> overlap) {
+			return (1 - sizePercentage) * 0.5f;
 		}
 
 		/**

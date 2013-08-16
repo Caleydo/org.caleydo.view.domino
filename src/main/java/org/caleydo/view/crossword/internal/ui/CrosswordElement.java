@@ -42,6 +42,7 @@ import org.caleydo.core.view.opengl.layout2.renderer.Borders.IBorderGLRenderer;
 import org.caleydo.core.view.opengl.layout2.renderer.GLRenderers;
 import org.caleydo.core.view.opengl.picking.IPickingListener;
 import org.caleydo.core.view.opengl.picking.Pick;
+import org.caleydo.view.crossword.internal.model.TablePerspectiveMetaData;
 import org.caleydo.view.crossword.internal.ui.menu.PerspectiveMenuElement;
 import org.caleydo.view.crossword.internal.ui.menu.SwitcherMenuElement;
 import org.caleydo.view.crossword.internal.util.BitSetSet;
@@ -71,9 +72,12 @@ public class CrosswordElement extends AnimatedGLElementContainer implements
 
 	private final IBorderGLRenderer border;
 
-	public CrosswordElement(TablePerspective tablePerspective) {
+	private final TablePerspectiveMetaData metaData;
+
+	public CrosswordElement(TablePerspective tablePerspective, TablePerspectiveMetaData metaData) {
 		this.selection = new TablePerspectiveSelectionMixin(tablePerspective, this);
 		this.info = new CrosswordLayoutInfo(this);
+		this.metaData = metaData;
 		setLayout(info);
 
 		this.onPick(this);
@@ -89,8 +93,10 @@ public class CrosswordElement extends AnimatedGLElementContainer implements
 		closeSwitcher.onPick(this);
 		closeSwitcher.setVisualizationSwitcher(switcher);
 		this.add(animated(true, true, closeSwitcher));
-		this.add(animated(true, false, new PerspectiveMenuElement(tablePerspective, true).onPick(this)));
-		this.add(animated(false, true, new PerspectiveMenuElement(tablePerspective, false).onPick(this)));
+		this.add(animated(true, false,
+				new PerspectiveMenuElement(tablePerspective, true, this, metaData.getDimension()).onPick(this)));
+		this.add(animated(false, true,
+				new PerspectiveMenuElement(tablePerspective, false, this, metaData.getRecord()).onPick(this)));
 		setLayoutData(GLLayoutDatas.combine(tablePerspective, info));
 		onVAUpdate(tablePerspective);
 	}
@@ -235,6 +241,13 @@ public class CrosswordElement extends AnimatedGLElementContainer implements
 		return selection.getTablePerspective();
 	}
 
+	/**
+	 * @return the metaData, see {@link #metaData}
+	 */
+	public TablePerspectiveMetaData getMetaData() {
+		return metaData;
+	}
+
 	@Override
 	public void onSelectionUpdate(SelectionManager manager) {
 		repaintAll();
@@ -260,15 +273,18 @@ public class CrosswordElement extends AnimatedGLElementContainer implements
 		CrosswordMultiElement parent = getMultiElement();
 		switch (button.getTooltip()) {
 		case "Close":
-			EventPublisher.trigger(new RemoveTablePerspectiveEvent(getTablePerspective(),
+			if (context instanceof IMultiTablePerspectiveBasedView)
+				EventPublisher.trigger(new RemoveTablePerspectiveEvent(getTablePerspective(),
 					(IMultiTablePerspectiveBasedView) context));
 			parent.remove(this);
 			break;
 		case "Split X":
 			parent.splitDim(this);
+			((PerspectiveMenuElement) get(3)).setTablePerspective(getTablePerspective(), this, metaData.getDimension());
 			break;
 		case "Split Y":
 			parent.splitRec(this);
+			((PerspectiveMenuElement) get(4)).setTablePerspective(getTablePerspective(), this, metaData.getRecord());
 			break;
 		default:
 			break;

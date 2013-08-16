@@ -44,6 +44,11 @@ public class SwitcherMenuElement extends GLElementContainer implements IGLLayout
 		this.onPick(this);
 	}
 
+	@Override
+	protected int getPickingObjectId() {
+		return 3;
+	}
+
 	public void setVisualizationSwitcher(GLElementFactorySwitcher switcher) {
 		List<GLElement> list = this.asList();
 		list.subList(1, size()).clear();

@@ -16,6 +16,8 @@ import java.util.List;
 import java.util.Set;
 
 import org.caleydo.core.data.perspective.table.TablePerspective;
+import org.caleydo.core.data.virtualarray.group.Group;
+import org.caleydo.core.data.virtualarray.group.GroupList;
 import org.caleydo.core.id.IDType;
 import org.caleydo.core.view.opengl.layout2.GLElement;
 import org.caleydo.core.view.opengl.layout2.GLElementAccessor;
@@ -24,6 +26,8 @@ import org.caleydo.core.view.opengl.layout2.IGLElementContext;
 import org.caleydo.core.view.opengl.layout2.IGLElementParent;
 import org.caleydo.core.view.opengl.layout2.basic.ScrollingDecorator.IHasMinSize;
 import org.caleydo.core.view.opengl.layout2.layout.IGLLayoutElement;
+import org.caleydo.view.crossword.internal.model.PerspectiveMetaData;
+import org.caleydo.view.crossword.internal.model.TablePerspectiveMetaData;
 import org.caleydo.view.crossword.internal.ui.band.ABandEdge;
 import org.caleydo.view.crossword.internal.ui.band.ParentChildBandEdge;
 import org.caleydo.view.crossword.internal.ui.band.SharedBandEdge;
@@ -31,11 +35,9 @@ import org.caleydo.view.crossword.internal.ui.band.SiblingBandEdge;
 import org.jgrapht.UndirectedGraph;
 import org.jgrapht.graph.Pseudograph;
 
-import com.google.common.base.Function;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Iterators;
-import com.google.common.collect.Lists;
 
 /**
  * layout implementation
@@ -45,13 +47,6 @@ import com.google.common.collect.Lists;
  */
 public class CrosswordMultiElement extends GLElement implements IHasMinSize, IGLElementParent,
 		Iterable<CrosswordElement> {
-
-	private final static Function<TablePerspective, CrosswordElement> toCrosswordElement = new Function<TablePerspective, CrosswordElement>() {
-		@Override
-		public CrosswordElement apply(TablePerspective input) {
-			return new CrosswordElement(input);
-		}
-	};
 
 	private final UndirectedGraph<CrosswordElement, ABandEdge> graph = new Pseudograph<>(ABandEdge.class);
 	private final CrosswordBandLayer bands = new CrosswordBandLayer();
@@ -129,7 +124,7 @@ public class CrosswordMultiElement extends GLElement implements IHasMinSize, IGL
 	 * @param dimensionSubTablePerspectives
 	 */
 	public void add(TablePerspective tablePerspective) {
-		add(new CrosswordElement(tablePerspective));
+		add(new CrosswordElement(tablePerspective, new TablePerspectiveMetaData(0, 0)));
 	}
 
 	@Override
@@ -244,23 +239,40 @@ public class CrosswordMultiElement extends GLElement implements IHasMinSize, IGL
 	 */
 	private void split(CrosswordElement base, boolean inDim) {
 		TablePerspective table = base.getTablePerspective();
-		boolean hor = !inDim;
+		boolean hor = inDim;
+		final GroupList groups = (inDim ? table.getDimensionPerspective() : table.getRecordPerspective())
+				.getVirtualArray().getGroupList();
+		assert groups.size() > 1;
 		final List<TablePerspective> datas = inDim ? table.getDimensionSubTablePerspectives() : table
 				.getRecordSubTablePerspectives();
-		List<CrosswordElement> children = new ArrayList<>(Lists.transform(datas, toCrosswordElement));
+		List<CrosswordElement> children = new ArrayList<>(datas.size());
+		{
+			TablePerspectiveMetaData metaData = new TablePerspectiveMetaData(
+					inDim ? 0 : PerspectiveMetaData.FLAG_CHILD, inDim ? PerspectiveMetaData.FLAG_CHILD : 0);
+			for (TablePerspective t : datas) {
+				children.add(new CrosswordElement(t, metaData));
+			}
+		}
 
+		// combine the elements that should be ignored
 		ImmutableSet<CrosswordElement> ignore = ImmutableSet.<CrosswordElement> builder().addAll(children).add(base)
 				.build();
+
 		for (int i = 0; i < children.size(); ++i) {
 			CrosswordElement child = children.get(i);
+			Group group = groups.get(i);
 			addImpl(child);
 			createBands(child, ignore);
-			addEdgeImpl(child, base, new ParentChildBandEdge(hor, hor)); // add parent edge
+			addEdgeImpl(base, child, new ParentChildBandEdge(hor, group.getStartIndex(), hor)); // add parent edge
 			for (int j = 0; j < i; ++j) {
 				CrosswordElement child2 = children.get(j);
 				addEdgeImpl(child, child2, new SiblingBandEdge(hor, hor)); // add sibling edge
 			}
 		}
+
+		// update metadata flags
+		TablePerspectiveMetaData metaData = base.getMetaData();
+		(inDim ? metaData.getDimension() : metaData.getRecord()).setSplitted();
 	}
 
 	/**

@@ -41,12 +41,12 @@ public class Resources {
 		return icon("cross.png");
 	}
 
-	public static final URL cutRecord() {
-		return icon("cut_red.png");
+	public static final URL splitPerspective() {
+		return icon("cut.png");
 	}
 
-	public static final URL cutDimension() {
-		return icon("cut.png");
+	public static final URL choosePerspective() {
+		return icon("data_chooser.png");
 	}
 
 	/**

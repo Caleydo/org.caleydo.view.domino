@@ -5,6 +5,8 @@
  *******************************************************************************/
 package org.caleydo.view.crossword.internal.ui.band;
 
+import java.util.Set;
+
 import org.caleydo.core.util.color.Color;
 
 /**
@@ -12,18 +14,24 @@ import org.caleydo.core.util.color.Color;
  *
  */
 public class ParentChildBandEdge extends ABandEdge {
-
-	/**
-	 * 
-	 */
 	private static final long serialVersionUID = -5991401091218527493L;
 
-	/**
-	 * @param sHor
-	 * @param tHor
-	 */
-	public ParentChildBandEdge(boolean sHor, boolean tHor) {
-		super(sHor, tHor, new Color(0.9f, 0f, 0f, 0.5f));
+	public ParentChildBandEdge(boolean sHor, int startIndex, boolean tHor) {
+		super(new ParentConnector(sHor, startIndex), new Connector(tHor), new Color(0.9f, 0f, 0f, 0.5f));
+	}
+
+	private static class ParentConnector extends Connector {
+		private final int startIndex;
+
+		public ParentConnector(boolean horizontal, int startIndex) {
+			super(horizontal);
+			this.startIndex = startIndex;
+		}
+
+		@Override
+		protected float offsetPercentage(Set<Integer> ids, Set<Integer> overlap) {
+			return ((float) startIndex / ids.size());
+		}
 	}
 
 }
