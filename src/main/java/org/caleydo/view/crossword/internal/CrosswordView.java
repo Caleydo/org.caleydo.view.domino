@@ -64,4 +64,12 @@ public class CrosswordView extends AMultiTablePerspectiveElementView {
 	private void onToggleHeaderAlwaysHeader(ToggleHeaderAlwaysEvent event) {
 		crossword.toggleAlwaysShowHeader();
 	}
+
+	public void replaceTablePerspectiveInternally(TablePerspective from, TablePerspective to) {
+		int fromIndex = this.tablePerspectives.indexOf(from);
+		if (fromIndex < 0)
+			return;
+		this.tablePerspectives.set(fromIndex, to);
+		fireTablePerspectiveChanged();
+	}
 }

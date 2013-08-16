@@ -17,12 +17,12 @@ import org.eclipse.jface.action.IToolBarManager;
  * @author Samuel Gratzl
  *
  */
-public class RcpGLCrosswordView extends ARcpGLElementViewPart {
+public class CrosswordViewPart extends ARcpGLElementViewPart {
 
 	/**
 	 * Constructor.
 	 */
-	public RcpGLCrosswordView() {
+	public CrosswordViewPart() {
 		super(SerializedCrosswordView.class);
 	}
 

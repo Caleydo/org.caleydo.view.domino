@@ -63,7 +63,11 @@ import com.google.common.collect.ImmutableSortedSet;
  */
 public class CrosswordElement extends AnimatedGLElementContainer implements
 		TablePerspectiveSelectionMixin.ITablePerspectiveMixinCallback, IPickingListener, GLButton.ISelectionCallback {
-
+	private final static int SWITCHER = 0;
+	private final static int BORDER = 1;
+	private final static int CORNER = 2;
+	private final static int DIM_PERSPECTIVE_MENU = 3;
+	private final static int REC_PERSPECTIVE_MENU = 4;
 	@DeepScan
 	private final TablePerspectiveSelectionMixin selection;
 
@@ -94,7 +98,7 @@ public class CrosswordElement extends AnimatedGLElementContainer implements
 		this.add(new ReScaleBorder(info).setRenderer(border));
 		final SwitcherMenuElement closeSwitcher = new SwitcherMenuElement(this);
 		closeSwitcher.onPick(this);
-		closeSwitcher.setVisualizationSwitcher(switcher);
+		closeSwitcher.setSwitcher(switcher);
 		this.add(animated(true, true, closeSwitcher));
 		this.add(animated(true, false,
 				new PerspectiveMenuElement(tablePerspective, true, this, metaData.getDimension()).onPick(this)));
@@ -104,12 +108,35 @@ public class CrosswordElement extends AnimatedGLElementContainer implements
 		onVAUpdate(tablePerspective);
 	}
 
+	private GLElementFactorySwitcher getSwitcher() {
+		return (GLElementFactorySwitcher) get(SWITCHER);
+	}
+
 	public void setTablePerspective(TablePerspective tablePerspective) {
 		TablePerspective current = getTablePerspective();
-		if (current == tablePerspective)
+		if (current.equals(tablePerspective))
 			return;
 		assert current.getDataDomain() == tablePerspective.getDataDomain();
 		this.selection.setTablePerspective(tablePerspective);
+
+
+		GLElementFactorySwitcher switcher = getSwitcher();
+		{
+			// remember last active
+			int active = switcher.getActive();
+
+			switcher = createContent(tablePerspective);
+			switcher.setActive(active);
+			switcher.onActiveChanged(info);
+			this.set(SWITCHER, switcher);
+		}
+		((SwitcherMenuElement) get(CORNER)).setSwitcher(switcher);
+		((PerspectiveMenuElement) get(DIM_PERSPECTIVE_MENU)).setTablePerspective(tablePerspective, this,
+				metaData.getDimension());
+		((PerspectiveMenuElement) get(REC_PERSPECTIVE_MENU)).setTablePerspective(tablePerspective, this,
+				metaData.getRecord());
+		setLayoutData(GLLayoutDatas.combine(tablePerspective, info));
+		onVAUpdate(tablePerspective);
 
 		// get(0)
 		// ((Header)get(1)).setLabel(tablePerspective);
@@ -119,10 +146,10 @@ public class CrosswordElement extends AnimatedGLElementContainer implements
 	 * convert the ids in a perspective to a set
 	 *
 	 * @param set
-	 * @param recordPerspective
+	 * @param perspective
 	 */
-	private Set<Integer> convert(Set<Integer> set, Perspective recordPerspective, int total) {
-		VirtualArray va = recordPerspective.getVirtualArray();
+	private Set<Integer> convert(Set<Integer> set, Perspective perspective, int total) {
+		VirtualArray va = perspective.getVirtualArray();
 		int size = va.size();
 		if (size == 0)
 			return ImmutableSortedSet.of();
@@ -306,7 +333,8 @@ public class CrosswordElement extends AnimatedGLElementContainer implements
 		Perspective new_ = event.getNew_();
 		final TablePerspective tablePerspective = getTablePerspective();
 		Perspective old;
-		if (tablePerspective.getRecordPerspective().getIdType().equals(event.getIdType())) {
+		boolean isDim = !tablePerspective.getRecordPerspective().getIdType().equals(event.getIdType());
+		if (!isDim) {
 			old = tablePerspective.getRecordPerspective();
 		} else {
 			old = tablePerspective.getDimensionPerspective();
@@ -314,7 +342,7 @@ public class CrosswordElement extends AnimatedGLElementContainer implements
 		if (old.equals(new_))
 			return;
 
-		// FIXME
+		getMultiElement().changePerspective(this, isDim, new_);
 	}
 
 	/**

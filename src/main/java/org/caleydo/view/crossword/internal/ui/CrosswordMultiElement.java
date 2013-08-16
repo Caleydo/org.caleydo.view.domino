@@ -15,7 +15,9 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
+import org.caleydo.core.data.datadomain.ATableBasedDataDomain;
 import org.caleydo.core.data.perspective.table.TablePerspective;
+import org.caleydo.core.data.perspective.variable.Perspective;
 import org.caleydo.core.data.virtualarray.group.Group;
 import org.caleydo.core.data.virtualarray.group.GroupList;
 import org.caleydo.core.id.IDType;
@@ -26,6 +28,7 @@ import org.caleydo.core.view.opengl.layout2.IGLElementContext;
 import org.caleydo.core.view.opengl.layout2.IGLElementParent;
 import org.caleydo.core.view.opengl.layout2.basic.ScrollingDecorator.IHasMinSize;
 import org.caleydo.core.view.opengl.layout2.layout.IGLLayoutElement;
+import org.caleydo.view.crossword.internal.CrosswordView;
 import org.caleydo.view.crossword.internal.model.PerspectiveMetaData;
 import org.caleydo.view.crossword.internal.model.TablePerspectiveMetaData;
 import org.caleydo.view.crossword.internal.ui.band.ABandEdge;
@@ -366,4 +369,20 @@ public class CrosswordMultiElement extends GLElement implements IHasMinSize, IGL
 			edge.update();
 	}
 
+	public void changePerspective(CrosswordElement child, boolean isDim, Perspective new_) {
+		TablePerspective old = child.getTablePerspective();
+		ATableBasedDataDomain dataDomain = old.getDataDomain();
+		new_ = dataDomain.convertForeignPerspective(new_);
+		TablePerspective newT;
+		if (isDim)
+			newT = dataDomain.getTablePerspective(old.getRecordPerspective().getPerspectiveID(),
+					new_.getPerspectiveID());
+		else
+			newT = dataDomain.getTablePerspective(new_.getPerspectiveID(), old.getDimensionPerspective()
+					.getPerspectiveID());
+		child.setTablePerspective(newT);
+		if (context instanceof CrosswordView) {
+			((CrosswordView) context).replaceTablePerspectiveInternally(old, newT);
+		}
+	}
 }

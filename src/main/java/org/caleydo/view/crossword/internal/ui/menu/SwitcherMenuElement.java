@@ -49,7 +49,7 @@ public class SwitcherMenuElement extends GLElementContainer implements IGLLayout
 		return 3; // for parent identification
 	}
 
-	public void setVisualizationSwitcher(GLElementFactorySwitcher switcher) {
+	public void setSwitcher(GLElementFactorySwitcher switcher) {
 		List<GLElement> list = this.asList();
 		list.subList(1, size()).clear(); // clear previous
 
