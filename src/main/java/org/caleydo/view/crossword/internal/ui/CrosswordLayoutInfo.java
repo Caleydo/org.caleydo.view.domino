@@ -54,6 +54,15 @@ public class CrosswordLayoutInfo implements IActiveChangedCallback, IGLLayout {
 		this.parent = parent;
 	}
 
+	/**
+	 * init from my parent settings, e.g. zoomFactor
+	 *
+	 * @param baseLayout
+	 */
+	public void initFromParent(CrosswordLayoutInfo baseLayout) {
+		this.zoomFactorX = baseLayout.zoomFactorX;
+		this.zoomFactorY = baseLayout.zoomFactorY;
+	}
 
 	/**
 	 * @param zoomFactor
@@ -64,8 +73,13 @@ public class CrosswordLayoutInfo implements IActiveChangedCallback, IGLLayout {
 			return false;
 		this.zoomFactorX = zoomFactorX;
 		this.zoomFactorY = zoomFactorY;
-		parent.getParent().relayout();
+		relayoutGrandParent();
 		return true;
+	}
+
+	private void relayoutGrandParent() {
+		if (parent.getParent() != null)
+			parent.getParent().relayout();
 	}
 
 	@Override
@@ -73,7 +87,7 @@ public class CrosswordLayoutInfo implements IActiveChangedCallback, IGLLayout {
 		// reset to a common zoom factor
 		float s = Math.min(zoomFactorX, zoomFactorY);
 		if (!setZoomFactor(s, s))
-			parent.getParent().relayout(); // the min size may have changed
+			relayoutGrandParent(); // the min size may have changed
 	}
 
 	/**
@@ -98,7 +112,7 @@ public class CrosswordLayoutInfo implements IActiveChangedCallback, IGLLayout {
 			return false;
 		this.zoomFactorX = zoomFactorX * factor;
 		this.zoomFactorY = zoomFactorY * factor;
-		parent.getParent().relayout();
+		relayoutGrandParent();
 		return true;
 	}
 

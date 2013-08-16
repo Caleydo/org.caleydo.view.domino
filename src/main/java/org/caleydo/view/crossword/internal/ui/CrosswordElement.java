@@ -108,10 +108,20 @@ public class CrosswordElement extends AnimatedGLElementContainer implements
 		onVAUpdate(tablePerspective);
 	}
 
+	public void initFromParent(CrosswordElement parent) {
+		info.initFromParent(parent.info);
+		getSwitcher().setActive(parent.getSwitcher().getActive());
+	}
+
 	private GLElementFactorySwitcher getSwitcher() {
 		return (GLElementFactorySwitcher) get(SWITCHER);
 	}
 
+	/**
+	 * set a new {@link TablePerspective}
+	 * 
+	 * @param tablePerspective
+	 */
 	public void setTablePerspective(TablePerspective tablePerspective) {
 		TablePerspective current = getTablePerspective();
 		if (current.equals(tablePerspective))
@@ -138,8 +148,7 @@ public class CrosswordElement extends AnimatedGLElementContainer implements
 		setLayoutData(GLLayoutDatas.combine(tablePerspective, info));
 		onVAUpdate(tablePerspective);
 
-		// get(0)
-		// ((Header)get(1)).setLabel(tablePerspective);
+		relayoutParent();
 	}
 
 	/**

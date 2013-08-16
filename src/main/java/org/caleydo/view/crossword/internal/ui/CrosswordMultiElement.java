@@ -15,6 +15,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
+import org.caleydo.core.data.collection.table.Table;
 import org.caleydo.core.data.datadomain.ATableBasedDataDomain;
 import org.caleydo.core.data.perspective.table.TablePerspective;
 import org.caleydo.core.data.perspective.variable.Perspective;
@@ -188,7 +189,7 @@ public class CrosswordMultiElement extends GLElement implements IHasMinSize, IGL
 			// internal move
 			graph.removeVertex(child);
 		} else if (ex != null) {
-			doInit = ex.moved(child);
+			doInit = !ex.moved(child);
 		}
 		GLElementAccessor.setParent(child, this);
 		if (doInit && context != null)
@@ -253,7 +254,9 @@ public class CrosswordMultiElement extends GLElement implements IHasMinSize, IGL
 			TablePerspectiveMetaData metaData = new TablePerspectiveMetaData(
 					inDim ? 0 : PerspectiveMetaData.FLAG_CHILD, inDim ? PerspectiveMetaData.FLAG_CHILD : 0);
 			for (TablePerspective t : datas) {
-				children.add(new CrosswordElement(t, metaData));
+				final CrosswordElement new_ = new CrosswordElement(t, metaData);
+				new_.initFromParent(base);
+				children.add(new_);
 			}
 		}
 
@@ -350,7 +353,8 @@ public class CrosswordMultiElement extends GLElement implements IHasMinSize, IGL
 			return;
 		List<CrosswordElement> toRemove = new ArrayList<>();
 		for (CrosswordElement elem : Iterables.filter(this, CrosswordElement.class)) {
-			if (removed.contains(elem.getTablePerspective()))
+			if (removed.contains(elem.getTablePerspective())
+					|| removed.contains(elem.getTablePerspective().getParentTablePerspective()))
 				toRemove.add(elem);
 		}
 		for (CrosswordElement r : toRemove)
@@ -372,14 +376,23 @@ public class CrosswordMultiElement extends GLElement implements IHasMinSize, IGL
 	public void changePerspective(CrosswordElement child, boolean isDim, Perspective new_) {
 		TablePerspective old = child.getTablePerspective();
 		ATableBasedDataDomain dataDomain = old.getDataDomain();
+
 		new_ = dataDomain.convertForeignPerspective(new_);
-		TablePerspective newT;
+		Table table = dataDomain.getTable();
+
+		Perspective record = old.getRecordPerspective();
+		Perspective dimension = old.getDimensionPerspective();
 		if (isDim)
-			newT = dataDomain.getTablePerspective(old.getRecordPerspective().getPerspectiveID(),
-					new_.getPerspectiveID());
+			dimension = new_;
 		else
-			newT = dataDomain.getTablePerspective(new_.getPerspectiveID(), old.getDimensionPerspective()
-					.getPerspectiveID());
+			record = new_;
+		TablePerspective newT;
+		if (!table.containsDimensionPerspective(dimension.getPerspectiveID())
+				|| !table.containsRecordPerspective(record.getPerspectiveID())) {
+			newT = new TablePerspective(dataDomain, record, dimension);
+			newT.setPrivate(true);
+		} else
+			newT = dataDomain.getTablePerspective(record.getPerspectiveID(), dimension.getPerspectiveID());
 		child.setTablePerspective(newT);
 		if (context instanceof CrosswordView) {
 			((CrosswordView) context).replaceTablePerspectiveInternally(old, newT);
