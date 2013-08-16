@@ -71,7 +71,10 @@ public class ChangePerspectiveDialog extends Dialog implements ISWTLayerRunnable
 	protected Control createDialogArea(Composite parent) {
 		tree = new TreeViewer(parent, SWT.FULL_SELECTION | SWT.H_SCROLL | SWT.V_SCROLL | SWT.BORDER);
 		tree.getTree().setLinesVisible(true);
-		tree.getTree().setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
+		final GridData gd = new GridData(SWT.FILL, SWT.FILL, true, true);
+		gd.minimumHeight = 200;
+		gd.heightHint = 500;
+		tree.getTree().setLayoutData(gd);
 		tree.setAutoExpandLevel(2);
 		tree.setLabelProvider(Labels.PROVIDER);
 		tree.setContentProvider(new ChangePerspectiveContentProvider());
