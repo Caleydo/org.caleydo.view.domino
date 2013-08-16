@@ -10,7 +10,7 @@ import javax.xml.bind.annotation.XmlType;
 
 import org.caleydo.core.serialize.ASerializedMultiTablePerspectiveBasedView;
 import org.caleydo.core.view.IMultiTablePerspectiveBasedView;
-import org.caleydo.view.crossword.internal.GLCrosswordView;
+import org.caleydo.view.crossword.internal.CrosswordView;
 
 /**
  *
@@ -32,6 +32,6 @@ public class SerializedCrosswordView extends ASerializedMultiTablePerspectiveBas
 
 	@Override
 	public String getViewType() {
-		return GLCrosswordView.VIEW_TYPE;
+		return CrosswordView.VIEW_TYPE;
 	}
 }

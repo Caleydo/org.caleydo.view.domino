@@ -28,7 +28,7 @@ public class RcpGLCrosswordView extends ARcpGLElementViewPart {
 
 	@Override
 	protected AGLElementView createView(IGLCanvas canvas) {
-		return new GLCrosswordView(canvas);
+		return new CrosswordView(canvas);
 	}
 
 	@Override

@@ -6,12 +6,7 @@
 package org.caleydo.view.crossword.internal.ui;
 
 import static org.caleydo.core.view.opengl.layout2.animation.Transitions.LINEAR;
-import static org.caleydo.view.crossword.internal.Settings.TOOLBAR_TEXT_COLOR;
-import static org.caleydo.view.crossword.internal.Settings.TOOLBAR_TEXT_HEIGHT;
-import static org.caleydo.view.crossword.internal.Settings.TOOLBAR_WIDTH;
-import static org.caleydo.view.crossword.internal.Settings.toolbarBackground;
 
-import java.net.URL;
 import java.util.Set;
 
 import org.caleydo.core.data.collection.table.Table;
@@ -23,26 +18,19 @@ import org.caleydo.core.data.virtualarray.VirtualArray;
 import org.caleydo.core.event.EventListenerManager.DeepScan;
 import org.caleydo.core.event.EventPublisher;
 import org.caleydo.core.event.data.DataSetSelectedEvent;
-import org.caleydo.core.util.base.ILabeled;
-import org.caleydo.core.util.color.Color;
 import org.caleydo.core.view.IMultiTablePerspectiveBasedView;
 import org.caleydo.core.view.listener.RemoveTablePerspectiveEvent;
 import org.caleydo.core.view.opengl.canvas.EDetailLevel;
 import org.caleydo.core.view.opengl.canvas.IGLMouseListener.IMouseEvent;
 import org.caleydo.core.view.opengl.layout2.GLElement;
-import org.caleydo.core.view.opengl.layout2.GLElementContainer;
-import org.caleydo.core.view.opengl.layout2.GLGraphics;
 import org.caleydo.core.view.opengl.layout2.IGLElementContext;
 import org.caleydo.core.view.opengl.layout2.animation.AnimatedGLElementContainer;
 import org.caleydo.core.view.opengl.layout2.animation.MoveTransitions;
 import org.caleydo.core.view.opengl.layout2.animation.MoveTransitions.IMoveTransition;
 import org.caleydo.core.view.opengl.layout2.animation.Transitions;
+import org.caleydo.core.view.opengl.layout2.animation.Transitions.ITransition;
 import org.caleydo.core.view.opengl.layout2.basic.GLButton;
-import org.caleydo.core.view.opengl.layout2.basic.GLButton.ISelectionCallback;
-import org.caleydo.core.view.opengl.layout2.layout.GLFlowLayout;
 import org.caleydo.core.view.opengl.layout2.layout.GLLayoutDatas;
-import org.caleydo.core.view.opengl.layout2.layout.GLLayouts;
-import org.caleydo.core.view.opengl.layout2.layout.GLPadding;
 import org.caleydo.core.view.opengl.layout2.manage.GLElementFactories;
 import org.caleydo.core.view.opengl.layout2.manage.GLElementFactories.GLElementSupplier;
 import org.caleydo.core.view.opengl.layout2.manage.GLElementFactoryContext;
@@ -52,11 +40,10 @@ import org.caleydo.core.view.opengl.layout2.manage.GLElementFactorySwitcher.ELaz
 import org.caleydo.core.view.opengl.layout2.renderer.Borders;
 import org.caleydo.core.view.opengl.layout2.renderer.Borders.IBorderGLRenderer;
 import org.caleydo.core.view.opengl.layout2.renderer.GLRenderers;
-import org.caleydo.core.view.opengl.layout2.renderer.IGLRenderer;
-import org.caleydo.core.view.opengl.layout2.renderer.RoundedRectRenderer;
 import org.caleydo.core.view.opengl.picking.IPickingListener;
 import org.caleydo.core.view.opengl.picking.Pick;
-import org.caleydo.view.crossword.internal.Resources;
+import org.caleydo.view.crossword.internal.ui.menu.PerspectiveMenuElement;
+import org.caleydo.view.crossword.internal.ui.menu.SwitcherMenuElement;
 import org.caleydo.view.crossword.internal.util.BitSetSet;
 import org.eclipse.swt.SWT;
 
@@ -88,7 +75,6 @@ public class CrosswordElement extends AnimatedGLElementContainer implements
 		this.selection = new TablePerspectiveSelectionMixin(tablePerspective, this);
 		this.info = new CrosswordLayoutInfo(this);
 		setLayout(info);
-		setLayoutData(GLLayoutDatas.combine(tablePerspective, info));
 
 		this.onPick(this);
 		this.setVisibility(EVisibility.PICKABLE);
@@ -99,13 +85,25 @@ public class CrosswordElement extends AnimatedGLElementContainer implements
 		this.add(switcher);
 		this.border = Borders.createBorder(tablePerspective.getDataDomain().getColor());
 		this.add(new ReScaleBorder(info).setRenderer(border));
-		final Header header = new Header(tablePerspective, switcher.size() > 1 ? switcher.createButtonBar() : null);
-		header.onPick(this);
-		this.add(animated(true, header));
-		this.add(animated(false, new VerticalToolBar(null, this, tablePerspective)));
-
+		final SwitcherMenuElement closeSwitcher = new SwitcherMenuElement(this);
+		closeSwitcher.onPick(this);
+		closeSwitcher.setVisualizationSwitcher(switcher);
+		this.add(animated(true, true, closeSwitcher));
+		this.add(animated(true, false, new PerspectiveMenuElement(tablePerspective, true).onPick(this)));
+		this.add(animated(false, true, new PerspectiveMenuElement(tablePerspective, false).onPick(this)));
+		setLayoutData(GLLayoutDatas.combine(tablePerspective, info));
 		onVAUpdate(tablePerspective);
+	}
 
+	public void setTablePerspective(TablePerspective tablePerspective) {
+		TablePerspective current = getTablePerspective();
+		if (current == tablePerspective)
+			return;
+		assert current.getDataDomain() == tablePerspective.getDataDomain();
+		this.selection.setTablePerspective(tablePerspective);
+
+		// get(0)
+		// ((Header)get(1)).setLabel(tablePerspective);
 	}
 
 	/**
@@ -144,12 +142,10 @@ public class CrosswordElement extends AnimatedGLElementContainer implements
 		return recordIds;
 	}
 
-	private GLElement animated(boolean  hor, GLElement elem) {
-		IMoveTransition move;
-		if (hor)
-			move = new MoveTransitions.MoveTransitionBase(Transitions.NO,LINEAR,Transitions.NO,LINEAR);
-		else
-			move = new MoveTransitions.MoveTransitionBase(LINEAR,Transitions.NO,LINEAR,Transitions.NO);
+	private GLElement animated(boolean hor, boolean vert, GLElement elem) {
+		ITransition horT = hor ? LINEAR : Transitions.NO;
+		ITransition verT = vert ? LINEAR : Transitions.NO;
+		IMoveTransition move = new MoveTransitions.MoveTransitionBase(verT, horT, verT, horT);
 		elem.setLayoutData(GLLayoutDatas.combine(DEFAULT_DURATION, move));
 		return elem;
 	}
@@ -170,7 +166,7 @@ public class CrosswordElement extends AnimatedGLElementContainer implements
 	@Override
 	public void pick(Pick pick) {
 		IMouseEvent event = ((IMouseEvent) pick);
-		boolean isToolBar = pick.getObjectID() == 1;
+		boolean isToolBar = pick.getObjectID() > 0;
 		switch (pick.getPickingMode()) {
 		case MOUSE_OVER:
 			if (!isToolBar) {
@@ -276,112 +272,6 @@ public class CrosswordElement extends AnimatedGLElementContainer implements
 			break;
 		default:
 			break;
-		}
-	}
-
-	private static class AToolBar extends GLElementContainer {
-		private final int roundedRectFlags;
-
-		public AToolBar(int roundedRectFlags) {
-			setVisibility(EVisibility.PICKABLE);// pickable for my parent to have common area
-			this.roundedRectFlags = roundedRectFlags;
-		}
-
-		protected final CrosswordLayoutInfo getInfo() {
-			return getParent().getLayoutDataAs(CrosswordLayoutInfo.class, null);
-		}
-
-		@Override
-		protected void renderImpl(GLGraphics g, float w, float h) {
-			g.color(toolbarBackground(getInfo().isSelected()));
-			RoundedRectRenderer.render(g, 0, 0, w, h, Math.min(w, h) * 0.3f, 3, RoundedRectRenderer.FLAG_FILL
-					| roundedRectFlags);
-			super.renderImpl(g, w, h);
-		}
-	}
-
-	private static class Header extends AToolBar {
-		private final ILabeled label;
-
-		public Header(ILabeled label, GLElementContainer buttonBar) {
-			super(RoundedRectRenderer.FLAG_TOP);
-			setLayout(new GLFlowLayout(true, 2, GLPadding.ONE));
-			if (buttonBar != null) {
-				add(new GLElement()); // spacer
-				this.add(buttonBar);
-			}
-			this.label = label;
-		}
-
-		@Override
-		protected int getPickingObjectId() {
-			return 1;
-		}
-
-		@Override
-		protected void renderImpl(GLGraphics g, float w, float h) {
-			super.renderImpl(g, w, h);
-			float start;
-			if (size() > 1) {
-				start = get(1).getLocation().x();
-			} else
-				start = w;
-			g.textColor(TOOLBAR_TEXT_COLOR()).drawText(label, 2, 1, start - 2 - 4, TOOLBAR_TEXT_HEIGHT)
-					.textColor(Color.BLACK);
-		}
-	}
-
-	private static class VerticalToolBar extends AToolBar {
-		public VerticalToolBar(GLElementContainer buttonBar, GLButton.ISelectionCallback callback, TablePerspective data) {
-			super(RoundedRectRenderer.FLAG_LEFT);
-			setLayout(new GLFlowLayout(false, 2, GLPadding.ONE));
-			addButton("Close", Resources.deleteIcon(), callback, true);
-			addButton("Split X", Resources.cutDimension(), callback, data.getDimensionPerspective().getVirtualArray()
-					.getGroupList().size() > 1);
-			addButton("Split Y", Resources.cutRecord(), callback, data.getRecordPerspective().getVirtualArray()
-					.getGroupList().size() > 1);
-			if (buttonBar != null) {
-				buttonBar.setLayout(GLLayouts.flowVertical(2));
-				float bak = buttonBar.getSize().x();
-				buttonBar.setSize(-1, bak);
-				add(new GLElement()); // spacer
-				this.add(buttonBar);
-			}
-			setSize(-1, TOOLBAR_WIDTH);
-		}
-
-		@Override
-		protected int getPickingObjectId() {
-			return 2;
-		}
-
-		private void addButton(String tooltip, URL icon, ISelectionCallback callback, boolean enable) {
-			GLButton b = new GLButton();
-			b.setTooltip(tooltip);
-			b.setHoverEffect(GLRenderers.drawRoundedRect(Color.WHITE));
-			if (enable) {
-				b.setRenderer(GLRenderers.fillImage(icon));
-				b.setCallback(callback);
-			} else {
-				b.setVisibility(EVisibility.VISIBLE);
-				b.setRenderer(new DisabledImageRenderer(icon));
-			}
-
-			b.setSize(-1, TOOLBAR_WIDTH);
-			this.add(b);
-		}
-	}
-
-	private static class DisabledImageRenderer implements IGLRenderer {
-		private final URL url;
-
-		public DisabledImageRenderer(URL url) {
-			this.url = url;
-		}
-
-		@Override
-		public void render(GLGraphics g, float w, float h, GLElement parent) {
-			g.fillImage(g.getTexture(url), 0, 0, w, h, Color.GRAY);
 		}
 	}
 

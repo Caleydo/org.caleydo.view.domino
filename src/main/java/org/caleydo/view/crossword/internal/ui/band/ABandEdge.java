@@ -1,3 +1,8 @@
+/*******************************************************************************
+ * Caleydo - Visualization for Molecular Biology - http://caleydo.org
+ * Copyright (c) The Caleydo Team. All rights reserved.
+ * Licensed under the new BSD license, available at http://caleydo.org/license
+ *******************************************************************************/
 package org.caleydo.view.crossword.internal.ui.band;
 
 import gleem.linalg.Vec2f;
@@ -13,6 +18,11 @@ import org.caleydo.view.crossword.internal.ui.CrosswordElement;
 import org.caleydo.view.crossword.internal.util.SetUtils;
 import org.jgrapht.graph.DefaultEdge;
 
+/**
+ *
+ * @author Samuel Gratzl
+ * 
+ */
 public abstract class ABandEdge extends DefaultEdge implements IGLRenderer {
 	private static final long serialVersionUID = 6090738439785805856L;
 

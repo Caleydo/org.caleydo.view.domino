@@ -9,6 +9,6 @@ import org.caleydo.core.gui.command.AOpenViewHandler;
 
 public class OpenViewHandler extends AOpenViewHandler {
 	public OpenViewHandler() {
-		super(GLCrosswordView.VIEW_TYPE, SINGLE);
+		super(CrosswordView.VIEW_TYPE, SINGLE);
 	}
 }

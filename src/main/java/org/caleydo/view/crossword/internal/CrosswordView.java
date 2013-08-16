@@ -26,13 +26,13 @@ import org.caleydo.view.crossword.internal.ui.CrosswordMultiElement;
  * @author Samuel Gratzl
  *
  */
-public class GLCrosswordView extends AMultiTablePerspectiveElementView {
+public class CrosswordView extends AMultiTablePerspectiveElementView {
 	public static final String VIEW_TYPE = "org.caleydo.view.crossword";
 	public static final String VIEW_NAME = "CrossWord";
 
 	private final CrosswordMultiElement crossword;
 
-	public GLCrosswordView(IGLCanvas glCanvas) {
+	public CrosswordView(IGLCanvas glCanvas) {
 		super(glCanvas, VIEW_TYPE, VIEW_NAME);
 		this.crossword = new CrosswordMultiElement();
 	}
@@ -58,7 +58,6 @@ public class GLCrosswordView extends AMultiTablePerspectiveElementView {
 			List<TablePerspective> added, List<TablePerspective> removed) {
 		crossword.removeAll(removed);
 		crossword.addAll(added);
-
 	}
 
 	@ListenTo(sendToMe = true)
