@@ -40,19 +40,20 @@ public class SwitcherMenuElement extends GLElementContainer implements IGLLayout
 		addButton("Close", Resources.deleteIcon(), callback);
 		setLayout(this);
 		setSize(TOOLBAR_WIDTH, TOOLBAR_WIDTH);
-		setVisibility(EVisibility.PICKABLE);
+		setVisibility(EVisibility.PICKABLE); // for parent
 		this.onPick(this);
 	}
 
 	@Override
 	protected int getPickingObjectId() {
-		return 3;
+		return 3; // for parent identification
 	}
 
 	public void setVisualizationSwitcher(GLElementFactorySwitcher switcher) {
 		List<GLElement> list = this.asList();
-		list.subList(1, size()).clear();
+		list.subList(1, size()).clear(); // clear previous
 
+		// work on copy as add will remove from the other list
 		list.addAll(ImmutableList.copyOf(switcher.createButtonBar().asList()));
 		switcher.onActiveChanged(this);
 		this.active = switcher.getActive();
@@ -84,18 +85,19 @@ public class SwitcherMenuElement extends GLElementContainer implements IGLLayout
 	public void doLayout(List<? extends IGLLayoutElement> children, float w, float h) {
 		final int size = children.size();
 		assert size <= 8;
+		// set all to the same size
 		for (IGLLayoutElement child : children)
 			child.setSize(w, h);
 		switch (size) {
-		case 1:
+		case 1: // just close center it
 			children.get(0).setLocation(0, 0);
 			break;
-		case 2:
+		case 2: // just a single one, just show close
 			children.get(0).setLocation(0, 0);
 			children.get(1).hide();
 			break;
 		default:
-			if (hovered) {
+			if (hovered) { // show as a rect of 3x3
 				for (int i = 0; i < Math.min(3, size); ++i)
 					children.get(i).setLocation((i - 1) * w, -h);
 				if (size > 3)
@@ -127,7 +129,7 @@ public class SwitcherMenuElement extends GLElementContainer implements IGLLayout
 	@Override
 	protected void renderImpl(GLGraphics g, float w, float h) {
 		boolean fat = hovered && size() > 2;
-		if (fat) {
+		if (fat) { // if we are rendering the 3x3 rect
 			g.incZ(0.5f);
 			g.color(Color.GRAY).fillRect(-w, -h, w * 3, h * 3);
 		}

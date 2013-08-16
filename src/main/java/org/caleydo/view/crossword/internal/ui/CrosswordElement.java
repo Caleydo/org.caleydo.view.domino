@@ -16,6 +16,7 @@ import org.caleydo.core.data.selection.SelectionManager;
 import org.caleydo.core.data.selection.TablePerspectiveSelectionMixin;
 import org.caleydo.core.data.virtualarray.VirtualArray;
 import org.caleydo.core.event.EventListenerManager.DeepScan;
+import org.caleydo.core.event.EventListenerManager.ListenTo;
 import org.caleydo.core.event.EventPublisher;
 import org.caleydo.core.event.data.DataSetSelectedEvent;
 import org.caleydo.core.view.IMultiTablePerspectiveBasedView;
@@ -42,7 +43,9 @@ import org.caleydo.core.view.opengl.layout2.renderer.Borders.IBorderGLRenderer;
 import org.caleydo.core.view.opengl.layout2.renderer.GLRenderers;
 import org.caleydo.core.view.opengl.picking.IPickingListener;
 import org.caleydo.core.view.opengl.picking.Pick;
+import org.caleydo.view.crossword.internal.event.ChangePerspectiveEvent;
 import org.caleydo.view.crossword.internal.model.TablePerspectiveMetaData;
+import org.caleydo.view.crossword.internal.ui.dialogs.ChangePerspectiveDialog;
 import org.caleydo.view.crossword.internal.ui.menu.PerspectiveMenuElement;
 import org.caleydo.view.crossword.internal.ui.menu.SwitcherMenuElement;
 import org.caleydo.view.crossword.internal.util.BitSetSet;
@@ -286,9 +289,32 @@ public class CrosswordElement extends AnimatedGLElementContainer implements
 			parent.splitRec(this);
 			((PerspectiveMenuElement) get(4)).setTablePerspective(getTablePerspective(), this, metaData.getRecord());
 			break;
+		case "Change Perspective X":
+			context.getSWTLayer().run(
+					new ChangePerspectiveDialog(getTablePerspective().getDimensionPerspective(), this));
+			break;
+		case "Change Perspective Y":
+			context.getSWTLayer().run(new ChangePerspectiveDialog(getTablePerspective().getRecordPerspective(), this));
+			break;
 		default:
 			break;
 		}
+	}
+
+	@ListenTo(sendToMe = true)
+	private void onChangePerspectiveEvent(ChangePerspectiveEvent event) {
+		Perspective new_ = event.getNew_();
+		final TablePerspective tablePerspective = getTablePerspective();
+		Perspective old;
+		if (tablePerspective.getRecordPerspective().getIdType().equals(event.getIdType())) {
+			old = tablePerspective.getRecordPerspective();
+		} else {
+			old = tablePerspective.getDimensionPerspective();
+		}
+		if (old.equals(new_))
+			return;
+
+		// FIXME
 	}
 
 	/**
