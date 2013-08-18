@@ -5,16 +5,24 @@
  *******************************************************************************/
 package org.caleydo.view.crossword.internal.ui.layout;
 
-import org.caleydo.view.crossword.internal.ui.CrosswordElement;
+import java.util.Set;
+
 
 /**
  * @author Samuel Gratzl
  *
  */
 public interface IGraphEdge {
-	CrosswordElement getSource();
 
-	CrosswordElement getTarget();
+	IGraphVertex getSource();
 
-	void relayout();
+	IGraphVertex getTarget();
+
+	IVertexConnector getSourceConnector();
+
+	IVertexConnector getTargetConnector();
+
+	EEdgeType getType();
+
+	Set<Integer> getIntersection();
 }

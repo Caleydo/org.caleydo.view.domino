@@ -19,6 +19,10 @@ import org.caleydo.core.event.EventListenerManager.DeepScan;
 import org.caleydo.core.event.EventListenerManager.ListenTo;
 import org.caleydo.core.event.EventPublisher;
 import org.caleydo.core.event.data.DataSetSelectedEvent;
+import org.caleydo.core.id.IDMappingManager;
+import org.caleydo.core.id.IDMappingManagerRegistry;
+import org.caleydo.core.id.IDType;
+import org.caleydo.core.id.IIDTypeMapper;
 import org.caleydo.core.view.IMultiTablePerspectiveBasedView;
 import org.caleydo.core.view.listener.RemoveTablePerspectiveEvent;
 import org.caleydo.core.view.opengl.canvas.EDetailLevel;
@@ -71,8 +75,11 @@ public class CrosswordElement extends AnimatedGLElementContainer implements
 	@DeepScan
 	private final TablePerspectiveSelectionMixin selection;
 
+
 	private Set<Integer> recordIds;
+	private final IIDTypeMapper<Integer, Integer> record2primary;
 	private Set<Integer> dimensionIds;
+	private final IIDTypeMapper<Integer, Integer> dimension2primary;
 
 	@DeepScan
 	private final CrosswordLayoutInfo info;
@@ -82,6 +89,11 @@ public class CrosswordElement extends AnimatedGLElementContainer implements
 	private final TablePerspectiveMetaData metaData;
 
 	public CrosswordElement(TablePerspective tablePerspective, TablePerspectiveMetaData metaData) {
+		this(tablePerspective, metaData, null);
+	}
+
+	public CrosswordElement(TablePerspective tablePerspective, TablePerspectiveMetaData metaData,
+			CrosswordElement parent) {
 		this.selection = new TablePerspectiveSelectionMixin(tablePerspective, this);
 		this.info = new CrosswordLayoutInfo(this);
 		this.metaData = metaData;
@@ -92,6 +104,17 @@ public class CrosswordElement extends AnimatedGLElementContainer implements
 		setAnimateByDefault(false);
 
 		GLElementFactorySwitcher switcher = createContent(tablePerspective);
+
+		if (parent != null) {
+			record2primary = parent.record2primary;
+			dimension2primary = parent.dimension2primary;
+			this.info.initFromParent(parent.info);
+			switcher.setActive(parent.getSwitcher().getActive());
+		} else {
+			record2primary = resolvePrimaryMapper(tablePerspective.getRecordPerspective().getIdType());
+			dimension2primary = resolvePrimaryMapper(tablePerspective.getDimensionPerspective().getIdType());
+		}
+
 		switcher.onActiveChanged(info);
 		this.add(switcher);
 		this.border = Borders.createBorder(tablePerspective.getDataDomain().getColor());
@@ -108,9 +131,13 @@ public class CrosswordElement extends AnimatedGLElementContainer implements
 		onVAUpdate(tablePerspective);
 	}
 
-	public void initFromParent(CrosswordElement parent) {
-		info.initFromParent(parent.info);
-		getSwitcher().setActive(parent.getSwitcher().getActive());
+	/**
+	 * @param idType
+	 * @return
+	 */
+	private static IIDTypeMapper<Integer, Integer> resolvePrimaryMapper(IDType idType) {
+		IDMappingManager manager = IDMappingManagerRegistry.get().getIDMappingManager(idType);
+		return manager.getIDTypeMapper(idType, idType.getIDCategory().getPrimaryMappingType());
 	}
 
 	private GLElementFactorySwitcher getSwitcher() {
@@ -157,18 +184,20 @@ public class CrosswordElement extends AnimatedGLElementContainer implements
 	 * @param set
 	 * @param perspective
 	 */
-	private Set<Integer> convert(Set<Integer> set, Perspective perspective, int total) {
+	private Set<Integer> convert(Set<Integer> set, Perspective perspective, int total,
+			IIDTypeMapper<Integer, Integer> mapper) {
 		VirtualArray va = perspective.getVirtualArray();
+		Set<Integer> ids = mapper.apply(va.getIDs());
 		int size = va.size();
 		if (size == 0)
 			return ImmutableSortedSet.of();
 		if (size < total / 4) { // less than 25% -> use ordinary instead of BitSet
-			return ImmutableSortedSet.copyOf(va.getIDs());
+			return ImmutableSortedSet.copyOf(ids);
 		} else { // use BitSet
 			if (!(set instanceof BitSetSet))
 				set = new BitSetSet();
 			set.clear();
-			set.addAll(va.getIDs());
+			set.addAll(ids);
 			return set;
 		}
 	}
@@ -299,8 +328,9 @@ public class CrosswordElement extends AnimatedGLElementContainer implements
 		Table table = tablePerspective.getDataDomain().getTable();
 		final int nrRecords = table.depth();
 		final int nrDimensions = table.size();
-		recordIds = convert(recordIds, tablePerspective.getRecordPerspective(), nrRecords);
-		dimensionIds = convert(dimensionIds, tablePerspective.getDimensionPerspective(), nrDimensions);
+		recordIds = convert(recordIds, tablePerspective.getRecordPerspective(), nrRecords, record2primary);
+		dimensionIds = convert(dimensionIds, tablePerspective.getDimensionPerspective(), nrDimensions,
+				dimension2primary);
 
 		CrosswordMultiElement p = getMultiElement();
 		if (p != null)

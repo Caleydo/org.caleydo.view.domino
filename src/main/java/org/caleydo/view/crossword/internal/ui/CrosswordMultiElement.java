@@ -5,6 +5,11 @@
  ******************************************************************************/
 package org.caleydo.view.crossword.internal.ui;
 
+import static org.caleydo.view.crossword.internal.ui.layout.EEdgeType.PARENT_CHILD;
+import static org.caleydo.view.crossword.internal.ui.layout.EEdgeType.SHARED;
+import static org.caleydo.view.crossword.internal.ui.layout.EEdgeType.SIBLING;
+import static org.caleydo.view.crossword.internal.ui.layout.IVertexConnector.EConnectorType.COLUMN;
+import static org.caleydo.view.crossword.internal.ui.layout.IVertexConnector.EConnectorType.RECORD;
 import gleem.linalg.Vec2f;
 import gleem.linalg.Vec4f;
 
@@ -27,21 +32,29 @@ import org.caleydo.core.view.opengl.layout2.GLGraphics;
 import org.caleydo.core.view.opengl.layout2.IGLElementContext;
 import org.caleydo.core.view.opengl.layout2.IGLElementParent;
 import org.caleydo.core.view.opengl.layout2.basic.ScrollingDecorator.IHasMinSize;
+import org.caleydo.core.view.opengl.layout2.geom.Rect;
 import org.caleydo.core.view.opengl.layout2.layout.IGLLayoutElement;
 import org.caleydo.view.crossword.internal.CrosswordView;
+import org.caleydo.view.crossword.internal.model.BandRoute;
+import org.caleydo.view.crossword.internal.model.CenterRadius;
+import org.caleydo.view.crossword.internal.model.IConnectorModel;
 import org.caleydo.view.crossword.internal.model.PerspectiveMetaData;
 import org.caleydo.view.crossword.internal.model.TablePerspectiveMetaData;
-import org.caleydo.view.crossword.internal.ui.band.ABandEdge;
-import org.caleydo.view.crossword.internal.ui.band.ParentChildBandEdge;
-import org.caleydo.view.crossword.internal.ui.band.SharedBandEdge;
-import org.caleydo.view.crossword.internal.ui.band.SiblingBandEdge;
+import org.caleydo.view.crossword.internal.ui.band.ConnectorModels;
 import org.caleydo.view.crossword.internal.ui.layout.DefaultGraphLayout;
+import org.caleydo.view.crossword.internal.ui.layout.EEdgeType;
 import org.caleydo.view.crossword.internal.ui.layout.IGraphEdge;
 import org.caleydo.view.crossword.internal.ui.layout.IGraphLayout;
+import org.caleydo.view.crossword.internal.ui.layout.IGraphLayout.GraphLayoutModel;
 import org.caleydo.view.crossword.internal.ui.layout.IGraphVertex;
+import org.caleydo.view.crossword.internal.ui.layout.IVertexConnector;
+import org.caleydo.view.crossword.internal.ui.layout.IVertexConnector.EConnectorType;
+import org.caleydo.view.crossword.internal.util.SetUtils;
 import org.jgrapht.UndirectedGraph;
+import org.jgrapht.graph.DefaultEdge;
 import org.jgrapht.graph.Pseudograph;
 
+import com.google.common.base.Function;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Iterators;
@@ -55,12 +68,13 @@ import com.google.common.collect.Iterators;
 public class CrosswordMultiElement extends GLElement implements IHasMinSize, IGLElementParent,
 		Iterable<CrosswordElement> {
 
-	private final UndirectedGraph<CrosswordElement, ABandEdge> graph = new Pseudograph<>(ABandEdge.class);
+	private final UndirectedGraph<GraphVertex, GraphEdge> graph = new Pseudograph<>(GraphEdge.class);
 	private final CrosswordBandLayer bands = new CrosswordBandLayer();
 
 	private final IGraphLayout layout = new DefaultGraphLayout();
 
 	private boolean alwaysShowHeader;
+	private GraphLayoutModel layoutInstance;
 
 	/**
 	 *
@@ -88,9 +102,6 @@ public class CrosswordMultiElement extends GLElement implements IHasMinSize, IGL
 		return alwaysShowHeader;
 	}
 
-	/**
-	 *
-	 */
 	public void toggleAlwaysShowHeader() {
 		this.alwaysShowHeader = !this.alwaysShowHeader;
 		for (CrosswordElement elem : Iterables.filter(this, CrosswordElement.class))
@@ -108,8 +119,8 @@ public class CrosswordMultiElement extends GLElement implements IHasMinSize, IGL
 	public void layout(int deltaTimeMs) {
 		super.layout(deltaTimeMs);
 		bands.layout(deltaTimeMs);
-		for (GLElement child : this)
-			child.layout(deltaTimeMs);
+		for (GraphVertex vertex : graph.vertexSet())
+			vertex.asElement().layout(deltaTimeMs);
 	}
 
 	@Override
@@ -124,24 +135,22 @@ public class CrosswordMultiElement extends GLElement implements IHasMinSize, IGL
 		Vec2f size = getSize();
 		GLElementAccessor.asLayoutElement(bands).setBounds(0, 0, size.x(), size.y());
 
-		layout.doLayout(asGraphVertices(), graph.edgeSet());
+		this.layoutInstance = layout.doLayout(graph.vertexSet(), graph.edgeSet());
 		relayoutParent(); // trigger update of the parent for min size changes
 	}
 
-	private List<IGraphVertex> asGraphVertices() {
-		Set<CrosswordElement> s = graph.vertexSet();
-		List<IGraphVertex> l = new ArrayList<>(s.size());
-		for (CrosswordElement child : s)
-			if (child.getVisibility() != EVisibility.NONE)
-				l.add(new GraphVertex(child));
-		return l;
+	/**
+	 * @return
+	 */
+	public Iterable<BandRoute> getBandRoutes() {
+		return Iterables.unmodifiableIterable(layoutInstance.getRoutes());
 	}
 
 	@Override
 	protected void takeDown() {
 		GLElementAccessor.takeDown(bands);
-		for (GLElement elem : this)
-			GLElementAccessor.takeDown(elem);
+		for (GraphVertex vertex : graph.vertexSet())
+			GLElementAccessor.takeDown(vertex.asElement());
 		super.takeDown();
 	}
 
@@ -149,8 +158,8 @@ public class CrosswordMultiElement extends GLElement implements IHasMinSize, IGL
 	protected void init(IGLElementContext context) {
 		super.init(context);
 		GLElementAccessor.init(bands, context);
-		for (GLElement child : this)
-			GLElementAccessor.init(child, context);
+		for (GraphVertex vertex : graph.vertexSet())
+			GLElementAccessor.init(vertex.asElement(), context);
 	}
 
 	private void setup(CrosswordElement child) {
@@ -158,7 +167,7 @@ public class CrosswordMultiElement extends GLElement implements IHasMinSize, IGL
 		boolean doInit = ex == null;
 		if (ex == this) {
 			// internal move
-			graph.removeVertex(child);
+			removeVertex(child);
 		} else if (ex != null) {
 			doInit = !ex.moved(child);
 		}
@@ -168,42 +177,64 @@ public class CrosswordMultiElement extends GLElement implements IHasMinSize, IGL
 	}
 
 	/**
+	 * @param child
+	 */
+	private boolean removeVertex(CrosswordElement child) {
+		GraphVertex vertex = toVertex(child);
+		if (vertex == null)
+			return false;
+		return graph.removeVertex(vertex);
+	}
+
+	/**
 	 * @param crosswordElement
 	 */
 	private void add(CrosswordElement child) {
-		addImpl(child);
-		createBands(child, ImmutableSet.of(child));
+		GraphVertex vertex = addImpl(child);
+		createBands(vertex, ImmutableSet.of(child));
 	}
 
-	private void addImpl(CrosswordElement child) {
+	private GraphVertex addImpl(CrosswordElement child) {
 		setup(child);
-		graph.addVertex(child);
+		final GraphVertex vertex = new GraphVertex(child);
+		graph.addVertex(vertex);
 		relayout();
+		return vertex;
 	}
 
-	private void createBands(CrosswordElement child, Set<CrosswordElement> ignores) {
+	private void createBands(GraphVertex child, Set<CrosswordElement> ignores) {
 		final TablePerspective tablePerspective = child.getTablePerspective();
 		final IDType recIDType = tablePerspective.getRecordPerspective().getIdType();
 		final IDType dimIDType = tablePerspective.getDimensionPerspective().getIdType();
 
-		for (CrosswordElement other : graph.vertexSet()) {
-			if (ignores.contains(other))
+		for (GraphVertex other : graph.vertexSet()) {
+			if (ignores.contains(other.asElement()))
 				continue;
 			final TablePerspective tablePerspective2 = child.getTablePerspective();
 			final IDType recIDType2 = tablePerspective2.getRecordPerspective().getIdType();
 			final IDType dimIDType2 = tablePerspective2.getDimensionPerspective().getIdType();
 			if (recIDType.resolvesTo(recIDType2))
-				addEdgeImpl(child, other, new SharedBandEdge(false, false));
+				addEdge(child, other, SHARED, connect(RECORD), connect(RECORD));
 			if (dimIDType.resolvesTo(recIDType2))
-				addEdgeImpl(child, other, new SharedBandEdge(true, false));
+				addEdge(child, other, SHARED, connect(COLUMN), connect(RECORD));
 			if (recIDType.resolvesTo(dimIDType2))
-				addEdgeImpl(child, other, new SharedBandEdge(false, true));
+				addEdge(child, other, SHARED, connect(RECORD), connect(COLUMN));
 			if (dimIDType.resolvesTo(dimIDType2))
-				addEdgeImpl(child, other, new SharedBandEdge(true, true));
+				addEdge(child, other, SHARED, connect(COLUMN), connect(COLUMN));
 		}
 	}
 
-	private void addEdgeImpl(CrosswordElement child, CrosswordElement other, final ABandEdge edge) {
+	private static VertexConnector connect(EConnectorType type) {
+		return connect(type, ConnectorModels.SHARED);
+	}
+
+	private static VertexConnector connect(EConnectorType type, IConnectorModel model) {
+		return new VertexConnector(type, model);
+	}
+
+	private void addEdge(GraphVertex child, GraphVertex other, EEdgeType type, VertexConnector sourceConnector,
+			VertexConnector targetConnector) {
+		final GraphEdge edge = new GraphEdge(type, sourceConnector, targetConnector);
 		graph.addEdge(child, other, edge);
 		edge.update();
 	}
@@ -214,7 +245,8 @@ public class CrosswordMultiElement extends GLElement implements IHasMinSize, IGL
 	 */
 	private void split(CrosswordElement base, boolean inDim) {
 		TablePerspective table = base.getTablePerspective();
-		boolean hor = inDim;
+		final EConnectorType type = inDim ? EConnectorType.COLUMN : EConnectorType.RECORD;
+		final GraphVertex baseVertex = toVertex(base);
 		final GroupList groups = (inDim ? table.getDimensionPerspective() : table.getRecordPerspective())
 				.getVirtualArray().getGroupList();
 		assert groups.size() > 1;
@@ -225,25 +257,34 @@ public class CrosswordMultiElement extends GLElement implements IHasMinSize, IGL
 			TablePerspectiveMetaData metaData = new TablePerspectiveMetaData(
 					inDim ? 0 : PerspectiveMetaData.FLAG_CHILD, inDim ? PerspectiveMetaData.FLAG_CHILD : 0);
 			for (TablePerspective t : datas) {
-				final CrosswordElement new_ = new CrosswordElement(t, metaData);
-				new_.initFromParent(base);
+				final CrosswordElement new_ = new CrosswordElement(t, metaData, base);
 				children.add(new_);
 			}
 		}
 
 		// combine the elements that should be ignored
-		ImmutableSet<CrosswordElement> ignore = ImmutableSet.<CrosswordElement> builder().addAll(children).add(base)
+		final ImmutableSet<CrosswordElement> ignore = ImmutableSet.<CrosswordElement> builder().addAll(children)
+				.add(base)
 				.build();
+
+		int total = inDim ? table.getNrDimensions() : table.getNrRecords();
+
+		List<GraphVertex> vertices = new ArrayList<>(ignore.size());
 
 		for (int i = 0; i < children.size(); ++i) {
 			CrosswordElement child = children.get(i);
 			Group group = groups.get(i);
-			addImpl(child);
-			createBands(child, ignore);
-			addEdgeImpl(base, child, new ParentChildBandEdge(hor, group.getStartIndex(), hor)); // add parent edge
+			GraphVertex vertex = addImpl(child);
+			vertices.add(vertex);
+			createBands(vertex, ignore);
+			int startIndex = group.getStartIndex();
+			float offset = startIndex / (float) total;
+			addEdge(baseVertex, vertex, PARENT_CHILD, connect(type, ConnectorModels.createParent(offset)),
+					connect(type));
+			// add parent edge
 			for (int j = 0; j < i; ++j) {
-				CrosswordElement child2 = children.get(j);
-				addEdgeImpl(child, child2, new SiblingBandEdge(hor, hor)); // add sibling edge
+				GraphVertex child2 = vertices.get(j);
+				addEdge(baseVertex, child2, SIBLING, connect(type), connect(type)); // add sibling edge
 			}
 		}
 
@@ -266,14 +307,21 @@ public class CrosswordMultiElement extends GLElement implements IHasMinSize, IGL
 	@Override
 	public boolean moved(GLElement child) {
 		if (child instanceof CrosswordElement)
-			graph.removeVertex((CrosswordElement) child);
+			removeVertex((CrosswordElement) child);
 		relayout();
 		return context != null;
 	}
 
+	private final Function<GraphVertex, CrosswordElement> toCrosswordElement = new Function<GraphVertex, CrosswordElement>() {
+		@Override
+		public CrosswordElement apply(GraphVertex input) {
+			return input.asElement();
+		}
+	};
+
 	@Override
 	public Iterator<CrosswordElement> iterator() {
-		return Iterators.unmodifiableIterator(graph.vertexSet().iterator());
+		return Iterators.transform(graph.vertexSet().iterator(), toCrosswordElement);
 	}
 
 	@Override
@@ -281,8 +329,8 @@ public class CrosswordMultiElement extends GLElement implements IHasMinSize, IGL
 		super.renderImpl(g, w, h);
 		bands.render(g);
 		g.incZ();
-		for (GLElement child : graph.vertexSet())
-			child.render(g);
+		for (GraphVertex vertex : graph.vertexSet())
+			vertex.asElement().render(g);
 		g.decZ();
 	}
 
@@ -291,8 +339,8 @@ public class CrosswordMultiElement extends GLElement implements IHasMinSize, IGL
 		super.renderPickImpl(g, w, h);
 		bands.renderPick(g);
 		g.incZ();
-		for (GLElement child : graph.vertexSet())
-			child.renderPick(g);
+		for (GraphVertex vertex : graph.vertexSet())
+			vertex.asElement().renderPick(g);
 		g.decZ();
 	}
 
@@ -305,7 +353,7 @@ public class CrosswordMultiElement extends GLElement implements IHasMinSize, IGL
 	 * @param r
 	 */
 	void remove(CrosswordElement child) {
-		if (graph.removeVertex(child)) {
+		if (removeVertex(child)) {
 			GLElementAccessor.takeDown(child);
 			relayout();
 		}
@@ -332,16 +380,23 @@ public class CrosswordMultiElement extends GLElement implements IHasMinSize, IGL
 			remove(r);
 	}
 
-	public Iterable<ABandEdge> getBands() {
-		return Iterables.unmodifiableIterable(graph.edgeSet());
+	public Iterable<GraphEdge> getBands() {
+		return graph.edgeSet();
 	}
 
 	/**
 	 * @param crosswordElement
 	 */
 	public void onConnectionsChanged(CrosswordElement child) {
-		for (ABandEdge edge : graph.edgesOf(child))
+		for (GraphEdge edge : graph.edgesOf(toVertex(child)))
 			edge.update();
+	}
+
+	private GraphVertex toVertex(CrosswordElement child) {
+		for (GraphVertex vertex : graph.vertexSet())
+			if (vertex.asElement() == child)
+				return vertex;
+		return null;
 	}
 
 	public void changePerspective(CrosswordElement child, boolean isDim, Perspective new_) {
@@ -371,45 +426,172 @@ public class CrosswordMultiElement extends GLElement implements IHasMinSize, IGL
 	}
 
 	private class GraphVertex implements IGraphVertex {
-		private final IGLLayoutElement elem;
-		private final CrosswordLayoutInfo info;
+		private final CrosswordElement element;
 
-		public GraphVertex(CrosswordElement elem) {
-			this.elem = GLElementAccessor.asLayoutElement(elem);
-			this.info = elem.getLayoutDataAs(CrosswordLayoutInfo.class, null);
+		public GraphVertex(CrosswordElement element) {
+			super();
+			this.element = element;
+		}
+
+		public CrosswordElement asElement() {
+			return element;
+		}
+
+		public Set<Integer> getIDs(EConnectorType type) {
+			switch (type) {
+			case COLUMN:
+				return element.getDimensionIds();
+			case RECORD:
+				return element.getRecordIds();
+			}
+			throw new IllegalStateException();
+		}
+
+		public TablePerspective getTablePerspective() {
+			return element.getTablePerspective();
+		}
+
+		private IGLLayoutElement asLayoutElement() {
+			return GLElementAccessor.asLayoutElement(element);
+		}
+
+		private CrosswordLayoutInfo asLayoutInfo() {
+			return element.getLayoutDataAs(CrosswordLayoutInfo.class, null);
 		}
 
 		@Override
 		public Vec2f getLocation() {
-			return elem.getLocation();
+			return asLayoutElement().getLocation();
 		}
 
-		/**
-		 * @return
-		 */
+		@Override
+		public Rect getBounds() {
+			return asLayoutElement().getRectBounds();
+		}
+
 		@Override
 		public Vec2f getSize() {
-			Vec2f size = info.getMinSize(elem);
-			info.scale(size);
-			return size;
+			CrosswordLayoutInfo info = asLayoutInfo();
+			Vec2f minSize = info.getMinSize(element);
+			info.scale(minSize);
+			return minSize;
 		}
-
 
 		@Override
 		public void setBounds(Vec2f location, Vec2f size) {
-			elem.setBounds(location.x(), location.y(), size.x(), size.y());
+			asLayoutElement().setBounds(location.x(), location.y(), size.x(), size.y());
 		}
 
 		@Override
 		public void move(float x, float y) {
-			Vec2f l = elem.getLocation();
-			elem.setLocation(l.x() + x, l.y() + y);
+			Vec2f l = getLocation();
+			asLayoutElement().setLocation(l.x() + x, l.y() + y);
 		}
 
 		@Override
-		public Set<? extends IGraphEdge> getEdges() {
-			return graph.edgesOf((CrosswordElement) elem.asElement());
+		public Set<GraphEdge> getEdges() {
+			return graph.edgesOf(this);
 		}
 
+		@Override
+		public boolean hasEdge(EEdgeType type) {
+			return Iterables.any(getEdges(), type);
+		}
+	}
+
+	private static class VertexConnector implements IVertexConnector {
+		private final EConnectorType type;
+		private final IConnectorModel model;
+		private CenterRadius values;
+
+		public VertexConnector(EConnectorType type, IConnectorModel model) {
+			this.model = model;
+			this.type = type;
+		}
+
+		@Override
+		public EConnectorType getConnectorType() {
+			return type;
+		}
+
+		@Override
+		public float getCenter() {
+			return values.getCenter();
+		}
+
+		@Override
+		public float getRadius() {
+			return values.getRadius();
+		}
+
+		public void update(Set<Integer> ids, Set<Integer> intersection) {
+			values = model.update(ids, intersection);
+		}
+	}
+
+	private static class GraphEdge extends DefaultEdge implements IGraphEdge {
+		private static final long serialVersionUID = -92295569780679555L;
+		private final EEdgeType type;
+		private Set<Integer> intersection;
+		private final VertexConnector sourceConnector;
+		private final VertexConnector targetConnector;
+
+		public GraphEdge(EEdgeType type, VertexConnector sourceConnector, VertexConnector targetConnector) {
+			this.type = type;
+			this.sourceConnector = sourceConnector;
+			this.targetConnector = targetConnector;
+
+		}
+		@Override
+		public GraphVertex getSource() {
+			return (GraphVertex) super.getSource();
+		}
+
+		@Override
+		public GraphVertex getTarget() {
+			return (GraphVertex) super.getTarget();
+		}
+
+		/**
+		 * @return the intersection, see {@link #intersection}
+		 */
+		@Override
+		public Set<Integer> getIntersection() {
+			return intersection;
+		}
+
+		/**
+		 * @return the sourceConnector, see {@link #sourceConnector}
+		 */
+		@Override
+		public VertexConnector getSourceConnector() {
+			return sourceConnector;
+		}
+
+		/**
+		 * @return the targetConnector, see {@link #targetConnector}
+		 */
+		@Override
+		public VertexConnector getTargetConnector() {
+			return targetConnector;
+		}
+
+		@Override
+		public EEdgeType getType() {
+			return type;
+		}
+
+		/**
+		 *
+		 */
+		public void update() {
+			GraphVertex s = getSource();
+			GraphVertex t = getTarget();
+			Set<Integer> sourceIDs = s.getIDs(sourceConnector.getConnectorType());
+			Set<Integer> targetIDs = t.getIDs(targetConnector.getConnectorType());
+			intersection = SetUtils.intersection(sourceIDs, targetIDs);
+			sourceConnector.update(sourceIDs, intersection);
+			targetConnector.update(targetIDs, intersection);
+		}
 	}
 }

@@ -3,27 +3,20 @@
  * Copyright (c) The Caleydo Team. All rights reserved.
  * Licensed under the new BSD license, available at http://caleydo.org/license
  *******************************************************************************/
-package org.caleydo.view.crossword.internal.ui.band;
+package org.caleydo.view.crossword.internal.model;
 
-import org.caleydo.core.util.color.Color;
+import java.util.Set;
 
 /**
  * @author Samuel Gratzl
  *
  */
-public class SharedBandEdge extends ABandEdge {
-
+public interface IConnectorModel {
 	/**
-	 * 
+	 * @param ids
+	 * @param intersection
+	 * @return
 	 */
-	private static final long serialVersionUID = 6400784633888705942L;
-
-	/**
-	 * @param sHor
-	 * @param tHor
-	 */
-	public SharedBandEdge(boolean sHor, boolean tHor) {
-		super(sHor, tHor, new Color(0.9f, 0.9f, 0.9f, 0.5f));
-	}
+	CenterRadius update(Set<Integer> ids, Set<Integer> intersection);
 
 }

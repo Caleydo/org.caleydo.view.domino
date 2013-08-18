@@ -12,11 +12,20 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 
 /**
+ * Set operations optimized for {@link BitSetSet}
+ *
  * @author Samuel Gratzl
  *
  */
 public class SetUtils {
 
+	/**
+	 * set intersection
+	 *
+	 * @param a
+	 * @param b
+	 * @return
+	 */
 	public static Set<Integer> intersection(Set<Integer> a, Set<Integer> b) {
 		if (a.isEmpty()) // return empty
 			return a;
@@ -33,9 +42,19 @@ public class SetUtils {
 			a = b;
 			b = tmp;
 		}
-		return ImmutableSet.copyOf(Sets.intersection(a, b));
+		ImmutableSet<Integer> r = ImmutableSet.copyOf(Sets.intersection(a, b));
+		if (r.size() == a.size()) // all shared
+			return a;
+		return r;
 	}
 
+	/**
+	 * return the number of shared items
+	 *
+	 * @param a
+	 * @param b
+	 * @return
+	 */
 	public static int and(Set<Integer> a, Set<Integer> b) {
 		if (a.isEmpty()) // return empty
 			return 0;
@@ -71,7 +90,13 @@ public class SetUtils {
 			a = b;
 			b = tmp;
 		}
-		return ImmutableSet.copyOf(Sets.union(a, b));
+		ImmutableSet<Integer> r = ImmutableSet.copyOf(Sets.union(a, b));
+		final int size = r.size();
+		if (size == a.size())
+			return a;
+		else if (size == b.size())
+			return b;
+		return r;
 	}
 
 	public static int or(Set<Integer> a, Set<Integer> b) {

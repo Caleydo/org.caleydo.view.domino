@@ -10,13 +10,13 @@ import org.caleydo.core.data.selection.SelectionManager;
 import org.caleydo.core.event.EventListenerManager.DeepScan;
 import org.caleydo.core.view.opengl.layout2.GLElement;
 import org.caleydo.core.view.opengl.layout2.GLGraphics;
-import org.caleydo.view.crossword.internal.ui.band.ABandEdge;
+import org.caleydo.view.crossword.internal.model.BandRoute;
 
 /**
  * a dedicated layer for the bands for better caching behavior
- * 
+ *
  * @author Samuel Gratzl
- * 
+ *
  */
 public class CrosswordBandLayer extends GLElement implements MultiSelectionManagerMixin.ISelectionMixinCallback {
 	@DeepScan
@@ -25,7 +25,7 @@ public class CrosswordBandLayer extends GLElement implements MultiSelectionManag
 	@Override
 	protected void renderImpl(GLGraphics g, float w, float h) {
 		super.renderImpl(g, w, h);
-		for (ABandEdge edge : getMultiElement().getBands()) {
+		for (BandRoute edge : getMultiElement().getBandRoutes()) {
 			edge.render(g, w, h, this);
 		}
 	}

@@ -7,8 +7,14 @@ package org.caleydo.view.crossword.internal.ui.layout;
 
 import gleem.linalg.Vec2f;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
+
+import org.caleydo.core.view.opengl.layout2.geom.Rect;
+import org.caleydo.view.crossword.internal.model.BandRoute;
 
 /**
  * @author Samuel Gratzl
@@ -17,7 +23,7 @@ import java.util.Set;
 public class DefaultGraphLayout implements IGraphLayout {
 
 	@Override
-	public boolean doLayout(List<? extends IGraphVertex> vertices, Set<? extends IGraphEdge> edges) {
+	public GraphLayoutModel doLayout(Set<? extends IGraphVertex> vertices, Set<? extends IGraphEdge> edges) {
 		float acc = 10;
 		float x_shift = 0;
 		float y_shift = 0;
@@ -44,9 +50,51 @@ public class DefaultGraphLayout implements IGraphLayout {
 			}
 		}
 
+		Collection<BandRoute> routes = new ArrayList<>();
+
 		for (IGraphEdge edge : edges) {
-			edge.relayout();
+			routes.add(new BandRoute(toPath(edge), edge.getType().getColor(), edge.getIntersection()));
 		}
-		return false;
+		return new GraphLayoutModel(false, routes);
+	}
+
+	/**
+	 * @param edge
+	 * @return
+	 */
+	private List<Vec2f> toPath(IGraphEdge edge) {
+		Rect sRect = edge.getSource().getBounds();
+		Rect tRect = edge.getTarget().getBounds();
+
+		Vec2f source = toPosition(edge.getSourceConnector(), sRect, tRect);
+		Vec2f target = toPosition(edge.getTargetConnector(), tRect, sRect);
+		return Arrays.asList(source, target);
+	}
+
+
+	/**
+	 * @param sourceConnector
+	 * @param sRect
+	 * @param tRect
+	 * @return
+	 */
+	private Vec2f toPosition(IVertexConnector connector, Rect self, Rect opposite) {
+		float center = connector.getCenter();
+		Vec2f posSize = connector.getConnectorType().extract(self);
+
+		Vec2f pos = self.xy();
+		switch (connector.getConnectorType()) {
+		case RECORD:
+			if (self.x2() < opposite.x())
+				pos.setX(self.x2());
+			pos.setY(pos.y() + center * posSize.y());
+			break;
+		case COLUMN:
+			if (self.y2() < opposite.y())
+				pos.setY(self.y2());
+			pos.setX(pos.x() + center * posSize.y());
+			break;
+		}
+		return pos;
 	}
 }
