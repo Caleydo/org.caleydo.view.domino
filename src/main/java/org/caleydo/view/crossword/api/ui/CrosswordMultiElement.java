@@ -160,8 +160,8 @@ public class CrosswordMultiElement extends GLElement implements IHasMinSize, IGL
 	/**
 	 * @return
 	 */
-	public Iterable<BandRoute> getBandRoutes() {
-		return Iterables.unmodifiableIterable(layoutInstance.getRoutes());
+	public List<BandRoute> getBandRoutes() {
+		return (layoutInstance.getRoutes());
 	}
 
 	@Override

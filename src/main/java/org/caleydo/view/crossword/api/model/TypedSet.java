@@ -31,15 +31,12 @@ import com.google.common.collect.Sets;
  */
 @Immutable
 public final class TypedSet extends AbstractSet<Integer> {
-	private final static TypedSet EMPTY = new TypedSet(Collections.<Integer> emptySet(), null);
-
 	private final Set<Integer> wrappee;
 	private final IDType idType;
 
 	public TypedSet(Set<Integer> wrappee, IDType idType) {
-		Preconditions.checkArgument(wrappee.isEmpty() || idType != null, "non empty sets must have a id type");
-		this.wrappee = wrappee;
-		this.idType = idType;
+		this.wrappee = Preconditions.checkNotNull(wrappee);
+		this.idType = Preconditions.checkNotNull(idType);
 	}
 
 	/**
@@ -96,7 +93,7 @@ public final class TypedSet extends AbstractSet<Integer> {
 		if (that.isEmpty())
 			return that;
 		if (!Objects.equals(this.idType, that.idType)) // not matching id types returning empty set
-			return EMPTY;
+			return new TypedSet(Collections.<Integer> emptySet(), idType);
 
 		if (this.wrappee instanceof BitSetSet)
 			return intersection((BitSetSet) wrappee, that);
@@ -146,7 +143,7 @@ public final class TypedSet extends AbstractSet<Integer> {
 		if (that.isEmpty())
 			return this;
 		if (!Objects.equals(this.idType, that.idType)) // not matching id types returning empty set
-			return EMPTY;
+			return new TypedSet(Collections.<Integer> emptySet(), idType);
 		if (this.wrappee instanceof BitSetSet)
 			return union((BitSetSet) wrappee, that);
 		if (that.wrappee instanceof BitSetSet)
