@@ -16,8 +16,10 @@ import org.caleydo.core.view.opengl.layout2.GLGraphics;
 import org.caleydo.core.view.opengl.layout2.renderer.IGLRenderer;
 
 /**
+ * this class represents a small fragment of a band representation including a path color and a set of represented ids
+ * 
  * @author Samuel Gratzl
- *
+ * 
  */
 public class BandRoute implements IGLRenderer {
 	private final List<Vec2f> path;

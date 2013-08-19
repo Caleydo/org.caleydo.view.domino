@@ -36,6 +36,7 @@ import org.caleydo.core.view.opengl.layout2.geom.Rect;
 import org.caleydo.core.view.opengl.layout2.layout.IGLLayoutElement;
 import org.caleydo.view.crossword.api.model.BandRoute;
 import org.caleydo.view.crossword.api.model.CenterRadius;
+import org.caleydo.view.crossword.api.model.ConnectorStrategies;
 import org.caleydo.view.crossword.api.model.PerspectiveMetaData;
 import org.caleydo.view.crossword.api.model.TablePerspectiveMetaData;
 import org.caleydo.view.crossword.api.ui.layout.EEdgeType;
@@ -47,10 +48,9 @@ import org.caleydo.view.crossword.internal.CrosswordView;
 import org.caleydo.view.crossword.internal.ui.CrosswordBandLayer;
 import org.caleydo.view.crossword.internal.ui.CrosswordElement;
 import org.caleydo.view.crossword.internal.ui.CrosswordLayoutInfo;
-import org.caleydo.view.crossword.internal.ui.band.ConnectorModels;
 import org.caleydo.view.crossword.internal.ui.layout.DefaultGraphLayout;
 import org.caleydo.view.crossword.internal.util.SetUtils;
-import org.caleydo.view.crossword.spi.model.IConnectorModel;
+import org.caleydo.view.crossword.spi.model.IConnectorStrategy;
 import org.caleydo.view.crossword.spi.ui.layout.IGraphLayout;
 import org.caleydo.view.crossword.spi.ui.layout.IGraphLayout.GraphLayoutModel;
 import org.jgrapht.UndirectedGraph;
@@ -63,7 +63,7 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Iterators;
 
 /**
- * layout implementation
+ * crossword root element
  *
  * @author Samuel Gratzl
  *
@@ -71,20 +71,42 @@ import com.google.common.collect.Iterators;
 public class CrosswordMultiElement extends GLElement implements IHasMinSize, IGLElementParent,
 		Iterable<CrosswordElement> {
 
+	/**
+	 * data structure for managing the elements
+	 */
 	private final UndirectedGraph<GraphVertex, GraphEdge> graph = new Pseudograph<>(GraphEdge.class);
+	/**
+	 * dedicated element/layer for the bands for better caching behavior
+	 */
 	private final CrosswordBandLayer bands = new CrosswordBandLayer();
 
-	private final IGraphLayout layout = new DefaultGraphLayout();
+	private final IGraphLayout layout;
 
+	/**
+	 * whether the bars of all element should be shown all the time or just on demand (hover)
+	 */
 	private boolean alwaysShowHeader;
+
+	/**
+	 * result of the layout algorithm
+	 */
 	private GraphLayoutModel layoutInstance;
 
 	/**
 	 *
 	 */
 	public CrosswordMultiElement() {
+		this(new DefaultGraphLayout());
+	}
+
+	/**
+	 * @param layout
+	 */
+	public CrosswordMultiElement(IGraphLayout layout) {
+		this.layout = layout;
 		GLElementAccessor.setParent(bands, this);
 	}
+
 
 	@Override
 	public Vec2f getMinSize() {
@@ -109,13 +131,6 @@ public class CrosswordMultiElement extends GLElement implements IHasMinSize, IGL
 		this.alwaysShowHeader = !this.alwaysShowHeader;
 		for (CrosswordElement elem : Iterables.filter(this, CrosswordElement.class))
 			elem.relayout();
-	}
-
-	/**
-	 * @param dimensionSubTablePerspectives
-	 */
-	public void add(TablePerspective tablePerspective) {
-		add(new CrosswordElement(tablePerspective, new TablePerspectiveMetaData(0, 0)));
 	}
 
 	@Override
@@ -228,10 +243,10 @@ public class CrosswordMultiElement extends GLElement implements IHasMinSize, IGL
 	}
 
 	private static VertexConnector connect(EConnectorType type) {
-		return connect(type, ConnectorModels.SHARED);
+		return connect(type, ConnectorStrategies.SHARED);
 	}
 
-	private static VertexConnector connect(EConnectorType type, IConnectorModel model) {
+	private static VertexConnector connect(EConnectorType type, IConnectorStrategy model) {
 		return new VertexConnector(type, model);
 	}
 
@@ -282,7 +297,7 @@ public class CrosswordMultiElement extends GLElement implements IHasMinSize, IGL
 			createBands(vertex, ignore);
 			int startIndex = group.getStartIndex();
 			float offset = startIndex / (float) total;
-			addEdge(baseVertex, vertex, PARENT_CHILD, connect(type, ConnectorModels.createParent(offset)),
+			addEdge(baseVertex, vertex, PARENT_CHILD, connect(type, ConnectorStrategies.createParent(offset)),
 					connect(type));
 			// add parent edge
 			for (int j = 0; j < i; ++j) {
@@ -360,6 +375,13 @@ public class CrosswordMultiElement extends GLElement implements IHasMinSize, IGL
 			GLElementAccessor.takeDown(child);
 			relayout();
 		}
+	}
+
+	/**
+	 * @param tablePerspective
+	 */
+	public void add(TablePerspective tablePerspective) {
+		add(new CrosswordElement(tablePerspective, new TablePerspectiveMetaData(0, 0)));
 	}
 
 	public void addAll(Iterable<TablePerspective> tablePerspectives) {
@@ -502,10 +524,10 @@ public class CrosswordMultiElement extends GLElement implements IHasMinSize, IGL
 
 	private static class VertexConnector implements IVertexConnector {
 		private final EConnectorType type;
-		private final IConnectorModel model;
+		private final IConnectorStrategy model;
 		private CenterRadius values;
 
-		public VertexConnector(EConnectorType type, IConnectorModel model) {
+		public VertexConnector(EConnectorType type, IConnectorStrategy model) {
 			this.model = model;
 			this.type = type;
 		}
@@ -553,25 +575,16 @@ public class CrosswordMultiElement extends GLElement implements IHasMinSize, IGL
 			return (GraphVertex) super.getTarget();
 		}
 
-		/**
-		 * @return the intersection, see {@link #intersection}
-		 */
 		@Override
 		public Set<Integer> getIntersection() {
 			return intersection;
 		}
 
-		/**
-		 * @return the sourceConnector, see {@link #sourceConnector}
-		 */
 		@Override
 		public VertexConnector getSourceConnector() {
 			return sourceConnector;
 		}
 
-		/**
-		 * @return the targetConnector, see {@link #targetConnector}
-		 */
 		@Override
 		public VertexConnector getTargetConnector() {
 			return targetConnector;

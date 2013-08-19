@@ -6,8 +6,10 @@
 package org.caleydo.view.crossword.api.model;
 
 /**
+ * helper class
+ * 
  * @author Samuel Gratzl
- *
+ * 
  */
 public final class CenterRadius {
 	private final float center;

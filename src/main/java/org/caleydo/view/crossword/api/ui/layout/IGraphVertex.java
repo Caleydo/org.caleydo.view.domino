@@ -16,9 +16,15 @@ import org.caleydo.core.view.opengl.layout2.geom.Rect;
  *
  */
 public interface IGraphVertex {
+
 	Vec2f getLocation();
 
 	Vec2f getSize();
+
+	/**
+	 * @return
+	 */
+	Rect getBounds();
 
 	void setBounds(Vec2f location, Vec2f size);
 
@@ -30,12 +36,19 @@ public interface IGraphVertex {
 	 */
 	void move(float x, float y);
 
-	Set<? extends IGraphEdge> getEdges();
-
-	boolean hasEdge(EEdgeType type);
-
 	/**
+	 * return the set of outgoing edges
+	 *
 	 * @return
 	 */
-	Rect getBounds();
+	Set<? extends IGraphEdge> getEdges();
+
+	/**
+	 * whether this vertex has an edge of the given type
+	 * 
+	 * @param type
+	 * @return
+	 */
+	boolean hasEdge(EEdgeType type);
+
 }

@@ -10,10 +10,16 @@ import gleem.linalg.Vec2f;
 import org.caleydo.core.view.opengl.layout2.geom.Rect;
 
 /**
+ * a vertex connector is the connection of a {@link IGraphEdge} to a {@link IGraphVertex}
+ *
  * @author Samuel Gratzl
  *
  */
 public interface IVertexConnector {
+	/**
+	 *
+	 * @return the type of connector whether in record or column dimension
+	 */
 	EConnectorType getConnectorType();
 
 	/**
@@ -35,7 +41,7 @@ public interface IVertexConnector {
 
 		/**
 		 * extract the position,size for the dimension described by this element
-		 * 
+		 *
 		 * @param sRect
 		 * @return
 		 */

@@ -9,6 +9,8 @@ import java.util.Set;
 
 
 /**
+ * a representation of a edge within the element graph
+ *
  * @author Samuel Gratzl
  *
  */
@@ -24,5 +26,10 @@ public interface IGraphEdge {
 
 	EEdgeType getType();
 
+	/**
+	 * return the shared ids
+	 * 
+	 * @return
+	 */
 	Set<Integer> getIntersection();
 }
