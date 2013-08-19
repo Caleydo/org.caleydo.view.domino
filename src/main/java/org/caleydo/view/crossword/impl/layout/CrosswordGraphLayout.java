@@ -8,7 +8,7 @@ package org.caleydo.view.crossword.impl.layout;
 import gleem.linalg.Vec2f;
 
 import java.util.ArrayList;
-import java.util.Collection;
+import java.util.List;
 import java.util.Set;
 
 import org.caleydo.view.crossword.api.model.BandRoute;
@@ -49,7 +49,7 @@ public class CrosswordGraphLayout extends AGraphLayout {
 			}
 		}
 
-		Collection<BandRoute> routes = new ArrayList<>();
+		List<BandRoute> routes = new ArrayList<>();
 
 		for (IGraphEdge edge : edges) {
 			routes.add(new BandRoute(toPath(edge), edge.getType().getColor(), edge.getIntersection()));
