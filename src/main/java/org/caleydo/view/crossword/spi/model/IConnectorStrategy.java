@@ -5,9 +5,8 @@
  *******************************************************************************/
 package org.caleydo.view.crossword.spi.model;
 
-import java.util.Set;
-
 import org.caleydo.view.crossword.api.model.CenterRadius;
+import org.caleydo.view.crossword.api.model.TypedSet;
 import org.caleydo.view.crossword.api.ui.layout.IVertexConnector;
 
 /**
@@ -23,6 +22,6 @@ public interface IConnectorStrategy {
 	 * @param intersection
 	 * @return the center and radius attaching the vertex
 	 */
-	CenterRadius update(Set<Integer> ids, Set<Integer> intersection);
+	CenterRadius update(TypedSet ids, TypedSet intersection);
 
 }

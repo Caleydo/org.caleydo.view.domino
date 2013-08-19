@@ -5,8 +5,6 @@
  *******************************************************************************/
 package org.caleydo.view.crossword.api.model;
 
-import java.util.Set;
-
 import org.caleydo.view.crossword.spi.model.IConnectorStrategy;
 
 /**
@@ -16,7 +14,7 @@ import org.caleydo.view.crossword.spi.model.IConnectorStrategy;
 public class ConnectorStrategies {
 	public static final IConnectorStrategy SHARED = new IConnectorStrategy() {
 		@Override
-		public CenterRadius update(Set<Integer> ids, Set<Integer> intersection) {
+		public CenterRadius update(TypedSet ids, TypedSet intersection) {
 			int max = ids.size();
 			int have = intersection.size();
 			float size = have / (float) max;
@@ -41,7 +39,7 @@ public class ConnectorStrategies {
 		}
 
 		@Override
-		public CenterRadius update(Set<Integer> ids, Set<Integer> intersection) {
+		public CenterRadius update(TypedSet ids, TypedSet intersection) {
 			int max = ids.size();
 			int have = intersection.size();
 			float size = have / (float) max;

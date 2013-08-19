@@ -48,7 +48,9 @@ import org.caleydo.core.view.opengl.layout2.renderer.GLRenderers;
 import org.caleydo.core.view.opengl.picking.IPickingListener;
 import org.caleydo.core.view.opengl.picking.Pick;
 import org.caleydo.view.crossword.api.model.TablePerspectiveMetaData;
+import org.caleydo.view.crossword.api.model.TypedSet;
 import org.caleydo.view.crossword.api.ui.CrosswordMultiElement;
+import org.caleydo.view.crossword.api.ui.layout.IVertexConnector.EConnectorType;
 import org.caleydo.view.crossword.internal.event.ChangePerspectiveEvent;
 import org.caleydo.view.crossword.internal.ui.dialogs.ChangePerspectiveDialog;
 import org.caleydo.view.crossword.internal.ui.menu.PerspectiveMenuElement;
@@ -76,10 +78,9 @@ public class CrosswordElement extends AnimatedGLElementContainer implements
 	@DeepScan
 	private final TablePerspectiveSelectionMixin selection;
 
-
-	private Set<Integer> recordIds;
+	private TypedSet recordIds;
 	private final IIDTypeMapper<Integer, Integer> record2primary;
-	private Set<Integer> dimensionIds;
+	private TypedSet dimensionIds;
 	private final IIDTypeMapper<Integer, Integer> dimension2primary;
 
 	@DeepScan
@@ -98,7 +99,6 @@ public class CrosswordElement extends AnimatedGLElementContainer implements
 		this.selection = new TablePerspectiveSelectionMixin(tablePerspective, this);
 		this.info = new CrosswordLayoutInfo(this);
 		this.metaData = metaData;
-		setLayout(info);
 
 		this.onPick(this);
 		this.setVisibility(EVisibility.PICKABLE);
@@ -157,7 +157,6 @@ public class CrosswordElement extends AnimatedGLElementContainer implements
 		assert current.getDataDomain() == tablePerspective.getDataDomain();
 		this.selection.setTablePerspective(tablePerspective);
 
-
 		GLElementFactorySwitcher switcher = getSwitcher();
 		{
 			// remember last active
@@ -185,36 +184,31 @@ public class CrosswordElement extends AnimatedGLElementContainer implements
 	 * @param set
 	 * @param perspective
 	 */
-	private Set<Integer> convert(Set<Integer> set, Perspective perspective, int total,
-			IIDTypeMapper<Integer, Integer> mapper) {
+	private TypedSet convert(Perspective perspective, int total, IIDTypeMapper<Integer, Integer> mapper) {
 		VirtualArray va = perspective.getVirtualArray();
 		Set<Integer> ids = mapper.apply(va.getIDs());
 		int size = va.size();
 		if (size == 0)
-			return ImmutableSortedSet.of();
+			return new TypedSet(ImmutableSortedSet.<Integer> of(), mapper.getTarget());
 		if (size < total / 4) { // less than 25% -> use ordinary instead of BitSet
-			return ImmutableSortedSet.copyOf(ids);
+			return new TypedSet(ImmutableSortedSet.copyOf(ids), mapper.getTarget());
 		} else { // use BitSet
-			if (!(set instanceof BitSetSet))
-				set = new BitSetSet();
-			set.clear();
-			set.addAll(ids);
-			return set;
+			return new TypedSet(new BitSetSet(ids), mapper.getTarget());
 		}
 	}
 
 	/**
-	 * @return the dimensionIds, see {@link #dimensionIds}
+	 * @param type
+	 * @return
 	 */
-	public Set<Integer> getDimensionIds() {
-		return dimensionIds;
-	}
-
-	/**
-	 * @return the recordIds, see {@link #recordIds}
-	 */
-	public Set<Integer> getRecordIds() {
-		return recordIds;
+	public TypedSet getIDs(EConnectorType type) {
+		switch (type) {
+		case COLUMN:
+			return dimensionIds;
+		case RECORD:
+			return recordIds;
+		}
+		throw new IllegalStateException();
 	}
 
 	private GLElement animated(boolean hor, boolean vert, GLElement elem) {
@@ -232,7 +226,6 @@ public class CrosswordElement extends AnimatedGLElementContainer implements
 			return v;
 		return super.getLayoutDataAs(clazz, default_);
 	}
-
 
 	IGLElementContext getContext() {
 		return context;
@@ -294,14 +287,12 @@ public class CrosswordElement extends AnimatedGLElementContainer implements
 		builder.withData(tablePerspective);
 		builder.put(EDetailLevel.class, EDetailLevel.MEDIUM);
 		builder.set("heatmap.forceTextures"); // force heatmap to use textures
-		ImmutableList<GLElementSupplier> extensions = GLElementFactories.getExtensions(builder.build(),
- "crossword",
+		ImmutableList<GLElementSupplier> extensions = GLElementFactories.getExtensions(builder.build(), "crossword",
 				Predicates.alwaysTrue());
 		GLElementFactorySwitcher swicher = new GLElementFactorySwitcher(extensions, ELazyiness.DESTROY,
 				GLRenderers.fillRect(tablePerspective.getDataDomain().getColor()));
 		return swicher;
 	}
-
 
 	/**
 	 * @return the tablePerspective, see {@link #tablePerspective}
@@ -329,9 +320,8 @@ public class CrosswordElement extends AnimatedGLElementContainer implements
 		Table table = tablePerspective.getDataDomain().getTable();
 		final int nrRecords = table.depth();
 		final int nrDimensions = table.size();
-		recordIds = convert(recordIds, tablePerspective.getRecordPerspective(), nrRecords, record2primary);
-		dimensionIds = convert(dimensionIds, tablePerspective.getDimensionPerspective(), nrDimensions,
-				dimension2primary);
+		recordIds = convert(tablePerspective.getRecordPerspective(), nrRecords, record2primary);
+		dimensionIds = convert(tablePerspective.getDimensionPerspective(), nrDimensions, dimension2primary);
 
 		CrosswordMultiElement p = getMultiElement();
 		if (p != null)
@@ -345,7 +335,7 @@ public class CrosswordElement extends AnimatedGLElementContainer implements
 		case "Close":
 			if (context instanceof IMultiTablePerspectiveBasedView)
 				EventPublisher.trigger(new RemoveTablePerspectiveEvent(getTablePerspective(),
-					(IMultiTablePerspectiveBasedView) context));
+						(IMultiTablePerspectiveBasedView) context));
 			parent.remove(this);
 			break;
 		case "Split X":
@@ -391,4 +381,5 @@ public class CrosswordElement extends AnimatedGLElementContainer implements
 	CrosswordMultiElement getMultiElement() {
 		return findParent(CrosswordMultiElement.class);
 	}
+
 }

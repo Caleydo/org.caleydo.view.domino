@@ -3,7 +3,7 @@
  * Copyright (c) The Caleydo Team. All rights reserved.
  * Licensed under the new BSD license, available at http://caleydo.org/license
  *******************************************************************************/
-package org.caleydo.view.crossword.internal.ui.layout;
+package org.caleydo.view.crossword.impl.layout;
 
 import gleem.linalg.Vec2f;
 
@@ -15,14 +15,12 @@ import org.caleydo.view.crossword.api.model.BandRoute;
 import org.caleydo.view.crossword.api.ui.layout.AGraphLayout;
 import org.caleydo.view.crossword.api.ui.layout.IGraphEdge;
 import org.caleydo.view.crossword.api.ui.layout.IGraphVertex;
-import org.caleydo.view.crossword.spi.ui.layout.IGraphLayout.GraphLayoutModel;
 
 /**
  * @author Samuel Gratzl
  *
  */
-public class DefaultGraphLayout extends AGraphLayout {
-
+public class CrosswordGraphLayout extends AGraphLayout {
 	@Override
 	public GraphLayoutModel doLayout(Set<? extends IGraphVertex> vertices, Set<? extends IGraphEdge> edges) {
 		float acc = 10;

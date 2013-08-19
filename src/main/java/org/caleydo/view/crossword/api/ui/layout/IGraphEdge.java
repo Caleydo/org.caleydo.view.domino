@@ -5,7 +5,7 @@
  *******************************************************************************/
 package org.caleydo.view.crossword.api.ui.layout;
 
-import java.util.Set;
+import org.caleydo.view.crossword.api.model.TypedSet;
 
 
 /**
@@ -28,8 +28,8 @@ public interface IGraphEdge {
 
 	/**
 	 * return the shared ids
-	 * 
+	 *
 	 * @return
 	 */
-	Set<Integer> getIntersection();
+	TypedSet getIntersection();
 }

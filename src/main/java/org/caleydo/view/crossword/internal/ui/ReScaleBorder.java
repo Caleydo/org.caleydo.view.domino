@@ -18,7 +18,7 @@ import org.eclipse.swt.SWT;
  * @author Samuel Gratzl
  *
  */
-public class ReScaleBorder extends GLElement implements IPickingListener {
+public final class ReScaleBorder extends GLElement implements IPickingListener {
 	private static final int NORTH = 0;
 	private static final int NORTHEAST = 1;
 	private static final int EAST = 2;

@@ -31,6 +31,14 @@ public class CrosswordBandLayer extends GLElement implements MultiSelectionManag
 		}
 	}
 
+	@Override
+	protected void renderPickImpl(GLGraphics g, float w, float h) {
+		super.renderImpl(g, w, h);
+		for (BandRoute edge : getMultiElement().getBandRoutes()) {
+			edge.renderPick(g, w, h, this);
+		}
+	}
+
 	/**
 	 * @return
 	 */

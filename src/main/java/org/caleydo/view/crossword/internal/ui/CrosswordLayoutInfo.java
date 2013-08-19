@@ -31,6 +31,7 @@ import org.caleydo.core.view.opengl.layout2.basic.ScrollingDecorator.IHasMinSize
 import org.caleydo.core.view.opengl.layout2.layout.IGLLayout;
 import org.caleydo.core.view.opengl.layout2.layout.IGLLayoutElement;
 import org.caleydo.core.view.opengl.layout2.manage.GLElementFactorySwitcher.IActiveChangedCallback;
+
 /**
  * layout specific information
  *
@@ -38,19 +39,30 @@ import org.caleydo.core.view.opengl.layout2.manage.GLElementFactorySwitcher.IAct
  *
  */
 public class CrosswordLayoutInfo implements IActiveChangedCallback, IGLLayout {
+	/**
+	 * parent link
+	 */
 	private final CrosswordElement parent;
 
+	/**
+	 * zoom factor in x direction
+	 */
 	private float zoomFactorX = 1.0f;
+	/**
+	 * zoom factor in y direction
+	 */
 	private float zoomFactorY = 1.0f;
+
 	private boolean hovered = false;
 
-	private boolean selected;
+	private boolean selected = false;
 
 	/**
 	 * @param crosswordElement
 	 */
 	public CrosswordLayoutInfo(CrosswordElement parent) {
 		this.parent = parent;
+		parent.setLayout(this);
 	}
 
 	/**

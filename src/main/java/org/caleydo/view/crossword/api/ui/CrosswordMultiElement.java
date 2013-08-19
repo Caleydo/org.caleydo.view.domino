@@ -39,6 +39,7 @@ import org.caleydo.view.crossword.api.model.CenterRadius;
 import org.caleydo.view.crossword.api.model.ConnectorStrategies;
 import org.caleydo.view.crossword.api.model.PerspectiveMetaData;
 import org.caleydo.view.crossword.api.model.TablePerspectiveMetaData;
+import org.caleydo.view.crossword.api.model.TypedSet;
 import org.caleydo.view.crossword.api.ui.layout.EEdgeType;
 import org.caleydo.view.crossword.api.ui.layout.IGraphEdge;
 import org.caleydo.view.crossword.api.ui.layout.IGraphVertex;
@@ -49,7 +50,6 @@ import org.caleydo.view.crossword.internal.ui.CrosswordBandLayer;
 import org.caleydo.view.crossword.internal.ui.CrosswordElement;
 import org.caleydo.view.crossword.internal.ui.CrosswordLayoutInfo;
 import org.caleydo.view.crossword.internal.ui.layout.DefaultGraphLayout;
-import org.caleydo.view.crossword.internal.util.SetUtils;
 import org.caleydo.view.crossword.spi.model.IConnectorStrategy;
 import org.caleydo.view.crossword.spi.ui.layout.IGraphLayout;
 import org.caleydo.view.crossword.spi.ui.layout.IGraphLayout.GraphLayoutModel;
@@ -462,14 +462,9 @@ public class CrosswordMultiElement extends GLElement implements IHasMinSize, IGL
 			return element;
 		}
 
-		public Set<Integer> getIDs(EConnectorType type) {
-			switch (type) {
-			case COLUMN:
-				return element.getDimensionIds();
-			case RECORD:
-				return element.getRecordIds();
-			}
-			throw new IllegalStateException();
+		@Override
+		public TypedSet getIDs(EConnectorType type) {
+			return element.getIDs(type);
 		}
 
 		public TablePerspective getTablePerspective() {
@@ -524,11 +519,11 @@ public class CrosswordMultiElement extends GLElement implements IHasMinSize, IGL
 
 	private static class VertexConnector implements IVertexConnector {
 		private final EConnectorType type;
-		private final IConnectorStrategy model;
+		private final IConnectorStrategy strategy;
 		private CenterRadius values;
 
-		public VertexConnector(EConnectorType type, IConnectorStrategy model) {
-			this.model = model;
+		public VertexConnector(EConnectorType type, IConnectorStrategy strategy) {
+			this.strategy = strategy;
 			this.type = type;
 		}
 
@@ -547,15 +542,15 @@ public class CrosswordMultiElement extends GLElement implements IHasMinSize, IGL
 			return values.getRadius();
 		}
 
-		public void update(Set<Integer> ids, Set<Integer> intersection) {
-			values = model.update(ids, intersection);
+		public void update(TypedSet ids, TypedSet intersection) {
+			values = strategy.update(ids, intersection);
 		}
 	}
 
 	private static class GraphEdge extends DefaultEdge implements IGraphEdge {
 		private static final long serialVersionUID = -92295569780679555L;
 		private final EEdgeType type;
-		private Set<Integer> intersection;
+		private TypedSet intersection;
 		private final VertexConnector sourceConnector;
 		private final VertexConnector targetConnector;
 
@@ -576,7 +571,7 @@ public class CrosswordMultiElement extends GLElement implements IHasMinSize, IGL
 		}
 
 		@Override
-		public Set<Integer> getIntersection() {
+		public TypedSet getIntersection() {
 			return intersection;
 		}
 
@@ -601,9 +596,9 @@ public class CrosswordMultiElement extends GLElement implements IHasMinSize, IGL
 		public void update() {
 			GraphVertex s = getSource();
 			GraphVertex t = getTarget();
-			Set<Integer> sourceIDs = s.getIDs(sourceConnector.getConnectorType());
-			Set<Integer> targetIDs = t.getIDs(targetConnector.getConnectorType());
-			intersection = SetUtils.intersection(sourceIDs, targetIDs);
+			TypedSet sourceIDs = s.getIDs(sourceConnector.getConnectorType());
+			TypedSet targetIDs = t.getIDs(targetConnector.getConnectorType());
+			intersection = sourceIDs.intersect(targetIDs);
 			sourceConnector.update(sourceIDs, intersection);
 			targetConnector.update(targetIDs, intersection);
 		}

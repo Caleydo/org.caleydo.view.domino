@@ -8,6 +8,7 @@ package org.caleydo.view.crossword.internal.util;
 import java.util.AbstractSet;
 import java.util.BitSet;
 import java.util.Iterator;
+import java.util.Set;
 
 import com.google.common.base.Preconditions;
 
@@ -22,6 +23,11 @@ public class BitSetSet extends AbstractSet<Integer> {
 
 	public BitSetSet() {
 		this(new BitSet());
+	}
+
+	public BitSetSet(Set<Integer> ids) {
+		this();
+		addAll(ids);
 	}
 
 	/**

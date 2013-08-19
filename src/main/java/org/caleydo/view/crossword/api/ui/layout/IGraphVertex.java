@@ -10,6 +10,8 @@ import gleem.linalg.Vec2f;
 import java.util.Set;
 
 import org.caleydo.core.view.opengl.layout2.geom.Rect;
+import org.caleydo.view.crossword.api.model.TypedSet;
+import org.caleydo.view.crossword.api.ui.layout.IVertexConnector.EConnectorType;
 
 /**
  * @author Samuel Gratzl
@@ -45,10 +47,12 @@ public interface IGraphVertex {
 
 	/**
 	 * whether this vertex has an edge of the given type
-	 * 
+	 *
 	 * @param type
 	 * @return
 	 */
 	boolean hasEdge(EEdgeType type);
+
+	TypedSet getIDs(EConnectorType type);
 
 }
