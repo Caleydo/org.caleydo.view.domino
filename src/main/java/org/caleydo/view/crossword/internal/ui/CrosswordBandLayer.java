@@ -10,7 +10,8 @@ import org.caleydo.core.data.selection.SelectionManager;
 import org.caleydo.core.event.EventListenerManager.DeepScan;
 import org.caleydo.core.view.opengl.layout2.GLElement;
 import org.caleydo.core.view.opengl.layout2.GLGraphics;
-import org.caleydo.view.crossword.internal.model.BandRoute;
+import org.caleydo.view.crossword.api.model.BandRoute;
+import org.caleydo.view.crossword.api.ui.CrosswordMultiElement;
 
 /**
  * a dedicated layer for the bands for better caching behavior

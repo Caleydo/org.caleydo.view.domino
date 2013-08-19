@@ -3,13 +3,13 @@
  * Copyright (c) The Caleydo Team. All rights reserved.
  * Licensed under the new BSD license, available at http://caleydo.org/license
  ******************************************************************************/
-package org.caleydo.view.crossword.internal.ui;
+package org.caleydo.view.crossword.api.ui;
 
-import static org.caleydo.view.crossword.internal.ui.layout.EEdgeType.PARENT_CHILD;
-import static org.caleydo.view.crossword.internal.ui.layout.EEdgeType.SHARED;
-import static org.caleydo.view.crossword.internal.ui.layout.EEdgeType.SIBLING;
-import static org.caleydo.view.crossword.internal.ui.layout.IVertexConnector.EConnectorType.COLUMN;
-import static org.caleydo.view.crossword.internal.ui.layout.IVertexConnector.EConnectorType.RECORD;
+import static org.caleydo.view.crossword.api.ui.layout.EEdgeType.PARENT_CHILD;
+import static org.caleydo.view.crossword.api.ui.layout.EEdgeType.SHARED;
+import static org.caleydo.view.crossword.api.ui.layout.EEdgeType.SIBLING;
+import static org.caleydo.view.crossword.api.ui.layout.IVertexConnector.EConnectorType.COLUMN;
+import static org.caleydo.view.crossword.api.ui.layout.IVertexConnector.EConnectorType.RECORD;
 import gleem.linalg.Vec2f;
 import gleem.linalg.Vec4f;
 
@@ -34,22 +34,25 @@ import org.caleydo.core.view.opengl.layout2.IGLElementParent;
 import org.caleydo.core.view.opengl.layout2.basic.ScrollingDecorator.IHasMinSize;
 import org.caleydo.core.view.opengl.layout2.geom.Rect;
 import org.caleydo.core.view.opengl.layout2.layout.IGLLayoutElement;
+import org.caleydo.view.crossword.api.model.BandRoute;
+import org.caleydo.view.crossword.api.model.CenterRadius;
+import org.caleydo.view.crossword.api.model.PerspectiveMetaData;
+import org.caleydo.view.crossword.api.model.TablePerspectiveMetaData;
+import org.caleydo.view.crossword.api.ui.layout.EEdgeType;
+import org.caleydo.view.crossword.api.ui.layout.IGraphEdge;
+import org.caleydo.view.crossword.api.ui.layout.IGraphVertex;
+import org.caleydo.view.crossword.api.ui.layout.IVertexConnector;
+import org.caleydo.view.crossword.api.ui.layout.IVertexConnector.EConnectorType;
 import org.caleydo.view.crossword.internal.CrosswordView;
-import org.caleydo.view.crossword.internal.model.BandRoute;
-import org.caleydo.view.crossword.internal.model.CenterRadius;
-import org.caleydo.view.crossword.internal.model.IConnectorModel;
-import org.caleydo.view.crossword.internal.model.PerspectiveMetaData;
-import org.caleydo.view.crossword.internal.model.TablePerspectiveMetaData;
+import org.caleydo.view.crossword.internal.ui.CrosswordBandLayer;
+import org.caleydo.view.crossword.internal.ui.CrosswordElement;
+import org.caleydo.view.crossword.internal.ui.CrosswordLayoutInfo;
 import org.caleydo.view.crossword.internal.ui.band.ConnectorModels;
 import org.caleydo.view.crossword.internal.ui.layout.DefaultGraphLayout;
-import org.caleydo.view.crossword.internal.ui.layout.EEdgeType;
-import org.caleydo.view.crossword.internal.ui.layout.IGraphEdge;
-import org.caleydo.view.crossword.internal.ui.layout.IGraphLayout;
-import org.caleydo.view.crossword.internal.ui.layout.IGraphLayout.GraphLayoutModel;
-import org.caleydo.view.crossword.internal.ui.layout.IGraphVertex;
-import org.caleydo.view.crossword.internal.ui.layout.IVertexConnector;
-import org.caleydo.view.crossword.internal.ui.layout.IVertexConnector.EConnectorType;
 import org.caleydo.view.crossword.internal.util.SetUtils;
+import org.caleydo.view.crossword.spi.model.IConnectorModel;
+import org.caleydo.view.crossword.spi.ui.layout.IGraphLayout;
+import org.caleydo.view.crossword.spi.ui.layout.IGraphLayout.GraphLayoutModel;
 import org.jgrapht.UndirectedGraph;
 import org.jgrapht.graph.DefaultEdge;
 import org.jgrapht.graph.Pseudograph;
@@ -179,7 +182,7 @@ public class CrosswordMultiElement extends GLElement implements IHasMinSize, IGL
 	/**
 	 * @param child
 	 */
-	private boolean removeVertex(CrosswordElement child) {
+	private boolean removeVertex(GLElement child) {
 		GraphVertex vertex = toVertex(child);
 		if (vertex == null)
 			return false;
@@ -307,7 +310,7 @@ public class CrosswordMultiElement extends GLElement implements IHasMinSize, IGL
 	@Override
 	public boolean moved(GLElement child) {
 		if (child instanceof CrosswordElement)
-			removeVertex((CrosswordElement) child);
+			removeVertex(child);
 		relayout();
 		return context != null;
 	}
@@ -352,7 +355,7 @@ public class CrosswordMultiElement extends GLElement implements IHasMinSize, IGL
 	/**
 	 * @param r
 	 */
-	void remove(CrosswordElement child) {
+	public void remove(GLElement child) {
 		if (removeVertex(child)) {
 			GLElementAccessor.takeDown(child);
 			relayout();
@@ -392,7 +395,7 @@ public class CrosswordMultiElement extends GLElement implements IHasMinSize, IGL
 			edge.update();
 	}
 
-	private GraphVertex toVertex(CrosswordElement child) {
+	private GraphVertex toVertex(GLElement child) {
 		for (GraphVertex vertex : graph.vertexSet())
 			if (vertex.asElement() == child)
 				return vertex;
@@ -472,9 +475,7 @@ public class CrosswordMultiElement extends GLElement implements IHasMinSize, IGL
 		@Override
 		public Vec2f getSize() {
 			CrosswordLayoutInfo info = asLayoutInfo();
-			Vec2f minSize = info.getMinSize(element);
-			info.scale(minSize);
-			return minSize;
+			return info.getSize();
 		}
 
 		@Override

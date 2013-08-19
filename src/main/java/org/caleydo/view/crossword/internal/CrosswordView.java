@@ -16,9 +16,9 @@ import org.caleydo.core.view.opengl.layout2.GLElement;
 import org.caleydo.core.view.opengl.layout2.GLElementDecorator;
 import org.caleydo.core.view.opengl.layout2.basic.ScrollingDecorator;
 import org.caleydo.core.view.opengl.layout2.view.AMultiTablePerspectiveElementView;
+import org.caleydo.view.crossword.api.ui.CrosswordMultiElement;
 import org.caleydo.view.crossword.internal.event.ToggleHeaderAlwaysEvent;
 import org.caleydo.view.crossword.internal.serial.SerializedCrosswordView;
-import org.caleydo.view.crossword.internal.ui.CrosswordMultiElement;
 
 /**
  * basic view based on {@link GLElement} with a {@link AMultiTablePerspectiveElementView}

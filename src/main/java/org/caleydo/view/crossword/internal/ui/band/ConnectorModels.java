@@ -7,8 +7,8 @@ package org.caleydo.view.crossword.internal.ui.band;
 
 import java.util.Set;
 
-import org.caleydo.view.crossword.internal.model.CenterRadius;
-import org.caleydo.view.crossword.internal.model.IConnectorModel;
+import org.caleydo.view.crossword.api.model.CenterRadius;
+import org.caleydo.view.crossword.spi.model.IConnectorModel;
 
 /**
  * @author Samuel Gratzl

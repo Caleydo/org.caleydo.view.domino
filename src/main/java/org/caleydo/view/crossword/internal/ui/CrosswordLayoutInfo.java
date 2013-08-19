@@ -30,7 +30,6 @@ import org.caleydo.core.view.opengl.layout2.GLElementAccessor;
 import org.caleydo.core.view.opengl.layout2.basic.ScrollingDecorator.IHasMinSize;
 import org.caleydo.core.view.opengl.layout2.layout.IGLLayout;
 import org.caleydo.core.view.opengl.layout2.layout.IGLLayoutElement;
-import org.caleydo.core.view.opengl.layout2.layout.IHasGLLayoutData;
 import org.caleydo.core.view.opengl.layout2.manage.GLElementFactorySwitcher.IActiveChangedCallback;
 /**
  * layout specific information
@@ -169,7 +168,7 @@ public class CrosswordLayoutInfo implements IActiveChangedCallback, IGLLayout {
 		// convert to scale factor
 		sx -= 2; // borders and buttons
 		sy -= 2;
-		Vec2f minSize = getMinSize(parent);
+		Vec2f minSize = getMinSize();
 		setZoomFactor(sx / minSize.x(), sy / minSize.y());
 		parent.setLocation(loc.x() + (xDir < 0 ? x : 0), loc.y() + (yDir < 0 ? y : 0));
 	}
@@ -242,19 +241,28 @@ public class CrosswordLayoutInfo implements IActiveChangedCallback, IGLLayout {
 		GLElementAccessor.repaintDown(parent.get(3));
 	}
 
-	void scale(Vec2f size) {
+	private void scale(Vec2f size) {
 		size.setX(size.x() * zoomFactorX);
 		size.setY(size.y() * zoomFactorY);
 		size.setX(size.x() + 2);
 		size.setY(size.y() + 2); // for buttons and border
 	}
 
-	Vec2f getMinSize(IHasGLLayoutData elem) {
-		IHasMinSize minSize = elem.getLayoutDataAs(IHasMinSize.class, null);
+	private Vec2f getMinSize() {
+		IHasMinSize minSize = parent.getLayoutDataAs(IHasMinSize.class, null);
 		if (minSize != null)
 			return minSize.getMinSize();
-		TablePerspective tablePerspective = elem.getLayoutDataAs(TablePerspective.class, null);
-		return elem.getLayoutDataAs(Vec2f.class,
+		TablePerspective tablePerspective = parent.getTablePerspective();
+		return parent.getLayoutDataAs(Vec2f.class,
 				new Vec2f(tablePerspective.getNrDimensions(), tablePerspective.getNrRecords()));
+	}
+
+	/**
+	 * @return
+	 */
+	public Vec2f getSize() {
+		Vec2f minSize = getMinSize();
+		scale(minSize);
+		return minSize;
 	}
 }

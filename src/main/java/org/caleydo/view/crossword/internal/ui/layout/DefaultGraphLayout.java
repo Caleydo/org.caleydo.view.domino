@@ -14,7 +14,11 @@ import java.util.List;
 import java.util.Set;
 
 import org.caleydo.core.view.opengl.layout2.geom.Rect;
-import org.caleydo.view.crossword.internal.model.BandRoute;
+import org.caleydo.view.crossword.api.model.BandRoute;
+import org.caleydo.view.crossword.api.ui.layout.IGraphEdge;
+import org.caleydo.view.crossword.api.ui.layout.IGraphVertex;
+import org.caleydo.view.crossword.api.ui.layout.IVertexConnector;
+import org.caleydo.view.crossword.spi.ui.layout.IGraphLayout;
 
 /**
  * @author Samuel Gratzl

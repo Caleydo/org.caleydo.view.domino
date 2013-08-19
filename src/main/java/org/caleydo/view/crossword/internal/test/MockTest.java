@@ -14,7 +14,7 @@ import org.caleydo.core.view.opengl.layout2.GLSandBox;
 import org.caleydo.core.view.opengl.layout2.basic.ScrollingDecorator;
 import org.caleydo.core.view.opengl.layout2.layout.GLPadding;
 import org.caleydo.datadomain.mock.MockDataDomain;
-import org.caleydo.view.crossword.internal.ui.CrosswordMultiElement;
+import org.caleydo.view.crossword.api.ui.CrosswordMultiElement;
 import org.eclipse.swt.widgets.Shell;
 
 /**

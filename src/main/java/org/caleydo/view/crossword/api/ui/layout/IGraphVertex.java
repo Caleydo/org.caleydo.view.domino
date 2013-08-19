@@ -3,7 +3,7 @@
  * Copyright (c) The Caleydo Team. All rights reserved.
  * Licensed under the new BSD license, available at http://caleydo.org/license
  *******************************************************************************/
-package org.caleydo.view.crossword.internal.ui.layout;
+package org.caleydo.view.crossword.api.ui.layout;
 
 import gleem.linalg.Vec2f;
 

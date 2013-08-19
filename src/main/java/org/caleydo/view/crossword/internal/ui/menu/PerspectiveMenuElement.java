@@ -22,8 +22,8 @@ import org.caleydo.core.view.opengl.layout2.basic.GLButton.ISelectionCallback;
 import org.caleydo.core.view.opengl.layout2.layout.GLLayouts;
 import org.caleydo.core.view.opengl.layout2.renderer.GLRenderers;
 import org.caleydo.core.view.opengl.layout2.renderer.RoundedRectRenderer;
+import org.caleydo.view.crossword.api.model.PerspectiveMetaData;
 import org.caleydo.view.crossword.internal.Resources;
-import org.caleydo.view.crossword.internal.model.PerspectiveMetaData;
 import org.caleydo.view.crossword.internal.ui.CrosswordLayoutInfo;
 
 /**
