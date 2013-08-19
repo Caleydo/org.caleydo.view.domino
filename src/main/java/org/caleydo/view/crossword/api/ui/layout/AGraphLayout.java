@@ -7,7 +7,6 @@ package org.caleydo.view.crossword.api.ui.layout;
 
 import gleem.linalg.Vec2f;
 
-import java.util.Arrays;
 import java.util.List;
 
 import org.caleydo.core.view.opengl.layout2.geom.Rect;
@@ -22,25 +21,55 @@ public abstract class AGraphLayout implements IGraphLayout {
 	 * @param edge
 	 * @return
 	 */
-	protected final List<Vec2f> toPath(IGraphEdge edge) {
-		Rect sRect = edge.getSource().getBounds();
-		Rect tRect = edge.getTarget().getBounds();
+	protected final float addStart(List<Vec2f> curve, IGraphEdge edge, float shift) {
+		Rect self = edge.getSource().getBounds();
+		Rect opposite = edge.getTarget().getBounds();
 
-		Vec2f source = toPosition(edge.getSourceConnector(), sRect, tRect);
-		Vec2f target = toPosition(edge.getTargetConnector(), tRect, sRect);
-		return Arrays.asList(source, target);
+		IVertexConnector connector = edge.getSourceConnector();
+		final float radius = toPosition(curve, self, opposite, connector);
+
+		if (shift > 0)
+			curve.add(shiftedPos(shift, self, opposite, connector, curve.get(curve.size() - 1)));
+		return radius;
+
 	}
 
+	protected final float addEnd(List<Vec2f> curve, IGraphEdge edge, float shift) {
+		Rect self = edge.getTarget().getBounds();
+		Rect opposite = edge.getSource().getBounds();
 
-	/**
-	 * @param sourceConnector
-	 * @param sRect
-	 * @param tRect
-	 * @return
-	 */
-	private Vec2f toPosition(IVertexConnector connector, Rect self, Rect opposite) {
+		IVertexConnector connector = edge.getTargetConnector();
+		final float radius = toPosition(curve, self, opposite, connector);
+
+		if (shift > 0)
+			curve.add(curve.size() - 1, shiftedPos(shift, self, opposite, connector, curve.get(curve.size() - 1)));
+		return radius;
+
+	}
+
+	private Vec2f shiftedPos(float shift, Rect self, Rect opposite, IVertexConnector connector, Vec2f pos) {
+		Vec2f shifted = pos.copy();
+		switch (connector.getConnectorType()) {
+		case RECORD:
+			if (self.x2() < opposite.x())
+				shifted.setX(pos.x() + shift);
+			else
+				shifted.setX(pos.x() - shift);
+			break;
+		case COLUMN:
+			if (self.y2() < opposite.y())
+				shifted.setY(pos.y() + shift);
+			else
+				shifted.setY(pos.y() - shift);
+			break;
+		}
+		return shifted;
+	}
+
+	private float toPosition(List<Vec2f> curve, Rect self, Rect opposite, IVertexConnector connector) {
 		float center = connector.getCenter();
 		Vec2f posSize = connector.getConnectorType().extract(self);
+		final float radius = connector.getRadius() * posSize.y();
 
 		Vec2f pos = self.xy();
 		switch (connector.getConnectorType()) {
@@ -55,6 +84,8 @@ public abstract class AGraphLayout implements IGraphLayout {
 			pos.setX(pos.x() + center * posSize.y());
 			break;
 		}
-		return pos;
+
+		curve.add(pos);
+		return radius;
 	}
 }

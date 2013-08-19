@@ -15,6 +15,7 @@ import org.caleydo.core.view.opengl.layout2.basic.ScrollingDecorator;
 import org.caleydo.core.view.opengl.layout2.layout.GLPadding;
 import org.caleydo.datadomain.mock.MockDataDomain;
 import org.caleydo.view.crossword.api.ui.CrosswordMultiElement;
+import org.caleydo.view.crossword.spi.config.MultiConfig;
 import org.eclipse.swt.widgets.Shell;
 
 /**
@@ -33,7 +34,7 @@ public class MockTest extends GLSandBox {
 	 * @return
 	 */
 	private GLElement createScene() {
-		CrosswordMultiElement m = new CrosswordMultiElement();
+		CrosswordMultiElement m = new CrosswordMultiElement(new MultiConfig());
 		Random r = new Random();
 		MockDataDomain numerical = MockDataDomain.createNumerical(100, 100, r);
 		m.add(numerical.getDefaultTablePerspective());

@@ -56,6 +56,7 @@ import org.caleydo.view.crossword.internal.ui.dialogs.ChangePerspectiveDialog;
 import org.caleydo.view.crossword.internal.ui.menu.PerspectiveMenuElement;
 import org.caleydo.view.crossword.internal.ui.menu.SwitcherMenuElement;
 import org.caleydo.view.crossword.internal.util.BitSetSet;
+import org.caleydo.view.crossword.spi.config.ElementConfig;
 import org.eclipse.swt.SWT;
 
 import com.google.common.base.Predicates;
@@ -78,6 +79,7 @@ public class CrosswordElement extends AnimatedGLElementContainer implements
 	@DeepScan
 	private final TablePerspectiveSelectionMixin selection;
 
+
 	private TypedSet recordIds;
 	private final IIDTypeMapper<Integer, Integer> record2primary;
 	private TypedSet dimensionIds;
@@ -90,14 +92,14 @@ public class CrosswordElement extends AnimatedGLElementContainer implements
 
 	private final TablePerspectiveMetaData metaData;
 
-	public CrosswordElement(TablePerspective tablePerspective, TablePerspectiveMetaData metaData) {
-		this(tablePerspective, metaData, null);
+	public CrosswordElement(TablePerspective tablePerspective, TablePerspectiveMetaData metaData, ElementConfig config) {
+		this(tablePerspective, metaData, config, null);
 	}
 
-	public CrosswordElement(TablePerspective tablePerspective, TablePerspectiveMetaData metaData,
+	public CrosswordElement(TablePerspective tablePerspective, TablePerspectiveMetaData metaData, ElementConfig config,
 			CrosswordElement parent) {
 		this.selection = new TablePerspectiveSelectionMixin(tablePerspective, this);
-		this.info = new CrosswordLayoutInfo(this);
+		this.info = new CrosswordLayoutInfo(this, config);
 		this.metaData = metaData;
 
 		this.onPick(this);
@@ -120,14 +122,14 @@ public class CrosswordElement extends AnimatedGLElementContainer implements
 		this.add(switcher);
 		this.border = Borders.createBorder(tablePerspective.getDataDomain().getColor());
 		this.add(new ReScaleBorder(info).setRenderer(border));
-		final SwitcherMenuElement closeSwitcher = new SwitcherMenuElement(this);
+		final SwitcherMenuElement closeSwitcher = new SwitcherMenuElement(this, config);
 		closeSwitcher.onPick(this);
 		closeSwitcher.setSwitcher(switcher);
 		this.add(animated(true, true, closeSwitcher));
 		this.add(animated(true, false,
-				new PerspectiveMenuElement(tablePerspective, true, this, metaData.getDimension()).onPick(this)));
+				new PerspectiveMenuElement(tablePerspective, config, true, this, metaData.getDimension()).onPick(this)));
 		this.add(animated(false, true,
-				new PerspectiveMenuElement(tablePerspective, false, this, metaData.getRecord()).onPick(this)));
+				new PerspectiveMenuElement(tablePerspective, config, false, this, metaData.getRecord()).onPick(this)));
 		setLayoutData(GLLayoutDatas.combine(tablePerspective, info));
 		onVAUpdate(tablePerspective);
 	}
@@ -139,6 +141,17 @@ public class CrosswordElement extends AnimatedGLElementContainer implements
 	private static IIDTypeMapper<Integer, Integer> resolvePrimaryMapper(IDType idType) {
 		IDMappingManager manager = IDMappingManagerRegistry.get().getIDMappingManager(idType);
 		return manager.getIDTypeMapper(idType, idType.getIDCategory().getPrimaryMappingType());
+	}
+
+	/**
+	 * @return the info, see {@link #info}
+	 */
+	public CrosswordLayoutInfo getInfo() {
+		return info;
+	}
+
+	public ElementConfig getConfig() {
+		return info.getConfig();
 	}
 
 	private GLElementFactorySwitcher getSwitcher() {
@@ -168,10 +181,8 @@ public class CrosswordElement extends AnimatedGLElementContainer implements
 			this.set(SWITCHER, switcher);
 		}
 		((SwitcherMenuElement) get(CORNER)).setSwitcher(switcher);
-		((PerspectiveMenuElement) get(DIM_PERSPECTIVE_MENU)).setTablePerspective(tablePerspective, this,
-				metaData.getDimension());
-		((PerspectiveMenuElement) get(REC_PERSPECTIVE_MENU)).setTablePerspective(tablePerspective, this,
-				metaData.getRecord());
+		((PerspectiveMenuElement) get(DIM_PERSPECTIVE_MENU)).setTablePerspective(tablePerspective, this);
+		((PerspectiveMenuElement) get(REC_PERSPECTIVE_MENU)).setTablePerspective(tablePerspective, this);
 		setLayoutData(GLLayoutDatas.combine(tablePerspective, info));
 		onVAUpdate(tablePerspective);
 
@@ -211,7 +222,7 @@ public class CrosswordElement extends AnimatedGLElementContainer implements
 		throw new IllegalStateException();
 	}
 
-	private GLElement animated(boolean hor, boolean vert, GLElement elem) {
+	private static GLElement animated(boolean hor, boolean vert, GLElement elem) {
 		ITransition horT = hor ? LINEAR : Transitions.NO;
 		ITransition verT = vert ? LINEAR : Transitions.NO;
 		IMoveTransition move = new MoveTransitions.MoveTransitionBase(verT, horT, verT, horT);
@@ -258,7 +269,7 @@ public class CrosswordElement extends AnimatedGLElementContainer implements
 				info.setSelected(true);
 			break;
 		case DRAGGED:
-			if (!pick.isDoDragging())
+			if (!pick.isDoDragging() || !info.getConfig().canMove())
 				return;
 			context.getSWTLayer().setCursor(SWT.CURSOR_HAND);
 			info.shift(pick.getDx(), pick.getDy());
@@ -340,11 +351,11 @@ public class CrosswordElement extends AnimatedGLElementContainer implements
 			break;
 		case "Split X":
 			parent.splitDim(this);
-			((PerspectiveMenuElement) get(3)).setTablePerspective(getTablePerspective(), this, metaData.getDimension());
+			((PerspectiveMenuElement) get(3)).setTablePerspective(getTablePerspective(), this);
 			break;
 		case "Split Y":
 			parent.splitRec(this);
-			((PerspectiveMenuElement) get(4)).setTablePerspective(getTablePerspective(), this, metaData.getRecord());
+			((PerspectiveMenuElement) get(4)).setTablePerspective(getTablePerspective(), this);
 			break;
 		case "Change Perspective X":
 			context.getSWTLayer().run(

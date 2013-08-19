@@ -25,6 +25,7 @@ import org.caleydo.core.view.opengl.layout2.renderer.RoundedRectRenderer;
 import org.caleydo.view.crossword.api.model.PerspectiveMetaData;
 import org.caleydo.view.crossword.internal.Resources;
 import org.caleydo.view.crossword.internal.ui.CrosswordLayoutInfo;
+import org.caleydo.view.crossword.spi.config.ElementConfig;
 
 /**
  * @author Samuel Gratzl
@@ -32,30 +33,34 @@ import org.caleydo.view.crossword.internal.ui.CrosswordLayoutInfo;
  */
 public class PerspectiveMenuElement extends GLElementContainer {
 	private final boolean dim;
+	private final PerspectiveMetaData metaData;
+	private final ElementConfig config;
 	private Perspective perspective;
 
-	public PerspectiveMenuElement(TablePerspective tablePerspective, boolean dim, ISelectionCallback callback,
+	public PerspectiveMenuElement(TablePerspective tablePerspective, ElementConfig config, boolean dim,
+			ISelectionCallback callback,
 			PerspectiveMetaData metaData) {
 		super(dim ? GLLayouts.flowHorizontal(2) : GLLayouts.flowVertical(2));
 		setVisibility(EVisibility.PICKABLE);// pickable for my parent to have common area
 		this.dim = dim;
 		this.add(new GLElement()); // spacer
-		setTablePerspective(tablePerspective, callback, metaData);
+		this.metaData = metaData;
+		this.config = config;
+		setTablePerspective(tablePerspective, callback);
 	}
 
 	protected final CrosswordLayoutInfo getInfo() {
 		return getParent().getLayoutDataAs(CrosswordLayoutInfo.class, null);
 	}
 
-	public void setTablePerspective(TablePerspective tablePerspective, ISelectionCallback callback,
-			PerspectiveMetaData metaData) {
+	public void setTablePerspective(TablePerspective tablePerspective, ISelectionCallback callback) {
 		this.perspective = dim ? tablePerspective.getDimensionPerspective() : tablePerspective.getRecordPerspective();
 		this.asList().subList(1, size()).clear();
 		String suffix = (dim ? "X" : "Y");
-		if (perspective.getVirtualArray().getGroupList().size() > 1 && !metaData.isSplitted()) {
+		if (perspective.getVirtualArray().getGroupList().size() > 1 && !metaData.isSplitted() && config.canSplit(dim)) {
 			addButton("Split " + suffix, Resources.splitPerspective(), callback);
 		}
-		if (!metaData.isChild() && !metaData.isSplitted())
+		if (!metaData.isChild() && !metaData.isSplitted() && config.canChange(dim))
 			addButton("Change Perspective " + suffix, Resources.choosePerspective(), callback);
 		repaint();
 	}

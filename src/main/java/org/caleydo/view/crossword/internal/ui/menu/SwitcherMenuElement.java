@@ -24,6 +24,7 @@ import org.caleydo.core.view.opengl.layout2.renderer.GLRenderers;
 import org.caleydo.core.view.opengl.picking.IPickingListener;
 import org.caleydo.core.view.opengl.picking.Pick;
 import org.caleydo.view.crossword.internal.Resources;
+import org.caleydo.view.crossword.spi.config.ElementConfig;
 
 import com.google.common.collect.ImmutableList;
 
@@ -33,15 +34,20 @@ import com.google.common.collect.ImmutableList;
  */
 public class SwitcherMenuElement extends GLElementContainer implements IGLLayout, IActiveChangedCallback,
 		IPickingListener {
+	private final ElementConfig config;
 	private int active;
 	private boolean hovered;
 
-	public SwitcherMenuElement(ISelectionCallback callback) {
-		addButton("Close", Resources.deleteIcon(), callback);
+	public SwitcherMenuElement(ISelectionCallback callback, ElementConfig config) {
+		if (config.canClose())
+			addButton("Close", Resources.deleteIcon(), callback);
+		else
+			add(new GLElement(GLRenderers.fillRect(Color.DARK_GRAY)).setSize(TOOLBAR_WIDTH, TOOLBAR_WIDTH));
 		setLayout(this);
 		setSize(TOOLBAR_WIDTH, TOOLBAR_WIDTH);
 		setVisibility(EVisibility.PICKABLE); // for parent
 		this.onPick(this);
+		this.config = config;
 	}
 
 	@Override
@@ -50,6 +56,8 @@ public class SwitcherMenuElement extends GLElementContainer implements IGLLayout
 	}
 
 	public void setSwitcher(GLElementFactorySwitcher switcher) {
+		if (!config.canChangeVis())
+			return;
 		List<GLElement> list = this.asList();
 		list.subList(1, size()).clear(); // clear previous
 

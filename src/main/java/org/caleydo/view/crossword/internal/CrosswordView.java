@@ -19,6 +19,7 @@ import org.caleydo.core.view.opengl.layout2.view.AMultiTablePerspectiveElementVi
 import org.caleydo.view.crossword.api.ui.CrosswordMultiElement;
 import org.caleydo.view.crossword.internal.event.ToggleHeaderAlwaysEvent;
 import org.caleydo.view.crossword.internal.serial.SerializedCrosswordView;
+import org.caleydo.view.crossword.spi.config.MultiConfig;
 
 /**
  * basic view based on {@link GLElement} with a {@link AMultiTablePerspectiveElementView}
@@ -34,7 +35,7 @@ public class CrosswordView extends AMultiTablePerspectiveElementView {
 
 	public CrosswordView(IGLCanvas glCanvas) {
 		super(glCanvas, VIEW_TYPE, VIEW_NAME);
-		this.crossword = new CrosswordMultiElement();
+		this.crossword = new CrosswordMultiElement(new MultiConfig());
 	}
 
 	@Override

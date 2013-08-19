@@ -34,7 +34,6 @@ import org.caleydo.core.view.opengl.layout2.IGLElementParent;
 import org.caleydo.core.view.opengl.layout2.basic.ScrollingDecorator.IHasMinSize;
 import org.caleydo.core.view.opengl.layout2.geom.Rect;
 import org.caleydo.core.view.opengl.layout2.layout.IGLLayoutElement;
-import org.caleydo.view.crossword.api.model.BandRoute;
 import org.caleydo.view.crossword.api.model.CenterRadius;
 import org.caleydo.view.crossword.api.model.ConnectorStrategies;
 import org.caleydo.view.crossword.api.model.PerspectiveMetaData;
@@ -50,6 +49,9 @@ import org.caleydo.view.crossword.internal.ui.CrosswordBandLayer;
 import org.caleydo.view.crossword.internal.ui.CrosswordElement;
 import org.caleydo.view.crossword.internal.ui.CrosswordLayoutInfo;
 import org.caleydo.view.crossword.internal.ui.layout.DefaultGraphLayout;
+import org.caleydo.view.crossword.spi.config.ElementConfig;
+import org.caleydo.view.crossword.spi.config.MultiConfig;
+import org.caleydo.view.crossword.spi.model.IBandRenderer;
 import org.caleydo.view.crossword.spi.model.IConnectorStrategy;
 import org.caleydo.view.crossword.spi.ui.layout.IGraphLayout;
 import org.caleydo.view.crossword.spi.ui.layout.IGraphLayout.GraphLayoutModel;
@@ -80,6 +82,8 @@ public class CrosswordMultiElement extends GLElement implements IHasMinSize, IGL
 	 */
 	private final CrosswordBandLayer bands = new CrosswordBandLayer();
 
+	private final MultiConfig config;
+
 	private final IGraphLayout layout;
 
 	/**
@@ -95,15 +99,16 @@ public class CrosswordMultiElement extends GLElement implements IHasMinSize, IGL
 	/**
 	 *
 	 */
-	public CrosswordMultiElement() {
-		this(new DefaultGraphLayout());
+	public CrosswordMultiElement(MultiConfig config) {
+		this(new DefaultGraphLayout(), config);
 	}
 
 	/**
 	 * @param layout
 	 */
-	public CrosswordMultiElement(IGraphLayout layout) {
+	public CrosswordMultiElement(IGraphLayout layout, MultiConfig config) {
 		this.layout = layout;
+		this.config = config;
 		GLElementAccessor.setParent(bands, this);
 	}
 
@@ -160,7 +165,7 @@ public class CrosswordMultiElement extends GLElement implements IHasMinSize, IGL
 	/**
 	 * @return
 	 */
-	public List<BandRoute> getBandRoutes() {
+	public List<? extends IBandRenderer> getBandRoutes() {
 		return (layoutInstance.getRoutes());
 	}
 
@@ -268,17 +273,8 @@ public class CrosswordMultiElement extends GLElement implements IHasMinSize, IGL
 		final GroupList groups = (inDim ? table.getDimensionPerspective() : table.getRecordPerspective())
 				.getVirtualArray().getGroupList();
 		assert groups.size() > 1;
-		final List<TablePerspective> datas = inDim ? table.getDimensionSubTablePerspectives() : table
-				.getRecordSubTablePerspectives();
-		List<CrosswordElement> children = new ArrayList<>(datas.size());
-		{
-			TablePerspectiveMetaData metaData = new TablePerspectiveMetaData(
-					inDim ? 0 : PerspectiveMetaData.FLAG_CHILD, inDim ? PerspectiveMetaData.FLAG_CHILD : 0);
-			for (TablePerspective t : datas) {
-				final CrosswordElement new_ = new CrosswordElement(t, metaData, base);
-				children.add(new_);
-			}
-		}
+
+		List<CrosswordElement> children = toElements(base, inDim, baseVertex, table);
 
 		// combine the elements that should be ignored
 		final ImmutableSet<CrosswordElement> ignore = ImmutableSet.<CrosswordElement> builder().addAll(children)
@@ -309,6 +305,24 @@ public class CrosswordMultiElement extends GLElement implements IHasMinSize, IGL
 		// update metadata flags
 		TablePerspectiveMetaData metaData = base.getMetaData();
 		(inDim ? metaData.getDimension() : metaData.getRecord()).setSplitted();
+	}
+
+	private List<CrosswordElement> toElements(CrosswordElement base, boolean inDim, final GraphVertex baseVertex,
+			TablePerspective table) {
+		final List<TablePerspective> datas = inDim ? table.getDimensionSubTablePerspectives() : table
+				.getRecordSubTablePerspectives();
+
+		List<CrosswordElement> children = new ArrayList<>(datas.size());
+
+		final ElementConfig econfig = config.getSplittedElementConfig(baseVertex);
+
+		TablePerspectiveMetaData metaData = new TablePerspectiveMetaData(
+					inDim ? 0 : PerspectiveMetaData.FLAG_CHILD, inDim ? PerspectiveMetaData.FLAG_CHILD : 0);
+		for (TablePerspective t : datas) {
+			final CrosswordElement new_ = new CrosswordElement(t, metaData, econfig, base);
+			children.add(new_);
+		}
+		return children;
 	}
 
 	/**
@@ -381,7 +395,7 @@ public class CrosswordMultiElement extends GLElement implements IHasMinSize, IGL
 	 * @param tablePerspective
 	 */
 	public void add(TablePerspective tablePerspective) {
-		add(new CrosswordElement(tablePerspective, new TablePerspectiveMetaData(0, 0)));
+		add(new CrosswordElement(tablePerspective, new TablePerspectiveMetaData(0, 0), config.getDefaultElementConfig()));
 	}
 
 	public void addAll(Iterable<TablePerspective> tablePerspectives) {

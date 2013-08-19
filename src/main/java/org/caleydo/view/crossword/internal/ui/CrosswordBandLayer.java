@@ -22,10 +22,10 @@ import org.caleydo.core.view.opengl.picking.IPickingLabelProvider;
 import org.caleydo.core.view.opengl.picking.IPickingListener;
 import org.caleydo.core.view.opengl.picking.Pick;
 import org.caleydo.core.view.opengl.picking.PickingListenerComposite;
-import org.caleydo.view.crossword.api.model.BandRoute;
-import org.caleydo.view.crossword.api.model.BandRoute.IBandHost;
 import org.caleydo.view.crossword.api.model.TypedSet;
 import org.caleydo.view.crossword.api.ui.CrosswordMultiElement;
+import org.caleydo.view.crossword.spi.model.IBandRenderer;
+import org.caleydo.view.crossword.spi.model.IBandRenderer.IBandHost;
 
 /**
  * a dedicated layer for the bands for better caching behavior
@@ -56,7 +56,7 @@ public class CrosswordBandLayer extends GLElement implements MultiSelectionManag
 
 	@Override
 	public String getLabel(Pick pick) {
-		BandRoute route = getRoute(pick.getObjectID());
+		IBandRenderer route = getRoute(pick.getObjectID());
 		if (route == null)
 			return "";
 		return route.getLabel();
@@ -83,7 +83,7 @@ public class CrosswordBandLayer extends GLElement implements MultiSelectionManag
 	 * @param route
 	 * @param type
 	 */
-	private void clear(BandRoute route, SelectionType type) {
+	private void clear(IBandRenderer route, SelectionType type) {
 		if (route == null)
 			return;
 		SelectionManager manager = selections.getSelectionManager(route.getIds().getIdType());
@@ -99,7 +99,7 @@ public class CrosswordBandLayer extends GLElement implements MultiSelectionManag
 	 * @param clear
 	 *            whether to clear before
 	 */
-	private void select(BandRoute route, SelectionType type, boolean clear) {
+	private void select(IBandRenderer route, SelectionType type, boolean clear) {
 		if (route == null)
 			return;
 		SelectionManager manager = getOrCreate(route.getIdType());
@@ -113,8 +113,8 @@ public class CrosswordBandLayer extends GLElement implements MultiSelectionManag
 	 * @param objectID
 	 * @return
 	 */
-	private BandRoute getRoute(int index) {
-		List<BandRoute> routes = getRoutes();
+	private IBandRenderer getRoute(int index) {
+		List<? extends IBandRenderer> routes = getRoutes();
 		if (index < 0 || index >= routes.size())
 			return null;
 		return routes.get(index);
@@ -123,7 +123,7 @@ public class CrosswordBandLayer extends GLElement implements MultiSelectionManag
 	@Override
 	protected void renderImpl(GLGraphics g, float w, float h) {
 		super.renderImpl(g, w, h);
-		for (BandRoute edge : getRoutes()) {
+		for (IBandRenderer edge : getRoutes()) {
 			edge.render(g, w, h, this);
 		}
 	}
@@ -131,7 +131,7 @@ public class CrosswordBandLayer extends GLElement implements MultiSelectionManag
 	@Override
 	protected void renderPickImpl(GLGraphics g, float w, float h) {
 		super.renderPickImpl(g, w, h);
-		List<BandRoute> routes = getRoutes();
+		List<? extends IBandRenderer> routes = getRoutes();
 		for (int i = 0; i < routes.size(); i++) {
 			g.pushName(pickingPool.get(i));
 			routes.get(i).renderPick(g, w, h, this);
@@ -139,7 +139,7 @@ public class CrosswordBandLayer extends GLElement implements MultiSelectionManag
 		}
 	}
 
-	private List<BandRoute> getRoutes() {
+	private List<? extends IBandRenderer> getRoutes() {
 		return getMultiElement().getBandRoutes();
 	}
 

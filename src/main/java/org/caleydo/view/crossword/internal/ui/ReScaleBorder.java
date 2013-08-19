@@ -162,7 +162,7 @@ public final class ReScaleBorder extends GLElement implements IPickingListener {
 
 	@Override
 	protected boolean hasPickAbles() {
-		return true;
+		return info.getConfig().canScale();
 	}
 
 }

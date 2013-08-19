@@ -8,9 +8,9 @@ package org.caleydo.view.crossword.spi.ui.layout;
 import java.util.List;
 import java.util.Set;
 
-import org.caleydo.view.crossword.api.model.BandRoute;
 import org.caleydo.view.crossword.api.ui.layout.IGraphEdge;
 import org.caleydo.view.crossword.api.ui.layout.IGraphVertex;
+import org.caleydo.view.crossword.spi.model.IBandRenderer;
 
 /**
  * @author Samuel Gratzl
@@ -27,9 +27,9 @@ public interface IGraphLayout {
 
 	public final static class GraphLayoutModel {
 		private final boolean requireAnotherRound;
-		private final List<BandRoute> routes;
+		private final List<? extends IBandRenderer> routes;
 
-		public GraphLayoutModel(boolean requireAnotherRound, List<BandRoute> routes) {
+		public GraphLayoutModel(boolean requireAnotherRound, List<? extends IBandRenderer> routes) {
 			this.requireAnotherRound = requireAnotherRound;
 			this.routes = routes;
 		}
@@ -37,7 +37,7 @@ public interface IGraphLayout {
 		/**
 		 * @return the routes, see {@link #routes}
 		 */
-		public List<BandRoute> getRoutes() {
+		public List<? extends IBandRenderer> getRoutes() {
 			return routes;
 		}
 

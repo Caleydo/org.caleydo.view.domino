@@ -11,7 +11,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
+import org.caleydo.core.view.opengl.util.spline.TesselatedPolygons;
 import org.caleydo.view.crossword.api.model.BandRoute;
+import org.caleydo.view.crossword.api.ui.band.Route;
 import org.caleydo.view.crossword.api.ui.layout.AGraphLayout;
 import org.caleydo.view.crossword.api.ui.layout.IGraphEdge;
 import org.caleydo.view.crossword.api.ui.layout.IGraphVertex;
@@ -53,7 +55,11 @@ public class DefaultGraphLayout extends AGraphLayout {
 		List<BandRoute> routes = new ArrayList<>();
 
 		for (IGraphEdge edge : edges) {
-			routes.add(new BandRoute(toPath(edge), edge.getType().getColor(), edge.getIntersection()));
+			List<Vec2f> curve = new ArrayList<>();
+			float radius1 = addStart(curve, edge, 10);
+			float radius2 = addEnd(curve, edge, 10);
+			Route r = new Route(TesselatedPolygons.spline(curve, 10));
+			routes.add(new BandRoute(r, edge.getType().getColor(), edge.getIntersection(), radius1, radius2));
 		}
 		return new GraphLayoutModel(false, routes);
 	}

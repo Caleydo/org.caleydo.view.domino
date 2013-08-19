@@ -31,6 +31,7 @@ import org.caleydo.core.view.opengl.layout2.basic.ScrollingDecorator.IHasMinSize
 import org.caleydo.core.view.opengl.layout2.layout.IGLLayout;
 import org.caleydo.core.view.opengl.layout2.layout.IGLLayoutElement;
 import org.caleydo.core.view.opengl.layout2.manage.GLElementFactorySwitcher.IActiveChangedCallback;
+import org.caleydo.view.crossword.spi.config.ElementConfig;
 
 /**
  * layout specific information
@@ -43,6 +44,8 @@ public class CrosswordLayoutInfo implements IActiveChangedCallback, IGLLayout {
 	 * parent link
 	 */
 	private final CrosswordElement parent;
+
+	private final ElementConfig config;
 
 	/**
 	 * zoom factor in x direction
@@ -60,9 +63,17 @@ public class CrosswordLayoutInfo implements IActiveChangedCallback, IGLLayout {
 	/**
 	 * @param crosswordElement
 	 */
-	public CrosswordLayoutInfo(CrosswordElement parent) {
+	public CrosswordLayoutInfo(CrosswordElement parent, ElementConfig config) {
 		this.parent = parent;
+		this.config = config;
 		parent.setLayout(this);
+	}
+
+	/**
+	 * @return the config, see {@link #config}
+	 */
+	public ElementConfig getConfig() {
+		return config;
 	}
 
 	/**
@@ -119,6 +130,8 @@ public class CrosswordLayoutInfo implements IActiveChangedCallback, IGLLayout {
 	 * @param factor
 	 */
 	public boolean zoom(float factor) {
+		if (!config.canScale())
+			return false;
 		if (factor == 1.0f || Double.isNaN(factor) || Double.isInfinite(factor) || factor <= 0)
 			return false;
 		this.zoomFactorX = zoomFactorX * factor;
@@ -133,6 +146,8 @@ public class CrosswordLayoutInfo implements IActiveChangedCallback, IGLLayout {
 	 * @param event
 	 */
 	public void zoom(IMouseEvent event) {
+		if (!config.canScale())
+			return;
 		if (!event.isCtrlDown() || event.getWheelRotation() == 0)
 			return;
 		float factor = (float) Math.pow(1.2, event.getWheelRotation());
