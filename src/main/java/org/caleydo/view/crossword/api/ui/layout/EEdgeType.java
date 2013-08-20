@@ -18,7 +18,7 @@ public enum EEdgeType implements Predicate<IGraphEdge> {
 
 	@Override
 	public boolean apply(IGraphEdge input) {
-		return input.getType() == this;
+		return input != null && input.getType() == this;
 	}
 
 	public Color getColor() {
