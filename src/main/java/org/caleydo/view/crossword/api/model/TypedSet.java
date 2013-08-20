@@ -13,8 +13,6 @@ import java.util.Iterator;
 import java.util.Objects;
 import java.util.Set;
 
-import javax.annotation.concurrent.Immutable;
-
 import org.caleydo.core.id.IDType;
 import org.caleydo.view.crossword.internal.util.BitSetSet;
 
@@ -29,7 +27,6 @@ import com.google.common.collect.Sets;
  * @author Samuel Gratzl
  *
  */
-@Immutable
 public final class TypedSet extends AbstractSet<Integer> {
 	private final Set<Integer> wrappee;
 	private final IDType idType;
