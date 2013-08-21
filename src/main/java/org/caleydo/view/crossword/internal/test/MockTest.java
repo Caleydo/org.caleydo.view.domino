@@ -6,7 +6,6 @@
 package org.caleydo.view.crossword.internal.test;
 
 import java.awt.Dimension;
-import java.util.Random;
 
 import org.caleydo.core.view.opengl.layout2.GLElement;
 import org.caleydo.core.view.opengl.layout2.GLElementDecorator;
@@ -35,8 +34,7 @@ public class MockTest extends GLSandBox {
 	 */
 	private GLElement createScene() {
 		CrosswordMultiElement m = new CrosswordMultiElement(new MultiConfig());
-		Random r = new Random();
-		MockDataDomain numerical = MockDataDomain.createNumerical(100, 100, r);
+		MockDataDomain numerical = MockDataDomain.createNumerical(100, 100, MockDataDomain.RANDOM);
 		m.add(numerical.getDefaultTablePerspective());
 		m.add(numerical.addDimGrouping(true, 10, 20, 50));
 		m.add(numerical.addRecGrouping(false, 10, 40));
