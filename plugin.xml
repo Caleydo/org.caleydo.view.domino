@@ -44,7 +44,7 @@
       <command
             defaultHandler="org.caleydo.view.crossword.internal.OpenViewHandler"
             id="org.caleydo.view.crossword.command.opencrossword"
-            name="CrossWord">
+            name="Crossword">
       </command>
    </extension>
    <extension

@@ -29,7 +29,7 @@ import org.caleydo.view.crossword.spi.config.MultiConfig;
  */
 public class CrosswordView extends AMultiTablePerspectiveElementView {
 	public static final String VIEW_TYPE = "org.caleydo.view.crossword";
-	public static final String VIEW_NAME = "CrossWord";
+	public static final String VIEW_NAME = "Crossword";
 
 	private final CrosswordMultiElement crossword;
 
