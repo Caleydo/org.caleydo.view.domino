@@ -298,7 +298,7 @@ public class CrosswordMultiElement extends GLElement implements IHasMinSize, IGL
 			// add parent edge
 			for (int j = 0; j < i; ++j) {
 				GraphVertex child2 = vertices.get(j);
-				addEdge(baseVertex, child2, SIBLING, connect(type), connect(type)); // add sibling edge
+				addEdge(vertex, child2, SIBLING, connect(type.inverse()), connect(type.inverse())); // add sibling edge
 			}
 		}
 
