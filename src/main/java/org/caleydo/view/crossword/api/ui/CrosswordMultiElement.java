@@ -153,8 +153,8 @@ public class CrosswordMultiElement extends GLElement implements IHasMinSize, IGL
 	}
 
 	@Override
-	protected final void layoutImpl() {
-		super.layoutImpl();
+	protected final void layoutImpl(int deltaTimeMs) {
+		super.layoutImpl(deltaTimeMs);
 		Vec2f size = getSize();
 		GLElementAccessor.asLayoutElement(bands).setBounds(0, 0, size.x(), size.y());
 
