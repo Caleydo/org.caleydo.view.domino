@@ -11,7 +11,7 @@ import gleem.linalg.Vec2f;
 import java.util.List;
 
 import org.caleydo.core.util.function.ExpressionFunctions.EMonoOperator;
-import org.caleydo.core.util.function.IFloatFunction;
+import org.caleydo.core.util.function.IDoubleFunction;
 import org.caleydo.core.util.function.InterpolatingFunctions;
 import org.caleydo.core.view.opengl.layout2.GLGraphics;
 import org.caleydo.core.view.opengl.util.spline.ITesselatedPolygon;
@@ -32,7 +32,7 @@ public class Route implements ITesselatedPolygon {
 	private final Vec2f[] normals;
 	private final float[] distances;
 
-	private IFloatFunction radiusInterpolator = InterpolatingFunctions.constant(1);
+	private IDoubleFunction radiusInterpolator = InterpolatingFunctions.constant(1);
 
 	public Route(List<Vec2f> curve) {
 		this.curve = curve.toArray(new Vec2f[0]);
@@ -44,7 +44,7 @@ public class Route implements ITesselatedPolygon {
 	 * @param radiusInterpolator
 	 *            setter, see {@link radiusInterpolator}
 	 */
-	public void setRadiusInterpolator(IFloatFunction radiusInterpolator) {
+	public void setRadiusInterpolator(IDoubleFunction radiusInterpolator) {
 		this.radiusInterpolator = radiusInterpolator;
 	}
 
@@ -93,7 +93,7 @@ public class Route implements ITesselatedPolygon {
 		return d;
 	}
 
-	private Iterable<Vec2f> shiftCurve(final IFloatFunction radius) {
+	private Iterable<Vec2f> shiftCurve(final IDoubleFunction radius) {
 		final int last = curve.length - 1;
 		final float distanceFactor = 1.f / distances[last];
 		return Iterables.transform(Ranges.closed(0, last).asSet(DiscreteDomains.integers()),
@@ -103,7 +103,7 @@ public class Route implements ITesselatedPolygon {
 						int i = input.intValue();
 
 						final float t = distances[i] * distanceFactor;
-						final float r = radius.apply(t);
+						final float r = (float) radius.apply(t);
 
 						Vec2f p = curve[i].addScaled(r, normals[i]);
 						return p;
@@ -120,7 +120,7 @@ public class Route implements ITesselatedPolygon {
 	/**
 	 * @return
 	 */
-	private IFloatFunction negatedRadiusInterpolator() {
+	private IDoubleFunction negatedRadiusInterpolator() {
 		return compose(EMonoOperator.NEGATE, radiusInterpolator);
 	}
 

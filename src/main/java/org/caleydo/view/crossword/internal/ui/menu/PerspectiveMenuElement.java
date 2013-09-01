@@ -75,6 +75,7 @@ public class PerspectiveMenuElement extends GLElementContainer {
 		this.add(b);
 	}
 
+
 	@Override
 	protected void renderImpl(GLGraphics g, float w, float h) {
 		g.color(toolbarBackground(getInfo().isSelected()));

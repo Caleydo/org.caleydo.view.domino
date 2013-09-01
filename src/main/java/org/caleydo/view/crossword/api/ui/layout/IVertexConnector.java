@@ -54,5 +54,9 @@ public interface IVertexConnector {
 			}
 			throw new IllegalStateException();
 		}
+
+		public EConnectorType inverse() {
+			return this == RECORD ? COLUMN : RECORD;
+		}
 	}
 }
