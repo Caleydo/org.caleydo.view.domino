@@ -8,6 +8,6 @@
 		<version>3.1.1-SNAPSHOT</version>
 		<relativePath>../caleydo/org.caleydo.parent</relativePath>
 	</parent>
-	<artifactId>org.caleydo.view.crossword</artifactId>
+	<artifactId>org.caleydo.view.domino</artifactId>
 	<packaging>eclipse-plugin</packaging>
 </project>

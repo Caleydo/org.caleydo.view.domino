@@ -1,4 +1,4 @@
-org.caleydo.view.crossword
+org.caleydo.view.domino
 ==========================
 
-Caleydo Crossword View
+Caleydo Domino View

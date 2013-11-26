@@ -5,10 +5,10 @@
          point="org.eclipse.ui.views">
       <view
             category="org.caleydo.core.views"
-            class="org.caleydo.view.crossword.internal.CrosswordViewPart"
+            class="org.caleydo.view.domino.internal.DominoViewPart"
             icon="resources/icons/icon.png"
-            id="org.caleydo.view.crossword"
-            name="Cross Word">
+            id="org.caleydo.view.domino"
+            name="Domino">
       </view>
    </extension>
    <extension
@@ -16,7 +16,7 @@
       <menuContribution
             locationURI="menu:org.caleydo.menu.view.visualization">
          <command
-               commandId="org.caleydo.view.crossword.command.opencrossword"
+               commandId="org.caleydo.view.domino.command.open"
                icon="resources/icons/icon.png"
                style="push">
          </command>
@@ -25,15 +25,15 @@
    <extension
          point="org.eclipse.ui.commands">
       <command
-            defaultHandler="org.caleydo.view.crossword.internal.OpenViewHandler"
-            id="org.caleydo.view.crossword.command.opencrossword"
-            name="Crossword">
+            defaultHandler="org.caleydo.view.domino.internal.OpenViewHandler"
+            id="org.caleydo.view.domino.command.open"
+            name="Domino">
       </command>
    </extension>
    <extension
          point="org.caleydo.core.data.datadomain.ViewDataDomainAssociation">
       <association
-            view="org.caleydo.view.crossword">
+            view="org.caleydo.view.domino">
          <dataDomain
                type="org.caleydo.datadomain.genetic">
          </dataDomain>
