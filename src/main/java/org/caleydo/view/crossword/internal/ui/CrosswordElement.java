@@ -9,6 +9,7 @@ import static org.caleydo.core.view.opengl.layout2.animation.Transitions.LINEAR;
 
 import java.util.Set;
 
+import org.caleydo.core.data.collection.EDimension;
 import org.caleydo.core.data.collection.table.Table;
 import org.caleydo.core.data.perspective.table.TablePerspective;
 import org.caleydo.core.data.perspective.variable.Perspective;
@@ -50,7 +51,6 @@ import org.caleydo.core.view.opengl.picking.Pick;
 import org.caleydo.view.crossword.api.model.TablePerspectiveMetaData;
 import org.caleydo.view.crossword.api.model.TypedSet;
 import org.caleydo.view.crossword.api.ui.CrosswordMultiElement;
-import org.caleydo.view.crossword.api.ui.layout.IVertexConnector.EConnectorType;
 import org.caleydo.view.crossword.internal.event.ChangePerspectiveEvent;
 import org.caleydo.view.crossword.internal.ui.dialogs.ChangePerspectiveDialog;
 import org.caleydo.view.crossword.internal.ui.menu.PerspectiveMenuElement;
@@ -212,9 +212,9 @@ public class CrosswordElement extends AnimatedGLElementContainer implements
 	 * @param type
 	 * @return
 	 */
-	public TypedSet getIDs(EConnectorType type) {
+	public TypedSet getIDs(EDimension type) {
 		switch (type) {
-		case COLUMN:
+		case DIMENSION:
 			return dimensionIds;
 		case RECORD:
 			return recordIds;

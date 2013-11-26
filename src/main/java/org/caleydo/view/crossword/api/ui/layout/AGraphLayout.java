@@ -49,14 +49,14 @@ public abstract class AGraphLayout implements IGraphLayout {
 
 	private Vec2f shiftedPos(float shift, Rect self, Rect opposite, IVertexConnector connector, Vec2f pos) {
 		Vec2f shifted = pos.copy();
-		switch (connector.getConnectorType()) {
+		switch (connector.getDimension()) {
 		case RECORD:
 			if (self.x2() < opposite.x())
 				shifted.setX(pos.x() + shift);
 			else
 				shifted.setX(pos.x() - shift);
 			break;
-		case COLUMN:
+		case DIMENSION:
 			if (self.y2() < opposite.y())
 				shifted.setY(pos.y() + shift);
 			else
@@ -68,17 +68,18 @@ public abstract class AGraphLayout implements IGraphLayout {
 
 	private float toPosition(List<Vec2f> curve, Rect self, Rect opposite, IVertexConnector connector) {
 		float center = connector.getCenter();
-		Vec2f posSize = connector.getConnectorType().extract(self);
+		Vec2f posSize = connector.getDimension().select(new Vec2f(self.x(), self.width()),
+				new Vec2f(self.y(), self.height()));
 		final float radius = connector.getRadius() * posSize.y();
 
 		Vec2f pos = self.xy();
-		switch (connector.getConnectorType()) {
+		switch (connector.getDimension()) {
 		case RECORD:
 			if (self.x2() < opposite.x())
 				pos.setX(self.x2());
 			pos.setY(pos.y() + center * posSize.y());
 			break;
-		case COLUMN:
+		case DIMENSION:
 			if (self.y2() < opposite.y())
 				pos.setY(self.y2());
 			pos.setX(pos.x() + center * posSize.y());

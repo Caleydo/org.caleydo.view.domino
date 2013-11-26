@@ -9,9 +9,9 @@ import gleem.linalg.Vec2f;
 
 import java.util.Set;
 
+import org.caleydo.core.data.collection.EDimension;
 import org.caleydo.core.view.opengl.layout2.geom.Rect;
 import org.caleydo.view.crossword.api.model.TypedSet;
-import org.caleydo.view.crossword.api.ui.layout.IVertexConnector.EConnectorType;
 
 /**
  * @author Samuel Gratzl
@@ -53,6 +53,6 @@ public interface IGraphVertex {
 	 */
 	boolean hasEdge(EEdgeType type);
 
-	TypedSet getIDs(EConnectorType type);
+	TypedSet getIDs(EDimension type);
 
 }

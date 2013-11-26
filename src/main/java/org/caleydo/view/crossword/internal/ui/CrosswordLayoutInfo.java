@@ -24,6 +24,7 @@ import gleem.linalg.Vec2f;
 
 import java.util.List;
 
+import org.caleydo.core.data.collection.EDimension;
 import org.caleydo.core.data.perspective.table.TablePerspective;
 import org.caleydo.core.view.opengl.canvas.IGLMouseListener.IMouseEvent;
 import org.caleydo.core.view.opengl.layout2.GLElementAccessor;
@@ -148,8 +149,12 @@ public class CrosswordLayoutInfo implements IActiveChangedCallback, IGLLayout {
 	public void zoom(IMouseEvent event) {
 		if (!config.canScale())
 			return;
-		if (!event.isCtrlDown() || event.getWheelRotation() == 0)
+
+		if (event.getWheelRotation() == 0)
 			return;
+		int dim = toDirection(event, EDimension.DIMENSION);
+		int rec = toDirection(event, EDimension.RECORD);
+
 		float factor = (float) Math.pow(1.2, event.getWheelRotation());
 		boolean isCenteredZoom = !event.isShiftDown();
 		zoom(factor);
@@ -161,6 +166,21 @@ public class CrosswordLayoutInfo implements IActiveChangedCallback, IGLLayout {
 			// shift the location according to the delta
 			shift(pos.x(), pos.y());
 		}
+	}
+
+	/**
+	 * convert a {@link IMouseEvent} to a direction information
+	 * 
+	 * @param event
+	 * @param dim
+	 * @return -1 smaller, +1 larger, and 0 nothing
+	 */
+	private static int toDirection(IMouseEvent event, EDimension dim) {
+		final int w = event.getWheelRotation();
+		if (w == 0)
+			return 0;
+		int factor = w > 0 ? 1 : -1;
+		return event.isCtrlDown() || dim.select(event.isAltDown(), event.isShiftDown()) ? factor : 0;
 	}
 
 	/**

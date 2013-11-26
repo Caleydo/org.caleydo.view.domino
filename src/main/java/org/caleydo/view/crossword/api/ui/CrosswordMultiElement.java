@@ -5,11 +5,11 @@
  ******************************************************************************/
 package org.caleydo.view.crossword.api.ui;
 
+import static org.caleydo.core.data.collection.EDimension.DIMENSION;
+import static org.caleydo.core.data.collection.EDimension.RECORD;
 import static org.caleydo.view.crossword.api.ui.layout.EEdgeType.PARENT_CHILD;
 import static org.caleydo.view.crossword.api.ui.layout.EEdgeType.SHARED;
 import static org.caleydo.view.crossword.api.ui.layout.EEdgeType.SIBLING;
-import static org.caleydo.view.crossword.api.ui.layout.IVertexConnector.EConnectorType.COLUMN;
-import static org.caleydo.view.crossword.api.ui.layout.IVertexConnector.EConnectorType.RECORD;
 import gleem.linalg.Vec2f;
 import gleem.linalg.Vec4f;
 
@@ -19,6 +19,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
+import org.caleydo.core.data.collection.EDimension;
 import org.caleydo.core.data.collection.table.Table;
 import org.caleydo.core.data.datadomain.ATableBasedDataDomain;
 import org.caleydo.core.data.perspective.table.TablePerspective;
@@ -43,7 +44,6 @@ import org.caleydo.view.crossword.api.ui.layout.EEdgeType;
 import org.caleydo.view.crossword.api.ui.layout.IGraphEdge;
 import org.caleydo.view.crossword.api.ui.layout.IGraphVertex;
 import org.caleydo.view.crossword.api.ui.layout.IVertexConnector;
-import org.caleydo.view.crossword.api.ui.layout.IVertexConnector.EConnectorType;
 import org.caleydo.view.crossword.internal.CrosswordView;
 import org.caleydo.view.crossword.internal.ui.CrosswordBandLayer;
 import org.caleydo.view.crossword.internal.ui.CrosswordElement;
@@ -239,19 +239,19 @@ public class CrosswordMultiElement extends GLElement implements IHasMinSize, IGL
 			if (recIDType.resolvesTo(recIDType2))
 				addEdge(child, other, SHARED, connect(RECORD), connect(RECORD));
 			if (dimIDType.resolvesTo(recIDType2))
-				addEdge(child, other, SHARED, connect(COLUMN), connect(RECORD));
+				addEdge(child, other, SHARED, connect(DIMENSION), connect(RECORD));
 			if (recIDType.resolvesTo(dimIDType2))
-				addEdge(child, other, SHARED, connect(RECORD), connect(COLUMN));
+				addEdge(child, other, SHARED, connect(RECORD), connect(DIMENSION));
 			if (dimIDType.resolvesTo(dimIDType2))
-				addEdge(child, other, SHARED, connect(COLUMN), connect(COLUMN));
+				addEdge(child, other, SHARED, connect(DIMENSION), connect(DIMENSION));
 		}
 	}
 
-	private static VertexConnector connect(EConnectorType type) {
+	private static VertexConnector connect(EDimension type) {
 		return connect(type, ConnectorStrategies.SHARED);
 	}
 
-	private static VertexConnector connect(EConnectorType type, IConnectorStrategy model) {
+	private static VertexConnector connect(EDimension type, IConnectorStrategy model) {
 		return new VertexConnector(type, model);
 	}
 
@@ -268,7 +268,7 @@ public class CrosswordMultiElement extends GLElement implements IHasMinSize, IGL
 	 */
 	private void split(CrosswordElement base, boolean inDim) {
 		TablePerspective table = base.getTablePerspective();
-		final EConnectorType type = inDim ? EConnectorType.COLUMN : EConnectorType.RECORD;
+		final EDimension type = EDimension.get(inDim);
 		final GraphVertex baseVertex = toVertex(base);
 		final GroupList groups = (inDim ? table.getDimensionPerspective() : table.getRecordPerspective())
 				.getVirtualArray().getGroupList();
@@ -298,7 +298,8 @@ public class CrosswordMultiElement extends GLElement implements IHasMinSize, IGL
 			// add parent edge
 			for (int j = 0; j < i; ++j) {
 				GraphVertex child2 = vertices.get(j);
-				addEdge(vertex, child2, SIBLING, connect(type.inverse()), connect(type.inverse())); // add sibling edge
+				addEdge(vertex, child2, SIBLING, connect(type.opposite()), connect(type.opposite())); // add sibling
+																										// edge
 			}
 		}
 
@@ -477,7 +478,7 @@ public class CrosswordMultiElement extends GLElement implements IHasMinSize, IGL
 		}
 
 		@Override
-		public TypedSet getIDs(EConnectorType type) {
+		public TypedSet getIDs(EDimension type) {
 			return element.getIDs(type);
 		}
 
@@ -532,17 +533,17 @@ public class CrosswordMultiElement extends GLElement implements IHasMinSize, IGL
 	}
 
 	private static class VertexConnector implements IVertexConnector {
-		private final EConnectorType type;
+		private final EDimension type;
 		private final IConnectorStrategy strategy;
 		private CenterRadius values;
 
-		public VertexConnector(EConnectorType type, IConnectorStrategy strategy) {
+		public VertexConnector(EDimension type, IConnectorStrategy strategy) {
 			this.strategy = strategy;
 			this.type = type;
 		}
 
 		@Override
-		public EConnectorType getConnectorType() {
+		public EDimension getDimension() {
 			return type;
 		}
 
@@ -610,8 +611,8 @@ public class CrosswordMultiElement extends GLElement implements IHasMinSize, IGL
 		public void update() {
 			GraphVertex s = getSource();
 			GraphVertex t = getTarget();
-			TypedSet sourceIDs = s.getIDs(sourceConnector.getConnectorType());
-			TypedSet targetIDs = t.getIDs(targetConnector.getConnectorType());
+			TypedSet sourceIDs = s.getIDs(sourceConnector.getDimension());
+			TypedSet targetIDs = t.getIDs(targetConnector.getDimension());
 			intersection = sourceIDs.intersect(targetIDs);
 			sourceConnector.update(sourceIDs, intersection);
 			targetConnector.update(targetIDs, intersection);
