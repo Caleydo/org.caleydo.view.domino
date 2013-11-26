@@ -32,6 +32,11 @@ public class DominoViewPart extends ARcpGLElementViewPart {
 	}
 
 	@Override
+	public DominoView getView() {
+		return (DominoView) super.getView();
+	}
+
+	@Override
 	protected void addToolBarContent(IToolBarManager toolBarManager) {
 		toolBarManager.add(new SettingsAction(view));
 		super.addToolBarContent(toolBarManager);

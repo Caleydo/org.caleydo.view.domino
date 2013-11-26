@@ -17,7 +17,6 @@ import org.caleydo.core.data.selection.SelectionManager;
 import org.caleydo.core.data.selection.TablePerspectiveSelectionMixin;
 import org.caleydo.core.data.virtualarray.VirtualArray;
 import org.caleydo.core.event.EventListenerManager.DeepScan;
-import org.caleydo.core.event.EventListenerManager.ListenTo;
 import org.caleydo.core.event.EventPublisher;
 import org.caleydo.core.event.data.DataSetSelectedEvent;
 import org.caleydo.core.id.IDMappingManager;
@@ -51,9 +50,6 @@ import org.caleydo.core.view.opengl.picking.Pick;
 import org.caleydo.view.domino.api.model.TablePerspectiveMetaData;
 import org.caleydo.view.domino.api.model.TypedSet;
 import org.caleydo.view.domino.api.ui.DominoMultiElement;
-import org.caleydo.view.domino.internal.event.ChangePerspectiveEvent;
-import org.caleydo.view.domino.internal.ui.dialogs.ChangePerspectiveDialog;
-import org.caleydo.view.domino.internal.ui.menu.PerspectiveMenuElement;
 import org.caleydo.view.domino.internal.ui.menu.SwitcherMenuElement;
 import org.caleydo.view.domino.internal.util.BitSetSet;
 import org.caleydo.view.domino.spi.config.ElementConfig;
@@ -74,8 +70,6 @@ public class DominoElement extends AnimatedGLElementContainer implements
 	private final static int SWITCHER = 0;
 	private final static int BORDER = 1;
 	private final static int CORNER = 2;
-	private final static int DIM_PERSPECTIVE_MENU = 3;
-	private final static int REC_PERSPECTIVE_MENU = 4;
 	@DeepScan
 	private final TablePerspectiveSelectionMixin selection;
 
@@ -126,10 +120,6 @@ public class DominoElement extends AnimatedGLElementContainer implements
 		closeSwitcher.onPick(this);
 		closeSwitcher.setSwitcher(switcher);
 		this.add(animated(true, true, closeSwitcher));
-		this.add(animated(true, false,
-				new PerspectiveMenuElement(tablePerspective, config, true, this, metaData.getDimension()).onPick(this)));
-		this.add(animated(false, true,
-				new PerspectiveMenuElement(tablePerspective, config, false, this, metaData.getRecord()).onPick(this)));
 		setLayoutData(GLLayoutDatas.combine(tablePerspective, info));
 		onVAUpdate(tablePerspective);
 	}
@@ -181,8 +171,6 @@ public class DominoElement extends AnimatedGLElementContainer implements
 			this.set(SWITCHER, switcher);
 		}
 		((SwitcherMenuElement) get(CORNER)).setSwitcher(switcher);
-		((PerspectiveMenuElement) get(DIM_PERSPECTIVE_MENU)).setTablePerspective(tablePerspective, this);
-		((PerspectiveMenuElement) get(REC_PERSPECTIVE_MENU)).setTablePerspective(tablePerspective, this);
 		setLayoutData(GLLayoutDatas.combine(tablePerspective, info));
 		onVAUpdate(tablePerspective);
 
@@ -349,41 +337,9 @@ public class DominoElement extends AnimatedGLElementContainer implements
 						(IMultiTablePerspectiveBasedView) context));
 			parent.remove(this);
 			break;
-		case "Split X":
-			parent.splitDim(this);
-			((PerspectiveMenuElement) get(3)).setTablePerspective(getTablePerspective(), this);
-			break;
-		case "Split Y":
-			parent.splitRec(this);
-			((PerspectiveMenuElement) get(4)).setTablePerspective(getTablePerspective(), this);
-			break;
-		case "Change Perspective X":
-			context.getSWTLayer().run(
-					new ChangePerspectiveDialog(getTablePerspective().getDimensionPerspective(), this));
-			break;
-		case "Change Perspective Y":
-			context.getSWTLayer().run(new ChangePerspectiveDialog(getTablePerspective().getRecordPerspective(), this));
-			break;
 		default:
 			break;
 		}
-	}
-
-	@ListenTo(sendToMe = true)
-	private void onChangePerspectiveEvent(ChangePerspectiveEvent event) {
-		Perspective new_ = event.getNew_();
-		final TablePerspective tablePerspective = getTablePerspective();
-		Perspective old;
-		boolean isDim = !tablePerspective.getRecordPerspective().getIdType().equals(event.getIdType());
-		if (!isDim) {
-			old = tablePerspective.getRecordPerspective();
-		} else {
-			old = tablePerspective.getDimensionPerspective();
-		}
-		if (old.equals(new_))
-			return;
-
-		getMultiElement().changePerspective(this, isDim, new_);
 	}
 
 	/**

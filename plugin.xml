@@ -42,4 +42,10 @@
          </dataDomain>
       </association>
    </extension>
+   <extension
+         point="org.caleydo.view.tourguide.adapter">
+      <adapter
+            class="org.caleydo.view.domino.internal.tourguide.DataTourGuideAdapter$Factory">
+      </adapter>
+   </extension>
 </plugin>
