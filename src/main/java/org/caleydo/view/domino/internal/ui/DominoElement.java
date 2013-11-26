@@ -56,6 +56,7 @@ import org.caleydo.view.domino.spi.config.ElementConfig;
 import org.eclipse.swt.SWT;
 
 import com.google.common.base.Predicates;
+import com.google.common.base.Supplier;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedSet;
 
@@ -219,7 +220,7 @@ public class DominoElement extends AnimatedGLElementContainer implements
 	}
 
 	@Override
-	public <T> T getLayoutDataAs(java.lang.Class<T> clazz, T default_) {
+	public <T> T getLayoutDataAs(java.lang.Class<T> clazz, Supplier<? extends T> default_) {
 		T v = get(0).getLayoutDataAs(clazz, null);
 		if (v != null)
 			return v;
