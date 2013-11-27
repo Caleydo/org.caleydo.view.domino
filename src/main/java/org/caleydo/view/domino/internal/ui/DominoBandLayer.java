@@ -23,7 +23,6 @@ import org.caleydo.core.view.opengl.picking.IPickingListener;
 import org.caleydo.core.view.opengl.picking.Pick;
 import org.caleydo.core.view.opengl.picking.PickingListenerComposite;
 import org.caleydo.view.domino.api.model.TypedSet;
-import org.caleydo.view.domino.api.ui.DominoMultiElement;
 import org.caleydo.view.domino.spi.model.IBandRenderer;
 import org.caleydo.view.domino.spi.model.IBandRenderer.IBandHost;
 
@@ -39,6 +38,12 @@ public class DominoBandLayer extends GLElement implements MultiSelectionManagerM
 	private final MultiSelectionManagerMixin selections = new MultiSelectionManagerMixin(this);
 
 	private PickingPool pickingPool;
+
+	private final IBandRootProvider provider;
+
+	public DominoBandLayer(IBandRootProvider provider) {
+		this.provider = provider;
+	}
 
 	@Override
 	protected void init(IGLElementContext context) {
@@ -140,7 +145,7 @@ public class DominoBandLayer extends GLElement implements MultiSelectionManagerM
 	}
 
 	private List<? extends IBandRenderer> getRoutes() {
-		return getMultiElement().getBandRoutes();
+		return provider.getBandRoutes();
 	}
 
 	@Override
@@ -177,15 +182,13 @@ public class DominoBandLayer extends GLElement implements MultiSelectionManagerM
 		return true; // routes have pickables
 	}
 
-	/**
-	 * @return
-	 */
-	DominoMultiElement getMultiElement() {
-		return findParent(DominoMultiElement.class);
-	}
 
 	@Override
 	public void onSelectionUpdate(SelectionManager manager) {
 		repaint();
+	}
+
+	public interface IBandRootProvider {
+		List<? extends IBandRenderer> getBandRoutes();
 	}
 }

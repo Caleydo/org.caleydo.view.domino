@@ -41,4 +41,22 @@ public enum EDirection {
 		return shift(1);
 	}
 
+	/**
+	 * @param dimension
+	 * @return
+	 */
+	public int asInt(EDimension dim) {
+		switch (this) {
+		case ABOVE:
+			return dim.select(0, -1);
+		case BELOW:
+			return dim.select(0, 1);
+		case LEFT_OF:
+			return dim.select(-1, 0);
+		case RIGHT_OF:
+			return dim.select(1, 0);
+		}
+		throw new IllegalStateException();
+	}
+
 }

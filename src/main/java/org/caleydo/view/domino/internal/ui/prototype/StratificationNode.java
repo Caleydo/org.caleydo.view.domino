@@ -38,6 +38,10 @@ public class StratificationNode extends ANode {
 		propertySupport.firePropertyChange(PROP_TRANSPOSE, !this.dim.isVertical(), this.dim.isVertical());
 	}
 
+	@Override
+	public final String getLabel() {
+		return data.getLabel();
+	}
 	/**
 	 * @return the data, see {@link #data}
 	 */

@@ -29,6 +29,11 @@ public abstract class AData2DNode extends ADataNode {
 		this.data = t.getDataDomain();
 	}
 
+	@Override
+	public final String getLabel() {
+		return data.getLabel();
+	}
+
 	public ATableBasedDataDomain getDataDomain() {
 		return data;
 	}

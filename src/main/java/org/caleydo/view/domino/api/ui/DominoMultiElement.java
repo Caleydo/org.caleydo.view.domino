@@ -46,6 +46,7 @@ import org.caleydo.view.domino.api.ui.layout.IGraphVertex;
 import org.caleydo.view.domino.api.ui.layout.IVertexConnector;
 import org.caleydo.view.domino.internal.DominoView;
 import org.caleydo.view.domino.internal.ui.DominoBandLayer;
+import org.caleydo.view.domino.internal.ui.DominoBandLayer.IBandRootProvider;
 import org.caleydo.view.domino.internal.ui.DominoElement;
 import org.caleydo.view.domino.internal.ui.DominoLayoutInfo;
 import org.caleydo.view.domino.internal.ui.layout.DefaultGraphLayout;
@@ -71,7 +72,8 @@ import com.google.common.collect.Iterators;
  *
  */
 public class DominoMultiElement extends GLElement implements IHasMinSize, IGLElementParent,
-		Iterable<DominoElement> {
+ Iterable<DominoElement>,
+		IBandRootProvider {
 
 	/**
 	 * data structure for managing the elements
@@ -80,7 +82,7 @@ public class DominoMultiElement extends GLElement implements IHasMinSize, IGLEle
 	/**
 	 * dedicated element/layer for the bands for better caching behavior
 	 */
-	private final DominoBandLayer bands = new DominoBandLayer();
+	private final DominoBandLayer bands = new DominoBandLayer(this);
 
 	private final MultiConfig config;
 
@@ -165,6 +167,7 @@ public class DominoMultiElement extends GLElement implements IHasMinSize, IGLEle
 	/**
 	 * @return
 	 */
+	@Override
 	public List<? extends IBandRenderer> getBandRoutes() {
 		return (layoutInstance.getRoutes());
 	}

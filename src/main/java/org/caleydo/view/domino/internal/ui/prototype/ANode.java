@@ -44,4 +44,9 @@ public abstract class ANode implements INode {
 	public final void removePropertyChangeListener(String propertyName, PropertyChangeListener listener) {
 		propertySupport.removePropertyChangeListener(propertyName, listener);
 	}
+
+	@Override
+	public String toString() {
+		return getClass().getSimpleName() + " " + getLabel();
+	}
 }

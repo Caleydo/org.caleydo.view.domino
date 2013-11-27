@@ -8,14 +8,13 @@ package org.caleydo.view.domino.internal.ui.prototype;
 import org.caleydo.core.data.collection.EDimension;
 import org.caleydo.core.data.datadomain.ATableBasedDataDomain;
 import org.caleydo.core.data.perspective.table.TablePerspective;
-import org.caleydo.core.id.IDType;
 import org.caleydo.view.domino.api.model.TypedSet;
 
 /**
  * @author Samuel Gratzl
  *
  */
-public abstract class AData1DNode implements INode {
+public abstract class AData1DNode extends ANode {
 	private final TablePerspective data;
 	private final TypedSet rec;
 	private final TypedSet dim;
@@ -25,6 +24,11 @@ public abstract class AData1DNode implements INode {
 		this.data = data;
 		this.rec = TypedSet.of(data.getRecordPerspective().getVirtualArray());
 		this.dim = TypedSet.of(data.getDimensionPerspective().getVirtualArray());
+	}
+
+	@Override
+	public final String getLabel() {
+		return data.getLabel();
 	}
 
 	/**
@@ -46,15 +50,5 @@ public abstract class AData1DNode implements INode {
 	@Override
 	public TypedSet getData(EDimension dim) {
 		return dim.isVertical() == this.transposed ? this.dim : this.rec;
-	}
-
-	@Override
-	public IDType getIDType(EDimension dim) {
-		return getData(dim).getIdType();
-	}
-
-	@Override
-	public int getSize(EDimension dim) {
-		return getData(dim).size();
 	}
 }

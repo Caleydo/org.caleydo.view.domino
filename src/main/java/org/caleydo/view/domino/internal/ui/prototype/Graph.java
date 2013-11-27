@@ -19,6 +19,8 @@ import org.caleydo.datadomain.mock.AValueFactory;
 import org.caleydo.datadomain.mock.MockDataDomain;
 import org.caleydo.view.domino.api.model.TypedSet;
 import org.jgrapht.DirectedGraph;
+import org.jgrapht.ListenableGraph;
+import org.jgrapht.graph.DefaultListenableGraph;
 import org.jgrapht.graph.DirectedMultigraph;
 
 /**
@@ -26,20 +28,20 @@ import org.jgrapht.graph.DirectedMultigraph;
  *
  */
 public class Graph {
-	private DirectedGraph<INode, IEdge> graph = new DirectedMultigraph<>(IEdge.class);
+	private ListenableDirectedGraph<INode, IEdge> graph = new ListenableDirectedMultigraph<>(IEdge.class);
 
-	public static DirectedGraph<INode, IEdge> build() {
+	public static ListenableDirectedGraph<INode, IEdge> build() {
 		return new Graph().graph;
 	}
 
 	public Graph() {
-		MockDataDomain d_ab = MockDataDomain.createNumerical(10, 10, new ValueFac("a","a","b","b"));
-		Perspective s_b = MockDataDomain.addRecGrouping(d_ab, 3,4,2).getRecordPerspective();
-		Perspective s_b2 = MockDataDomain.addRecGrouping(d_ab, 1,1).getRecordPerspective();
-		Perspective s_a = MockDataDomain.addDimGrouping(d_ab, 1,1,1,2).getDimensionPerspective();
+		MockDataDomain d_ab = MockDataDomain.createNumerical(10, 10, new ValueFac("a", "a", "b", "b"));
+		Perspective s_b = MockDataDomain.addRecGrouping(d_ab, 3, 4, 2).getRecordPerspective();
+		Perspective s_b2 = MockDataDomain.addRecGrouping(d_ab, 1, 1).getRecordPerspective();
+		Perspective s_a = MockDataDomain.addDimGrouping(d_ab, 1, 1, 1, 2).getDimensionPerspective();
 		MockDataDomain d_cb = MockDataDomain.createCategorical(10, 10, new ValueFac("c", "c", "b", "b"), "A", "B", "C",
 				"D");
-		MockDataDomain d_ac = MockDataDomain.createNumerical(10, 10, new ValueFac("a","a","c","c"));
+		MockDataDomain d_ac = MockDataDomain.createNumerical(10, 10, new ValueFac("a", "a", "c", "c"));
 		MockDataDomain d_b = MockDataDomain.createNumerical(1, 10, new ValueFac("IN", "IN", "b", "b"));
 		TablePerspective d1_b = d_b.getDefaultTablePerspective();
 		Perspective s_c = MockDataDomain.addRecGrouping(d_ab, 3, 3).getRecordPerspective();
@@ -78,8 +80,8 @@ public class Graph {
 
 	private void band(INode a, EDirection dir, INode b) {
 		assert isCompatible(a.getData(dir.asDim()), b.getData(dir.asDim()));
-		graph.addEdge(a, b, new BandEdge(dir));
-		graph.addEdge(b, a, new BandEdge(dir.opposite()));
+		graph.addEdge(b, a, new BandEdge(dir));
+		graph.addEdge(a, b, new BandEdge(dir.opposite()));
 	}
 
 	/**
@@ -93,8 +95,8 @@ public class Graph {
 
 	private void magnetic(INode a, EDirection dir, INode b) {
 		assert isCompatible(a.getData(dir.asDim()), b.getData(dir.asDim()));
-		graph.addEdge(a, b, new MagneticEdge(dir));
-		graph.addEdge(b, a, new MagneticEdge(dir.opposite()));
+		graph.addEdge(b, a, new MagneticEdge(dir));
+		graph.addEdge(a, b, new MagneticEdge(dir.opposite()));
 	}
 
 	private class ValueFac extends AValueFactory {
@@ -126,6 +128,19 @@ public class Graph {
 		@Override
 		public String getIDType(EDimension dim) {
 			return dim.select(dimID, recID);
+		}
+	}
+
+	public interface ListenableDirectedGraph<V, E> extends ListenableGraph<V, E>, DirectedGraph<V, E> {
+
+	}
+
+	private static class ListenableDirectedMultigraph<V, E> extends DefaultListenableGraph<V, E> implements
+			ListenableDirectedGraph<V, E> {
+		private static final long serialVersionUID = 1L;
+
+		ListenableDirectedMultigraph(Class<E> edgeClass) {
+			super(new DirectedMultigraph<V, E>(edgeClass));
 		}
 	}
 }
