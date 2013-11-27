@@ -13,21 +13,12 @@ import org.apache.commons.lang.BitField;
  */
 public class ElementConfig {
 
-	public static final int FLAG_CAN_SPLIT_X = 1 << 1;
-	public static final int FLAG_CAN_SPLIT_Y = 2 << 1;
-	public static final int FLAG_CAN_SPLIT = FLAG_CAN_SPLIT_X | FLAG_CAN_SPLIT_Y;
-
-	public static final int FLAG_CAN_CHANGE_X = 1 << 3;
-	public static final int FLAG_CAN_CHANGE_Y = 2 << 3;
-	public static final int FLAG_CAN_CHANGE = FLAG_CAN_CHANGE_X | FLAG_CAN_CHANGE_Y;
-
 	public static final int FLAG_CAN_MOVE = 1 << 5;
 	public static final int FLAG_CAN_SCALE = 1 << 6;
 	public static final int FLAG_CAN_CHANGE_VIS = 1 << 7;
 	public static final int FLAG_CAN_CLOSE = 1 << 8;
 
-	public static final int FLAG_CAN_ALL = FLAG_CAN_MOVE | FLAG_CAN_SCALE | FLAG_CAN_CHANGE_VIS | FLAG_CAN_CLOSE
-			| FLAG_CAN_CHANGE | FLAG_CAN_SPLIT;
+	public static final int FLAG_CAN_ALL = FLAG_CAN_MOVE | FLAG_CAN_SCALE | FLAG_CAN_CHANGE_VIS | FLAG_CAN_CLOSE;
 
 	public static final ElementConfig ALL = new ElementConfig(FLAG_CAN_ALL);
 
@@ -58,15 +49,5 @@ public class ElementConfig {
 
 	public boolean canClose() {
 		return mask.isSet(FLAG_CAN_CLOSE);
-	}
-
-
-	public boolean canSplit(boolean dim) {
-		return mask.isSet(dim ? FLAG_CAN_SPLIT_X : FLAG_CAN_SPLIT_Y);
-	}
-
-
-	public boolean canChange(boolean dim) {
-		return mask.isSet(dim ? FLAG_CAN_CHANGE_X : FLAG_CAN_CHANGE_Y);
 	}
 }

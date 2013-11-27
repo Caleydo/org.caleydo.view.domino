@@ -17,17 +17,22 @@ import org.caleydo.core.data.perspective.table.TablePerspective;
 import org.caleydo.core.data.perspective.variable.Perspective;
 import org.caleydo.datadomain.mock.AValueFactory;
 import org.caleydo.datadomain.mock.MockDataDomain;
+import org.caleydo.view.domino.api.model.TypedSet;
 import org.jgrapht.DirectedGraph;
-import org.jgrapht.graph.DirectedPseudograph;
+import org.jgrapht.graph.DirectedMultigraph;
 
 /**
  * @author Samuel Gratzl
  *
  */
 public class Graph {
-	private DirectedGraph<INode, IEdge> graph = new DirectedPseudograph<>(IEdge.class);
+	private DirectedGraph<INode, IEdge> graph = new DirectedMultigraph<>(IEdge.class);
 
-	Graph() {
+	public static DirectedGraph<INode, IEdge> build() {
+		return new Graph().graph;
+	}
+
+	public Graph() {
 		MockDataDomain d_ab = MockDataDomain.createNumerical(10, 10, new ValueFac("a","a","b","b"));
 		Perspective s_b = MockDataDomain.addRecGrouping(d_ab, 3,4,2).getRecordPerspective();
 		Perspective s_b2 = MockDataDomain.addRecGrouping(d_ab, 1,1).getRecordPerspective();
@@ -45,14 +50,15 @@ public class Graph {
 
 		NumericalData1DNode n1d_b = new NumericalData1DNode(d1_b);
 
-		StratificationNode ns_b = new StratificationNode(s_b);
-		StratificationNode ns_b2 = new StratificationNode(s_b2);
-		StratificationNode ns_a = new StratificationNode(s_a);
-		StratificationNode ns_c = new StratificationNode(s_c);
+		StratificationNode ns_b = new StratificationNode(s_b, EDimension.RECORD);
+		StratificationNode ns_b2 = new StratificationNode(s_b2, EDimension.RECORD);
+		StratificationNode ns_a = new StratificationNode(s_a, EDimension.DIMENSION);
+		StratificationNode ns_c = new StratificationNode(s_c, EDimension.RECORD);
 
 		graph.addVertex(n2d_ab);
 		graph.addVertex(n2d_ac);
 		graph.addVertex(c2d_cb);
+		graph.addVertex(n1d_b);
 
 		graph.addVertex(ns_b);
 		graph.addVertex(ns_b2);
@@ -71,11 +77,22 @@ public class Graph {
 	}
 
 	private void band(INode a, EDirection dir, INode b) {
+		assert isCompatible(a.getData(dir.asDim()), b.getData(dir.asDim()));
 		graph.addEdge(a, b, new BandEdge(dir));
 		graph.addEdge(b, a, new BandEdge(dir.opposite()));
 	}
 
+	/**
+	 * @param data
+	 * @param data2
+	 * @return
+	 */
+	private boolean isCompatible(TypedSet a, TypedSet b) {
+		return a.getIdType().getIDCategory().isOfCategory(b.getIdType());
+	}
+
 	private void magnetic(INode a, EDirection dir, INode b) {
+		assert isCompatible(a.getData(dir.asDim()), b.getData(dir.asDim()));
 		graph.addEdge(a, b, new MagneticEdge(dir));
 		graph.addEdge(b, a, new MagneticEdge(dir.opposite()));
 	}

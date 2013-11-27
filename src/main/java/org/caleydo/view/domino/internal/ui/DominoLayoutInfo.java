@@ -19,15 +19,13 @@
  *******************************************************************************/
 package org.caleydo.view.domino.internal.ui;
 
-import static org.caleydo.view.domino.internal.Settings.TOOLBAR_WIDTH;
 import gleem.linalg.Vec2f;
 
 import java.util.List;
 
 import org.caleydo.core.data.collection.EDimension;
-import org.caleydo.core.data.perspective.table.TablePerspective;
 import org.caleydo.core.view.opengl.canvas.IGLMouseListener.IMouseEvent;
-import org.caleydo.core.view.opengl.layout2.GLElementAccessor;
+import org.caleydo.core.view.opengl.layout2.GLElement;
 import org.caleydo.core.view.opengl.layout2.basic.ScrollingDecorator.IHasMinSize;
 import org.caleydo.core.view.opengl.layout2.layout.IGLLayout;
 import org.caleydo.core.view.opengl.layout2.layout.IGLLayoutElement;
@@ -44,7 +42,7 @@ public class DominoLayoutInfo implements IActiveChangedCallback, IGLLayout {
 	/**
 	 * parent link
 	 */
-	private final DominoElement parent;
+	private final GLElement parent;
 
 	private final ElementConfig config;
 
@@ -64,10 +62,9 @@ public class DominoLayoutInfo implements IActiveChangedCallback, IGLLayout {
 	/**
 	 * @param crosswordElement
 	 */
-	public DominoLayoutInfo(DominoElement parent, ElementConfig config) {
+	public DominoLayoutInfo(GLElement parent, ElementConfig config) {
 		this.parent = parent;
 		this.config = config;
-		parent.setLayout(this);
 	}
 
 	/**
@@ -127,18 +124,31 @@ public class DominoLayoutInfo implements IActiveChangedCallback, IGLLayout {
 		return zoomFactorY;
 	}
 
+	public boolean zoom(float factor) {
+		return zoom(factor, factor);
+	}
+
 	/**
 	 * @param factor
+	 * @param factorY
 	 */
-	public boolean zoom(float factor) {
+	public boolean zoom(float factorX, float factorY) {
 		if (!config.canScale())
 			return false;
-		if (factor == 1.0f || Double.isNaN(factor) || Double.isInfinite(factor) || factor <= 0)
+		if (isInvalid(factorX) || isInvalid(factorY))
 			return false;
-		this.zoomFactorX = zoomFactorX * factor;
-		this.zoomFactorY = zoomFactorY * factor;
+		this.zoomFactorX = zoomFactorX * factorX;
+		this.zoomFactorY = zoomFactorY * factorY;
 		relayoutGrandParent();
 		return true;
+	}
+
+	/**
+	 * @param factorY
+	 * @return
+	 */
+	private static boolean isInvalid(float factor) {
+		return Double.isNaN(factor) || Double.isInfinite(factor) || factor <= 0;
 	}
 
 	/**
@@ -156,12 +166,14 @@ public class DominoLayoutInfo implements IActiveChangedCallback, IGLLayout {
 		int rec = toDirection(event, EDimension.RECORD);
 
 		float factor = (float) Math.pow(1.2, event.getWheelRotation());
-		boolean isCenteredZoom = !event.isShiftDown();
-		zoom(factor);
+		float factorX = dim == 0 ? 1 : factor;
+		float factorY = rec == 0 ? 1 : factor;
+		boolean isCenteredZoom = false; // !event.isShiftDown();
+		zoom(factorX, factorY);
 		if (isCenteredZoom) {
 			Vec2f pos = parent.toRelative(event.getPoint());
 			// compute the new new mouse pos considers zoom
-			Vec2f new_ = pos.times(factor);
+			Vec2f new_ = new Vec2f(pos.x() * factorX, pos.y() * factorY);
 			pos.sub(new_);
 			// shift the location according to the delta
 			shift(pos.x(), pos.y());
@@ -170,7 +182,7 @@ public class DominoLayoutInfo implements IActiveChangedCallback, IGLLayout {
 
 	/**
 	 * convert a {@link IMouseEvent} to a direction information
-	 * 
+	 *
 	 * @param event
 	 * @param dim
 	 * @return -1 smaller, +1 larger, and 0 nothing
@@ -238,7 +250,6 @@ public class DominoLayoutInfo implements IActiveChangedCallback, IGLLayout {
 		if (this.selected == selected)
 			return;
 		this.selected = selected;
-		repaintToolBars();
 	}
 
 	/**
@@ -259,33 +270,8 @@ public class DominoLayoutInfo implements IActiveChangedCallback, IGLLayout {
 	public void doLayout(List<? extends IGLLayoutElement> children, float w, float h) {
 		IGLLayoutElement content = children.get(0);
 		IGLLayoutElement border = children.get(1);
-		IGLLayoutElement corner = children.get(2);
-		IGLLayoutElement header = children.get(3);
-		IGLLayoutElement toolbar = children.get(4);
-		final float shift = 1;
-		final float shift2 = shift + shift;
 		content.setBounds(0, 0, w, h);
-
-		final int tw = TOOLBAR_WIDTH + 2;
-		if (hovered || parent.getMultiElement().isAlwaysShowHeader()) {
-			header.setBounds(-shift, -shift2 - tw, w + shift2, tw);
-			corner.setBounds(-shift - tw, -shift2 - tw, tw, tw);
-			toolbar.setBounds(-shift - tw, -shift, tw, h + shift2);
-		} else {
-			header.setBounds(-shift, -shift, w + shift2, 0);
-			corner.setBounds(-shift, -shift, 0, 0);
-			toolbar.setBounds(-shift, -shift, 0, h + shift2);
-		}
-
 		border.setBounds(0, 0, w, h);
-	}
-
-	/**
-	 *
-	 */
-	private void repaintToolBars() {
-		GLElementAccessor.repaintDown(parent.get(2));
-		GLElementAccessor.repaintDown(parent.get(3));
 	}
 
 	private void scale(Vec2f size) {
@@ -299,9 +285,7 @@ public class DominoLayoutInfo implements IActiveChangedCallback, IGLLayout {
 		IHasMinSize minSize = parent.getLayoutDataAs(IHasMinSize.class, null);
 		if (minSize != null)
 			return minSize.getMinSize();
-		TablePerspective tablePerspective = parent.getTablePerspective();
-		return parent.getLayoutDataAs(Vec2f.class,
-				new Vec2f(tablePerspective.getNrDimensions(), tablePerspective.getNrRecords()));
+		return new Vec2f(1, 1);
 	}
 
 	/**

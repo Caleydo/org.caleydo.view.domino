@@ -6,25 +6,29 @@
 package org.caleydo.view.domino.internal.ui.prototype;
 
 import org.caleydo.core.data.collection.EDimension;
-import org.caleydo.core.id.IDType;
-import org.caleydo.core.view.opengl.layout2.GLElement;
 import org.caleydo.view.domino.api.model.TypedSet;
 
 /**
  * @author Samuel Gratzl
  *
  */
-public interface INode {
-	TypedSet getData(EDimension dim);
+public abstract class ADataNode extends ANode {
+	private final TypedSet rec;
+	private final TypedSet dim;
+	private boolean transposed = false;
 
-	int getSize(EDimension dim);
+	public ADataNode(TypedSet dim, TypedSet rec) {
+		this.rec = rec;
+		this.dim = dim;
+	}
 
-	IDType getIDType(EDimension dim);
+	@Override
+	public final void transpose() {
+		propertySupport.firePropertyChange(PROP_TRANSPOSE, this.transposed, this.transposed = !this.transposed);
+	}
 
-	void transpose();
-
-	/**
-	 * @return
-	 */
-	GLElement createUI();
+	@Override
+	public final TypedSet getData(EDimension dim) {
+		return dim.isVertical() == this.transposed ? this.dim : this.rec;
+	}
 }
