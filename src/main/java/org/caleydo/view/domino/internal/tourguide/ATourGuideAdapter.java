@@ -91,7 +91,7 @@ public abstract class ATourGuideAdapter implements ITourGuideAdapter {
 
 	@Override
 	public final String getPartName() {
-		return "Domino";
+		return getLabel();
 	}
 
 	@Override

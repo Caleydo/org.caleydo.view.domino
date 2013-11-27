@@ -13,6 +13,7 @@ import java.util.Iterator;
 import java.util.Objects;
 import java.util.Set;
 
+import org.caleydo.core.data.virtualarray.VirtualArray;
 import org.caleydo.core.id.IDType;
 import org.caleydo.view.domino.internal.util.BitSetSet;
 
@@ -34,6 +35,10 @@ public final class TypedSet extends AbstractSet<Integer> {
 	public TypedSet(Set<Integer> wrappee, IDType idType) {
 		this.wrappee = Preconditions.checkNotNull(wrappee);
 		this.idType = Preconditions.checkNotNull(idType);
+	}
+
+	public static TypedSet of(VirtualArray per) {
+		return new TypedSet(ImmutableSet.copyOf(per), per.getIdType());
 	}
 
 	/**
