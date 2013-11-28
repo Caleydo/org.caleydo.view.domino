@@ -31,6 +31,9 @@ public class TypedCollections {
 	}
 
 	public static boolean isInvalid(IHasIDType col) {
-		return col.getIdType().equals(IDTYPE);
+		return isInvalid(col.getIdType());
+	}
+	public static boolean isInvalid(IDType idType) {
+		return idType.equals(IDTYPE);
 	}
 }

@@ -22,6 +22,16 @@ public abstract class ADataNode extends ANode {
 		this.dim = dim;
 	}
 
+	/**
+	 * @param clone
+	 */
+	public ADataNode(ADataNode clone) {
+		super(clone);
+		this.rec = clone.rec;
+		this.dim = clone.dim;
+		this.transposed = clone.transposed;
+	}
+
 	@Override
 	public final void transpose() {
 		propertySupport.firePropertyChange(PROP_TRANSPOSE, this.transposed, this.transposed = !this.transposed);

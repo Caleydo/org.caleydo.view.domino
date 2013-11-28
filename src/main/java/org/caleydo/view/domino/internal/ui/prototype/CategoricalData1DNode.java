@@ -27,7 +27,7 @@ import com.google.common.collect.ImmutableList;
  * @author Samuel Gratzl
  *
  */
-public class CategoricalData1DNode extends AData1DNode {
+public final class CategoricalData1DNode extends AData1DNode {
 
 	private final List<CategoryProperty<?>> properties;
 	private final List<?> categories;
@@ -40,6 +40,17 @@ public class CategoricalData1DNode extends AData1DNode {
 		assert DataSupportDefinitions.categoricalColumns.apply(data);
 		this.properties = resolveCategories();
 		this.categories = toCategories(properties);
+	}
+
+	public CategoricalData1DNode(CategoricalData1DNode clone) {
+		super(clone);
+		this.properties = clone.properties;
+		this.categories = clone.categories;
+	}
+
+	@Override
+	public CategoricalData1DNode clone() {
+		return new CategoricalData1DNode(this);
 	}
 
 	public GroupList getGroups() {

@@ -22,8 +22,8 @@ import org.caleydo.view.domino.internal.ui.prototype.BandEdge;
 import org.caleydo.view.domino.internal.ui.prototype.EDirection;
 import org.caleydo.view.domino.internal.ui.prototype.IEdge;
 import org.caleydo.view.domino.internal.ui.prototype.INode;
+import org.caleydo.view.domino.internal.ui.prototype.graph.DominoGraph;
 import org.caleydo.view.domino.spi.model.IBandRenderer;
-import org.jgrapht.DirectedGraph;
 
 import com.google.common.base.Function;
 
@@ -42,7 +42,7 @@ public class Routes implements IBandRoutesProvider {
 	 * @param graph
 	 * @param lookup
 	 */
-	public void update(DirectedGraph<INode, IEdge> graph, Function<INode, NodeLayoutElement> lookup) {
+	public void update(DominoGraph graph, Function<INode, NodeLayoutElement> lookup) {
 		routes.clear();
 		for (IEdge edge : graph.edgeSet()) {
 			if (edge.getDirection() == EDirection.LEFT_OF || edge.getDirection() == EDirection.ABOVE)

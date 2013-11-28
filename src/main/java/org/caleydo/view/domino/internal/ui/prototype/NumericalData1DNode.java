@@ -26,6 +26,15 @@ public class NumericalData1DNode extends AData1DNode {
 		assert DataSupportDefinitions.numericalTables.apply(data);
 	}
 
+	public NumericalData1DNode(NumericalData1DNode clone) {
+		super(clone);
+	}
+
+	@Override
+	public NumericalData1DNode clone() {
+		return new NumericalData1DNode(this);
+	}
+
 	@Override
 	public GLElement createUI() {
 		return new UI(this);

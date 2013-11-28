@@ -17,7 +17,7 @@ import org.caleydo.view.domino.internal.ui.prototype.BandEdge;
 import org.caleydo.view.domino.internal.ui.prototype.EDirection;
 import org.caleydo.view.domino.internal.ui.prototype.IEdge;
 import org.caleydo.view.domino.internal.ui.prototype.INode;
-import org.jgrapht.DirectedGraph;
+import org.caleydo.view.domino.internal.ui.prototype.graph.DominoGraph;
 
 import com.google.common.base.Function;
 import com.google.common.collect.Maps;
@@ -69,7 +69,7 @@ class LayoutBlock implements Runnable {
 		}
 	}
 
-	public static LayoutBlock create(INode root, DirectedGraph<INode, IEdge> graph,
+	public static LayoutBlock create(INode root, DominoGraph graph,
 			Function<INode, NodeLayoutElement> lookup) {
 		Map<INode, Point> grid = Maps.newIdentityHashMap();
 		placeNode(root, 0, 0, grid, graph);
@@ -172,7 +172,7 @@ class LayoutBlock implements Runnable {
 		return new Rectangle(x, y, x_max - x + 1, y_max - y + 1);
 	}
 
-	private static void placeNode(INode node, int x, int y, Map<INode, Point> grid, DirectedGraph<INode, IEdge> graph) {
+	private static void placeNode(INode node, int x, int y, Map<INode, Point> grid, DominoGraph graph) {
 		if (grid.containsKey(node))
 			return;
 		grid.put(node, new Point(x, y));

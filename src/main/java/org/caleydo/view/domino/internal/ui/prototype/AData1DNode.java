@@ -32,6 +32,18 @@ public abstract class AData1DNode extends ANode implements ISortableNode, ITyped
 		assert dim.size() == 1;
 	}
 
+	/**
+	 * @param clone
+	 */
+	public AData1DNode(AData1DNode clone) {
+		super(clone);
+		this.data = clone.data;
+		this.rec = clone.rec;
+		this.dim = clone.dim;
+		this.transposed = clone.transposed;
+		this.sortingPriority = NO_SORTING;
+	}
+
 	public final Integer getSingleID() {
 		return this.dim.iterator().next();
 	}
@@ -83,7 +95,7 @@ public abstract class AData1DNode extends ANode implements ISortableNode, ITyped
 
 	@Override
 	public TypedSet getData(EDimension dim) {
-		return isHorizontal(dim) ? this.dim : this.rec;
+		return isHorizontal(dim) ? TypedCollections.INVALID_SET : this.rec;
 	}
 
 	protected boolean isHorizontal(EDimension dim) {

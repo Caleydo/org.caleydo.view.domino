@@ -38,6 +38,15 @@ public class CategoricalData2DNode extends AData2DNode {
 		assert DataSupportDefinitions.categoricalTables.apply(data);
 	}
 
+	public CategoricalData2DNode(CategoricalData2DNode clone) {
+		super(clone);
+	}
+
+	@Override
+	public CategoricalData2DNode clone() {
+		return new CategoricalData2DNode(this);
+	}
+
 	@Override
 	public GLElement createUI() {
 		return new UI(this);

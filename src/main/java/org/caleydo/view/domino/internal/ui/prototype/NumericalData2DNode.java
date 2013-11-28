@@ -33,6 +33,15 @@ public class NumericalData2DNode extends AData2DNode {
 		assert DataSupportDefinitions.numericalTables.apply(data);
 	}
 
+	public NumericalData2DNode(NumericalData2DNode clone) {
+		super(clone);
+	}
+
+	@Override
+	public NumericalData2DNode clone() {
+		return new NumericalData2DNode(this);
+	}
+
 	@Override
 	public GLElement createUI() {
 		return new UI(this);

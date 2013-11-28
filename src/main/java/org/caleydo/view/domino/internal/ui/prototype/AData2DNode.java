@@ -29,6 +29,14 @@ public abstract class AData2DNode extends ADataNode {
 		this.data = t.getDataDomain();
 	}
 
+	/**
+	 * @param clone
+	 */
+	public AData2DNode(AData2DNode clone) {
+		super(clone);
+		this.data = clone.data;
+	}
+
 	@Override
 	public final String getLabel() {
 		return data.getLabel();

@@ -37,6 +37,19 @@ public class StratificationNode extends ANode implements ISortableNode, ITypedCo
 		this.dim = dim;
 	}
 
+	public StratificationNode(StratificationNode clone) {
+		super(clone);
+		this.data = clone.data;
+		this.ids = clone.ids;
+		this.dim = clone.dim;
+		this.sortingPriority = NO_SORTING;
+	}
+
+	@Override
+	public StratificationNode clone() {
+		return new StratificationNode(this);
+	}
+
 	@Override
 	public void transpose() {
 		this.dim = dim.opposite();

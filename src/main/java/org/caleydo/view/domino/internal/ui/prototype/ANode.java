@@ -7,9 +7,14 @@ package org.caleydo.view.domino.internal.ui.prototype;
 
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
+import java.util.EnumSet;
+import java.util.Set;
 
 import org.caleydo.core.data.collection.EDimension;
 import org.caleydo.core.id.IDType;
+import org.caleydo.view.domino.api.model.TypedCollections;
+
+import com.google.common.collect.Sets;
 
 /**
  * @author Samuel Gratzl
@@ -19,9 +24,33 @@ public abstract class ANode implements INode {
 	protected final static String PROP_TRANSPOSE = "transpose";
 	protected final PropertyChangeSupport propertySupport = new PropertyChangeSupport(this);
 
+	public ANode() {
+	}
+
+	public ANode(ANode clone) {
+
+	}
+
+	@Override
+	public abstract ANode clone();
+
 	@Override
 	public final IDType getIDType(EDimension dim) {
 		return getData(dim).getIdType();
+	}
+
+	@Override
+	public final boolean hasDimension(EDimension dim) {
+		return !TypedCollections.isInvalid(getIDType(dim));
+	}
+
+	@Override
+	public final Set<EDimension> dimensions() {
+		Set<EDimension> dims = EnumSet.noneOf(EDimension.class);
+		for (EDimension dim : EDimension.values())
+			if (hasDimension(dim))
+				dims.add(dim);
+		return Sets.immutableEnumSet(dims);
 	}
 
 	@Override

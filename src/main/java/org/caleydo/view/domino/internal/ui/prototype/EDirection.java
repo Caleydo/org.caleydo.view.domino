@@ -7,6 +7,9 @@ package org.caleydo.view.domino.internal.ui.prototype;
 
 import org.caleydo.core.data.collection.EDimension;
 
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Sets;
+
 /**
  * @author Samuel Gratzl
  *
@@ -57,6 +60,16 @@ public enum EDirection {
 			return dim.select(1, 0);
 		}
 		throw new IllegalStateException();
+	}
+
+	/**
+	 * @return
+	 */
+	public static ImmutableSet<EDirection> get(EDimension dim) {
+		if (dim.isHorizontal())
+			return Sets.immutableEnumSet(EDirection.LEFT_OF, EDirection.RIGHT_OF);
+		else
+			return Sets.immutableEnumSet(EDirection.ABOVE, EDirection.BELOW);
 	}
 
 }

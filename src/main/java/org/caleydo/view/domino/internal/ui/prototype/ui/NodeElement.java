@@ -28,6 +28,7 @@ import org.caleydo.view.domino.internal.ui.DominoLayoutInfo;
 import org.caleydo.view.domino.internal.ui.ReScaleBorder;
 import org.caleydo.view.domino.internal.ui.prototype.INode;
 import org.caleydo.view.domino.internal.ui.prototype.ISortableNode;
+import org.caleydo.view.domino.internal.ui.prototype.graph.DominoGraph;
 import org.caleydo.view.domino.spi.config.ElementConfig;
 import org.eclipse.swt.SWT;
 
@@ -121,8 +122,8 @@ public class NodeElement extends GLElementContainer implements IHasMinSize, IGLL
 	/**
 	 * @return
 	 */
-	private GraphElement findGraph() {
-		return findParent(GraphElement.class);
+	private DominoGraph findGraph() {
+		return findParent(GraphElement.class).getGraph();
 	}
 
 	@Override
