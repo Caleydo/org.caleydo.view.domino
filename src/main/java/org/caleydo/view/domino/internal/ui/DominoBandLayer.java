@@ -39,9 +39,9 @@ public class DominoBandLayer extends GLElement implements MultiSelectionManagerM
 
 	private PickingPool pickingPool;
 
-	private final IBandRootProvider provider;
+	private final IBandRoutesProvider provider;
 
-	public DominoBandLayer(IBandRootProvider provider) {
+	public DominoBandLayer(IBandRoutesProvider provider) {
 		this.provider = provider;
 	}
 
@@ -188,7 +188,7 @@ public class DominoBandLayer extends GLElement implements MultiSelectionManagerM
 		repaint();
 	}
 
-	public interface IBandRootProvider {
+	public interface IBandRoutesProvider {
 		List<? extends IBandRenderer> getBandRoutes();
 	}
 }

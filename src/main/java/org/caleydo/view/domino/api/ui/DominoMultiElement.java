@@ -46,7 +46,7 @@ import org.caleydo.view.domino.api.ui.layout.IGraphVertex;
 import org.caleydo.view.domino.api.ui.layout.IVertexConnector;
 import org.caleydo.view.domino.internal.DominoView;
 import org.caleydo.view.domino.internal.ui.DominoBandLayer;
-import org.caleydo.view.domino.internal.ui.DominoBandLayer.IBandRootProvider;
+import org.caleydo.view.domino.internal.ui.DominoBandLayer.IBandRoutesProvider;
 import org.caleydo.view.domino.internal.ui.DominoElement;
 import org.caleydo.view.domino.internal.ui.DominoLayoutInfo;
 import org.caleydo.view.domino.internal.ui.layout.DefaultGraphLayout;
@@ -73,7 +73,7 @@ import com.google.common.collect.Iterators;
  */
 public class DominoMultiElement extends GLElement implements IHasMinSize, IGLElementParent,
  Iterable<DominoElement>,
-		IBandRootProvider {
+		IBandRoutesProvider {
 
 	/**
 	 * data structure for managing the elements
