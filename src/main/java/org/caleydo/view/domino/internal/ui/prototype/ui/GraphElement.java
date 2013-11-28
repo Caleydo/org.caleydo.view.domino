@@ -11,10 +11,12 @@ import java.awt.Point;
 import java.awt.Rectangle;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.SortedSet;
 
 import org.caleydo.core.data.collection.EDimension;
 import org.caleydo.core.util.color.Color;
@@ -30,7 +32,7 @@ import org.caleydo.core.view.opengl.picking.IPickingListener;
 import org.caleydo.core.view.opengl.picking.Pick;
 import org.caleydo.core.view.opengl.picking.PickingMode;
 import org.caleydo.view.domino.api.model.BandRoute;
-import org.caleydo.view.domino.api.model.TypedSet;
+import org.caleydo.view.domino.api.model.TypedCollections;
 import org.caleydo.view.domino.api.ui.band.Route;
 import org.caleydo.view.domino.internal.ui.DominoBandLayer;
 import org.caleydo.view.domino.internal.ui.DominoBandLayer.IBandRootProvider;
@@ -39,15 +41,23 @@ import org.caleydo.view.domino.internal.ui.prototype.BandEdge;
 import org.caleydo.view.domino.internal.ui.prototype.EDirection;
 import org.caleydo.view.domino.internal.ui.prototype.Graph;
 import org.caleydo.view.domino.internal.ui.prototype.Graph.ListenableDirectedGraph;
+import org.caleydo.view.domino.internal.ui.prototype.GraphViews;
 import org.caleydo.view.domino.internal.ui.prototype.IEdge;
 import org.caleydo.view.domino.internal.ui.prototype.INode;
+import org.caleydo.view.domino.internal.ui.prototype.ISortBarrier;
+import org.caleydo.view.domino.internal.ui.prototype.ISortableNode;
 import org.caleydo.view.domino.spi.model.IBandRenderer;
+import org.jgrapht.DirectedGraph;
 import org.jgrapht.alg.ConnectivityInspector;
+import org.jgrapht.traverse.DepthFirstIterator;
 
 import com.google.common.base.Function;
 import com.google.common.base.Functions;
+import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.Iterables;
+import com.google.common.collect.Iterators;
 import com.google.common.collect.Maps;
 
 /**
@@ -85,6 +95,7 @@ public class GraphElement extends GLElementContainer implements IGLLayout2, IPic
 	public List<? extends IBandRenderer> getBandRoutes() {
 		return routes;
 	}
+
 
 	@Override
 	public void pick(Pick pick) {
@@ -151,7 +162,7 @@ public class GraphElement extends GLElementContainer implements IGLLayout2, IPic
 						new Vec2f(targetB.x() + targetB.width() * 0.5f, targetB.y()));
 			}
 			Color color = edge instanceof BandEdge ? Color.LIGHT_GRAY : Color.LIGHT_BLUE;
-			routes.add(new BandRoute(new Route(curve), color, TypedSet.INVALID, r_s, r_t));
+			routes.add(new BandRoute(new Route(curve), color, TypedCollections.INVALID_SET, r_s, r_t));
 		}
 	}
 
@@ -164,17 +175,34 @@ public class GraphElement extends GLElementContainer implements IGLLayout2, IPic
 		grid = shiftGrid(grid, -r.x, -r.y);
 		r.x = r.y = 0;
 
-		// INode[][] arr = transformGrid(grid, r.width, r.height);
-
+		NodeLayoutElement[][] arr = transformGrid(grid, r.width, r.height, lookup);
 		float[] cols = new float[r.width];
 		float[] rows = new float[r.height];
-		for (Entry<INode, Point> entry : grid.entrySet()) {
-			NodeLayoutElement node = lookup.apply(entry.getKey());
-			Point p = entry.getValue();
-			Vec2f size = node.getSize();
-			cols[p.x] = Math.max(cols[p.x], size.x());
-			rows[p.y] = Math.max(rows[p.y], size.y());
+
+		for(int i = 0; i < arr.length; ++i) {
+			NodeLayoutElement[] line = arr[i];
+			for(int j = 0; j < line.length; ++j) {
+				NodeLayoutElement v= line[j];
+				if (v == null)
+					continue;
+
+				Vec2f size = v.getSize();
+				float wShift = 0;
+				float hShift = 0;
+				if (j > 0 && line[j - 1] != null && line[j - 1].getSize().y() < size.y())
+					wShift += 10;
+				if (j < line.length - 1 && line[j + 1] != null && line[j + 1].getSize().y() < size.y())
+					wShift += 10;
+				if (i > 0 && arr[i - 1][j] != null && arr[i - 1][j].getSize().x() < size.x())
+					hShift += 10;
+				if (i < arr.length - 1 && arr[i + 1][j] != null && arr[i + 1][j].getSize().x() < size.x())
+					hShift += 10;
+				rows[i] = Math.max(rows[i], size.y() + hShift);
+				cols[j] = Math.max(cols[j], size.x() + wShift);
+			}
 		}
+
+		// shift where
 
 		// postsum for faster access: 1,2,3 will be 1,3,6 -> delta = x[i]-i==0?:0:-x[i-1]
 		cols = postsum(cols);
@@ -208,13 +236,15 @@ public class GraphElement extends GLElementContainer implements IGLLayout2, IPic
 
 	/**
 	 * @param grid
+	 * @param lookup
 	 * @return
 	 */
-	private INode[][] transformGrid(Map<INode, Point> grid, int cols, int rows) {
-		INode[][] r = new INode[rows][cols];
+	private NodeLayoutElement[][] transformGrid(Map<INode, Point> grid, int cols, int rows,
+			Function<INode, NodeLayoutElement> lookup) {
+		NodeLayoutElement[][] r = new NodeLayoutElement[rows][cols];
 		for (Entry<INode, Point> entry : grid.entrySet()) {
 			Point p = entry.getValue();
-			r[p.y][p.x] = entry.getKey();
+			r[p.y][p.x] = lookup.apply(entry.getKey());
 		}
 		return r;
 	}
@@ -301,6 +331,66 @@ public class GraphElement extends GLElementContainer implements IGLLayout2, IPic
 		public Vec2f getSize() {
 			return info.getSize();
 		}
+	}
+
+	/**
+	 * @param node
+	 * @param eDimension
+	 */
+	public void sortBy(ISortableNode node, final EDimension dim) {
+		// project to just the relevant edges
+		Predicate<IEdge> isSortingEdge = new Predicate<IEdge>() {
+			@Override
+			public boolean apply(IEdge input) {
+				return input != null && input.getDirection().asDim() == dim && !(input instanceof ISortBarrier);
+			}
+		};
+		DirectedGraph<INode, IEdge> subView = GraphViews.edgeView(graph, isSortingEdge);
+		// find all sorting nodes
+		Comparator<ISortableNode> bySortingPriority = new Comparator<ISortableNode>() {
+			@Override
+			public int compare(ISortableNode o1, ISortableNode o2) {
+				return o1.getSortingPriority(dim) - o2.getSortingPriority(dim);
+			}
+		};
+		SortedSet<ISortableNode> sorting = ImmutableSortedSet.orderedBy(bySortingPriority)
+				.addAll(Iterators.filter(new DepthFirstIterator<>(subView, node), ISortableNode.class)).build();
+
+		int priority = node.getSortingPriority(dim);
+		if (priority == ISortableNode.TOP_PRIORITY) { // deselect
+			node.setSortingPriority(dim, ISortableNode.NO_SORTING);
+			for (ISortableNode n : sorting) {
+				if (n != null && n.getSortingPriority(dim) != ISortableNode.NO_SORTING)
+					n.setSortingPriority(dim, n.getSortingPriority(dim) - 1);
+			}
+		} else if (priority == ISortableNode.NO_SORTING) {
+			node.setSortingPriority(dim, ISortableNode.TOP_PRIORITY);
+			for (ISortableNode n : sorting) {
+				if (n != null && n.getSortingPriority(dim) != ISortableNode.NO_SORTING) {
+					n.setSortingPriority(dim, n.getSortingPriority(dim) + 1);
+					if (n.getSortingPriority(dim) > ISortableNode.MINIMUM_PRIORITY)
+						n.setSortingPriority(dim, ISortableNode.NO_SORTING);
+				}
+			}
+		} else { // increase sorting
+			node.setSortingPriority(dim, ISortableNode.TOP_PRIORITY);
+			for (ISortableNode n : sorting) {
+				if (n != null && n.getSortingPriority(dim) < priority) {
+					n.setSortingPriority(dim, n.getSortingPriority(dim) + 1);
+				}
+			}
+		}
+
+		Predicate<ISortableNode> isPartOfSorting = new Predicate<ISortableNode>() {
+			@Override
+			public boolean apply(ISortableNode input) {
+				return input != null && input.getSortingPriority(dim) != ISortableNode.NO_SORTING;
+			}
+		};
+		SortedSet<ISortableNode> sortCriteria = ImmutableSortedSet.orderedBy(bySortingPriority)
+				.addAll(Iterables.filter(sorting, isPartOfSorting)).build();
+		// TODO create a comparator or something like that, which determines the order
+		// TODO now we must apply the new sorting to all nodes
 	}
 
 	public static void main(String[] args) {

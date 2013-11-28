@@ -27,6 +27,7 @@ import org.caleydo.core.view.opengl.picking.Pick;
 import org.caleydo.view.domino.internal.ui.DominoLayoutInfo;
 import org.caleydo.view.domino.internal.ui.ReScaleBorder;
 import org.caleydo.view.domino.internal.ui.prototype.INode;
+import org.caleydo.view.domino.internal.ui.prototype.ISortableNode;
 import org.caleydo.view.domino.spi.config.ElementConfig;
 import org.eclipse.swt.SWT;
 
@@ -96,9 +97,32 @@ public class NodeElement extends GLElementContainer implements IHasMinSize, IGLL
 		case MOUSE_WHEEL:
 			info.zoom(event);
 			break;
+		case DOUBLE_CLICKED:
+			if (node instanceof ISortableNode) {
+				Vec2f relative = toRelative(pick.getPickedPoint());
+				Vec2f size = getSize();
+				ISortableNode s = (ISortableNode) node;
+
+				if (s.isSortable(EDimension.DIMENSION) != s.isSortable(EDimension.RECORD)) { // just in one direction
+					findGraph().sortBy(s, EDimension.get(s.isSortable(EDimension.DIMENSION)));
+				} else {
+					boolean inX = relative.x() < size.x() * 0.25f || relative.x() > size.x() * 0.75f;
+					boolean inY = relative.y() < size.y() * 0.25f || relative.y() > size.y() * 0.75f;
+					if (inX != inY) // not the same, so one of them but not both or none
+						findGraph().sortBy(s, EDimension.get(inX));
+				}
+			}
+			break;
 		default:
 			break;
 		}
+	}
+
+	/**
+	 * @return
+	 */
+	private GraphElement findGraph() {
+		return findParent(GraphElement.class);
 	}
 
 	@Override

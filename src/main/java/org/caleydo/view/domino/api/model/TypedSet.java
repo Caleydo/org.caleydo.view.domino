@@ -13,9 +13,7 @@ import java.util.Iterator;
 import java.util.Objects;
 import java.util.Set;
 
-import org.caleydo.core.data.collection.EDataType;
 import org.caleydo.core.data.virtualarray.VirtualArray;
-import org.caleydo.core.id.IDCategory;
 import org.caleydo.core.id.IDType;
 import org.caleydo.view.domino.internal.util.BitSetSet;
 
@@ -30,14 +28,7 @@ import com.google.common.collect.Sets;
  * @author Samuel Gratzl
  *
  */
-public final class TypedSet extends AbstractSet<Integer> {
-	public static final TypedSet INVALID;
-
-	static {
-		INVALID = new TypedSet(Collections.<Integer> emptySet(), IDType.registerType("INVALID",
-				IDCategory.registerInternalCategory("INVALID"), EDataType.STRING));
-	}
-
+public final class TypedSet extends AbstractSet<Integer> implements ITypedCollection {
 	private final Set<Integer> wrappee;
 	private final IDType idType;
 
@@ -53,6 +44,7 @@ public final class TypedSet extends AbstractSet<Integer> {
 	/**
 	 * @return the idType, see {@link #idType}
 	 */
+	@Override
 	public IDType getIdType() {
 		return idType;
 	}

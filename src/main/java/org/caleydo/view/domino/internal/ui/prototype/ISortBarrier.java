@@ -5,16 +5,10 @@
  *******************************************************************************/
 package org.caleydo.view.domino.internal.ui.prototype;
 
-
 /**
  * @author Samuel Gratzl
  *
  */
-public class BandEdge extends AEdge implements ISortBarrier {
-	private static final long serialVersionUID = 418966282805280479L;
-
-	public BandEdge(EDirection direction) {
-		super(direction);
-	}
+public interface ISortBarrier {
 
 }
