@@ -180,7 +180,7 @@ class LayoutBlock implements Runnable {
 			INode target = graph.getEdgeTarget(edge);
 			EDirection dir = edge.getDirection();
 			int f = (edge instanceof BandEdge) ? 2 : 1;
-			placeNode(target, x + f * dir.asInt(EDimension.DIMENSION), y + f * dir.asInt(EDimension.RECORD), grid,
+			placeNode(target, x - f * dir.asInt(EDimension.DIMENSION), y - f * dir.asInt(EDimension.RECORD), grid,
 					graph);
 		}
 	}

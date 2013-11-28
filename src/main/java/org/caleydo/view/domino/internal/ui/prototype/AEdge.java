@@ -24,4 +24,9 @@ public abstract class AEdge extends DefaultEdge implements IEdge {
 		return direction;
 	}
 
+	@Override
+	public String toString() {
+		return getSource() + "->(" + direction + ")->" + getTarget();
+	}
+
 }

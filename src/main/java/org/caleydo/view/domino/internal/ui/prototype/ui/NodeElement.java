@@ -113,6 +113,7 @@ public class NodeElement extends GLElementContainer implements IHasMinSize, IGLL
 						findGraph().sortBy(s, EDimension.get(inX));
 				}
 			}
+			findGraph().remove(node);
 			break;
 		default:
 			break;

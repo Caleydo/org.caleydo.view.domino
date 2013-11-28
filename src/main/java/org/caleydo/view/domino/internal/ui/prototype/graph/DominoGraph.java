@@ -6,47 +6,98 @@
 package org.caleydo.view.domino.internal.ui.prototype.graph;
 
 import java.util.Comparator;
+import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.SortedSet;
 
 import org.caleydo.core.data.collection.EDimension;
 import org.caleydo.core.id.IDType;
+import org.caleydo.view.domino.internal.ui.prototype.BandEdge;
 import org.caleydo.view.domino.internal.ui.prototype.EDirection;
-import org.caleydo.view.domino.internal.ui.prototype.Graph;
-import org.caleydo.view.domino.internal.ui.prototype.Graph.ListenableDirectedGraph;
 import org.caleydo.view.domino.internal.ui.prototype.GraphViews;
 import org.caleydo.view.domino.internal.ui.prototype.IEdge;
 import org.caleydo.view.domino.internal.ui.prototype.INode;
 import org.caleydo.view.domino.internal.ui.prototype.ISortBarrier;
 import org.caleydo.view.domino.internal.ui.prototype.ISortableNode;
+import org.caleydo.view.domino.internal.ui.prototype.MagneticEdge;
 import org.jgrapht.DirectedGraph;
+import org.jgrapht.ListenableGraph;
 import org.jgrapht.alg.ConnectivityInspector;
+import org.jgrapht.event.GraphListener;
+import org.jgrapht.event.VertexSetListener;
+import org.jgrapht.graph.DefaultListenableGraph;
+import org.jgrapht.graph.DirectedMultigraph;
 import org.jgrapht.traverse.DepthFirstIterator;
 
+import com.google.common.base.Function;
 import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Iterators;
+import com.google.common.collect.Maps;
 
 /**
  * @author Samuel Gratzl
  *
  */
 public class DominoGraph {
-	private final ListenableDirectedGraph<INode, IEdge> graph;
+	private static final Function<IEdge, EDirection> TO_DIRECTION = new Function<IEdge, EDirection>() {
+		@Override
+		public EDirection apply(IEdge input) {
+			return input == null ? null : input.getDirection();
+		}
+	};
+	private final ListenableDirectedGraph<INode, IEdge> graph = new ListenableDirectedMultigraph<>(IEdge.class);
 	private final ConnectivityInspector<INode, IEdge> connectivity;
 
 	/**
 	 *
 	 */
 	public DominoGraph() {
-		this.graph = Graph.build();
 		this.connectivity = new ConnectivityInspector<>(graph);
 		this.graph.addGraphListener(this.connectivity);
 
+		Demo.fill(this);
+	}
+
+	public void addVertexSetListener(VertexSetListener<INode> l) {
+		graph.addVertexSetListener(l);
+	}
+
+	public void removeVertexSetListener(VertexSetListener<INode> l) {
+		graph.removeVertexSetListener(l);
+	}
+
+	public void addGraphListener(GraphListener<INode, IEdge> l) {
+		graph.addGraphListener(l);
+	}
+
+	public void removeGraphListener(GraphListener<INode, IEdge> l) {
+		graph.removeGraphListener(l);
+	}
+
+	public boolean addVertex(INode v) {
+		return graph.addVertex(v);
+	}
+
+	public void band(INode a, EDirection dir, INode b) {
+		assert isCompatible(a.getIDType(dir.asDim()), b.getIDType(dir.asDim()));
+		graph.addEdge(a, b, new BandEdge(dir));
+		graph.addEdge(b, a, new BandEdge(dir.opposite()));
+	}
+
+	public void magnetic(INode a, EDirection dir, INode b) {
+		assert isCompatible(a.getIDType(dir.asDim()), b.getIDType(dir.asDim()));
+		graph.addEdge(a, b, new MagneticEdge(dir));
+		graph.addEdge(b, a, new MagneticEdge(dir.opposite()));
+	}
+
+	public void magnetic(INode node, Placeholder placeholder) {
+		magnetic(placeholder.getNode(), placeholder.getDir(), node);
 	}
 
 	public Set<IEdge> incomingEdgesOf(INode vertex) {
@@ -57,11 +108,11 @@ public class DominoGraph {
 		return graph.outgoingEdgesOf(vertex);
 	}
 
-	public boolean containsEdge(IEdge e) {
+	public boolean contains(IEdge e) {
 		return graph.containsEdge(e);
 	}
 
-	public boolean containsVertex(INode v) {
+	public boolean contains(INode v) {
 		return graph.containsVertex(v);
 	}
 
@@ -93,13 +144,38 @@ public class DominoGraph {
 		return connectivity.pathExists(sourceVertex, targetVertex);
 	}
 
+	/**
+	 * detaches a node from the graph and connects related together
+	 *
+	 * @param node
+	 */
 	public void detach(INode node) {
 		if (!graph.containsVertex(node))
 			return;
-		graph.removeAllEdges(graph.outgoingEdgesOf(node));
-		graph.removeAllEdges(graph.incomingEdgesOf(node));
+		Set<IEdge> edges = graph.outgoingEdgesOf(node);
+		if (edges.isEmpty())
+			return;
+		Map<EDirection, IEdge> index = Maps.uniqueIndex(edges, TO_DIRECTION);
+		// a-X-b -> a-b
+		// connect a and b if in between was our target node X with a band
+
+		for (EDirection dir : EnumSet.of(EDirection.LEFT_OF, EDirection.BELOW)) {
+			if (index.containsKey(dir) && index.containsKey(dir.opposite())) {
+				INode leftNode = getEdgeTarget(index.get(dir.opposite()));
+				INode rightNode = getEdgeTarget(index.get(dir));
+				band(leftNode, dir, rightNode);
+			}
+		}
+		graph.removeAllEdges(ImmutableSet.copyOf(graph.outgoingEdgesOf(node)));
+		graph.removeAllEdges(ImmutableSet.copyOf(graph.incomingEdgesOf(node)));
 	}
 
+	public void remove(INode node) {
+		if (!graph.containsVertex(node))
+			return;
+		detach(node);
+		graph.removeVertex(node);
+	}
 	/**
 	 * find all placed where this node can be attached
 	 *
@@ -196,5 +272,18 @@ public class DominoGraph {
 				.addAll(Iterables.filter(sorting, isPartOfSorting)).build();
 		// TODO create a comparator or something like that, which determines the order
 		// TODO now we must apply the new sorting to all nodes
+	}
+
+	public interface ListenableDirectedGraph<V, E> extends ListenableGraph<V, E>, DirectedGraph<V, E> {
+
+	}
+
+	private static class ListenableDirectedMultigraph<V, E> extends DefaultListenableGraph<V, E> implements
+			ListenableDirectedGraph<V, E> {
+		private static final long serialVersionUID = 1L;
+
+		ListenableDirectedMultigraph(Class<E> edgeClass) {
+			super(new DirectedMultigraph<V, E>(edgeClass));
+		}
 	}
 }

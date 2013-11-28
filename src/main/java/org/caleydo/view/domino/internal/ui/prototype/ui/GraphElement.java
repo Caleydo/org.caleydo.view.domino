@@ -29,7 +29,6 @@ import org.caleydo.view.domino.internal.ui.prototype.graph.DominoGraph;
 import com.google.common.base.Function;
 import com.google.common.base.Functions;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Iterables;
 
 /**
  * @author Samuel Gratzl
@@ -40,7 +39,7 @@ public class GraphElement extends GLElementContainer implements IGLLayout2, IPic
 
 	private final DominoGraph graph = new DominoGraph();
 	private final Routes routes = new Routes();
-	private final GLElementContainer nodes;
+	private final DominoNodeLayer nodes;
 
 	/**
 	 *
@@ -53,29 +52,17 @@ public class GraphElement extends GLElementContainer implements IGLLayout2, IPic
 		DominoBandLayer band = new DominoBandLayer(routes);
 		this.add(band);
 
-		this.nodes = new GLElementContainer(this);
-		this.fillNodes(nodes);
+		this.nodes = new DominoNodeLayer(this, graph);
 		this.add(nodes);
 	}
-
-
 
 
 	@Override
 	public void pick(Pick pick) {
 		if (pick.getPickingMode() == PickingMode.MOUSE_WHEEL) {
-			for (NodeElement elem : Iterables.filter(nodes, NodeElement.class)) {
+			for (NodeElement elem : nodes.getNodes()) {
 				elem.pick(pick);
 			}
-		}
-	}
-
-	/**
-	 *
-	 */
-	private void fillNodes(GLElementContainer container) {
-		for (INode node : this.graph.vertexSet()) {
-			container.add(new NodeElement(node));
 		}
 	}
 
@@ -95,7 +82,7 @@ public class GraphElement extends GLElementContainer implements IGLLayout2, IPic
 			Vec2f size = block.getSize();
 			block.shift(x, 0);
 			block.run();
-			x += size.x();
+			x += size.x() + 20;
 		}
 
 		routes.update(graph, lookup);
@@ -109,7 +96,6 @@ public class GraphElement extends GLElementContainer implements IGLLayout2, IPic
 		return graph;
 	}
 
-
 	/**
 	 * @param children
 	 * @return
@@ -121,11 +107,6 @@ public class GraphElement extends GLElementContainer implements IGLLayout2, IPic
 					new NodeLayoutElement(elem));
 		return b.build();
 	}
-
-
-
-
-
 
 	public static void main(String[] args) {
 		GLSandBox.main(args, new GraphElement());

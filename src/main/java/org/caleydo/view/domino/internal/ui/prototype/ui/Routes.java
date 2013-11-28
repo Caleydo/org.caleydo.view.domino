@@ -45,7 +45,7 @@ public class Routes implements IBandRoutesProvider {
 	public void update(DominoGraph graph, Function<INode, NodeLayoutElement> lookup) {
 		routes.clear();
 		for (IEdge edge : graph.edgeSet()) {
-			if (edge.getDirection() == EDirection.LEFT_OF || edge.getDirection() == EDirection.ABOVE)
+			if (edge.getDirection() == EDirection.RIGHT_OF || edge.getDirection() == EDirection.BELOW)
 				continue; // as directed will come again
 			NodeLayoutElement source = lookup.apply(graph.getEdgeSource(edge));
 			NodeLayoutElement target = lookup.apply(graph.getEdgeTarget(edge));

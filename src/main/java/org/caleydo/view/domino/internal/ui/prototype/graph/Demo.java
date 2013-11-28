@@ -3,7 +3,7 @@
  * Copyright (c) The Caleydo Team. All rights reserved.
  * Licensed under the new BSD license, available at http://caleydo.org/license
  *******************************************************************************/
-package org.caleydo.view.domino.internal.ui.prototype;
+package org.caleydo.view.domino.internal.ui.prototype.graph;
 
 import static org.caleydo.view.domino.internal.ui.prototype.EDirection.ABOVE;
 import static org.caleydo.view.domino.internal.ui.prototype.EDirection.BELOW;
@@ -17,24 +17,18 @@ import org.caleydo.core.data.perspective.table.TablePerspective;
 import org.caleydo.core.data.perspective.variable.Perspective;
 import org.caleydo.datadomain.mock.AValueFactory;
 import org.caleydo.datadomain.mock.MockDataDomain;
-import org.caleydo.view.domino.api.model.TypedSet;
-import org.jgrapht.DirectedGraph;
-import org.jgrapht.ListenableGraph;
-import org.jgrapht.graph.DefaultListenableGraph;
-import org.jgrapht.graph.DirectedMultigraph;
+import org.caleydo.view.domino.internal.ui.prototype.CategoricalData2DNode;
+import org.caleydo.view.domino.internal.ui.prototype.NumericalData1DNode;
+import org.caleydo.view.domino.internal.ui.prototype.NumericalData2DNode;
+import org.caleydo.view.domino.internal.ui.prototype.StratificationNode;
 
 /**
  * @author Samuel Gratzl
  *
  */
-public class Graph {
-	private ListenableDirectedGraph<INode, IEdge> graph = new ListenableDirectedMultigraph<>(IEdge.class);
+public class Demo {
 
-	public static ListenableDirectedGraph<INode, IEdge> build() {
-		return new Graph().graph;
-	}
-
-	public Graph() {
+	public static void fill(DominoGraph graph) {
 		MockDataDomain d_ab = MockDataDomain.createNumerical(10, 10, new ValueFac("a", "a", "b", "b"));
 		Perspective s_b = MockDataDomain.addRecGrouping(d_ab, 3, 4, 2).getRecordPerspective();
 		Perspective s_b2 = MockDataDomain.addRecGrouping(d_ab, 1, 1).getRecordPerspective();
@@ -67,39 +61,18 @@ public class Graph {
 		graph.addVertex(ns_a);
 		graph.addVertex(ns_c);
 
-		magnetic(ns_b, LEFT_OF, n2d_ab);
-		magnetic(ns_a, BELOW, n2d_ab);
-		magnetic(ns_a, ABOVE, n2d_ac);
-		magnetic(n2d_ac, LEFT_OF, ns_c);
+		graph.magnetic(ns_b, LEFT_OF, n2d_ab);
+		graph.magnetic(ns_a, BELOW, n2d_ab);
+		graph.magnetic(ns_a, ABOVE, n2d_ac);
+		graph.magnetic(n2d_ac, LEFT_OF, ns_c);
 
-		magnetic(ns_b2, LEFT_OF, c2d_cb);
-		magnetic(c2d_cb, LEFT_OF, n1d_b);
+		graph.magnetic(ns_b2, LEFT_OF, c2d_cb);
+		graph.magnetic(c2d_cb, LEFT_OF, n1d_b);
 
-		band(ns_b2, RIGHT_OF, n2d_ab);
+		graph.band(ns_b2, RIGHT_OF, n2d_ab);
 	}
 
-	private void band(INode a, EDirection dir, INode b) {
-		assert isCompatible(a.getData(dir.asDim()), b.getData(dir.asDim()));
-		graph.addEdge(b, a, new BandEdge(dir));
-		graph.addEdge(a, b, new BandEdge(dir.opposite()));
-	}
-
-	/**
-	 * @param data
-	 * @param data2
-	 * @return
-	 */
-	private boolean isCompatible(TypedSet a, TypedSet b) {
-		return a.getIdType().getIDCategory().isOfCategory(b.getIdType());
-	}
-
-	private void magnetic(INode a, EDirection dir, INode b) {
-		assert isCompatible(a.getData(dir.asDim()), b.getData(dir.asDim()));
-		graph.addEdge(b, a, new MagneticEdge(dir));
-		graph.addEdge(a, b, new MagneticEdge(dir.opposite()));
-	}
-
-	private class ValueFac extends AValueFactory {
+	private static class ValueFac extends AValueFactory {
 		private final Random r = new Random();
 		private final String dimCat, dimID, recCat, recID;
 
@@ -131,16 +104,5 @@ public class Graph {
 		}
 	}
 
-	public interface ListenableDirectedGraph<V, E> extends ListenableGraph<V, E>, DirectedGraph<V, E> {
 
-	}
-
-	private static class ListenableDirectedMultigraph<V, E> extends DefaultListenableGraph<V, E> implements
-			ListenableDirectedGraph<V, E> {
-		private static final long serialVersionUID = 1L;
-
-		ListenableDirectedMultigraph(Class<E> edgeClass) {
-			super(new DirectedMultigraph<V, E>(edgeClass));
-		}
-	}
 }
