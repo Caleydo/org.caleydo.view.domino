@@ -17,7 +17,6 @@ import org.caleydo.core.data.collection.EDimension;
 import org.caleydo.core.id.IDType;
 import org.caleydo.view.domino.internal.ui.prototype.BandEdge;
 import org.caleydo.view.domino.internal.ui.prototype.EDirection;
-import org.caleydo.view.domino.internal.ui.prototype.GraphViews;
 import org.caleydo.view.domino.internal.ui.prototype.IEdge;
 import org.caleydo.view.domino.internal.ui.prototype.INode;
 import org.caleydo.view.domino.internal.ui.prototype.ISortBarrier;
@@ -30,15 +29,15 @@ import org.jgrapht.event.GraphListener;
 import org.jgrapht.event.VertexSetListener;
 import org.jgrapht.graph.DefaultListenableGraph;
 import org.jgrapht.graph.DirectedMultigraph;
-import org.jgrapht.traverse.DepthFirstIterator;
 
 import com.google.common.base.Function;
 import com.google.common.base.Predicate;
+import com.google.common.base.Predicates;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.Iterables;
-import com.google.common.collect.Iterators;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 
 /**
  * @author Samuel Gratzl
@@ -215,18 +214,53 @@ public class DominoGraph {
 	}
 
 	/**
+	 * return a set of node reachable in the given direction using the given start point
+	 *
+	 * @param dim
+	 * @param start
+	 * @return
+	 */
+	public Set<INode> walkAlong(EDimension dim, INode start, Predicate<? super IEdge> filter) {
+		if (dim.isHorizontal())
+			return Sets.union(walkAlong(EDirection.LEFT_OF, start, filter),
+					walkAlong(EDirection.RIGHT_OF, start, filter));
+		else
+			return Sets.union(walkAlong(EDirection.ABOVE, start, filter), walkAlong(EDirection.BELOW, start, filter));
+	}
+
+	/**
+	 * return a set of node reachable if walking along the given direction starting at the given node
+	 *
+	 * @param dir
+	 *            walking direction
+	 * @param start
+	 *            start point
+	 * @param filter
+	 *            filter edges to stop walking
+	 * @return
+	 */
+	public Set<INode> walkAlong(EDirection dir, INode start, Predicate<? super IEdge> filter) {
+		if (!graph.containsVertex(start))
+			return ImmutableSet.of();
+
+		ImmutableSet.Builder<INode> b = ImmutableSet.builder();
+		walkAlongImpl(dir, start, Predicates.and(dir, filter), b);
+		return b.build();
+	}
+
+	private void walkAlongImpl(EDirection dir, INode start, Predicate<? super IEdge> filter, ImmutableSet.Builder<INode> b) {
+		b.add(start);
+		for (IEdge edge : Iterables.filter(graph.incomingEdgesOf(start), filter)) {
+			INode next = graph.getEdgeSource(edge);
+			walkAlongImpl(dir, next, filter, b);
+		}
+	}
+
+	/**
 	 * @param node
 	 * @param eDimension
 	 */
 	public void sortBy(ISortableNode node, final EDimension dim) {
-		// project to just the relevant edges
-		Predicate<IEdge> isSortingEdge = new Predicate<IEdge>() {
-			@Override
-			public boolean apply(IEdge input) {
-				return input != null && input.getDirection().asDim() == dim && !(input instanceof ISortBarrier);
-			}
-		};
-		DirectedGraph<INode, IEdge> subView = GraphViews.edgeView(graph, isSortingEdge);
 		// find all sorting nodes
 		Comparator<ISortableNode> bySortingPriority = new Comparator<ISortableNode>() {
 			@Override
@@ -234,8 +268,14 @@ public class DominoGraph {
 				return o1.getSortingPriority(dim) - o2.getSortingPriority(dim);
 			}
 		};
+		// find relevant
+		Set<INode> sortingRelevant = walkAlong(dim, node, Predicates.not(Predicates.instanceOf(ISortBarrier.class)));
+		// remove invalid
+		Iterable<ISortableNode> sortingReallyRelevant = Iterables.filter(sortingRelevant, ISortableNode.class);
+
+		// sort
 		SortedSet<ISortableNode> sorting = ImmutableSortedSet.orderedBy(bySortingPriority)
-				.addAll(Iterators.filter(new DepthFirstIterator<>(subView, node), ISortableNode.class)).build();
+				.addAll(sortingReallyRelevant).build();
 
 		int priority = node.getSortingPriority(dim);
 		if (priority == ISortableNode.TOP_PRIORITY) { // deselect

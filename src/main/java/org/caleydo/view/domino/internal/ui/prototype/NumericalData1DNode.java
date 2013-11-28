@@ -5,12 +5,18 @@
  *******************************************************************************/
 package org.caleydo.view.domino.internal.ui.prototype;
 
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.util.Objects;
 
+import org.caleydo.core.data.collection.EDimension;
 import org.caleydo.core.data.datadomain.DataSupportDefinitions;
+import org.caleydo.core.data.perspective.table.TableDoubleLists;
 import org.caleydo.core.data.perspective.table.TablePerspective;
+import org.caleydo.core.util.function.IDoubleList;
 import org.caleydo.core.view.opengl.layout2.GLElement;
-import org.caleydo.core.view.opengl.layout2.GLGraphics;
+import org.caleydo.core.view.opengl.layout2.IGLElementContext;
+import org.caleydo.view.domino.internal.ui.prototype.ui.ATextured1DUI;
 
 /**
  * @author Samuel Gratzl
@@ -21,8 +27,8 @@ public class NumericalData1DNode extends AData1DNode {
 	/**
 	 * @param data
 	 */
-	public NumericalData1DNode(TablePerspective data) {
-		super(data);
+	public NumericalData1DNode(TablePerspective data, EDimension main) {
+		super(data, main);
 		assert DataSupportDefinitions.numericalTables.apply(data);
 	}
 
@@ -35,12 +41,16 @@ public class NumericalData1DNode extends AData1DNode {
 		return new NumericalData1DNode(this);
 	}
 
+	public IDoubleList getNormalizedData() {
+		return TableDoubleLists.asNormalizedList(data);
+	}
+
 	@Override
 	public GLElement createUI() {
 		return new UI(this);
 	}
 
-	private static class UI extends GLElement {
+	private static class UI extends ATextured1DUI implements PropertyChangeListener {
 		private final NumericalData1DNode node;
 
 		public UI(NumericalData1DNode node) {
@@ -49,9 +59,26 @@ public class NumericalData1DNode extends AData1DNode {
 		}
 
 		@Override
-		protected void renderImpl(GLGraphics g, float w, float h) {
-			g.color(node.getDataDomain().getColor()).fillRect(0, 0, w, h);
-			super.renderImpl(g, w, h);
+		protected void init(IGLElementContext context) {
+			super.init(context);
+			update(node.getNormalizedData().iterator());
+			node.addPropertyChangeListener(PROP_TRANSPOSE, this);
+		}
+
+		@Override
+		public void propertyChange(PropertyChangeEvent evt) {
+			repaint();
+		}
+
+		@Override
+		protected void takeDown() {
+			node.removePropertyChangeListener(PROP_TRANSPOSE, this);
+			super.takeDown();
+		}
+
+		@Override
+		protected EDimension getDimension() {
+			return node.getDimension();
 		}
 	}
 

@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import org.caleydo.core.data.collection.EDimension;
 import org.caleydo.core.data.collection.column.container.CategoricalClassDescription;
 import org.caleydo.core.data.collection.column.container.CategoryProperty;
 import org.caleydo.core.data.collection.table.CategoricalTable;
@@ -35,8 +36,8 @@ public final class CategoricalData1DNode extends AData1DNode {
 	/**
 	 * @param data
 	 */
-	public CategoricalData1DNode(TablePerspective data) {
-		super(data);
+	public CategoricalData1DNode(TablePerspective data, EDimension main) {
+		super(data, main);
 		assert DataSupportDefinitions.categoricalColumns.apply(data);
 		this.properties = resolveCategories();
 		this.categories = toCategories(properties);

@@ -8,6 +8,7 @@ package org.caleydo.view.domino.internal.ui.prototype;
 import org.caleydo.core.data.collection.EDimension;
 import org.caleydo.core.data.datadomain.ATableBasedDataDomain;
 import org.caleydo.core.data.perspective.table.TablePerspective;
+import org.caleydo.core.data.perspective.variable.Perspective;
 import org.caleydo.core.id.IDType;
 import org.caleydo.view.domino.api.model.ITypedComparator;
 import org.caleydo.view.domino.api.model.TypedCollections;
@@ -20,16 +21,26 @@ import org.caleydo.view.domino.api.model.TypedSet;
  */
 public abstract class AData1DNode extends ANode implements ISortableNode, ITypedComparator {
 	protected final TablePerspective data;
-	private final TypedSet rec;
-	private final TypedSet dim;
+	private final EDimension main;
+	private final TypedSet ids;
+	private final IDType idType;
+	private final Integer id;
 	private boolean transposed = false;
 	private int sortingPriority = NO_SORTING;
 
-	public AData1DNode(TablePerspective data) {
+	public AData1DNode(TablePerspective data, EDimension main) {
 		this.data = data;
-		this.rec = TypedSet.of(data.getRecordPerspective().getVirtualArray());
-		this.dim = TypedSet.of(data.getDimensionPerspective().getVirtualArray());
-		assert dim.size() == 1;
+		this.main = main;
+		Perspective p = getPerspective();
+		Perspective o = main.opposite().select(data.getDimensionPerspective(), data.getRecordPerspective());
+		this.idType = o.getIdType();
+		this.ids = TypedSet.of(p.getVirtualArray());
+		assert o.getVirtualArray().size() == 1;
+		this.id = o.getVirtualArray().get(0);
+	}
+
+	private Perspective getPerspective() {
+		return main.select(data.getDimensionPerspective(), data.getRecordPerspective());
 	}
 
 	/**
@@ -38,23 +49,29 @@ public abstract class AData1DNode extends ANode implements ISortableNode, ITyped
 	public AData1DNode(AData1DNode clone) {
 		super(clone);
 		this.data = clone.data;
-		this.rec = clone.rec;
-		this.dim = clone.dim;
+		this.main = clone.main;
+		this.ids = clone.ids;
+		this.id = clone.id;
+		this.idType = clone.idType;
 		this.transposed = clone.transposed;
 		this.sortingPriority = NO_SORTING;
 	}
 
 	public final Integer getSingleID() {
-		return this.dim.iterator().next();
+		return this.id;
 	}
 
 	@Override
 	public final IDType getIdType() {
-		return this.dim.getIdType();
+		return this.idType;
 	}
 
 	public int size() {
-		return this.rec.size();
+		return this.ids.size();
+	}
+
+	public TypedList getTypedList() {
+		return TypedList.of(getPerspective().getVirtualArray());
 	}
 
 	/**
@@ -83,7 +100,7 @@ public abstract class AData1DNode extends ANode implements ISortableNode, ITyped
 
 	@Override
 	public void transpose() {
-		this.transposed = !this.transposed;
+		propertySupport.firePropertyChange(PROP_TRANSPOSE, this.transposed, this.transposed = !this.transposed);
 	}
 
 	/**
@@ -95,26 +112,30 @@ public abstract class AData1DNode extends ANode implements ISortableNode, ITyped
 
 	@Override
 	public TypedSet getData(EDimension dim) {
-		return isHorizontal(dim) ? TypedCollections.INVALID_SET : this.rec;
+		return isRightDimension(dim) ? this.ids : TypedCollections.INVALID_SET;
 	}
 
-	protected boolean isHorizontal(EDimension dim) {
-		return dim.isVertical() == this.transposed;
+	private boolean isRightDimension(EDimension dim) {
+		return dim == getDimension();
+	}
+
+	protected EDimension getDimension() {
+		return transposed ? main.opposite() : main;
 	}
 
 	@Override
 	public final boolean isSortable(EDimension dim) {
-		return isHorizontal(dim);
+		return isRightDimension(dim);
 	}
 
 	@Override
 	public final int getSortingPriority(EDimension dim) {
-		return isHorizontal(dim) ? sortingPriority : NO_SORTING;
+		return isRightDimension(dim) ? sortingPriority : NO_SORTING;
 	}
 
 	@Override
 	public final void setSortingPriority(EDimension dim, int sortingPriority) {
-		if (!isHorizontal(dim))
+		if (!isRightDimension(dim))
 			return;
 		propertySupport.firePropertyChange(SORTING_PRIORITY, this.sortingPriority,
 				this.sortingPriority = sortingPriority);
@@ -122,12 +143,11 @@ public abstract class AData1DNode extends ANode implements ISortableNode, ITyped
 
 	@Override
 	public final ITypedComparator getComparator(EDimension dim) {
-		return isHorizontal(dim) ? this : TypedCollections.NATURAL_ORDER;
+		return isRightDimension(dim) ? this : TypedCollections.NATURAL_ORDER;
 	}
 
 	@Override
 	public final TypedList getTypedList(EDimension dim) {
-		return TypedList.of((isHorizontal(dim) ? data.getDimensionPerspective() : data.getRecordPerspective())
-				.getVirtualArray());
+		return isRightDimension(dim) ? getTypedList() : TypedCollections.INVALID_LIST;
 	}
 }

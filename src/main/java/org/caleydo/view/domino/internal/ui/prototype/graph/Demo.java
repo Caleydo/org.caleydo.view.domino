@@ -44,7 +44,7 @@ public class Demo {
 		NumericalData2DNode n2d_ac = new NumericalData2DNode(d_ac);
 		CategoricalData2DNode c2d_cb = new CategoricalData2DNode(d_cb);
 
-		NumericalData1DNode n1d_b = new NumericalData1DNode(d1_b);
+		NumericalData1DNode n1d_b = new NumericalData1DNode(d1_b, EDimension.RECORD);
 
 		StratificationNode ns_b = new StratificationNode(s_b, EDimension.RECORD);
 		StratificationNode ns_b2 = new StratificationNode(s_b2, EDimension.RECORD);
