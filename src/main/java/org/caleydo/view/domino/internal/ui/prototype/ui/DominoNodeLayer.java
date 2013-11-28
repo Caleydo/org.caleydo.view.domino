@@ -5,14 +5,14 @@
  *******************************************************************************/
 package org.caleydo.view.domino.internal.ui.prototype.ui;
 
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
+
 import org.caleydo.core.view.opengl.layout2.GLElementContainer;
 import org.caleydo.core.view.opengl.layout2.layout.IGLLayout2;
-import org.caleydo.view.domino.internal.ui.prototype.IEdge;
 import org.caleydo.view.domino.internal.ui.prototype.INode;
 import org.caleydo.view.domino.internal.ui.prototype.graph.DominoGraph;
-import org.jgrapht.event.GraphEdgeChangeEvent;
-import org.jgrapht.event.GraphListener;
-import org.jgrapht.event.GraphVertexChangeEvent;
+import org.caleydo.vis.lineup.ui.GLPropertyChangeListeners;
 
 import com.google.common.collect.Iterables;
 
@@ -20,38 +20,29 @@ import com.google.common.collect.Iterables;
  * @author Samuel Gratzl
  *
  */
-public class DominoNodeLayer extends GLElementContainer implements GraphListener<INode, IEdge> {
-
+public class DominoNodeLayer extends GLElementContainer {
+	private final PropertyChangeListener repaint = GLPropertyChangeListeners.repaintOnEvent(this);
+	private final PropertyChangeListener relayout = GLPropertyChangeListeners.relayoutOnEvent(this);
 	/**
 	 * @param graph
 	 * @param graphElement
 	 */
 	public DominoNodeLayer(IGLLayout2 layout, DominoGraph graph) {
 		super(layout);
-		graph.addGraphListener(this);
+		graph.addPropertyChangeListener(DominoGraph.PROP_EDGES, repaint);
+		graph.addPropertyChangeListener(DominoGraph.PROP_TRANSPOSED, relayout);
+		graph.addPropertyChangeListener(DominoGraph.PROP_VERTICES, new PropertyChangeListener() {
+			@Override
+			public void propertyChange(PropertyChangeEvent evt) {
+				if (evt.getNewValue() != null)
+					add((INode) evt.getNewValue());
+				if (evt.getOldValue() != null)
+					remove((INode) evt.getOldValue());
+			}
+		});
 		for (INode node : graph.vertexSet()) {
 			add(node);
 		}
-	}
-
-	@Override
-	public void vertexAdded(GraphVertexChangeEvent<INode> e) {
-		add(e.getVertex());
-	}
-
-	@Override
-	public void vertexRemoved(GraphVertexChangeEvent<INode> e) {
-		remove(e.getVertex());
-	}
-
-	@Override
-	public void edgeAdded(GraphEdgeChangeEvent<INode, IEdge> e) {
-		relayout();
-	}
-
-	@Override
-	public void edgeRemoved(GraphEdgeChangeEvent<INode, IEdge> e) {
-		relayout();
 	}
 
 	/**

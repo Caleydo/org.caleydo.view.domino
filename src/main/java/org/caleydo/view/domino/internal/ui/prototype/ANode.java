@@ -21,7 +21,6 @@ import com.google.common.collect.Sets;
  *
  */
 public abstract class ANode implements INode {
-	protected final static String PROP_TRANSPOSE = "transpose";
 	protected final PropertyChangeSupport propertySupport = new PropertyChangeSupport(this);
 
 	public ANode() {
@@ -58,18 +57,22 @@ public abstract class ANode implements INode {
 		return getData(dim).size();
 	}
 
+	@Override
 	public final void addPropertyChangeListener(PropertyChangeListener listener) {
 		propertySupport.addPropertyChangeListener(listener);
 	}
 
+	@Override
 	public final void addPropertyChangeListener(String propertyName, PropertyChangeListener listener) {
 		propertySupport.addPropertyChangeListener(propertyName, listener);
 	}
 
+	@Override
 	public final void removePropertyChangeListener(PropertyChangeListener listener) {
 		propertySupport.removePropertyChangeListener(listener);
 	}
 
+	@Override
 	public final void removePropertyChangeListener(String propertyName, PropertyChangeListener listener) {
 		propertySupport.removePropertyChangeListener(propertyName, listener);
 	}

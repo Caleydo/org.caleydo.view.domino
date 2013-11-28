@@ -5,6 +5,7 @@
  *******************************************************************************/
 package org.caleydo.view.domino.internal.ui.prototype;
 
+import java.beans.PropertyChangeListener;
 import java.util.Set;
 
 import org.caleydo.core.data.collection.EDimension;
@@ -18,6 +19,8 @@ import org.caleydo.view.domino.api.model.TypedSet;
  *
  */
 public interface INode extends ILabeled, Cloneable {
+	String PROP_TRANSPOSE = "transpose";
+
 	TypedSet getData(EDimension dim);
 
 	int getSize(EDimension dim);
@@ -36,4 +39,12 @@ public interface INode extends ILabeled, Cloneable {
 	GLElement createUI();
 
 	INode clone();
+
+	void addPropertyChangeListener(PropertyChangeListener listener);
+
+	void addPropertyChangeListener(String propertyName, PropertyChangeListener listener);
+
+	void removePropertyChangeListener(PropertyChangeListener listener);
+
+	void removePropertyChangeListener(String propertyName, PropertyChangeListener listener);
 }

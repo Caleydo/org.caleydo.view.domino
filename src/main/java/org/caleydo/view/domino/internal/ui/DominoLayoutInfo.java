@@ -67,6 +67,12 @@ public class DominoLayoutInfo implements IActiveChangedCallback, IGLLayout {
 		this.config = config;
 	}
 
+	public void transpose() {
+		// swap zoom factors
+		float t = zoomFactorY;
+		zoomFactorY = zoomFactorX;
+		zoomFactorX = t;
+	}
 	/**
 	 * @return the config, see {@link #config}
 	 */

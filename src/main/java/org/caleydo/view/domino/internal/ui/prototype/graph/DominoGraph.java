@@ -5,6 +5,8 @@
  *******************************************************************************/
 package org.caleydo.view.domino.internal.ui.prototype.graph;
 
+import java.beans.PropertyChangeListener;
+import java.beans.PropertyChangeSupport;
 import java.util.Comparator;
 import java.util.EnumSet;
 import java.util.HashSet;
@@ -25,8 +27,9 @@ import org.caleydo.view.domino.internal.ui.prototype.MagneticEdge;
 import org.jgrapht.DirectedGraph;
 import org.jgrapht.ListenableGraph;
 import org.jgrapht.alg.ConnectivityInspector;
+import org.jgrapht.event.GraphEdgeChangeEvent;
 import org.jgrapht.event.GraphListener;
-import org.jgrapht.event.VertexSetListener;
+import org.jgrapht.event.GraphVertexChangeEvent;
 import org.jgrapht.graph.DefaultListenableGraph;
 import org.jgrapht.graph.DirectedMultigraph;
 
@@ -50,6 +53,11 @@ public class DominoGraph {
 			return input == null ? null : input.getDirection();
 		}
 	};
+	public static final String PROP_VERTICES = "vertices";
+	public static final String PROP_EDGES = "edges";
+	public static final String PROP_TRANSPOSED = "transposed";
+
+	private final PropertyChangeSupport propertySupport = new PropertyChangeSupport(this);
 	private final ListenableDirectedGraph<INode, IEdge> graph = new ListenableDirectedMultigraph<>(IEdge.class);
 	private final ConnectivityInspector<INode, IEdge> connectivity;
 
@@ -59,24 +67,25 @@ public class DominoGraph {
 	public DominoGraph() {
 		this.connectivity = new ConnectivityInspector<>(graph);
 		this.graph.addGraphListener(this.connectivity);
+		this.graph.addGraphListener(new GraphListenerAdapter(propertySupport));
 
 		Demo.fill(this);
 	}
 
-	public void addVertexSetListener(VertexSetListener<INode> l) {
-		graph.addVertexSetListener(l);
+	public final void addPropertyChangeListener(PropertyChangeListener listener) {
+		propertySupport.addPropertyChangeListener(listener);
 	}
 
-	public void removeVertexSetListener(VertexSetListener<INode> l) {
-		graph.removeVertexSetListener(l);
+	public final void addPropertyChangeListener(String propertyName, PropertyChangeListener listener) {
+		propertySupport.addPropertyChangeListener(propertyName, listener);
 	}
 
-	public void addGraphListener(GraphListener<INode, IEdge> l) {
-		graph.addGraphListener(l);
+	public final void removePropertyChangeListener(PropertyChangeListener listener) {
+		propertySupport.removePropertyChangeListener(listener);
 	}
 
-	public void removeGraphListener(GraphListener<INode, IEdge> l) {
-		graph.removeGraphListener(l);
+	public final void removePropertyChangeListener(String propertyName, PropertyChangeListener listener) {
+		propertySupport.removePropertyChangeListener(propertyName, listener);
 	}
 
 	public boolean addVertex(INode v) {
@@ -143,6 +152,11 @@ public class DominoGraph {
 		return connectivity.pathExists(sourceVertex, targetVertex);
 	}
 
+	/**
+	 * transpose a node and all the connected set of it
+	 * 
+	 * @param start
+	 */
 	public void transpose(INode start) {
 		Set<INode> nodes = connectivity.connectedSetOf(start);
 		for (INode node : nodes) {
@@ -151,6 +165,7 @@ public class DominoGraph {
 		for (IEdge edge : graph.edgeSet())
 			if (nodes.contains(getEdgeSource(edge)))
 				edge.transpose();
+		propertySupport.firePropertyChange(PROP_TRANSPOSED, null, nodes);
 	}
 
 	/**
@@ -322,6 +337,38 @@ public class DominoGraph {
 				.addAll(Iterables.filter(sorting, isPartOfSorting)).build();
 		// TODO create a comparator or something like that, which determines the order
 		// TODO now we must apply the new sorting to all nodes
+	}
+
+	/**
+	 * @author Samuel Gratzl
+	 *
+	 */
+	private static final class GraphListenerAdapter implements GraphListener<INode, IEdge> {
+		private final PropertyChangeSupport propertySupport;
+
+		public GraphListenerAdapter(PropertyChangeSupport propertySupport) {
+			this.propertySupport = propertySupport;
+		}
+
+		@Override
+		public void vertexRemoved(GraphVertexChangeEvent<INode> e) {
+			propertySupport.firePropertyChange(PROP_VERTICES, e.getVertex(), null);
+		}
+
+		@Override
+		public void vertexAdded(GraphVertexChangeEvent<INode> e) {
+			propertySupport.firePropertyChange(PROP_VERTICES, null, e.getVertex());
+		}
+
+		@Override
+		public void edgeRemoved(GraphEdgeChangeEvent<INode, IEdge> e) {
+			propertySupport.firePropertyChange(PROP_EDGES, e.getEdge(), null);
+		}
+
+		@Override
+		public void edgeAdded(GraphEdgeChangeEvent<INode, IEdge> e) {
+			propertySupport.firePropertyChange(PROP_EDGES, null, e.getEdge());
+		}
 	}
 
 	public interface ListenableDirectedGraph<V, E> extends ListenableGraph<V, E>, DirectedGraph<V, E> {

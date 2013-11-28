@@ -7,6 +7,8 @@ package org.caleydo.view.domino.internal.ui.prototype.ui;
 
 import gleem.linalg.Vec2f;
 
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.util.List;
 
 import org.caleydo.core.data.collection.EDimension;
@@ -38,7 +40,8 @@ import com.google.common.base.Supplier;
  * @author Samuel Gratzl
  *
  */
-public class NodeElement extends GLElementContainer implements IHasMinSize, IGLLayout2, IPickingListener {
+public class NodeElement extends GLElementContainer implements IHasMinSize, IGLLayout2, IPickingListener,
+		PropertyChangeListener {
 	private static final int BORDER = 2;
 	private final GLElement content;
 	private final INode node;
@@ -51,11 +54,21 @@ public class NodeElement extends GLElementContainer implements IHasMinSize, IGLL
 		this.info = new DominoLayoutInfo(this, ElementConfig.ALL);
 		this.content = node.createUI();
 		this.node = node;
+		this.node.addPropertyChangeListener(INode.PROP_TRANSPOSE, this);
 		this.add(content);
 		this.border = Borders.createBorder(Color.BLACK);
 		this.add(new ReScaleBorder(info).setRenderer(border));
 		setVisibility(EVisibility.PICKABLE);
 		onPick(this);
+	}
+
+	@Override
+	public void propertyChange(PropertyChangeEvent evt) {
+		switch (evt.getPropertyName()) {
+		case INode.PROP_TRANSPOSE:
+			this.info.transpose();
+			break;
+		}
 	}
 
 	@Override
