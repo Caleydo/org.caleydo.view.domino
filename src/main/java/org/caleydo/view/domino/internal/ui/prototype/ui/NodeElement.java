@@ -98,6 +98,9 @@ public class NodeElement extends GLElementContainer implements IHasMinSize, IGLL
 		case MOUSE_WHEEL:
 			info.zoom(event);
 			break;
+		case RIGHT_CLICKED:
+			findGraph().transpose(node);
+			break;
 		case DOUBLE_CLICKED:
 			if (node instanceof ISortableNode) {
 				Vec2f relative = toRelative(pick.getPickedPoint());

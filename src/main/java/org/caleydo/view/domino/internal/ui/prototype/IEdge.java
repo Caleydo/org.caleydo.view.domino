@@ -11,4 +11,9 @@ package org.caleydo.view.domino.internal.ui.prototype;
  */
 public interface IEdge {
 	EDirection getDirection();
+
+	/**
+	 *
+	 */
+	void transpose();
 }

@@ -13,7 +13,7 @@ import org.jgrapht.graph.DefaultEdge;
  */
 public abstract class AEdge extends DefaultEdge implements IEdge {
 	private static final long serialVersionUID = 5377583849522419114L;
-	private final EDirection direction;
+	private EDirection direction;
 
 	public AEdge(EDirection direction) {
 		this.direction = direction;
@@ -22,6 +22,10 @@ public abstract class AEdge extends DefaultEdge implements IEdge {
 	@Override
 	public EDirection getDirection() {
 		return direction;
+	}
+
+	public void transpose() {
+		this.direction = direction.rot90();
 	}
 
 	@Override

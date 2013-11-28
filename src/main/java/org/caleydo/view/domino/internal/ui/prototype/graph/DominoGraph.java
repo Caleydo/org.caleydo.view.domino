@@ -143,6 +143,16 @@ public class DominoGraph {
 		return connectivity.pathExists(sourceVertex, targetVertex);
 	}
 
+	public void transpose(INode start) {
+		Set<INode> nodes = connectivity.connectedSetOf(start);
+		for (INode node : nodes) {
+			node.transpose();
+		}
+		for (IEdge edge : graph.edgeSet())
+			if (nodes.contains(getEdgeSource(edge)))
+				edge.transpose();
+	}
+
 	/**
 	 * detaches a node from the graph and connects related together
 	 *

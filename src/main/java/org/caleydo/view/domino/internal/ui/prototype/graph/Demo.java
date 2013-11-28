@@ -29,14 +29,15 @@ import org.caleydo.view.domino.internal.ui.prototype.StratificationNode;
 public class Demo {
 
 	public static void fill(DominoGraph graph) {
-		MockDataDomain d_ab = MockDataDomain.createNumerical(10, 10, new ValueFac("a", "a", "b", "b"));
+		MockDataDomain d_ab = MockDataDomain.createNumerical(100, 100, new ValueFac("a", "a", "b", "b"));
 		Perspective s_b = MockDataDomain.addRecGrouping(d_ab, 3, 4, 2).getRecordPerspective();
 		Perspective s_b2 = MockDataDomain.addRecGrouping(d_ab, 1, 1).getRecordPerspective();
 		Perspective s_a = MockDataDomain.addDimGrouping(d_ab, 1, 1, 1, 2).getDimensionPerspective();
-		MockDataDomain d_cb = MockDataDomain.createCategorical(10, 10, new ValueFac("c", "c", "b", "b"), "A", "B", "C",
+		MockDataDomain d_cb = MockDataDomain.createCategorical(100, 100, new ValueFac("c", "c", "b", "b"), "A", "B",
+				"C",
 				"D");
-		MockDataDomain d_ac = MockDataDomain.createNumerical(10, 10, new ValueFac("a", "a", "c", "c"));
-		MockDataDomain d_b = MockDataDomain.createNumerical(1, 10, new ValueFac("IN", "IN", "b", "b"));
+		MockDataDomain d_ac = MockDataDomain.createNumerical(100, 100, new ValueFac("a", "a", "c", "c"));
+		MockDataDomain d_b = MockDataDomain.createNumerical(1, 100, new ValueFac("IN", "IN", "b", "b"));
 		TablePerspective d1_b = d_b.getDefaultTablePerspective();
 		Perspective s_c = MockDataDomain.addRecGrouping(d_ab, 3, 3).getRecordPerspective();
 
