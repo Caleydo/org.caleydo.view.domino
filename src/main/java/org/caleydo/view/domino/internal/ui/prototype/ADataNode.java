@@ -15,7 +15,7 @@ import org.caleydo.view.domino.api.model.TypedSet;
 public abstract class ADataNode extends ANode {
 	private final TypedSet rec;
 	private final TypedSet dim;
-	private boolean transposed = false;
+	protected boolean transposed = false;
 
 	public ADataNode(TypedSet dim, TypedSet rec) {
 		this.rec = rec;

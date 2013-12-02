@@ -12,6 +12,7 @@ import java.awt.Rectangle;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import org.apache.commons.lang.ArrayUtils;
 import org.caleydo.core.data.collection.EDimension;
 import org.caleydo.view.domino.internal.ui.prototype.BandEdge;
 import org.caleydo.view.domino.internal.ui.prototype.EDirection;
@@ -183,6 +184,11 @@ class LayoutBlock implements Runnable {
 			placeNode(target, x - f * dir.asInt(EDimension.DIMENSION), y - f * dir.asInt(EDimension.RECORD), grid,
 					graph);
 		}
+	}
+
+	@Override
+	public String toString() {
+		return ArrayUtils.toString(arr);
 	}
 
 }

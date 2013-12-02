@@ -250,6 +250,11 @@ public class DominoElement extends AnimatedGLElementContainer implements
 				info.setHovered(info.isSelected());
 			}
 			break;
+		// case DRAG_DETECTED:
+		// if (((isToolBar && !event.isCtrlDown()) || (!isToolBar && event.isCtrlDown())) && !pick.isAnyDragging()) {
+		// pick.setDoDragging(true);
+		// }
+		// break;
 		case CLICKED:
 			if (((isToolBar && !event.isCtrlDown()) || (!isToolBar && event.isCtrlDown())) && !pick.isAnyDragging()) {
 				pick.setDoDragging(true);

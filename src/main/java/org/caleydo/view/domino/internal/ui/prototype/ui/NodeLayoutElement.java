@@ -50,4 +50,12 @@ class NodeLayoutElement {
 		return elem.getRectBounds();
 	}
 
+	@Override
+	public String toString() {
+		StringBuilder builder = new StringBuilder();
+		builder.append("NodeLayoutElement [").append(asNode().getLabel());
+		builder.append("]");
+		return builder.toString();
+	}
+
 }

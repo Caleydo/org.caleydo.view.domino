@@ -7,6 +7,7 @@ package org.caleydo.view.domino.internal.ui.prototype.graph;
 
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.EnumSet;
 import java.util.HashSet;
@@ -19,11 +20,13 @@ import org.caleydo.core.data.collection.EDimension;
 import org.caleydo.core.id.IDType;
 import org.caleydo.view.domino.internal.ui.prototype.BandEdge;
 import org.caleydo.view.domino.internal.ui.prototype.EDirection;
+import org.caleydo.view.domino.internal.ui.prototype.GraphViews;
 import org.caleydo.view.domino.internal.ui.prototype.IEdge;
 import org.caleydo.view.domino.internal.ui.prototype.INode;
 import org.caleydo.view.domino.internal.ui.prototype.ISortBarrier;
 import org.caleydo.view.domino.internal.ui.prototype.ISortableNode;
 import org.caleydo.view.domino.internal.ui.prototype.MagneticEdge;
+import org.caleydo.view.domino.internal.ui.prototype.ui.PlaceholderNode;
 import org.jgrapht.DirectedGraph;
 import org.jgrapht.ListenableGraph;
 import org.jgrapht.alg.ConnectivityInspector;
@@ -65,7 +68,8 @@ public class DominoGraph {
 	 *
 	 */
 	public DominoGraph() {
-		this.connectivity = new ConnectivityInspector<>(graph);
+		this.connectivity = new ConnectivityInspector<>(GraphViews.edgeView(graph,
+				Predicates.instanceOf(MagneticEdge.class)));
 		this.graph.addGraphListener(this.connectivity);
 		this.graph.addGraphListener(new GraphListenerAdapter(propertySupport));
 
@@ -154,7 +158,7 @@ public class DominoGraph {
 
 	/**
 	 * transpose a node and all the connected set of it
-	 * 
+	 *
 	 * @param start
 	 */
 	public void transpose(INode start) {
@@ -200,38 +204,107 @@ public class DominoGraph {
 		detach(node);
 		graph.removeVertex(node);
 	}
+
+	public enum EPlaceHolderFlag {
+		INCLUDE_TRANSPOSE, INCLUDE_BETWEEN_NODES
+	}
 	/**
 	 * find all placed where this node can be attached
 	 *
 	 * @param node
 	 * @return
 	 */
-	public Set<Placeholder> findPlaceholders(INode node) {
-		Set<Placeholder> places = new HashSet<>();
+	public Set<Placeholder> findPlaceholders(INode node, EPlaceHolderFlag... flags) {
+		final Set<EPlaceHolderFlag> flagsS = asSet(flags);
+		final boolean betweenNodes = flagsS.contains(EPlaceHolderFlag.INCLUDE_BETWEEN_NODES);
+		final boolean includeTranspose = flagsS.contains(EPlaceHolderFlag.INCLUDE_TRANSPOSE);
 
+		Set<Placeholder> places = new HashSet<>();
 		Set<EDimension> dims = node.dimensions();
 		for (INode v : graph.vertexSet()) {
 			if (v == node) // not myself
 				continue;
-			for (EDimension dim : dims)
-				// for all possible dimensions
-				if (isCompatible(node.getIDType(dim), node.getIDType(dim))) { // check the dimension types are
-																				// compatible
-					Set<IEdge> edges = graph.incomingEdgesOf(v);
-					for (EDirection dir : EDirection.get(dim))
-						// check left and right
-						if (!hasEdge(dir, edges))
-							places.add(new Placeholder(v, dir));
-				}
+			for (EDimension dim : dims) {
+				addPlaceHolders(node, betweenNodes, places, v, dim, dim);
+				if (includeTranspose)
+					addPlaceHolders(node, betweenNodes, places, v, dim, dim.opposite());
+			}
 		}
 		return ImmutableSet.copyOf(places);
 	}
 
-	private static boolean hasEdge(EDirection dir, Set<IEdge> edges) {
+	private void addPlaceHolders(INode node, boolean betweenNodes, Set<Placeholder> places, INode v,
+			EDimension dim, EDimension vdim) {
+		// for all possible dimensions
+		if (!isCompatible(v.getIDType(vdim), node.getIDType(dim))) // check the dimension types are
+			return; // compatible
+		boolean transposed = dim != vdim;
+		Set<IEdge> edges = graph.outgoingEdgesOf(v);
+		for (EDirection dir : EDirection.get(vdim.opposite())) {
+			IEdge edge = hasEdge(dir, edges);
+			if (edge == null) {
+				places.add(new Placeholder(v, dir, transposed));
+			} else if (betweenNodes) {
+				INode o = graph.getEdgeTarget(edge);
+				if (o != node && !(o instanceof PlaceholderNode)
+						&& (dir == EDirection.LEFT_OF || dir == EDirection.ABOVE))
+					// just once split in between two nodes
+					places.add(new Placeholder(v, dir, transposed));
+			}
+		}
+	}
+
+	private static Set<EPlaceHolderFlag> asSet(EPlaceHolderFlag... flags) {
+		EnumSet<EPlaceHolderFlag> s = EnumSet.noneOf(EPlaceHolderFlag.class);
+		s.addAll(Arrays.asList(flags));
+		return s;
+	}
+
+	public Set<PlaceholderNode> insertPlaceholders(Set<Placeholder> placeholders, INode template) {
+		Set<PlaceholderNode> places = new HashSet<>();
+
+		for (Placeholder p : placeholders) {
+			INode v = p.getNode();
+			EDirection dir = p.getDir();
+			PlaceholderNode n = new PlaceholderNode(template, p.isTransposed());
+			places.add(n);
+			addVertex(n);
+
+			IEdge edge = getEdge(p.getNode(), p.getDir());
+			if (edge != null) { // no split needed
+				INode v2 = graph.getEdgeSource(edge);
+				graph.removeEdge(edge);
+				graph.removeEdge(v, v2);
+				magnetic(v2, dir.opposite(), n);
+			}
+			magnetic(n, dir.opposite(), v);
+		}
+		return ImmutableSet.copyOf(places);
+	}
+
+	public void removePlaceholders(Set<PlaceholderNode> placeholders) {
+		for (PlaceholderNode node : placeholders) {
+			detach(node);
+		}
+	}
+
+	/**
+	 * @param node
+	 * @param dir
+	 * @return
+	 */
+	private IEdge getEdge(INode node, EDirection dir) {
+		for (IEdge edge : graph.incomingEdgesOf(node))
+			if (edge.getDirection() == dir)
+				return edge;
+		return null;
+	}
+
+	private static IEdge hasEdge(EDirection dir, Set<IEdge> edges) {
 		for (IEdge edge : edges)
 			if (edge.getDirection() == dir)
-				return true;
-		return false;
+				return edge;
+		return null;
 	}
 
 	private static boolean isCompatible(IDType a, IDType b) {

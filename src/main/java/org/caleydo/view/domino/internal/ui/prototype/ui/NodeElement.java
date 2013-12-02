@@ -10,6 +10,7 @@ import gleem.linalg.Vec2f;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.List;
+import java.util.Set;
 
 import org.caleydo.core.data.collection.EDimension;
 import org.caleydo.core.data.selection.SelectionType;
@@ -29,8 +30,8 @@ import org.caleydo.core.view.opengl.picking.Pick;
 import org.caleydo.view.domino.internal.ui.DominoLayoutInfo;
 import org.caleydo.view.domino.internal.ui.ReScaleBorder;
 import org.caleydo.view.domino.internal.ui.prototype.INode;
-import org.caleydo.view.domino.internal.ui.prototype.ISortableNode;
 import org.caleydo.view.domino.internal.ui.prototype.graph.DominoGraph;
+import org.caleydo.view.domino.internal.ui.prototype.graph.Placeholder;
 import org.caleydo.view.domino.spi.config.ElementConfig;
 import org.eclipse.swt.SWT;
 
@@ -57,7 +58,8 @@ public class NodeElement extends GLElementContainer implements IHasMinSize, IGLL
 		this.node.addPropertyChangeListener(INode.PROP_TRANSPOSE, this);
 		this.add(content);
 		this.border = Borders.createBorder(Color.BLACK);
-		this.add(new ReScaleBorder(info).setRenderer(border));
+		if (!(node instanceof PlaceholderNode))
+			this.add(new ReScaleBorder(info).setRenderer(border));
 		setVisibility(EVisibility.PICKABLE);
 		onPick(this);
 	}
@@ -75,6 +77,7 @@ public class NodeElement extends GLElementContainer implements IHasMinSize, IGLL
 	public void pick(Pick pick) {
 		IMouseEvent event = ((IMouseEvent) pick);
 		boolean isToolBar = pick.getObjectID() > 0;
+		DominoGraph graph = findGraph();
 		switch (pick.getPickingMode()) {
 		case MOUSE_OVER:
 			if (!isToolBar) {
@@ -88,6 +91,11 @@ public class NodeElement extends GLElementContainer implements IHasMinSize, IGLL
 				info.setHovered(info.isSelected());
 			}
 			break;
+		// case DRAG_DETECTED:
+		// if (((isToolBar && !event.isCtrlDown()) || (!isToolBar && event.isCtrlDown())) && !pick.isAnyDragging()) {
+		// pick.setDoDragging(true);
+		// }
+		// break;
 		case CLICKED:
 			if (((isToolBar && !event.isCtrlDown()) || (!isToolBar && event.isCtrlDown())) && !pick.isAnyDragging()) {
 				pick.setDoDragging(true);
@@ -112,24 +120,26 @@ public class NodeElement extends GLElementContainer implements IHasMinSize, IGLL
 			info.zoom(event);
 			break;
 		case RIGHT_CLICKED:
-			findGraph().transpose(node);
+			graph.transpose(node);
 			break;
 		case DOUBLE_CLICKED:
-			if (node instanceof ISortableNode) {
-				Vec2f relative = toRelative(pick.getPickedPoint());
-				Vec2f size = getSize();
-				ISortableNode s = (ISortableNode) node;
-
-				if (s.isSortable(EDimension.DIMENSION) != s.isSortable(EDimension.RECORD)) { // just in one direction
-					findGraph().sortBy(s, EDimension.get(s.isSortable(EDimension.DIMENSION)));
-				} else {
-					boolean inX = relative.x() < size.x() * 0.25f || relative.x() > size.x() * 0.75f;
-					boolean inY = relative.y() < size.y() * 0.25f || relative.y() > size.y() * 0.75f;
-					if (inX != inY) // not the same, so one of them but not both or none
-						findGraph().sortBy(s, EDimension.get(inX));
-				}
-			}
-			findGraph().remove(node);
+			// if (node instanceof ISortableNode) {
+			// Vec2f relative = toRelative(pick.getPickedPoint());
+			// Vec2f size = getSize();
+			// ISortableNode s = (ISortableNode) node;
+			//
+			// if (s.isSortable(EDimension.DIMENSION) != s.isSortable(EDimension.RECORD)) { // just in one direction
+			// findGraph().sortBy(s, EDimension.get(s.isSortable(EDimension.DIMENSION)));
+			// } else {
+			// boolean inX = relative.x() < size.x() * 0.25f || relative.x() > size.x() * 0.75f;
+			// boolean inY = relative.y() < size.y() * 0.25f || relative.y() > size.y() * 0.75f;
+			// if (inX != inY) // not the same, so one of them but not both or none
+			// findGraph().sortBy(s, EDimension.get(inX));
+			// }
+			// }
+			// findGraph().remove(node);
+			Set<Placeholder> placeholders = graph.findPlaceholders(node);
+			graph.insertPlaceholders(placeholders, node);
 			break;
 		default:
 			break;

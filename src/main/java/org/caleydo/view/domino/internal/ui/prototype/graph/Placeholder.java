@@ -16,10 +16,19 @@ public class Placeholder {
 
 	private final EDirection dir;
 	private final INode node;
+	private final boolean transposed;
 
-	public Placeholder(INode v, EDirection dir) {
+	public Placeholder(INode v, EDirection dir, boolean transposed) {
 		this.node = v;
 		this.dir = dir;
+		this.transposed = transposed;
+	}
+
+	/**
+	 * @return the transpose, see {@link #transposed}
+	 */
+	public boolean isTransposed() {
+		return transposed;
 	}
 
 	/**
@@ -28,12 +37,25 @@ public class Placeholder {
 	public INode getNode() {
 		return node;
 	}
-	
+
 	/**
 	 * @return the dir, see {@link #dir}
 	 */
 	public EDirection getDir() {
 		return dir;
+	}
+
+	@Override
+	public String toString() {
+		StringBuilder builder = new StringBuilder();
+		builder.append("Placeholder [node=");
+		builder.append(node);
+		builder.append(", dir=");
+		builder.append(dir);
+		builder.append(", transpose=");
+		builder.append(transposed);
+		builder.append("]");
+		return builder.toString();
 	}
 
 }
