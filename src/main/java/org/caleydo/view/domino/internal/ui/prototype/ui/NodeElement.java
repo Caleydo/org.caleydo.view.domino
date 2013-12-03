@@ -16,6 +16,7 @@ import org.caleydo.core.data.collection.EDimension;
 import org.caleydo.core.data.selection.SelectionType;
 import org.caleydo.core.util.color.Color;
 import org.caleydo.core.view.opengl.canvas.IGLMouseListener.IMouseEvent;
+import org.caleydo.core.view.opengl.layout.Column.VAlign;
 import org.caleydo.core.view.opengl.layout2.GLElement;
 import org.caleydo.core.view.opengl.layout2.GLElementContainer;
 import org.caleydo.core.view.opengl.layout2.GLGraphics;
@@ -31,6 +32,7 @@ import org.caleydo.view.domino.internal.ui.DominoLayoutInfo;
 import org.caleydo.view.domino.internal.ui.ReScaleBorder;
 import org.caleydo.view.domino.internal.ui.prototype.INode;
 import org.caleydo.view.domino.internal.ui.prototype.graph.DominoGraph;
+import org.caleydo.view.domino.internal.ui.prototype.graph.DominoGraph.EPlaceHolderFlag;
 import org.caleydo.view.domino.internal.ui.prototype.graph.Placeholder;
 import org.caleydo.view.domino.spi.config.ElementConfig;
 import org.eclipse.swt.SWT;
@@ -141,7 +143,8 @@ public class NodeElement extends GLElementContainer implements IHasMinSize, IGLL
 			// }
 			// findGraph().remove(node);
 			graph.removePlaceholders(ImmutableSet.copyOf(Iterables.filter(graph.vertexSet(), PlaceholderNode.class)));
-			Set<Placeholder> placeholders = graph.findPlaceholders(node);
+			Set<Placeholder> placeholders = graph.findPlaceholders(node, EPlaceHolderFlag.INCLUDE_TRANSPOSE,
+					EPlaceHolderFlag.INCLUDE_BETWEEN_BANDS, EPlaceHolderFlag.INCLUDE_BETWEEN_MAGNETIC);
 			graph.insertPlaceholders(placeholders, node);
 			break;
 		default:
@@ -167,6 +170,13 @@ public class NodeElement extends GLElementContainer implements IHasMinSize, IGLL
 	protected void renderImpl(GLGraphics g, float w, float h) {
 		// g.color(Color.BLACK).drawRect(0, 0, w, h);
 		super.renderImpl(g, w, h);
+		g.incZ();
+		g.incZ();
+		float wi = Math.max(100, w);
+		float x = (w - wi) * 0.5f;
+		g.drawText(node.getLabel(), x, (h - 10) * .5f, wi, 10, VAlign.CENTER);
+		g.decZ();
+		g.decZ();
 	}
 
 	@Override

@@ -30,16 +30,25 @@ public class Demo {
 
 	public static void fill(DominoGraph graph) {
 		MockDataDomain d_ab = MockDataDomain.createNumerical(100, 100, new ValueFac("a", "a", "b", "b"));
+		d_ab.setLabel("AB");
 		Perspective s_b = MockDataDomain.addRecGrouping(d_ab, 3, 4, 2).getRecordPerspective();
+		s_b.setLabel("s_b");
 		Perspective s_b2 = MockDataDomain.addRecGrouping(d_ab, 1, 1).getRecordPerspective();
+		s_b2.setLabel("s_b2");
 		Perspective s_a = MockDataDomain.addDimGrouping(d_ab, 1, 1, 1, 2).getDimensionPerspective();
+		s_a.setLabel("s_a");
 		MockDataDomain d_cb = MockDataDomain.createCategorical(100, 100, new ValueFac("c", "c", "b", "b"), "A", "B",
 				"C",
 				"D");
+		d_cb.setLabel("CB");
 		MockDataDomain d_ac = MockDataDomain.createNumerical(100, 100, new ValueFac("a", "a", "c", "c"));
+		d_ac.setLabel("AC");
 		MockDataDomain d_b = MockDataDomain.createNumerical(1, 100, new ValueFac("IN", "IN", "b", "b"));
+		d_b.setLabel("B");
 		TablePerspective d1_b = d_b.getDefaultTablePerspective();
+		d1_b.setLabel("1_b");
 		Perspective s_c = MockDataDomain.addRecGrouping(d_ab, 3, 3).getRecordPerspective();
+		s_c.setLabel("s_c");
 
 		NumericalData2DNode n2d_ab = new NumericalData2DNode(d_ab);
 		NumericalData2DNode n2d_ac = new NumericalData2DNode(d_ac);

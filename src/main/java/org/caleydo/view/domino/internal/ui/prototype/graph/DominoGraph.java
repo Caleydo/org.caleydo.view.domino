@@ -208,7 +208,7 @@ public class DominoGraph {
 	}
 
 	public enum EPlaceHolderFlag {
-		INCLUDE_TRANSPOSE, INCLUDE_BETWEEN_NODES
+		INCLUDE_TRANSPOSE, INCLUDE_BETWEEN_BANDS, INCLUDE_BETWEEN_MAGNETIC
 	}
 	/**
 	 * find all placed where this node can be attached
@@ -218,7 +218,6 @@ public class DominoGraph {
 	 */
 	public Set<Placeholder> findPlaceholders(INode node, EPlaceHolderFlag... flags) {
 		final Set<EPlaceHolderFlag> flagsS = asSet(flags);
-		final boolean betweenNodes = flagsS.contains(EPlaceHolderFlag.INCLUDE_BETWEEN_NODES);
 		final boolean includeTranspose = flagsS.contains(EPlaceHolderFlag.INCLUDE_TRANSPOSE);
 
 		Set<Placeholder> places = new HashSet<>();
@@ -227,16 +226,16 @@ public class DominoGraph {
 			if (v == node) // not myself
 				continue;
 			for (EDimension dim : dims) {
-				addPlaceHolders(node, betweenNodes, places, v, dim, dim);
+				addPlaceHolders(node, places, v, dim, dim, flagsS);
 				if (includeTranspose)
-					addPlaceHolders(node, betweenNodes, places, v, dim, dim.opposite());
+					addPlaceHolders(node, places, v, dim, dim.opposite(), flagsS);
 			}
 		}
 		return ImmutableSet.copyOf(places);
 	}
 
-	private void addPlaceHolders(INode node, boolean betweenNodes, Set<Placeholder> places, INode v,
-			EDimension dim, EDimension vdim) {
+	private void addPlaceHolders(INode node, Set<Placeholder> places, INode v, EDimension dim, EDimension vdim,
+			Set<EPlaceHolderFlag> flags) {
 		// for all possible dimensions
 		if (!isCompatible(v.getIDType(vdim), node.getIDType(dim))) // check the dimension types are
 			return; // compatible
@@ -246,11 +245,12 @@ public class DominoGraph {
 			IEdge edge = hasEdge(dir, edges);
 			if (edge == null) {
 				places.add(new Placeholder(v, dir, transposed));
-			} else if (betweenNodes) {
+			} else if ((flags.contains(EPlaceHolderFlag.INCLUDE_BETWEEN_BANDS) && (edge instanceof BandEdge))) {
+				places.add(new Placeholder(v, dir, transposed));
+			} else if (flags.contains(EPlaceHolderFlag.INCLUDE_BETWEEN_MAGNETIC) && edge instanceof MagneticEdge) {
 				INode o = edge.getTarget();
 				if (o != node && !(o instanceof PlaceholderNode)
 						&& (dir == EDirection.LEFT_OF || dir == EDirection.ABOVE))
-					// just once split in between two nodes
 					places.add(new Placeholder(v, dir, transposed));
 			}
 		}
@@ -274,11 +274,14 @@ public class DominoGraph {
 
 			IEdge edge = getEdge(p.getNode(), p.getDir());
 			if (edge != null) { // no split needed
-				INode v2 = graph.getEdgeSource(edge);
-				graph.removeEdge(edge);
-				magnetic(v2, dir.opposite(), n);
+				INode v2 = edge.getTarget();
+				graph.removeEdge(edge.getRawSource(), edge.getRawTarget());
+				if (edge instanceof BandEdge)
+					band(n, dir, v2);
+				else
+					magnetic(n, dir, v2);
 			}
-			magnetic(n, dir.opposite(), v);
+			magnetic(v, dir, n);
 		}
 		return ImmutableSet.copyOf(places);
 	}

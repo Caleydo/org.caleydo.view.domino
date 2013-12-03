@@ -25,4 +25,14 @@ public interface IEdge {
 	 * @return
 	 */
 	IEdge reverse();
+
+	/**
+	 * @return
+	 */
+	INode getRawSource();
+
+	/**
+	 * @return
+	 */
+	INode getRawTarget();
 }

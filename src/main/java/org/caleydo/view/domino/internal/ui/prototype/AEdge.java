@@ -37,12 +37,26 @@ public abstract class AEdge extends DefaultEdge implements IEdge, Cloneable {
 
 	@Override
 	public INode getSource() {
-		return (INode) (swapped ? super.getTarget() : super.getSource());
+		return get(!swapped);
+	}
+
+	private INode get(boolean source) {
+		return source ? getRawSource() : getRawTarget();
+	}
+
+	@Override
+	public INode getRawSource() {
+		return (INode) super.getSource();
 	}
 
 	@Override
 	public INode getTarget() {
-		return (INode) (!swapped ? super.getTarget() : super.getSource());
+		return get(swapped);
+	}
+
+	@Override
+	public INode getRawTarget() {
+		return (INode) super.getTarget();
 	}
 
 	@Override
@@ -59,7 +73,7 @@ public abstract class AEdge extends DefaultEdge implements IEdge, Cloneable {
 
 	/**
 	 * mapping function to unify edges, such that the given vertex will be the source
-	 * 
+	 *
 	 * @param vertex
 	 * @return
 	 */
