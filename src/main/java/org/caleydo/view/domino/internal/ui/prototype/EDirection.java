@@ -45,6 +45,10 @@ public enum EDirection implements Predicate<IEdge> {
 		return shift(1);
 	}
 
+	public boolean isPrimaryDirection() {
+		return this == LEFT_OF || this == ABOVE;
+	}
+
 	/**
 	 * @param dimension
 	 * @return

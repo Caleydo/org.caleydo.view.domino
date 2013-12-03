@@ -9,6 +9,7 @@ import gleem.linalg.Vec2f;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import org.caleydo.core.data.collection.EDimension;
@@ -19,7 +20,6 @@ import org.caleydo.view.domino.api.model.TypedCollections;
 import org.caleydo.view.domino.api.ui.band.Route;
 import org.caleydo.view.domino.internal.ui.DominoBandLayer.IBandRoutesProvider;
 import org.caleydo.view.domino.internal.ui.prototype.BandEdge;
-import org.caleydo.view.domino.internal.ui.prototype.EDirection;
 import org.caleydo.view.domino.internal.ui.prototype.IEdge;
 import org.caleydo.view.domino.internal.ui.prototype.INode;
 import org.caleydo.view.domino.internal.ui.prototype.graph.DominoGraph;
@@ -45,31 +45,76 @@ public class Routes implements IBandRoutesProvider {
 	public void update(DominoGraph graph, Function<INode, NodeLayoutElement> lookup) {
 		routes.clear();
 		for (IEdge edge : graph.edgeSet()) {
-			if (edge.getDirection() == EDirection.RIGHT_OF || edge.getDirection() == EDirection.BELOW)
-				continue; // as directed will come again
-			NodeLayoutElement source = lookup.apply(graph.getEdgeSource(edge));
-			NodeLayoutElement target = lookup.apply(graph.getEdgeTarget(edge));
+			NodeLayoutElement source = lookup.apply(edge.getSource());
+			NodeLayoutElement target = lookup.apply(edge.getTarget());
 
-			Rect sourceB = source.getRectBounds();
-			Rect targetB = target.getRectBounds();
-			EDimension dim = edge.getDirection().asDim();
+			final Rect sourceB = source.getRectBounds();
+			final Rect targetB = target.getRectBounds();
+			final EDimension dim = edge.getDirection().asDim();
 
-			if ((dim.isHorizontal() && sourceB.x2() == targetB.x())
-					|| (dim.isVertical() && sourceB.y2() == targetB.y()))
+			List<Vec2f> curve;
+			if (dim == EDimension.RECORD) {
+				curve = rot90(createCurve(rot90(sourceB),rot90(targetB),dim.opposite()));
+			} else
+				curve = createCurve(sourceB,targetB,dim);
+			if (curve.isEmpty())
 				continue;
 
-			float r_s = dim.opposite().select(sourceB.width(), sourceB.height()) * 0.5f;
-			float r_t = dim.opposite().select(targetB.width(), targetB.height()) * 0.5f;
-			List<Vec2f> curve;
-			if (dim.isHorizontal()) {
-				curve = Arrays.asList(new Vec2f(sourceB.x2(), sourceB.y() + sourceB.height() * 0.5f),
-						new Vec2f(targetB.x(), targetB.y() + targetB.height() * 0.5f));
-			} else {
-				curve = Arrays.asList(new Vec2f(sourceB.x() + sourceB.width() * 0.5f, sourceB.y2()),
-						new Vec2f(targetB.x() + targetB.width() * 0.5f, targetB.y()));
-			}
 			Color color = edge instanceof BandEdge ? Color.LIGHT_GRAY : Color.LIGHT_BLUE;
+			// if (curve.size() > 2)
+			// curve = TesselatedPolygons.spline(curve, 5);
+
+			final float r_s = dim.opposite().select(sourceB.width(), sourceB.height()) * 0.5f;
+			final float r_t = dim.opposite().select(targetB.width(), targetB.height()) * 0.5f;
 			routes.add(new BandRoute(new Route(curve), color, TypedCollections.INVALID_SET, r_s, r_t));
 		}
+	}
+
+	/**
+	 * @param sourceB
+	 * @param targetB
+	 * @param dim
+	 * @return
+	 */
+	private List<Vec2f> createCurve(Rect s, Rect t, EDimension dim) {
+		assert dim == EDimension.RECORD;
+		if (s.x() > t.x()) {
+			Rect tmp = s;
+			s = t;
+			t = tmp;
+		}
+
+		if (Math.abs(s.x2()-t.x()) < 4)
+			return Collections.emptyList();
+
+		Vec2f sv = new Vec2f(s.x2(), s.y() + s.height() * 0.5f);
+		Vec2f tv = new Vec2f(t.x(), t.y() + t.height() * 0.5f);
+		if (sv.y() == tv.y())
+			return Arrays.asList(sv, tv);
+
+		Vec2f shift = new Vec2f(20, 0);
+		Vec2f s2 = sv.plus(shift);
+		Vec2f t2 = tv.minus(shift);
+
+		return Arrays.asList(sv, s2, t2, tv);
+	}
+
+	/**
+	 * @param curve
+	 * @return
+	 */
+	private static List<Vec2f> rot90(List<Vec2f> curve) {
+		List<Vec2f> r = new ArrayList<>(curve.size());
+		for (Vec2f in : curve)
+			r.add(new Vec2f(in.y(), in.x()));
+		return r;
+	}
+
+	/**
+	 * @param sourceB
+	 * @return
+	 */
+	private static Rect rot90(Rect a) {
+		return new Rect(a.y(), a.x(), a.height(), a.width());
 	}
 }

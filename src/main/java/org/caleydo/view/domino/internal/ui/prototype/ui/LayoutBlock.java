@@ -18,9 +18,11 @@ import org.caleydo.view.domino.internal.ui.prototype.BandEdge;
 import org.caleydo.view.domino.internal.ui.prototype.EDirection;
 import org.caleydo.view.domino.internal.ui.prototype.IEdge;
 import org.caleydo.view.domino.internal.ui.prototype.INode;
+import org.caleydo.view.domino.internal.ui.prototype.MagneticEdge;
 import org.caleydo.view.domino.internal.ui.prototype.graph.DominoGraph;
 
 import com.google.common.base.Function;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
 
 /**
@@ -177,11 +179,12 @@ class LayoutBlock implements Runnable {
 		if (grid.containsKey(node))
 			return;
 		grid.put(node, new Point(x, y));
-		for (IEdge edge : graph.outgoingEdgesOf(node)) {
-			INode target = graph.getEdgeTarget(edge);
+		for (IEdge edge : Iterables.filter(graph.edgesOf(node), MagneticEdge.class)) {
+			INode target = edge.getTarget();
 			EDirection dir = edge.getDirection();
 			int f = (edge instanceof BandEdge) ? 2 : 1;
-			placeNode(target, x - f * dir.asInt(EDimension.DIMENSION), y - f * dir.asInt(EDimension.RECORD), grid,
+			placeNode(target, x - f * dir.asInt(EDimension.DIMENSION), y - f * dir.asInt(EDimension.RECORD),
+					grid,
 					graph);
 		}
 	}

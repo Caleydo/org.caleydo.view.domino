@@ -36,6 +36,8 @@ import org.caleydo.view.domino.spi.config.ElementConfig;
 import org.eclipse.swt.SWT;
 
 import com.google.common.base.Supplier;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Iterables;
 
 /**
  * @author Samuel Gratzl
@@ -138,6 +140,7 @@ public class NodeElement extends GLElementContainer implements IHasMinSize, IGLL
 			// }
 			// }
 			// findGraph().remove(node);
+			graph.removePlaceholders(ImmutableSet.copyOf(Iterables.filter(graph.vertexSet(), PlaceholderNode.class)));
 			Set<Placeholder> placeholders = graph.findPlaceholders(node);
 			graph.insertPlaceholders(placeholders, node);
 			break;
@@ -182,7 +185,7 @@ public class NodeElement extends GLElementContainer implements IHasMinSize, IGLL
 	 * @return
 	 */
 	private float fix(int size) {
-		return size <= 0 ? 1 : size;
+		return size <= 0 ? (node instanceof PlaceholderNode ? 10 : 1) : size;
 	}
 
 	/**

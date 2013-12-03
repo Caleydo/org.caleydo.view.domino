@@ -58,7 +58,7 @@ public class PlaceholderNode extends ADataNode {
 			g.gl.glEnable(GL2.GL_LINE_STIPPLE);
 			g.gl.glLineStipple(2, (short) 0xAAAA);
 			g.lineWidth(2);
-			g.color(Color.LIGHT_GRAY).fillRoundedRect(0, 0, w, h, 5);
+			g.color(0.95f).fillRoundedRect(0, 0, w, h, 5);
 			g.color(Color.GRAY).drawRoundedRect(0, 0, w, h, 5);
 			g.gl.glDisable(GL2.GL_LINE_STIPPLE);
 			g.lineWidth(1);

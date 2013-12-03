@@ -8,6 +8,7 @@ package org.caleydo.view.domino.internal.ui.prototype.graph;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.EnumSet;
 import java.util.HashSet;
@@ -18,6 +19,7 @@ import java.util.SortedSet;
 
 import org.caleydo.core.data.collection.EDimension;
 import org.caleydo.core.id.IDType;
+import org.caleydo.view.domino.internal.ui.prototype.AEdge;
 import org.caleydo.view.domino.internal.ui.prototype.BandEdge;
 import org.caleydo.view.domino.internal.ui.prototype.EDirection;
 import org.caleydo.view.domino.internal.ui.prototype.GraphViews;
@@ -27,18 +29,19 @@ import org.caleydo.view.domino.internal.ui.prototype.ISortBarrier;
 import org.caleydo.view.domino.internal.ui.prototype.ISortableNode;
 import org.caleydo.view.domino.internal.ui.prototype.MagneticEdge;
 import org.caleydo.view.domino.internal.ui.prototype.ui.PlaceholderNode;
-import org.jgrapht.DirectedGraph;
 import org.jgrapht.ListenableGraph;
+import org.jgrapht.UndirectedGraph;
 import org.jgrapht.alg.ConnectivityInspector;
 import org.jgrapht.event.GraphEdgeChangeEvent;
 import org.jgrapht.event.GraphListener;
 import org.jgrapht.event.GraphVertexChangeEvent;
 import org.jgrapht.graph.DefaultListenableGraph;
-import org.jgrapht.graph.DirectedMultigraph;
+import org.jgrapht.graph.Pseudograph;
 
 import com.google.common.base.Function;
 import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
+import com.google.common.collect.Collections2;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.Iterables;
@@ -61,7 +64,7 @@ public class DominoGraph {
 	public static final String PROP_TRANSPOSED = "transposed";
 
 	private final PropertyChangeSupport propertySupport = new PropertyChangeSupport(this);
-	private final ListenableDirectedGraph<INode, IEdge> graph = new ListenableDirectedMultigraph<>(IEdge.class);
+	private final ListenableUndirectedGraph<INode, IEdge> graph = new ListenableUndirectedMultigraph<>(IEdge.class);
 	private final ConnectivityInspector<INode, IEdge> connectivity;
 
 	/**
@@ -98,26 +101,32 @@ public class DominoGraph {
 
 	public void band(INode a, EDirection dir, INode b) {
 		assert isCompatible(a.getIDType(dir.asDim()), b.getIDType(dir.asDim()));
+		if (!dir.isPrimaryDirection()) {
+			dir = dir.opposite();
+			INode t = a;
+			a = b;
+			b = t;
+		}
 		graph.addEdge(a, b, new BandEdge(dir));
-		graph.addEdge(b, a, new BandEdge(dir.opposite()));
 	}
 
 	public void magnetic(INode a, EDirection dir, INode b) {
 		assert isCompatible(a.getIDType(dir.asDim()), b.getIDType(dir.asDim()));
+		if (!dir.isPrimaryDirection()) {
+			dir = dir.opposite();
+			INode t = a;
+			a = b;
+			b = t;
+		}
 		graph.addEdge(a, b, new MagneticEdge(dir));
-		graph.addEdge(b, a, new MagneticEdge(dir.opposite()));
 	}
 
 	public void magnetic(INode node, Placeholder placeholder) {
 		magnetic(placeholder.getNode(), placeholder.getDir(), node);
 	}
 
-	public Set<IEdge> incomingEdgesOf(INode vertex) {
-		return graph.incomingEdgesOf(vertex);
-	}
-
-	public Set<IEdge> outgoingEdgesOf(INode vertex) {
-		return graph.outgoingEdgesOf(vertex);
+	public Collection<IEdge> edgesOf(INode vertex) {
+		return Collections2.transform(graph.edgesOf(vertex), AEdge.unify(vertex));
 	}
 
 	public boolean contains(IEdge e) {
@@ -134,14 +143,6 @@ public class DominoGraph {
 
 	public Set<INode> vertexSet() {
 		return graph.vertexSet();
-	}
-
-	public INode getEdgeSource(IEdge e) {
-		return graph.getEdgeSource(e);
-	}
-
-	public INode getEdgeTarget(IEdge e) {
-		return graph.getEdgeTarget(e);
 	}
 
 	public Set<INode> connectedSetOf(INode vertex) {
@@ -166,9 +167,11 @@ public class DominoGraph {
 		for (INode node : nodes) {
 			node.transpose();
 		}
-		for (IEdge edge : graph.edgeSet())
-			if (nodes.contains(getEdgeSource(edge)))
+		Set<IEdge> edgeSet = ImmutableSet.copyOf(graph.edgeSet());
+		for (IEdge edge : edgeSet)
+			if (nodes.contains(edge.getSource()) || nodes.contains(edge.getTarget())) {
 				edge.transpose();
+			}
 		propertySupport.firePropertyChange(PROP_TRANSPOSED, null, nodes);
 	}
 
@@ -180,7 +183,7 @@ public class DominoGraph {
 	public void detach(INode node) {
 		if (!graph.containsVertex(node))
 			return;
-		Set<IEdge> edges = graph.outgoingEdgesOf(node);
+		Collection<IEdge> edges = edgesOf(node);
 		if (edges.isEmpty())
 			return;
 		Map<EDirection, IEdge> index = Maps.uniqueIndex(edges, TO_DIRECTION);
@@ -189,13 +192,12 @@ public class DominoGraph {
 
 		for (EDirection dir : EnumSet.of(EDirection.LEFT_OF, EDirection.BELOW)) {
 			if (index.containsKey(dir) && index.containsKey(dir.opposite())) {
-				INode leftNode = getEdgeTarget(index.get(dir.opposite()));
-				INode rightNode = getEdgeTarget(index.get(dir));
+				INode leftNode = index.get(dir.opposite()).getTarget();
+				INode rightNode = index.get(dir).getTarget();
 				band(leftNode, dir, rightNode);
 			}
 		}
-		graph.removeAllEdges(ImmutableSet.copyOf(graph.outgoingEdgesOf(node)));
-		graph.removeAllEdges(ImmutableSet.copyOf(graph.incomingEdgesOf(node)));
+		graph.removeAllEdges(ImmutableSet.copyOf(graph.edgesOf(node)));
 	}
 
 	public void remove(INode node) {
@@ -239,13 +241,13 @@ public class DominoGraph {
 		if (!isCompatible(v.getIDType(vdim), node.getIDType(dim))) // check the dimension types are
 			return; // compatible
 		boolean transposed = dim != vdim;
-		Set<IEdge> edges = graph.outgoingEdgesOf(v);
+		Collection<IEdge> edges = edgesOf(v);
 		for (EDirection dir : EDirection.get(vdim.opposite())) {
 			IEdge edge = hasEdge(dir, edges);
 			if (edge == null) {
 				places.add(new Placeholder(v, dir, transposed));
 			} else if (betweenNodes) {
-				INode o = graph.getEdgeTarget(edge);
+				INode o = edge.getTarget();
 				if (o != node && !(o instanceof PlaceholderNode)
 						&& (dir == EDirection.LEFT_OF || dir == EDirection.ABOVE))
 					// just once split in between two nodes
@@ -274,7 +276,6 @@ public class DominoGraph {
 			if (edge != null) { // no split needed
 				INode v2 = graph.getEdgeSource(edge);
 				graph.removeEdge(edge);
-				graph.removeEdge(v, v2);
 				magnetic(v2, dir.opposite(), n);
 			}
 			magnetic(n, dir.opposite(), v);
@@ -284,7 +285,7 @@ public class DominoGraph {
 
 	public void removePlaceholders(Set<PlaceholderNode> placeholders) {
 		for (PlaceholderNode node : placeholders) {
-			detach(node);
+			remove(node);
 		}
 	}
 
@@ -294,13 +295,13 @@ public class DominoGraph {
 	 * @return
 	 */
 	private IEdge getEdge(INode node, EDirection dir) {
-		for (IEdge edge : graph.incomingEdgesOf(node))
+		for (IEdge edge : edgesOf(node))
 			if (edge.getDirection() == dir)
 				return edge;
 		return null;
 	}
 
-	private static IEdge hasEdge(EDirection dir, Set<IEdge> edges) {
+	private static IEdge hasEdge(EDirection dir, Iterable<IEdge> edges) {
 		for (IEdge edge : edges)
 			if (edge.getDirection() == dir)
 				return edge;
@@ -348,8 +349,8 @@ public class DominoGraph {
 
 	private void walkAlongImpl(EDirection dir, INode start, Predicate<? super IEdge> filter, ImmutableSet.Builder<INode> b) {
 		b.add(start);
-		for (IEdge edge : Iterables.filter(graph.incomingEdgesOf(start), filter)) {
-			INode next = graph.getEdgeSource(edge);
+		for (IEdge edge : Iterables.filter(edgesOf(start), filter)) {
+			INode next = edge.getTarget();
 			walkAlongImpl(dir, next, filter, b);
 		}
 	}
@@ -444,16 +445,16 @@ public class DominoGraph {
 		}
 	}
 
-	public interface ListenableDirectedGraph<V, E> extends ListenableGraph<V, E>, DirectedGraph<V, E> {
+	public interface ListenableUndirectedGraph<V, E> extends ListenableGraph<V, E>, UndirectedGraph<V, E> {
 
 	}
 
-	private static class ListenableDirectedMultigraph<V, E> extends DefaultListenableGraph<V, E> implements
-			ListenableDirectedGraph<V, E> {
+	private static class ListenableUndirectedMultigraph<V, E> extends DefaultListenableGraph<V, E> implements
+			ListenableUndirectedGraph<V, E> {
 		private static final long serialVersionUID = 1L;
 
-		ListenableDirectedMultigraph(Class<E> edgeClass) {
-			super(new DirectedMultigraph<V, E>(edgeClass));
+		ListenableUndirectedMultigraph(Class<E> edgeClass) {
+			super(new Pseudograph<V, E>(edgeClass));
 		}
 	}
 }

@@ -5,6 +5,7 @@
  *******************************************************************************/
 package org.caleydo.view.domino.internal.ui.prototype;
 
+
 /**
  * @author Samuel Gratzl
  *
@@ -12,8 +13,16 @@ package org.caleydo.view.domino.internal.ui.prototype;
 public interface IEdge {
 	EDirection getDirection();
 
+	INode getSource();
+
+	INode getTarget();
 	/**
 	 *
 	 */
 	void transpose();
+
+	/**
+	 * @return
+	 */
+	IEdge reverse();
 }
