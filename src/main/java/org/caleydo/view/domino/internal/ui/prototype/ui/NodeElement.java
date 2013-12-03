@@ -7,37 +7,23 @@ package org.caleydo.view.domino.internal.ui.prototype.ui;
 
 import gleem.linalg.Vec2f;
 
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
-import java.util.List;
 import java.util.Set;
 
-import org.caleydo.core.data.collection.EDimension;
 import org.caleydo.core.data.selection.SelectionType;
 import org.caleydo.core.util.color.Color;
 import org.caleydo.core.view.opengl.canvas.IGLMouseListener.IMouseEvent;
 import org.caleydo.core.view.opengl.layout.Column.VAlign;
-import org.caleydo.core.view.opengl.layout2.GLElement;
-import org.caleydo.core.view.opengl.layout2.GLElementContainer;
 import org.caleydo.core.view.opengl.layout2.GLGraphics;
-import org.caleydo.core.view.opengl.layout2.basic.ScrollingDecorator.IHasMinSize;
-import org.caleydo.core.view.opengl.layout2.layout.GLLayouts;
-import org.caleydo.core.view.opengl.layout2.layout.IGLLayout2;
-import org.caleydo.core.view.opengl.layout2.layout.IGLLayoutElement;
 import org.caleydo.core.view.opengl.layout2.renderer.Borders;
 import org.caleydo.core.view.opengl.layout2.renderer.Borders.IBorderGLRenderer;
-import org.caleydo.core.view.opengl.picking.IPickingListener;
 import org.caleydo.core.view.opengl.picking.Pick;
-import org.caleydo.view.domino.internal.ui.DominoLayoutInfo;
 import org.caleydo.view.domino.internal.ui.ReScaleBorder;
 import org.caleydo.view.domino.internal.ui.prototype.INode;
 import org.caleydo.view.domino.internal.ui.prototype.graph.DominoGraph;
 import org.caleydo.view.domino.internal.ui.prototype.graph.DominoGraph.EPlaceHolderFlag;
 import org.caleydo.view.domino.internal.ui.prototype.graph.Placeholder;
-import org.caleydo.view.domino.spi.config.ElementConfig;
 import org.eclipse.swt.SWT;
 
-import com.google.common.base.Supplier;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 
@@ -45,40 +31,18 @@ import com.google.common.collect.Iterables;
  * @author Samuel Gratzl
  *
  */
-public class NodeElement extends GLElementContainer implements IHasMinSize, IGLLayout2, IPickingListener,
-		PropertyChangeListener {
-	private static final int BORDER = 2;
-	private final GLElement content;
-	private final INode node;
-	private float scale = 20;
-	private DominoLayoutInfo info;
+public class NodeElement extends ANodeElement {
 	private final IBorderGLRenderer border;
 
 	public NodeElement(INode node) {
-		setLayout(this);
-		this.info = new DominoLayoutInfo(this, ElementConfig.ALL);
-		this.content = node.createUI();
-		this.node = node;
-		this.node.addPropertyChangeListener(INode.PROP_TRANSPOSE, this);
-		this.add(content);
+		super(node);
 		this.border = Borders.createBorder(Color.BLACK);
-		if (!(node instanceof PlaceholderNode))
-			this.add(new ReScaleBorder(info).setRenderer(border));
-		setVisibility(EVisibility.PICKABLE);
-		onPick(this);
-	}
-
-	@Override
-	public void propertyChange(PropertyChangeEvent evt) {
-		switch (evt.getPropertyName()) {
-		case INode.PROP_TRANSPOSE:
-			this.info.transpose();
-			break;
-		}
+		this.add(new ReScaleBorder(info).setRenderer(border));
 	}
 
 	@Override
 	public void pick(Pick pick) {
+		super.pick(pick);
 		IMouseEvent event = ((IMouseEvent) pick);
 		boolean isToolBar = pick.getObjectID() > 0;
 		DominoGraph graph = findGraph();
@@ -103,6 +67,12 @@ public class NodeElement extends GLElementContainer implements IHasMinSize, IGLL
 		case CLICKED:
 			if (((isToolBar && !event.isCtrlDown()) || (!isToolBar && event.isCtrlDown())) && !pick.isAnyDragging()) {
 				pick.setDoDragging(true);
+				info.setDragged(true);
+				graph.detach(node, true);
+				graph.removePlaceholders(ImmutableSet.copyOf(Iterables.filter(graph.vertexSet(), PlaceholderNode.class)));
+				Set<Placeholder> placeholders = graph.findPlaceholders(node, EPlaceHolderFlag.INCLUDE_TRANSPOSE,
+						EPlaceHolderFlag.INCLUDE_BETWEEN_BANDS, EPlaceHolderFlag.INCLUDE_BETWEEN_MAGNETIC);
+				graph.insertPlaceholders(placeholders, node);
 			}
 			if (isToolBar)
 				info.setSelected(true);
@@ -116,15 +86,10 @@ public class NodeElement extends GLElementContainer implements IHasMinSize, IGLL
 		case MOUSE_RELEASED:
 			if (pick.isDoDragging()) {
 				context.getSWTLayer().setCursor(-1);
+				info.setDragged(false);
 			}
 			if (isToolBar)
 				info.setSelected(event.isCtrlDown()); // multi selection
-			break;
-		case MOUSE_WHEEL:
-			info.zoom(event);
-			break;
-		case RIGHT_CLICKED:
-			graph.transpose(node);
 			break;
 		case DOUBLE_CLICKED:
 			// if (node instanceof ISortableNode) {
@@ -152,20 +117,6 @@ public class NodeElement extends GLElementContainer implements IHasMinSize, IGLL
 		}
 	}
 
-	/**
-	 * @return
-	 */
-	private DominoGraph findGraph() {
-		return findParent(GraphElement.class).getGraph();
-	}
-
-	@Override
-	public boolean doLayout(List<? extends IGLLayoutElement> children, float w, float h, IGLLayoutElement parent,
-			int deltaTimeMs) {
-		GLLayouts.LAYERS.doLayout(children, w, h, parent, deltaTimeMs);
-		return false;
-	}
-
 	@Override
 	protected void renderImpl(GLGraphics g, float w, float h) {
 		// g.color(Color.BLACK).drawRect(0, 0, w, h);
@@ -179,45 +130,11 @@ public class NodeElement extends GLElementContainer implements IHasMinSize, IGLL
 		g.decZ();
 	}
 
+
 	@Override
 	public Vec2f getMinSize() {
 		Vec2f s = getNodeSize();
 		s.add(new Vec2f(BORDER * 2, BORDER * 2));
 		return s;
-	}
-
-	private Vec2f getNodeSize() {
-		return new Vec2f(fix(node.getSize(EDimension.DIMENSION)), fix(node.getSize(EDimension.RECORD)));
-	}
-
-	/**
-	 * @param size
-	 * @return
-	 */
-	private float fix(int size) {
-		return size <= 0 ? (node instanceof PlaceholderNode ? 10 : 1) : size;
-	}
-
-	/**
-	 * @return the scale, see {@link #scale}
-	 */
-	public float getScale() {
-		return scale;
-	}
-
-	/**
-	 * @return the node, see {@link #node}
-	 */
-	public INode getNode() {
-		return node;
-	}
-
-	@Override
-	public <T> T getLayoutDataAs(Class<T> clazz, Supplier<? extends T> default_) {
-		if (clazz.isInstance(node))
-			return clazz.cast(node);
-		if (clazz.isInstance(info))
-			return clazz.cast(info);
-		return super.getLayoutDataAs(clazz, default_);
 	}
 }

@@ -8,6 +8,7 @@ package org.caleydo.view.domino.internal.ui.prototype.ui;
 import gleem.linalg.Vec2f;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -28,6 +29,7 @@ import org.caleydo.view.domino.internal.ui.prototype.graph.DominoGraph;
 
 import com.google.common.base.Function;
 import com.google.common.base.Functions;
+import com.google.common.collect.Collections2;
 import com.google.common.collect.ImmutableMap;
 
 /**
@@ -60,7 +62,7 @@ public class GraphElement extends GLElementContainer implements IGLLayout2, IPic
 	@Override
 	public void pick(Pick pick) {
 		if (pick.getPickingMode() == PickingMode.MOUSE_WHEEL) {
-			for (NodeElement elem : nodes.getNodes()) {
+			for (ANodeElement elem : nodes.getNodes()) {
 				elem.pick(pick);
 			}
 		}
@@ -74,6 +76,8 @@ public class GraphElement extends GLElementContainer implements IGLLayout2, IPic
 
 		List<LayoutBlock> blocks = new ArrayList<>();
 		for (Set<INode> block : sets) {
+			if (areAllDragged(Collections2.transform(block, lookup)))
+				continue;
 			blocks.add(LayoutBlock.create(block.iterator().next(), graph, lookup));
 		}
 
@@ -87,6 +91,17 @@ public class GraphElement extends GLElementContainer implements IGLLayout2, IPic
 
 		routes.update(graph, lookup);
 		return false;
+	}
+
+	/**
+	 * @param transform
+	 * @return
+	 */
+	private boolean areAllDragged(Collection<NodeLayoutElement> t) {
+		for (NodeLayoutElement elem : t)
+			if (!elem.isDragged())
+				return false;
+		return true;
 	}
 
 	/**

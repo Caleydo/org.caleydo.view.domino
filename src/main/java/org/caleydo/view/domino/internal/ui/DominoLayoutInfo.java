@@ -59,6 +59,8 @@ public class DominoLayoutInfo implements IActiveChangedCallback, IGLLayout {
 
 	private boolean selected = false;
 
+	private boolean dragged = false;
+
 	/**
 	 * @param crosswordElement
 	 */
@@ -256,6 +258,24 @@ public class DominoLayoutInfo implements IActiveChangedCallback, IGLLayout {
 		if (this.selected == selected)
 			return;
 		this.selected = selected;
+	}
+
+	/**
+	 * @return the dragged, see {@link #dragged}
+	 */
+	public boolean isDragged() {
+		return dragged;
+	}
+
+	/**
+	 * @param dragged
+	 *            setter, see {@link dragged}
+	 */
+	public void setDragged(boolean dragged) {
+		if (this.dragged == dragged)
+			return;
+		this.dragged = dragged;
+		parent.relayout();
 	}
 
 	/**

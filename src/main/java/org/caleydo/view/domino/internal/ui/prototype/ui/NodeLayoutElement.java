@@ -58,4 +58,11 @@ class NodeLayoutElement {
 		return builder.toString();
 	}
 
+	/**
+	 * @return
+	 */
+	public boolean isDragged() {
+		return info.isDragged();
+	}
+
 }

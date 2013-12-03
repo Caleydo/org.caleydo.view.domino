@@ -179,7 +179,7 @@ class LayoutBlock implements Runnable {
 		if (grid.containsKey(node))
 			return;
 		grid.put(node, new Point(x, y));
-		for (IEdge edge : Iterables.filter(graph.edgesOf(node), MagneticEdge.class)) {
+		for (IEdge edge : Iterables.filter(graph.edgesOfSource(node), MagneticEdge.class)) {
 			INode target = edge.getTarget();
 			EDirection dir = edge.getDirection();
 			int f = (edge instanceof BandEdge) ? 2 : 1;

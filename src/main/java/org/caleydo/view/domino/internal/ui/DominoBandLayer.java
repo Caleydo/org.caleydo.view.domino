@@ -33,7 +33,7 @@ import org.caleydo.view.domino.spi.model.IBandRenderer.IBandHost;
  *
  */
 public class DominoBandLayer extends GLElement implements MultiSelectionManagerMixin.ISelectionMixinCallback,
-		IBandHost, IPickingListener, IPickingLabelProvider {
+		IBandHost, IPickingListener, IPickingLabelProvider, Runnable {
 	@DeepScan
 	private final MultiSelectionManagerMixin selections = new MultiSelectionManagerMixin(this);
 
@@ -43,6 +43,12 @@ public class DominoBandLayer extends GLElement implements MultiSelectionManagerM
 
 	public DominoBandLayer(IBandRoutesProvider provider) {
 		this.provider = provider;
+		this.provider.setCallback(this);
+	}
+
+	@Override
+	public void run() {
+		repaintAll();
 	}
 
 	@Override
@@ -182,7 +188,6 @@ public class DominoBandLayer extends GLElement implements MultiSelectionManagerM
 		return true; // routes have pickables
 	}
 
-
 	@Override
 	public void onSelectionUpdate(SelectionManager manager) {
 		repaint();
@@ -190,5 +195,7 @@ public class DominoBandLayer extends GLElement implements MultiSelectionManagerM
 
 	public interface IBandRoutesProvider {
 		List<? extends IBandRenderer> getBandRoutes();
+
+		void setCallback(Runnable toCall);
 	}
 }

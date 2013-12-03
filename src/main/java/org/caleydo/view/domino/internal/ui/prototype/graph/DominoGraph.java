@@ -9,6 +9,7 @@ import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.EnumSet;
 import java.util.HashSet;
@@ -42,6 +43,7 @@ import com.google.common.base.Function;
 import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
 import com.google.common.collect.Collections2;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.Iterables;
@@ -125,12 +127,21 @@ public class DominoGraph {
 		magnetic(placeholder.getNode(), placeholder.getDir(), node);
 	}
 
-	public Collection<IEdge> edgesOf(INode vertex) {
-		return Collections2.transform(graph.edgesOf(vertex), AEdge.unify(vertex));
+	/**
+	 * returns a view of the edges of a node, where it will always be the source
+	 *
+	 * @param vertex
+	 * @return
+	 */
+	public Collection<IEdge> edgesOfSource(INode source) {
+		return edgesOf(source, true);
 	}
 
-	public boolean contains(IEdge e) {
-		return graph.containsEdge(e);
+	public Collection<IEdge> edgesOf(INode vertex, boolean ensureSource) {
+		Set<IEdge> edges = graph.edgesOf(vertex);
+		if (!ensureSource)
+			return edges;
+		return Collections2.transform(edges, AEdge.unify(vertex));
 	}
 
 	public boolean contains(INode v) {
@@ -179,13 +190,14 @@ public class DominoGraph {
 	 * detaches a node from the graph and connects related together
 	 *
 	 * @param node
+	 * @return
 	 */
-	public void detach(INode node) {
+	public Collection<IEdge> detach(INode node, boolean mergeNeighbors) {
 		if (!graph.containsVertex(node))
-			return;
-		Collection<IEdge> edges = edgesOf(node);
+			return Collections.emptyList();
+		Collection<IEdge> edges = edgesOfSource(node);
 		if (edges.isEmpty())
-			return;
+			return Collections.emptyList();
 		Map<EDirection, IEdge> index = Maps.uniqueIndex(edges, TO_DIRECTION);
 		// a-X-b -> a-b
 		// connect a and b if in between was our target node X with a band
@@ -197,13 +209,14 @@ public class DominoGraph {
 				band(leftNode, dir, rightNode);
 			}
 		}
-		graph.removeAllEdges(ImmutableSet.copyOf(graph.edgesOf(node)));
+		graph.removeAllEdges(ImmutableList.copyOf(edgesOf(node, false)));
+		return edges;
 	}
 
 	public void remove(INode node) {
 		if (!graph.containsVertex(node))
 			return;
-		detach(node);
+		detach(node, true);
 		graph.removeVertex(node);
 	}
 
@@ -240,7 +253,7 @@ public class DominoGraph {
 		if (!isCompatible(v.getIDType(vdim), node.getIDType(dim))) // check the dimension types are
 			return; // compatible
 		boolean transposed = dim != vdim;
-		Collection<IEdge> edges = edgesOf(v);
+		Collection<IEdge> edges = edgesOfSource(v);
 		for (EDirection dir : EDirection.get(vdim.opposite())) {
 			IEdge edge = hasEdge(dir, edges);
 			if (edge == null) {
@@ -298,7 +311,7 @@ public class DominoGraph {
 	 * @return
 	 */
 	private IEdge getEdge(INode node, EDirection dir) {
-		for (IEdge edge : edgesOf(node))
+		for (IEdge edge : edgesOfSource(node))
 			if (edge.getDirection() == dir)
 				return edge;
 		return null;
@@ -352,7 +365,7 @@ public class DominoGraph {
 
 	private void walkAlongImpl(EDirection dir, INode start, Predicate<? super IEdge> filter, ImmutableSet.Builder<INode> b) {
 		b.add(start);
-		for (IEdge edge : Iterables.filter(edgesOf(start), filter)) {
+		for (IEdge edge : Iterables.filter(edgesOfSource(start), filter)) {
 			INode next = edge.getTarget();
 			walkAlongImpl(dir, next, filter, b);
 		}

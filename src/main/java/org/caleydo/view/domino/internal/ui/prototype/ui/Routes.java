@@ -33,9 +33,15 @@ import com.google.common.base.Function;
  */
 public class Routes implements IBandRoutesProvider {
 	private List<IBandRenderer> routes = new ArrayList<>();
+	private Runnable callback;
 	@Override
 	public List<? extends IBandRenderer> getBandRoutes() {
 		return routes;
+	}
+
+	@Override
+	public void setCallback(Runnable toCall) {
+		this.callback = toCall;
 	}
 
 	/**
@@ -68,6 +74,8 @@ public class Routes implements IBandRoutesProvider {
 			final float r_t = dim.opposite().select(targetB.width(), targetB.height()) * 0.5f;
 			routes.add(new BandRoute(new Route(curve), color, TypedCollections.INVALID_SET, r_s, r_t));
 		}
+		if (callback != null)
+			callback.run();
 	}
 
 	/**
