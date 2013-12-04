@@ -322,4 +322,12 @@ public class DominoLayoutInfo implements IActiveChangedCallback, IGLLayout {
 		scale(minSize);
 		return minSize;
 	}
+
+	/**
+	 * @param old
+	 */
+	public void fromOld(DominoLayoutInfo old) {
+		this.zoomFactorX = old.zoomFactorX;
+		this.zoomFactorY = old.zoomFactorY;
+	}
 }

@@ -134,20 +134,20 @@ public class DominoBandLayer extends GLElement implements MultiSelectionManagerM
 	@Override
 	protected void renderImpl(GLGraphics g, float w, float h) {
 		super.renderImpl(g, w, h);
-		for (IBandRenderer edge : getRoutes()) {
-			edge.render(g, w, h, this);
-		}
+		// for (IBandRenderer edge : getRoutes()) {
+		// edge.render(g, w, h, this);
+		// }
 	}
 
 	@Override
 	protected void renderPickImpl(GLGraphics g, float w, float h) {
 		super.renderPickImpl(g, w, h);
-		List<? extends IBandRenderer> routes = getRoutes();
-		for (int i = 0; i < routes.size(); i++) {
-			g.pushName(pickingPool.get(i));
-			routes.get(i).renderPick(g, w, h, this);
-			g.popName();
-		}
+		// List<? extends IBandRenderer> routes = getRoutes();
+		// for (int i = 0; i < routes.size(); i++) {
+		// g.pushName(pickingPool.get(i));
+		// routes.get(i).renderPick(g, w, h, this);
+		// g.popName();
+		// }
 	}
 
 	private List<? extends IBandRenderer> getRoutes() {

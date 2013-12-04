@@ -16,15 +16,21 @@ import java.util.Set;
 import org.caleydo.core.view.opengl.layout2.GLElementContainer;
 import org.caleydo.core.view.opengl.layout2.GLSandBox;
 import org.caleydo.core.view.opengl.layout2.PickableGLElement;
+import org.caleydo.core.view.opengl.layout2.dnd.EDnDType;
+import org.caleydo.core.view.opengl.layout2.dnd.IDnDItem;
+import org.caleydo.core.view.opengl.layout2.dnd.IDragInfo;
+import org.caleydo.core.view.opengl.layout2.dnd.IDropGLTarget;
 import org.caleydo.core.view.opengl.layout2.layout.GLLayoutDatas;
 import org.caleydo.core.view.opengl.layout2.layout.GLLayouts;
 import org.caleydo.core.view.opengl.layout2.layout.IGLLayout2;
 import org.caleydo.core.view.opengl.layout2.layout.IGLLayoutElement;
 import org.caleydo.core.view.opengl.picking.IPickingListener;
 import org.caleydo.core.view.opengl.picking.Pick;
-import org.caleydo.core.view.opengl.picking.PickingMode;
+import org.caleydo.view.domino.internal.dnd.NodeDragInfo;
+import org.caleydo.view.domino.internal.dnd.TablePerspectiveDragInfo;
 import org.caleydo.view.domino.internal.ui.DominoBandLayer;
 import org.caleydo.view.domino.internal.ui.prototype.INode;
+import org.caleydo.view.domino.internal.ui.prototype.Nodes;
 import org.caleydo.view.domino.internal.ui.prototype.graph.DominoGraph;
 
 import com.google.common.base.Function;
@@ -42,6 +48,39 @@ public class GraphElement extends GLElementContainer implements IGLLayout2, IPic
 	private final DominoGraph graph = new DominoGraph();
 	private final Routes routes = new Routes();
 	private final DominoNodeLayer nodes;
+	private final IDropGLTarget dropTarget = new IDropGLTarget() {
+		@Override
+		public void onItemChanged(IDnDItem item) {
+
+		}
+
+		@Override
+		public void onDrop(IDnDItem item) {
+			IDragInfo info = item.getInfo();
+			if (info instanceof NodeDragInfo) {
+				NodeDragInfo ni = (NodeDragInfo) info;
+				INode n = ni.getNode();
+				if (item.getType() == EDnDType.COPY) {
+					graph.addVertex(n.clone());
+				} else
+					graph.detach(n, true);
+			} else if (info instanceof TablePerspectiveDragInfo) {
+				INode node = Nodes.create(((TablePerspectiveDragInfo) info).getTablePerspective());
+				graph.addVertex(node);
+			}
+		}
+
+		@Override
+		public EDnDType defaultSWTDnDType(IDnDItem item) {
+			return EDnDType.MOVE;
+		}
+
+		@Override
+		public boolean canSWTDrop(IDnDItem item) {
+			IDragInfo info = item.getInfo();
+			return info instanceof NodeDragInfo || info instanceof TablePerspectiveDragInfo;
+		}
+	};
 
 	/**
 	 *
@@ -61,16 +100,27 @@ public class GraphElement extends GLElementContainer implements IGLLayout2, IPic
 
 	@Override
 	public void pick(Pick pick) {
-		if (pick.getPickingMode() == PickingMode.MOUSE_WHEEL) {
-			for (ANodeElement elem : nodes.getNodes()) {
+		switch (pick.getPickingMode()) {
+		case MOUSE_WHEEL:
+			for (ANodeElement elem : nodes.getNodes())
 				elem.pick(pick);
-			}
+			break;
+		case MOUSE_OVER:
+			context.getMouseLayer().addDropTarget(dropTarget);
+			break;
+		case MOUSE_OUT:
+			context.getMouseLayer().removeDropTarget(dropTarget);
+			break;
+		default:
+			break;
 		}
 	}
 
 	@Override
 	public boolean doLayout(List<? extends IGLLayoutElement> children, float w, float h, IGLLayoutElement parent,
 			int deltaTimeMs) {
+		if (children.isEmpty())
+			return false;
 		Function<INode, NodeLayoutElement> lookup = Functions.forMap(asLookup(children));
 		List<Set<INode>> sets = this.graph.connectedSets();
 

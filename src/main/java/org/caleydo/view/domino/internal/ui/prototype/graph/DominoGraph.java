@@ -78,7 +78,7 @@ public class DominoGraph {
 		this.graph.addGraphListener(this.connectivity);
 		this.graph.addGraphListener(new GraphListenerAdapter(propertySupport));
 
-		Demo.fill(this);
+		// Demo.fill(this);
 	}
 
 	public final void addPropertyChangeListener(PropertyChangeListener listener) {

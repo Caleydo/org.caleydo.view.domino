@@ -15,18 +15,9 @@ import org.caleydo.core.view.opengl.canvas.IGLCanvas;
 import org.caleydo.core.view.opengl.layout2.GLElement;
 import org.caleydo.core.view.opengl.layout2.GLElementDecorator;
 import org.caleydo.core.view.opengl.layout2.basic.ScrollingDecorator;
-import org.caleydo.core.view.opengl.layout2.manage.GLElementFactories;
-import org.caleydo.core.view.opengl.layout2.manage.GLElementFactories.GLElementSupplier;
-import org.caleydo.core.view.opengl.layout2.manage.GLElementFactoryContext;
-import org.caleydo.core.view.opengl.layout2.manage.GLElementFactorySwitcher;
-import org.caleydo.core.view.opengl.layout2.manage.GLElementFactorySwitcher.ELazyiness;
 import org.caleydo.core.view.opengl.layout2.view.AMultiTablePerspectiveElementView;
-import org.caleydo.datadomain.pathway.graph.PathwayGraph;
-import org.caleydo.datadomain.pathway.manager.PathwayManager;
 import org.caleydo.view.domino.internal.event.ToggleHeaderAlwaysEvent;
-
-import com.google.common.base.Predicates;
-import com.google.common.collect.ImmutableList;
+import org.caleydo.view.domino.internal.ui.prototype.ui.GraphElement;
 
 /**
  * basic view based on {@link GLElement} with a {@link AMultiTablePerspectiveElementView}
@@ -38,15 +29,11 @@ public class DominoView extends AMultiTablePerspectiveElementView {
 	public static final String VIEW_TYPE = "org.caleydo.view.domino";
 	public static final String VIEW_NAME = "Domino";
 
-	private final GLElement domino;
+	private final GraphElement domino;
 
 	public DominoView(IGLCanvas glCanvas) {
 		super(glCanvas, VIEW_TYPE, VIEW_NAME);
-		// this.domino = new DominoMultiElement(new MultiConfig());
-		GLElementFactoryContext.Builder builder = GLElementFactoryContext.builder();
-		builder.put(PathwayGraph.class, PathwayManager.get().getAllItems().iterator().next());
-		ImmutableList<GLElementSupplier> extension = GLElementFactories.getExtensions(builder.build(), "domino", Predicates.alwaysTrue());
-		domino = new GLElementFactorySwitcher(extension, ELazyiness.DESTROY);
+		domino = new GraphElement();
 	}
 
 	@Override

@@ -12,13 +12,14 @@ import org.caleydo.core.data.collection.EDimension;
 import org.caleydo.core.id.IDType;
 import org.caleydo.core.util.base.ILabeled;
 import org.caleydo.core.view.opengl.layout2.GLElement;
+import org.caleydo.core.view.opengl.layout2.layout.IHasGLLayoutData;
 import org.caleydo.view.domino.api.model.TypedSet;
 
 /**
  * @author Samuel Gratzl
  *
  */
-public interface INode extends ILabeled, Cloneable {
+public interface INode extends ILabeled, Cloneable, IHasGLLayoutData {
 	String PROP_TRANSPOSE = "transpose";
 
 	TypedSet getData(EDimension dim);
@@ -47,4 +48,6 @@ public interface INode extends ILabeled, Cloneable {
 	void removePropertyChangeListener(PropertyChangeListener listener);
 
 	void removePropertyChangeListener(String propertyName, PropertyChangeListener listener);
+
+	INode setLayoutData(Object layoutData);
 }

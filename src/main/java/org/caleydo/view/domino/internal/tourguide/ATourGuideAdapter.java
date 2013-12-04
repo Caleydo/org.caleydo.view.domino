@@ -10,6 +10,7 @@ import java.util.Collection;
 
 import org.caleydo.core.view.opengl.layout2.GLElementContainer;
 import org.caleydo.core.view.opengl.layout2.IGLElementContext;
+import org.caleydo.core.view.opengl.layout2.IMouseLayer;
 import org.caleydo.core.view.opengl.picking.PickingMode;
 import org.caleydo.view.domino.internal.DominoView;
 import org.caleydo.view.domino.internal.DominoViewPart;
@@ -30,6 +31,7 @@ import org.eclipse.ui.IWorkbenchPart;
 public abstract class ATourGuideAdapter implements ITourGuideAdapter {
 	protected DominoView domino;
 	protected ITourGuideView vis;
+	private DragRowSource dragSource;
 
 	@Override
 	public void addDefaultColumns(RankTableModel table) {
@@ -85,8 +87,24 @@ public abstract class ATourGuideAdapter implements ITourGuideAdapter {
 	@Override
 	public void onRowClick(RankTableModel table, PickingMode pickingMode, AScoreRow row, boolean isSelected,
 			IGLElementContext context) {
-		// TODO Auto-generated method stub
-
+		if (!isSelected)
+			return;
+		IMouseLayer m = context.getMouseLayer();
+		switch (pickingMode) {
+		case MOUSE_OVER:
+			if (dragSource != null) {
+				m.removeDragSource(dragSource);
+			}
+			m.addDragSource(dragSource = new DragRowSource(row));
+			break;
+		case MOUSE_OUT:
+			if (dragSource != null)
+				m.removeDragSource(dragSource);
+			dragSource = null;
+			break;
+		default:
+			break;
+		}
 	}
 
 	@Override

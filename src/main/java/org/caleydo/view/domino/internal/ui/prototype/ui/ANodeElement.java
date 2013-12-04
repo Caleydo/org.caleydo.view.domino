@@ -47,6 +47,13 @@ public abstract class ANodeElement extends GLElementContainer implements IHasMin
 	public ANodeElement(INode node) {
 		setLayout(this);
 		this.info = new DominoLayoutInfo(this, ElementConfig.ALL);
+		DominoLayoutInfo old = node.getLayoutDataAs(DominoLayoutInfo.class, null);
+		if (old != null)
+			this.info.fromOld(old);
+		else {
+			this.info.setZoomFactor(0.2f, 0.2f); // todo better values
+			node.setLayoutData(this.info);
+		}
 		this.content = node.createUI();
 		this.node = node;
 		this.node.addPropertyChangeListener(INode.PROP_TRANSPOSE, this);
@@ -79,9 +86,6 @@ public abstract class ANodeElement extends GLElementContainer implements IHasMin
 		IMouseEvent event = ((IMouseEvent) pick);
 		DominoGraph graph = findGraph();
 		switch (pick.getPickingMode()) {
-		case MOUSE_WHEEL:
-			info.zoom(event);
-			break;
 		case RIGHT_CLICKED:
 			graph.transpose(node);
 			break;
@@ -99,7 +103,15 @@ public abstract class ANodeElement extends GLElementContainer implements IHasMin
 
 	@Override
 	public void pick(Pick pick) {
-
+		IMouseEvent event = ((IMouseEvent) pick);
+		DominoGraph graph = findGraph();
+		switch (pick.getPickingMode()) {
+		case MOUSE_WHEEL:
+			info.zoom(event);
+			break;
+		default:
+			break;
+		}
 	}
 
 	@Override

@@ -37,7 +37,6 @@ public class PlaceholderNodeElement extends ANodeElement implements IDropGLTarge
 			context.getMouseLayer().addDropTarget(this);
 			break;
 		case MOUSE_OUT:
-			System.out.println("remove placeholder");
 			context.getMouseLayer().removeDropTarget(this);
 			break;
 		default:

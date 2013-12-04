@@ -85,7 +85,7 @@ public class Routes implements IBandRoutesProvider {
 	 * @return
 	 */
 	private List<Vec2f> createCurve(Rect s, Rect t, EDimension dim) {
-		assert dim == EDimension.RECORD;
+		assert dim == EDimension.DIMENSION;
 		if (s.x() > t.x()) {
 			Rect tmp = s;
 			s = t;

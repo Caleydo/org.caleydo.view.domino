@@ -8,12 +8,16 @@ package org.caleydo.view.domino.internal.ui.prototype;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.util.EnumSet;
+import java.util.Objects;
 import java.util.Set;
 
 import org.caleydo.core.data.collection.EDimension;
 import org.caleydo.core.id.IDType;
+import org.caleydo.core.view.opengl.layout2.layout.GLLayouts;
 import org.caleydo.view.domino.api.model.TypedCollections;
 
+import com.google.common.base.Supplier;
+import com.google.common.base.Suppliers;
 import com.google.common.collect.Sets;
 
 /**
@@ -23,11 +27,32 @@ import com.google.common.collect.Sets;
 public abstract class ANode implements INode {
 	protected final PropertyChangeSupport propertySupport = new PropertyChangeSupport(this);
 
+	private Object layoutData;
 	public ANode() {
 	}
 
 	public ANode(ANode clone) {
 
+	}
+
+	@Override
+	public final ANode setLayoutData(Object layoutData) {
+		if (Objects.equals(this.layoutData, layoutData))
+			return this;
+		this.layoutData = layoutData;
+		return this;
+	}
+
+	@Override
+	public final <T> T getLayoutDataAs(Class<T> clazz, T default_) {
+		return getLayoutDataAs(clazz, Suppliers.ofInstance(default_));
+	}
+
+	@Override
+	public <T> T getLayoutDataAs(Class<T> clazz, Supplier<? extends T> default_) {
+		if (clazz.isInstance(this))
+			return clazz.cast(this);
+		return GLLayouts.resolveLayoutData(clazz, layoutData, default_);
 	}
 
 	@Override
