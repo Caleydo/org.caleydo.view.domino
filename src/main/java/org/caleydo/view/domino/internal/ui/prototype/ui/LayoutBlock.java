@@ -14,6 +14,7 @@ import java.util.Map.Entry;
 
 import org.apache.commons.lang.ArrayUtils;
 import org.caleydo.core.data.collection.EDimension;
+import org.caleydo.core.view.opengl.layout2.layout.GLLayouts;
 import org.caleydo.view.domino.internal.ui.prototype.BandEdge;
 import org.caleydo.view.domino.internal.ui.prototype.EDirection;
 import org.caleydo.view.domino.internal.ui.prototype.IEdge;
@@ -22,8 +23,10 @@ import org.caleydo.view.domino.internal.ui.prototype.MagneticEdge;
 import org.caleydo.view.domino.internal.ui.prototype.graph.DominoGraph;
 
 import com.google.common.base.Function;
+import com.google.common.collect.HashMultiset;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Multiset;
 
 /**
  * @author Samuel Gratzl
@@ -34,13 +37,23 @@ class LayoutBlock implements Runnable {
 	private final float[] cols;
 	private final float[] rows;
 
+	private final BlockInfo info;
+
 	private float x = 0;
 	private float y = 0;
 
-	public LayoutBlock(NodeLayoutElement[][] arr, float[] cols, float[] rows) {
+	public LayoutBlock(NodeLayoutElement[][] arr, float[] cols, float[] rows, BlockInfo info) {
 		this.arr = arr;
 		this.cols = cols;
 		this.rows = rows;
+		this.info = info;
+	}
+
+	/**
+	 * @return the info, see {@link #info}
+	 */
+	public BlockInfo getInfo() {
+		return info;
 	}
 
 	public Vec2f getSize() {
@@ -60,6 +73,7 @@ class LayoutBlock implements Runnable {
 				NodeLayoutElement v = line[j];
 				if (v == null)
 					continue;
+				v.setBlock(info);
 				Vec2f size = v.getSize();
 				float xi = (j == 0 ? 0 : cols[j - 1]);
 				float yi = (i == 0 ? 0 : rows[i - 1]);
@@ -113,7 +127,50 @@ class LayoutBlock implements Runnable {
 		cols = postsum(cols);
 		rows = postsum(rows);
 
-		return new LayoutBlock(arr, cols, rows);
+		return new LayoutBlock(arr, cols, rows, findInfo(arr));
+	}
+
+	/**
+	 * @param arr2
+	 * @return
+	 */
+	private static BlockInfo findInfo(NodeLayoutElement[][] arr) {
+		Multiset<BlockInfo> infos = HashMultiset.create();
+		int c = 0;
+		NodeLayoutElement first = null;
+		for (int i = 0; i < arr.length; ++i) {
+			NodeLayoutElement[] line = arr[i];
+			for (int j = 0; j < line.length; ++j) {
+				NodeLayoutElement v = line[j];
+				if (v == null)
+					continue;
+				if (first == null)
+					first = v;
+				c++;
+				BlockInfo b = v.getBlock();
+				infos.add(b);
+			}
+		}
+		infos.setCount(null, 0);
+		BlockInfo act = null;
+		int hits = 0;
+		for (Multiset.Entry<BlockInfo> b : infos.entrySet()) {
+			if (hits > b.getCount())
+				continue;
+			hits = b.getCount();
+			act = b.getElement();
+		}
+		if (act == null) {
+			act = new BlockInfo();
+			assert first != null;
+			Vec2f loc = first.asElem().getSetLocation();
+			if (!GLLayouts.isDefault(loc.x()))
+				act.x = loc.x();
+			if (!GLLayouts.isDefault(loc.y()))
+				act.y = loc.y();
+		}
+		act.c = c;
+		return act;
 	}
 
 	/**

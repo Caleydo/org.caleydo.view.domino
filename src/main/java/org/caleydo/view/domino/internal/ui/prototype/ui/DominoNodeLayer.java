@@ -74,4 +74,15 @@ public class DominoNodeLayer extends GLElementContainer {
 		return Iterables.filter(this, ANodeElement.class);
 	}
 
+	/**
+	 * @param n
+	 * @return
+	 */
+	public ANodeElement find(INode n) {
+		for (ANodeElement elem : getNodes())
+			if (elem.getNode() == n)
+				return elem;
+		return null;
+	}
+
 }

@@ -30,6 +30,7 @@ import org.caleydo.core.view.opengl.layout2.basic.ScrollingDecorator.IHasMinSize
 import org.caleydo.core.view.opengl.layout2.layout.IGLLayout;
 import org.caleydo.core.view.opengl.layout2.layout.IGLLayoutElement;
 import org.caleydo.core.view.opengl.layout2.manage.GLElementFactorySwitcher.IActiveChangedCallback;
+import org.caleydo.view.domino.internal.ui.prototype.ui.BlockInfo;
 import org.caleydo.view.domino.spi.config.ElementConfig;
 
 /**
@@ -61,6 +62,8 @@ public class DominoLayoutInfo implements IActiveChangedCallback, IGLLayout {
 
 	private boolean dragged = false;
 
+	private BlockInfo block;
+
 	/**
 	 * @param crosswordElement
 	 */
@@ -80,6 +83,21 @@ public class DominoLayoutInfo implements IActiveChangedCallback, IGLLayout {
 	 */
 	public ElementConfig getConfig() {
 		return config;
+	}
+
+	/**
+	 * @return the block, see {@link #block}
+	 */
+	public BlockInfo getBlock() {
+		return block;
+	}
+
+	/**
+	 * @param block
+	 *            setter, see {@link block}
+	 */
+	public void setBlock(BlockInfo block) {
+		this.block = block;
 	}
 
 	/**

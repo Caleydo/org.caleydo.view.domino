@@ -51,6 +51,9 @@ public abstract class ANodeElement extends GLElementContainer implements IHasMin
 		if (old != null)
 			this.info.fromOld(old);
 		else {
+			Vec2f pos = node.getLayoutDataAs(Vec2f.class, null);
+			if (pos != null)
+				setLocation(pos.x(), pos.y());
 			this.info.setZoomFactor(0.2f, 0.2f); // todo better values
 			node.setLayoutData(this.info);
 		}

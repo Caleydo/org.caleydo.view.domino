@@ -27,6 +27,14 @@ class NodeLayoutElement {
 				GLLayoutDatas.<DominoLayoutInfo> throwInvalidException());
 	}
 
+	public BlockInfo getBlock() {
+		return info.getBlock();
+	}
+
+	public void setBlock(BlockInfo block) {
+		info.setBlock(block);
+	}
+
 	/**
 	 * @return
 	 */

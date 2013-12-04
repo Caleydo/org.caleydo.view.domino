@@ -57,15 +57,23 @@ public class GraphElement extends GLElementContainer implements IGLLayout2, IPic
 		@Override
 		public void onDrop(IDnDItem item) {
 			IDragInfo info = item.getInfo();
+			Vec2f pos = toRelative(item.getMousePos());
 			if (info instanceof NodeDragInfo) {
 				NodeDragInfo ni = (NodeDragInfo) info;
 				INode n = ni.getNode();
 				if (item.getType() == EDnDType.COPY) {
-					graph.addVertex(n.clone());
-				} else
+					n = n.clone();
+					n.setLayoutData(pos);
+					graph.addVertex(n);
+				} else {
 					graph.detach(n, true);
+					ANodeElement elem = nodes.find(n);
+					if (elem != null)
+						elem.setLocation(pos.x(), pos.y());
+				}
 			} else if (info instanceof TablePerspectiveDragInfo) {
 				INode node = Nodes.create(((TablePerspectiveDragInfo) info).getTablePerspective());
+				node.setLayoutData(pos);
 				graph.addVertex(node);
 			}
 		}
@@ -134,7 +142,13 @@ public class GraphElement extends GLElementContainer implements IGLLayout2, IPic
 		float x = 0;
 		for (LayoutBlock block : blocks) {
 			Vec2f size = block.getSize();
-			block.shift(x, 0);
+			float xi = block.getInfo().x;
+			if (GLLayouts.isDefault(xi))
+				xi = x;
+			float yi = block.getInfo().y;
+			if (GLLayouts.isDefault(yi))
+				yi = 0;
+			block.shift(xi, yi);
 			block.run();
 			x += size.x() + 20;
 		}

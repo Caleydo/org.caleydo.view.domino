@@ -223,7 +223,7 @@ public class DominoGraph {
 	}
 
 	public enum EPlaceHolderFlag {
-		INCLUDE_TRANSPOSE, INCLUDE_BETWEEN_BANDS, INCLUDE_BETWEEN_MAGNETIC, INCLUDE_FREE
+		INCLUDE_TRANSPOSE, INCLUDE_BETWEEN_BANDS, INCLUDE_BETWEEN_MAGNETIC
 	}
 	/**
 	 * find all placed where this node can be attached
@@ -246,8 +246,6 @@ public class DominoGraph {
 					addPlaceHolders(node, places, v, dim, dim.opposite(), flagsS);
 			}
 		}
-		if (edgesOf(node, false).size() > 0 && flagsS.contains(EPlaceHolderFlag.INCLUDE_FREE))
-			places.add(new Placeholder(null, null, false));
 		return ImmutableSet.copyOf(places);
 	}
 

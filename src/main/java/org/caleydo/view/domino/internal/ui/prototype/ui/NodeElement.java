@@ -27,7 +27,6 @@ import org.caleydo.view.domino.internal.dnd.NodeDragInfo;
 import org.caleydo.view.domino.internal.ui.ReScaleBorder;
 import org.caleydo.view.domino.internal.ui.prototype.INode;
 import org.caleydo.view.domino.internal.ui.prototype.graph.DominoGraph;
-import org.caleydo.view.domino.internal.ui.prototype.graph.DominoGraph.EPlaceHolderFlag;
 import org.caleydo.view.domino.internal.ui.prototype.graph.Placeholder;
 import org.eclipse.swt.SWT;
 
@@ -52,7 +51,7 @@ public class NodeElement extends ANodeElement {
 		@Override
 		public IDragInfo startSWTDrag(IDragEvent event) {
 			EventPublisher.trigger(new ShowPlaceHoldersEvent().to(NodeElement.this));
-			return new NodeDragInfo(node, event.getOffset());
+			return new NodeDragInfo(node, event.getMousePos());
 		}
 
 		@Override
@@ -82,7 +81,7 @@ public class NodeElement extends ANodeElement {
 	@ListenTo(sendToMe = true)
 	private void onShowPlaceHoldersEvent(ShowPlaceHoldersEvent event) {
 		DominoGraph graph = findGraph();
-		Set<Placeholder> placeholders = graph.findPlaceholders(node, EPlaceHolderFlag.INCLUDE_FREE);
+		Set<Placeholder> placeholders = graph.findPlaceholders(node);
 		graph.insertPlaceholders(placeholders, node);
 
 	}
