@@ -13,16 +13,17 @@ import org.caleydo.core.data.virtualarray.VirtualArray;
 import org.caleydo.core.data.virtualarray.group.Group;
 import org.caleydo.core.id.IDType;
 import org.caleydo.view.tourguide.api.model.AVirtualArrayScoreRow;
+import org.caleydo.view.tourguide.api.model.ITablePerspectiveScoreRow;
 
 import com.google.common.base.Objects;
 
 /**
  * a scorerow for the default table perspective
- * 
+ *
  * @author Samuel Gratzl
- * 
+ *
  */
-public class DataDomainScoreRow extends AVirtualArrayScoreRow {
+public class DataDomainScoreRow extends AVirtualArrayScoreRow implements ITablePerspectiveScoreRow {
 	private final ATableBasedDataDomain dataDomain;
 
 	public DataDomainScoreRow(ATableBasedDataDomain dataDomain) {
@@ -77,6 +78,11 @@ public class DataDomainScoreRow extends AVirtualArrayScoreRow {
 	@Override
 	public boolean is(Perspective p) {
 		return dataDomain.getTable().getDefaultRecordPerspective(false).equals(p);
+	}
+
+	@Override
+	public TablePerspective asTablePerspective() {
+		return dataDomain.getDefaultTablePerspective();
 	}
 
 }

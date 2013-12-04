@@ -10,13 +10,20 @@ import gleem.linalg.Vec2f;
 import java.util.Set;
 
 import org.caleydo.core.data.selection.SelectionType;
+import org.caleydo.core.event.EventListenerManager.ListenTo;
+import org.caleydo.core.event.EventPublisher;
 import org.caleydo.core.util.color.Color;
 import org.caleydo.core.view.opengl.canvas.IGLMouseListener.IMouseEvent;
 import org.caleydo.core.view.opengl.layout.Column.VAlign;
+import org.caleydo.core.view.opengl.layout2.GLElement;
 import org.caleydo.core.view.opengl.layout2.GLGraphics;
+import org.caleydo.core.view.opengl.layout2.dnd.IDnDItem;
+import org.caleydo.core.view.opengl.layout2.dnd.IDragGLSource;
+import org.caleydo.core.view.opengl.layout2.dnd.IDragInfo;
 import org.caleydo.core.view.opengl.layout2.renderer.Borders;
 import org.caleydo.core.view.opengl.layout2.renderer.Borders.IBorderGLRenderer;
 import org.caleydo.core.view.opengl.picking.Pick;
+import org.caleydo.view.domino.internal.dnd.NodeDragInfo;
 import org.caleydo.view.domino.internal.ui.ReScaleBorder;
 import org.caleydo.view.domino.internal.ui.prototype.INode;
 import org.caleydo.view.domino.internal.ui.prototype.graph.DominoGraph;
@@ -40,12 +47,69 @@ public class NodeElement extends ANodeElement {
 		this.add(new ReScaleBorder(info).setRenderer(border));
 	}
 
+	private final IDragGLSource source = new IDragGLSource() {
+
+		@Override
+		public IDragInfo startSWTDrag(IDragEvent event) {
+			EventPublisher.trigger(new ShowPlaceHoldersEvent().to(NodeElement.this));
+			return new NodeDragInfo(node, event.getOffset());
+		}
+
+		@Override
+		public void onDropped(IDnDItem info) {
+			DominoGraph graph = findGraph();
+			graph.removePlaceholders(ImmutableSet.copyOf(Iterables.filter(graph.vertexSet(), PlaceholderNode.class)));
+			// if (info.getType() == EDnDType.MOVE) {
+			// System.out.println("detach");
+			// Collection<IEdge> detached = graph.detach(node, true);
+			// }
+		}
+
+		@Override
+		public GLElement createUI(IDragInfo info) {
+			NodeDragInfo d = ((NodeDragInfo) info);
+			GLElement e = d.createUI();
+			return e;
+		}
+	};
+
+	@Override
+	protected void takeDown() {
+		context.getMouseLayer().removeDragSource(source);
+		super.takeDown();
+	}
+
+	@ListenTo(sendToMe = true)
+	private void onShowPlaceHoldersEvent(ShowPlaceHoldersEvent event) {
+		DominoGraph graph = findGraph();
+		Set<Placeholder> placeholders = graph.findPlaceholders(node, EPlaceHolderFlag.INCLUDE_FREE);
+		graph.insertPlaceholders(placeholders, node);
+
+	}
+
+	@Override
+	protected void onMainPick(Pick pick) {
+		switch (pick.getPickingMode()) {
+		case MOUSE_OVER:
+			if (info.getConfig().canMove()) {
+				context.getMouseLayer().addDragSource(source);
+				context.getSWTLayer().setCursor(SWT.CURSOR_HAND);
+			}
+			break;
+		case MOUSE_OUT:
+			context.getMouseLayer().removeDragSource(source);
+			context.getSWTLayer().setCursor(-1);
+			break;
+		default:
+			break;
+		}
+	}
+
 	@Override
 	public void pick(Pick pick) {
 		super.pick(pick);
 		IMouseEvent event = ((IMouseEvent) pick);
 		boolean isToolBar = pick.getObjectID() > 0;
-		DominoGraph graph = findGraph();
 		switch (pick.getPickingMode()) {
 		case MOUSE_OVER:
 			if (!isToolBar) {
@@ -59,58 +123,9 @@ public class NodeElement extends ANodeElement {
 				info.setHovered(info.isSelected());
 			}
 			break;
-		// case DRAG_DETECTED:
-		// if (((isToolBar && !event.isCtrlDown()) || (!isToolBar && event.isCtrlDown())) && !pick.isAnyDragging()) {
-		// pick.setDoDragging(true);
-		// }
-		// break;
-		case CLICKED:
-			if (((isToolBar && !event.isCtrlDown()) || (!isToolBar && event.isCtrlDown())) && !pick.isAnyDragging()) {
-				pick.setDoDragging(true);
-				info.setDragged(true);
-				graph.detach(node, true);
-				graph.removePlaceholders(ImmutableSet.copyOf(Iterables.filter(graph.vertexSet(), PlaceholderNode.class)));
-				Set<Placeholder> placeholders = graph.findPlaceholders(node, EPlaceHolderFlag.INCLUDE_TRANSPOSE,
-						EPlaceHolderFlag.INCLUDE_BETWEEN_BANDS, EPlaceHolderFlag.INCLUDE_BETWEEN_MAGNETIC);
-				graph.insertPlaceholders(placeholders, node);
-			}
-			if (isToolBar)
-				info.setSelected(true);
-			break;
-		case DRAGGED:
-			if (!pick.isDoDragging() || !info.getConfig().canMove())
-				return;
-			context.getSWTLayer().setCursor(SWT.CURSOR_HAND);
-			info.shift(pick.getDx(), pick.getDy());
-			break;
 		case MOUSE_RELEASED:
-			if (pick.isDoDragging()) {
-				context.getSWTLayer().setCursor(-1);
-				info.setDragged(false);
-			}
 			if (isToolBar)
 				info.setSelected(event.isCtrlDown()); // multi selection
-			break;
-		case DOUBLE_CLICKED:
-			// if (node instanceof ISortableNode) {
-			// Vec2f relative = toRelative(pick.getPickedPoint());
-			// Vec2f size = getSize();
-			// ISortableNode s = (ISortableNode) node;
-			//
-			// if (s.isSortable(EDimension.DIMENSION) != s.isSortable(EDimension.RECORD)) { // just in one direction
-			// findGraph().sortBy(s, EDimension.get(s.isSortable(EDimension.DIMENSION)));
-			// } else {
-			// boolean inX = relative.x() < size.x() * 0.25f || relative.x() > size.x() * 0.75f;
-			// boolean inY = relative.y() < size.y() * 0.25f || relative.y() > size.y() * 0.75f;
-			// if (inX != inY) // not the same, so one of them but not both or none
-			// findGraph().sortBy(s, EDimension.get(inX));
-			// }
-			// }
-			// findGraph().remove(node);
-			graph.removePlaceholders(ImmutableSet.copyOf(Iterables.filter(graph.vertexSet(), PlaceholderNode.class)));
-			Set<Placeholder> placeholders = graph.findPlaceholders(node, EPlaceHolderFlag.INCLUDE_TRANSPOSE,
-					EPlaceHolderFlag.INCLUDE_BETWEEN_BANDS, EPlaceHolderFlag.INCLUDE_BETWEEN_MAGNETIC);
-			graph.insertPlaceholders(placeholders, node);
 			break;
 		default:
 			break;

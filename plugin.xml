@@ -51,4 +51,10 @@
             class="org.caleydo.view.domino.internal.tourguide.StratifiationTourGuideAdapter$Factory">
       </adapter>
    </extension>
+   <extension
+         point="org.caleydo.core.view.dnd.TransferSerializer">
+      <serializer
+            class="org.caleydo.view.domino.internal.dnd.TablePerspectiveDragInfo.Serializer">
+      </serializer>
+   </extension>
 </plugin>

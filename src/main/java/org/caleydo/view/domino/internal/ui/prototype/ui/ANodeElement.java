@@ -15,6 +15,8 @@ import org.caleydo.core.data.collection.EDimension;
 import org.caleydo.core.view.opengl.canvas.IGLMouseListener.IMouseEvent;
 import org.caleydo.core.view.opengl.layout2.GLElement;
 import org.caleydo.core.view.opengl.layout2.GLElementContainer;
+import org.caleydo.core.view.opengl.layout2.GLGraphics;
+import org.caleydo.core.view.opengl.layout2.IGLElementContext;
 import org.caleydo.core.view.opengl.layout2.basic.ScrollingDecorator.IHasMinSize;
 import org.caleydo.core.view.opengl.layout2.layout.GLLayouts;
 import org.caleydo.core.view.opengl.layout2.layout.IGLLayout2;
@@ -40,6 +42,8 @@ public abstract class ANodeElement extends GLElementContainer implements IHasMin
 	private float scale = 20;
 	protected DominoLayoutInfo info;
 
+	private int mainPickingId;
+
 	public ANodeElement(INode node) {
 		setLayout(this);
 		this.info = new DominoLayoutInfo(this, ElementConfig.ALL);
@@ -52,7 +56,26 @@ public abstract class ANodeElement extends GLElementContainer implements IHasMin
 	}
 
 	@Override
-	public void pick(Pick pick) {
+	protected void init(IGLElementContext context) {
+		mainPickingId = context.registerPickingListener(new IPickingListener() {
+			@Override
+			public void pick(Pick pick) {
+				onMainPick(pick);
+			}
+		});
+		super.init(context);
+	}
+
+	@Override
+	protected void takeDown() {
+		context.unregisterPickingListener(mainPickingId);
+		super.takeDown();
+	}
+
+	/**
+	 * @param pick
+	 */
+	protected void onMainPick(Pick pick) {
 		IMouseEvent event = ((IMouseEvent) pick);
 		DominoGraph graph = findGraph();
 		switch (pick.getPickingMode()) {
@@ -65,6 +88,18 @@ public abstract class ANodeElement extends GLElementContainer implements IHasMin
 		default:
 			break;
 		}
+	}
+
+	/**
+	 * @return the info, see {@link #info}
+	 */
+	public DominoLayoutInfo getInfo() {
+		return info;
+	}
+
+	@Override
+	public void pick(Pick pick) {
+
 	}
 
 	@Override
@@ -88,6 +123,16 @@ public abstract class ANodeElement extends GLElementContainer implements IHasMin
 			int deltaTimeMs) {
 		GLLayouts.LAYERS.doLayout(children, w, h, parent, deltaTimeMs);
 		return false;
+	}
+
+	@Override
+	protected void renderPickImpl(GLGraphics g, float w, float h) {
+		if (getVisibility() == EVisibility.PICKABLE) {
+			g.pushName(mainPickingId);
+			g.fillRect(0, 0, w, h);
+			g.popName();
+		}
+		super.renderPickImpl(g, w, h);
 	}
 
 

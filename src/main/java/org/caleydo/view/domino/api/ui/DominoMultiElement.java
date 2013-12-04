@@ -621,4 +621,10 @@ public class DominoMultiElement extends GLElement implements IHasMinSize, IGLEle
 			targetConnector.update(targetIDs, intersection);
 		}
 	}
+
+	@Override
+	public void setCallback(Runnable toCall) {
+		// TODO Auto-generated method stub
+
+	}
 }

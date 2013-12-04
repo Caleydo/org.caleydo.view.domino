@@ -198,15 +198,17 @@ public class DominoGraph {
 		Collection<IEdge> edges = edgesOfSource(node);
 		if (edges.isEmpty())
 			return Collections.emptyList();
-		Map<EDirection, IEdge> index = Maps.uniqueIndex(edges, TO_DIRECTION);
-		// a-X-b -> a-b
-		// connect a and b if in between was our target node X with a band
+		if (mergeNeighbors) {
+			Map<EDirection, IEdge> index = Maps.uniqueIndex(edges, TO_DIRECTION);
+			// a-X-b -> a-b
+			// connect a and b if in between was our target node X with a band
 
-		for (EDirection dir : EnumSet.of(EDirection.LEFT_OF, EDirection.BELOW)) {
-			if (index.containsKey(dir) && index.containsKey(dir.opposite())) {
-				INode leftNode = index.get(dir.opposite()).getTarget();
-				INode rightNode = index.get(dir).getTarget();
-				band(leftNode, dir, rightNode);
+			for (EDirection dir : EnumSet.of(EDirection.LEFT_OF, EDirection.BELOW)) {
+				if (index.containsKey(dir) && index.containsKey(dir.opposite())) {
+					INode leftNode = index.get(dir.opposite()).getTarget();
+					INode rightNode = index.get(dir).getTarget();
+					band(leftNode, dir, rightNode);
+				}
 			}
 		}
 		graph.removeAllEdges(ImmutableList.copyOf(edgesOf(node, false)));
@@ -221,7 +223,7 @@ public class DominoGraph {
 	}
 
 	public enum EPlaceHolderFlag {
-		INCLUDE_TRANSPOSE, INCLUDE_BETWEEN_BANDS, INCLUDE_BETWEEN_MAGNETIC
+		INCLUDE_TRANSPOSE, INCLUDE_BETWEEN_BANDS, INCLUDE_BETWEEN_MAGNETIC, INCLUDE_FREE
 	}
 	/**
 	 * find all placed where this node can be attached
@@ -244,6 +246,8 @@ public class DominoGraph {
 					addPlaceHolders(node, places, v, dim, dim.opposite(), flagsS);
 			}
 		}
+		if (edgesOf(node, false).size() > 0 && flagsS.contains(EPlaceHolderFlag.INCLUDE_FREE))
+			places.add(new Placeholder(null, null, false));
 		return ImmutableSet.copyOf(places);
 	}
 
@@ -279,13 +283,14 @@ public class DominoGraph {
 		Set<PlaceholderNode> places = new HashSet<>();
 
 		for (Placeholder p : placeholders) {
-			INode v = p.getNode();
-			EDirection dir = p.getDir();
 			PlaceholderNode n = new PlaceholderNode(template, p.isTransposed());
 			places.add(n);
 			addVertex(n);
-
-			IEdge edge = getEdge(p.getNode(), p.getDir());
+			INode v = p.getNode();
+			if (v == null) // free node
+				continue;
+			EDirection dir = p.getDir();
+			IEdge edge = getEdge(v, dir);
 			if (edge != null) { // no split needed
 				INode v2 = edge.getTarget();
 				graph.removeEdge(edge.getRawSource(), edge.getRawTarget());
@@ -472,5 +477,71 @@ public class DominoGraph {
 		ListenableUndirectedMultigraph(Class<E> edgeClass) {
 			super(new Pseudograph<V, E>(edgeClass));
 		}
+	}
+
+	/**
+	 * @param node
+	 * @param node2
+	 */
+	public boolean move(INode node, PlaceholderNode to) {
+		if (!contains(to))
+			return false;
+		if (!match(node, to, true))
+			return false;
+		detach(node, true);
+		if (needTranspose(node, to))
+			node.transpose();
+		Collection<IEdge> edges = edgesOfSource(to);
+		for (IEdge edge : edges) {
+			edgeLike(edge, node, null);
+		}
+		detach(to, false);
+		remove(to);
+		return true;
+	}
+
+
+	/**
+	 * @param edge
+	 * @param to
+	 * @param object
+	 */
+	private void edgeLike(IEdge edge, INode s, INode t) {
+		if (s == null)
+			s = edge.getSource();
+		if (t == null)
+			t = edge.getTarget();
+		if (edge instanceof BandEdge)
+			band(s, edge.getDirection(), t);
+		else
+			magnetic(s, edge.getDirection(), t);
+	}
+
+
+	/**
+	 * @param node
+	 * @param to
+	 * @return
+	 */
+	private static boolean match(INode a, INode b, boolean checkTranspose) {
+		IDType a_d = a.getIDType(EDimension.DIMENSION);
+		IDType a_r = a.getIDType(EDimension.RECORD);
+		IDType b_d = b.getIDType(EDimension.DIMENSION);
+		IDType b_r = b.getIDType(EDimension.RECORD);
+		if (a_d == b_d && a_r == b_r)
+			return true;
+		if (checkTranspose && (a_d == b_r && a_r == b_d))
+			return true;
+		return false;
+	}
+
+	/**
+	 * @param node
+	 * @param to
+	 * @return
+	 */
+	private static boolean needTranspose(INode a, INode b) {
+		assert match(a, b, true);
+		return a.getIDType(EDimension.DIMENSION) != b.getIDType(EDimension.DIMENSION);
 	}
 }

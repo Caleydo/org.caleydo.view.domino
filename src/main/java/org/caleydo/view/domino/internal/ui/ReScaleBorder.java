@@ -63,7 +63,7 @@ public final class ReScaleBorder extends GLElement implements IPickingListener {
 		case MOUSE_OUT:
 			context.getSWTLayer().setCursor(-1);
 			break;
-		case CLICKED: // DRAG_DETECTED:
+		case DRAG_DETECTED:
 			if (!pick.isAnyDragging())
 				pick.setDoDragging(true);
 			break;
