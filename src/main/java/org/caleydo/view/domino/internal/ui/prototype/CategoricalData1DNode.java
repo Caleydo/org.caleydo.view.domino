@@ -5,23 +5,27 @@
  *******************************************************************************/
 package org.caleydo.view.domino.internal.ui.prototype;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
 import org.caleydo.core.data.collection.EDimension;
 import org.caleydo.core.data.collection.column.container.CategoricalClassDescription;
 import org.caleydo.core.data.collection.column.container.CategoryProperty;
-import org.caleydo.core.data.collection.table.CategoricalTable;
+import org.caleydo.core.data.collection.table.Table;
+import org.caleydo.core.data.datadomain.ATableBasedDataDomain;
 import org.caleydo.core.data.datadomain.DataSupportDefinitions;
 import org.caleydo.core.data.perspective.table.TablePerspective;
-import org.caleydo.core.data.virtualarray.group.Group;
 import org.caleydo.core.data.virtualarray.group.GroupList;
-import org.caleydo.core.util.color.Color;
 import org.caleydo.core.view.opengl.layout2.GLElement;
-import org.caleydo.core.view.opengl.layout2.GLGraphics;
+import org.caleydo.core.view.opengl.layout2.GLElementDecorator;
+import org.caleydo.core.view.opengl.layout2.manage.GLElementFactories;
+import org.caleydo.core.view.opengl.layout2.manage.GLElementFactories.GLElementSupplier;
+import org.caleydo.core.view.opengl.layout2.manage.GLElementFactoryContext;
+import org.caleydo.core.view.opengl.layout2.manage.GLElementFactorySwitcher;
+import org.caleydo.core.view.opengl.layout2.manage.GLElementFactorySwitcher.ELazyiness;
 
 import com.google.common.base.Objects;
+import com.google.common.base.Predicates;
 import com.google.common.collect.ImmutableList;
 
 /**
@@ -39,7 +43,7 @@ public final class CategoricalData1DNode extends AData1DNode {
 	public CategoricalData1DNode(TablePerspective data, EDimension main) {
 		super(data, main);
 		assert DataSupportDefinitions.categoricalColumns.apply(data);
-		this.properties = resolveCategories();
+		this.properties = resolveCategories(getSingleID(), getDataDomain(), main.opposite());
 		this.categories = toCategories(properties);
 	}
 
@@ -84,10 +88,12 @@ public final class CategoricalData1DNode extends AData1DNode {
 	}
 
 	@SuppressWarnings("unchecked")
-	private List<CategoryProperty<?>> resolveCategories() {
-		final CategoricalTable<?> table = (CategoricalTable<?>) getDataDomain().getTable();
+	static List<CategoryProperty<?>> resolveCategories(Integer singleID, ATableBasedDataDomain dataDomain,
+			EDimension dim) {
+		final Table table = dataDomain.getTable();
 
-		Object spec = table.getDataClassSpecificDescription(getSingleID(), 0);
+		Object spec = table.getDataClassSpecificDescription(dim.select(singleID.intValue(), 0),
+				dim.select(0, singleID.intValue()));
 		if (spec instanceof CategoricalClassDescription<?>) {
 			List<?> tmp = ((CategoricalClassDescription<?>) spec).getCategoryProperties();
 			return ImmutableList.copyOf((List<CategoryProperty<?>>) tmp);
@@ -100,39 +106,17 @@ public final class CategoricalData1DNode extends AData1DNode {
 		return new UI(this);
 	}
 
-	private static class UI extends GLElement {
+	private static class UI extends GLElementDecorator {
 		private final CategoricalData1DNode node;
 
 		public UI(CategoricalData1DNode node) {
 			this.node = node;
 			setLayoutData(node);
-		}
-
-		@Override
-		protected void renderImpl(GLGraphics g, float w, float h) {
-			GroupList groups = node.getGroups();
-			final int total = node.size();
-			boolean horizontal = node.isTransposed();
-			List<Color> colors = toColors(groups);
-			Utils.renderCategorical(g, w, h, groups, total, horizontal, colors);
-			super.renderImpl(g, w, h);
-		}
-
-		private List<Color> toColors(GroupList groups) {
-			List<Color> c = new ArrayList<>(groups.size());
-			for(Group g : groups) {
-				String label = g.getLabel();
-				CategoryProperty<?> prop = findProp(label);
-				c.add(prop == null ? Color.NEUTRAL_GREY : prop.getColor());
-			}
-			return c;
-		}
-
-		private CategoryProperty<?> findProp(String label) {
-			for (CategoryProperty<?> prop : node.getProperties())
-				if (prop.getCategoryName().equals(label))
-					return prop;
-			return null;
+			GLElementFactoryContext context = GLElementFactoryContext.builder().withData(node.getData()).build();
+			ImmutableList<GLElementSupplier> children = GLElementFactories.getExtensions(context,
+					"domino.1d.categorical", Predicates.alwaysTrue());
+			GLElementFactorySwitcher s = new GLElementFactorySwitcher(children, ELazyiness.DESTROY);
+			setContent(s);
 		}
 	}
 

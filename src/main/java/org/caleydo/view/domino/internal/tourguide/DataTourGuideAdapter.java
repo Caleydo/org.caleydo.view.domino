@@ -6,7 +6,9 @@
 package org.caleydo.view.domino.internal.tourguide;
 
 import org.caleydo.core.view.opengl.layout2.GLElementContainer;
+import org.caleydo.core.view.opengl.layout2.dnd.IDragGLSource;
 import org.caleydo.view.tourguide.api.model.ADataDomainQuery;
+import org.caleydo.view.tourguide.api.model.AScoreRow;
 import org.caleydo.view.tourguide.api.vis.ITourGuideView;
 import org.caleydo.view.tourguide.spi.adapter.ITourGuideAdapter;
 import org.caleydo.view.tourguide.spi.adapter.ITourGuideAdapterFactory;
@@ -34,6 +36,11 @@ public class DataTourGuideAdapter extends ATourGuideAdapter {
 		for (ADataDomainQuery query : vis.getQueries()) {
 			query.setActive(true);
 		}
+	}
+
+	@Override
+	protected IDragGLSource createDragSource(AScoreRow row) {
+		return new DragRowSource(row);
 	}
 
 	@Override

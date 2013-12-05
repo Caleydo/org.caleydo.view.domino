@@ -27,10 +27,12 @@ import org.caleydo.core.view.opengl.layout2.layout.IGLLayoutElement;
 import org.caleydo.core.view.opengl.picking.IPickingListener;
 import org.caleydo.core.view.opengl.picking.Pick;
 import org.caleydo.view.domino.internal.dnd.NodeDragInfo;
+import org.caleydo.view.domino.internal.dnd.PerspectiveDragInfo;
 import org.caleydo.view.domino.internal.dnd.TablePerspectiveDragInfo;
 import org.caleydo.view.domino.internal.ui.DominoBandLayer;
 import org.caleydo.view.domino.internal.ui.prototype.INode;
 import org.caleydo.view.domino.internal.ui.prototype.Nodes;
+import org.caleydo.view.domino.internal.ui.prototype.StratificationNode;
 import org.caleydo.view.domino.internal.ui.prototype.graph.DominoGraph;
 
 import com.google.common.base.Function;
@@ -75,6 +77,12 @@ public class GraphElement extends GLElementContainer implements IGLLayout2, IPic
 				INode node = Nodes.create(((TablePerspectiveDragInfo) info).getTablePerspective());
 				node.setLayoutData(pos);
 				graph.addVertex(node);
+			} else if (info instanceof PerspectiveDragInfo) {
+				PerspectiveDragInfo pinfo = (PerspectiveDragInfo) info;
+				StratificationNode node = new StratificationNode(pinfo.getPerspective(), pinfo.getDim(),
+						pinfo.getReferenceID());
+				node.setLayoutData(pos);
+				graph.addVertex(node);
 			}
 		}
 
@@ -86,7 +94,8 @@ public class GraphElement extends GLElementContainer implements IGLLayout2, IPic
 		@Override
 		public boolean canSWTDrop(IDnDItem item) {
 			IDragInfo info = item.getInfo();
-			return info instanceof NodeDragInfo || info instanceof TablePerspectiveDragInfo;
+			return info instanceof NodeDragInfo || info instanceof TablePerspectiveDragInfo
+					|| info instanceof PerspectiveDragInfo;
 		}
 	};
 

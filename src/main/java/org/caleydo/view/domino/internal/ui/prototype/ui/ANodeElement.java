@@ -13,7 +13,6 @@ import java.util.List;
 
 import org.caleydo.core.data.collection.EDimension;
 import org.caleydo.core.view.opengl.canvas.IGLMouseListener.IMouseEvent;
-import org.caleydo.core.view.opengl.layout2.GLElement;
 import org.caleydo.core.view.opengl.layout2.GLElementContainer;
 import org.caleydo.core.view.opengl.layout2.GLGraphics;
 import org.caleydo.core.view.opengl.layout2.IGLElementContext;
@@ -37,7 +36,7 @@ import com.google.common.base.Supplier;
 public abstract class ANodeElement extends GLElementContainer implements IHasMinSize, IGLLayout2, IPickingListener,
 		PropertyChangeListener {
 	protected static final int BORDER = 2;
-	protected final GLElement content;
+	protected final PickingBarrier content;
 	protected final INode node;
 	private float scale = 20;
 	protected DominoLayoutInfo info;
@@ -57,7 +56,7 @@ public abstract class ANodeElement extends GLElementContainer implements IHasMin
 			this.info.setZoomFactor(0.2f, 0.2f); // todo better values
 			node.setLayoutData(this.info);
 		}
-		this.content = node.createUI();
+		this.content = new PickingBarrier(node.createUI());
 		this.node = node;
 		this.node.addPropertyChangeListener(INode.PROP_TRANSPOSE, this);
 		this.add(content);
@@ -80,6 +79,10 @@ public abstract class ANodeElement extends GLElementContainer implements IHasMin
 	protected void takeDown() {
 		context.unregisterPickingListener(mainPickingId);
 		super.takeDown();
+	}
+
+	protected void setContentPickable(boolean pickable) {
+		this.content.setVisibility(pickable ? EVisibility.PICKABLE : EVisibility.VISIBLE);
 	}
 
 	/**
@@ -107,7 +110,6 @@ public abstract class ANodeElement extends GLElementContainer implements IHasMin
 	@Override
 	public void pick(Pick pick) {
 		IMouseEvent event = ((IMouseEvent) pick);
-		DominoGraph graph = findGraph();
 		switch (pick.getPickingMode()) {
 		case MOUSE_WHEEL:
 			info.zoom(event);

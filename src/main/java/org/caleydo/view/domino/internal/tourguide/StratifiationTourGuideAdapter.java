@@ -9,8 +9,10 @@ import org.caleydo.core.id.IDCategory;
 import org.caleydo.core.id.IDType;
 import org.caleydo.core.util.base.ICallback;
 import org.caleydo.core.view.opengl.layout2.GLElementContainer;
+import org.caleydo.core.view.opengl.layout2.dnd.IDragGLSource;
 import org.caleydo.view.domino.internal.tourguide.vis.EntityTypeSelector;
 import org.caleydo.view.tourguide.api.model.ADataDomainQuery;
+import org.caleydo.view.tourguide.api.model.AScoreRow;
 import org.caleydo.view.tourguide.api.model.ASingleIDDataDomainQuery;
 import org.caleydo.view.tourguide.api.model.StratificationDataDomainQuery;
 import org.caleydo.view.tourguide.api.vis.ITourGuideView;
@@ -40,6 +42,11 @@ public class StratifiationTourGuideAdapter extends ATourGuideAdapter implements 
 		lineUp.add(0, selector);
 
 		vis.updateBound2ViewState();
+	}
+
+	@Override
+	protected IDragGLSource createDragSource(AScoreRow row) {
+		return new DragPerspectiveRowSource(row);
 	}
 
 	@Override

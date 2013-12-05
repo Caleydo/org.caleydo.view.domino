@@ -56,5 +56,8 @@
       <serializer
             class="org.caleydo.view.domino.internal.dnd.TablePerspectiveDragInfo$Serializer">
       </serializer>
+      <serializer
+            class="org.caleydo.view.domino.internal.dnd.PerspectiveDragInfo$Serializer">
+      </serializer>
    </extension>
 </plugin>

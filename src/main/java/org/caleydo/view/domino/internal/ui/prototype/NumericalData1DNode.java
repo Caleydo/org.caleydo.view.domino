@@ -5,7 +5,6 @@
  *******************************************************************************/
 package org.caleydo.view.domino.internal.ui.prototype;
 
-import java.beans.PropertyChangeListener;
 import java.util.Objects;
 
 import org.caleydo.core.data.collection.EDataClass;
@@ -15,9 +14,15 @@ import org.caleydo.core.data.perspective.table.TableDoubleLists;
 import org.caleydo.core.data.perspective.table.TablePerspective;
 import org.caleydo.core.util.function.IDoubleList;
 import org.caleydo.core.view.opengl.layout2.GLElement;
-import org.caleydo.core.view.opengl.layout2.IGLElementContext;
-import org.caleydo.view.domino.internal.ui.prototype.ui.ATextured1DUI;
-import org.caleydo.vis.lineup.ui.GLPropertyChangeListeners;
+import org.caleydo.core.view.opengl.layout2.GLElementDecorator;
+import org.caleydo.core.view.opengl.layout2.manage.GLElementFactories;
+import org.caleydo.core.view.opengl.layout2.manage.GLElementFactories.GLElementSupplier;
+import org.caleydo.core.view.opengl.layout2.manage.GLElementFactoryContext;
+import org.caleydo.core.view.opengl.layout2.manage.GLElementFactorySwitcher;
+import org.caleydo.core.view.opengl.layout2.manage.GLElementFactorySwitcher.ELazyiness;
+
+import com.google.common.base.Predicates;
+import com.google.common.collect.ImmutableList;
 
 /**
  * @author Samuel Gratzl
@@ -51,31 +56,17 @@ public class NumericalData1DNode extends AData1DNode {
 		return new UI(this);
 	}
 
-	private static class UI extends ATextured1DUI {
+	private static class UI extends GLElementDecorator {
 		private final NumericalData1DNode node;
-		private final PropertyChangeListener repaint = GLPropertyChangeListeners.repaintOnEvent(this);
 
 		public UI(NumericalData1DNode node) {
 			this.node = node;
 			setLayoutData(node);
-		}
-
-		@Override
-		protected void init(IGLElementContext context) {
-			super.init(context);
-			update(node.getNormalizedData().iterator());
-			node.addPropertyChangeListener(PROP_TRANSPOSE, repaint);
-		}
-
-		@Override
-		protected void takeDown() {
-			node.removePropertyChangeListener(PROP_TRANSPOSE, repaint);
-			super.takeDown();
-		}
-
-		@Override
-		protected EDimension getDimension() {
-			return node.getDimension();
+			GLElementFactoryContext context = GLElementFactoryContext.builder().withData(node.getData()).build();
+			ImmutableList<GLElementSupplier> children = GLElementFactories.getExtensions(context,
+					"domino.1d.numerical", Predicates.alwaysTrue());
+			GLElementFactorySwitcher s = new GLElementFactorySwitcher(children, ELazyiness.DESTROY);
+			setContent(s);
 		}
 	}
 

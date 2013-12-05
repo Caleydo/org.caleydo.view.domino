@@ -99,6 +99,8 @@ public class NodeElement extends ANodeElement {
 			context.getMouseLayer().removeDragSource(source);
 			context.getSWTLayer().setCursor(-1);
 			break;
+		case MOUSE_RELEASED:
+			break;
 		default:
 			break;
 		}
@@ -108,23 +110,14 @@ public class NodeElement extends ANodeElement {
 	public void pick(Pick pick) {
 		super.pick(pick);
 		IMouseEvent event = ((IMouseEvent) pick);
-		boolean isToolBar = pick.getObjectID() > 0;
 		switch (pick.getPickingMode()) {
 		case MOUSE_OVER:
-			if (!isToolBar) {
-				border.setColor(SelectionType.MOUSE_OVER.getColor());
-				info.setHovered(true);
-			}
+			border.setColor(SelectionType.MOUSE_OVER.getColor());
+			info.setHovered(true);
 			break;
 		case MOUSE_OUT:
-			if (!isToolBar) {
-				border.setColor(Color.BLACK);
-				info.setHovered(info.isSelected());
-			}
-			break;
-		case MOUSE_RELEASED:
-			if (isToolBar)
-				info.setSelected(event.isCtrlDown()); // multi selection
+			border.setColor(Color.BLACK);
+			info.setHovered(info.isSelected());
 			break;
 		default:
 			break;

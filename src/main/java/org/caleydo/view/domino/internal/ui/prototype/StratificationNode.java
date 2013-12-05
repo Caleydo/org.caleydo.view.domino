@@ -5,9 +5,12 @@
  *******************************************************************************/
 package org.caleydo.view.domino.internal.ui.prototype;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.caleydo.core.data.collection.EDimension;
+import org.caleydo.core.data.collection.column.container.CategoryProperty;
+import org.caleydo.core.data.datadomain.ATableBasedDataDomain;
 import org.caleydo.core.data.perspective.variable.Perspective;
 import org.caleydo.core.data.virtualarray.group.Group;
 import org.caleydo.core.data.virtualarray.group.GroupList;
@@ -28,21 +31,63 @@ import org.caleydo.view.domino.api.model.TypedSet;
 public class StratificationNode extends ANode implements ISortableNode, ITypedComparator {
 	private final Perspective data;
 	private final TypedSet ids;
+	private final EDimension mainDim;
 	private EDimension dim;
 	private int sortingPriority = NO_SORTING;
+	private final Integer referenceId;
 
 	public StratificationNode(Perspective data, EDimension dim) {
+		this(data, dim, null);
+	}
+
+	public StratificationNode(Perspective data, EDimension dim, Integer referenceId) {
 		this.data = data;
+		this.referenceId = referenceId;
 		this.ids = TypedSet.of(data.getVirtualArray());
-		this.dim = dim;
+		this.dim = this.mainDim = dim;
 	}
 
 	public StratificationNode(StratificationNode clone) {
 		super(clone);
 		this.data = clone.data;
+		this.mainDim = clone.mainDim;
+		this.referenceId = clone.referenceId;
 		this.ids = clone.ids;
 		this.dim = clone.dim;
 		this.sortingPriority = NO_SORTING;
+	}
+
+	public ATableBasedDataDomain getDataDomain() {
+		return (ATableBasedDataDomain) data.getDataDomain();
+	}
+
+	public List<Color> getGroupColors() {
+		if (referenceId == null) {
+			return ColorBrewer.Set2.getColors(getGroups().size());
+		}
+		// lookup the colors from the properties
+		List<CategoryProperty<?>> categories = CategoricalData1DNode.resolveCategories(referenceId, getDataDomain(),
+				mainDim.opposite());
+		GroupList groups = getGroups();
+		List<Color> colors = new ArrayList<>(groups.size());
+		for (Group group : groups) {
+			String label = group.getLabel();
+			CategoryProperty<?> prop = findProp(label, categories);
+			colors.add(prop == null ? Color.NEUTRAL_GREY : prop.getColor());
+		}
+		return colors;
+	}
+
+	/**
+	 * @param label
+	 * @return
+	 */
+	private CategoryProperty<?> findProp(String label, List<CategoryProperty<?>> categories) {
+		for (CategoryProperty<?> prop : categories) {
+			if (prop.getCategoryName().equals(label))
+				return prop;
+		}
+		return null;
 	}
 
 	@Override
@@ -75,6 +120,7 @@ public class StratificationNode extends ANode implements ISortableNode, ITypedCo
 		return getData().getVirtualArray().getGroupList();
 	}
 
+
 	/**
 	 * @return the ids, see {@link #ids}
 	 */
@@ -105,7 +151,7 @@ public class StratificationNode extends ANode implements ISortableNode, ITypedCo
 			GroupList groups = node.getGroups();
 			final int total = node.size();
 			boolean horizontal = node.dim.isHorizontal();
-			List<Color> colors = ColorBrewer.Set2.getColors(groups.size());
+			List<Color> colors = node.getGroupColors();
 			Utils.renderCategorical(g, w, h, groups, total, horizontal, colors);
 			super.renderImpl(g, w, h);
 		}

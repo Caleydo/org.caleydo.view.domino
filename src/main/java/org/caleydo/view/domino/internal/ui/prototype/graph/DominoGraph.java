@@ -113,7 +113,7 @@ public class DominoGraph {
 	}
 
 	public void magnetic(INode a, EDirection dir, INode b) {
-		assert isCompatible(a.getIDType(dir.asDim()), b.getIDType(dir.asDim()));
+		assert isCompatible(a.getIDType(dir.asDim().opposite()), b.getIDType(dir.asDim().opposite()));
 		if (!dir.isPrimaryDirection()) {
 			dir = dir.opposite();
 			INode t = a;
