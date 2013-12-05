@@ -18,11 +18,17 @@ import org.caleydo.core.id.IDType;
 import org.caleydo.core.util.color.Color;
 import org.caleydo.core.util.color.ColorBrewer;
 import org.caleydo.core.view.opengl.layout2.GLElement;
-import org.caleydo.core.view.opengl.layout2.GLGraphics;
+import org.caleydo.core.view.opengl.layout2.manage.GLElementFactories;
+import org.caleydo.core.view.opengl.layout2.manage.GLElementFactories.GLElementSupplier;
+import org.caleydo.core.view.opengl.layout2.manage.GLElementFactoryContext;
+import org.caleydo.core.view.opengl.layout2.manage.GLElementFactoryContext.Builder;
 import org.caleydo.view.domino.api.model.ITypedComparator;
 import org.caleydo.view.domino.api.model.TypedCollections;
 import org.caleydo.view.domino.api.model.TypedList;
 import org.caleydo.view.domino.api.model.TypedSet;
+import org.caleydo.view.domino.internal.ui.prototype.ui.ANodeUI;
+
+import com.google.common.base.Predicates;
 
 /**
  * @author Samuel Gratzl
@@ -138,25 +144,6 @@ public class StratificationNode extends ANode implements ISortableNode, ITypedCo
 		return new UI(this);
 	}
 
-	private static class UI extends GLElement {
-		private final StratificationNode node;
-
-		public UI(StratificationNode node) {
-			this.node = node;
-			setLayoutData(node);
-		}
-
-		@Override
-		protected void renderImpl(GLGraphics g, float w, float h) {
-			GroupList groups = node.getGroups();
-			final int total = node.size();
-			boolean horizontal = node.dim.isHorizontal();
-			List<Color> colors = node.getGroupColors();
-			Utils.renderCategorical(g, w, h, groups, total, horizontal, colors);
-			super.renderImpl(g, w, h);
-		}
-	}
-
 	@Override
 	public boolean isSortable(EDimension dim) {
 		return isRightDimension(dim);
@@ -213,5 +200,28 @@ public class StratificationNode extends ANode implements ISortableNode, ITypedCo
 			return null;
 		Group group = getGroups().getGroupOfVAIndex(i);
 		return group;
+	}
+
+	private static class UI extends ANodeUI<StratificationNode> {
+		public UI(StratificationNode node) {
+			super(node);
+		}
+		@Override
+		protected List<GLElementSupplier> createVis() {
+			Builder b = GLElementFactoryContext.builder();
+			b.put(Perspective.class, node.getData());
+			b.put("colors", node.getGroupColors().toArray(new Color[0]));
+			return GLElementFactories.getExtensions(b.build(),"domino.stratification", Predicates.alwaysTrue());
+		}
+		//
+		// @Override
+		// protected void renderImpl(GLGraphics g, float w, float h) {
+		// GroupList groups = node.getGroups();
+		// final int total = node.size();
+		// boolean horizontal = node.dim.isHorizontal();
+		// List<Color> colors = node.getGroupColors();
+		// Utils.renderCategorical(g, w, h, groups, total, horizontal, colors);
+		// super.renderImpl(g, w, h);
+		// }
 	}
 }

@@ -5,6 +5,7 @@
  *******************************************************************************/
 package org.caleydo.view.domino.internal.ui.prototype;
 
+import java.util.List;
 import java.util.Objects;
 
 import org.caleydo.core.data.collection.EDataClass;
@@ -14,15 +15,13 @@ import org.caleydo.core.data.perspective.table.TableDoubleLists;
 import org.caleydo.core.data.perspective.table.TablePerspective;
 import org.caleydo.core.util.function.IDoubleList;
 import org.caleydo.core.view.opengl.layout2.GLElement;
-import org.caleydo.core.view.opengl.layout2.GLElementDecorator;
 import org.caleydo.core.view.opengl.layout2.manage.GLElementFactories;
 import org.caleydo.core.view.opengl.layout2.manage.GLElementFactories.GLElementSupplier;
 import org.caleydo.core.view.opengl.layout2.manage.GLElementFactoryContext;
-import org.caleydo.core.view.opengl.layout2.manage.GLElementFactorySwitcher;
-import org.caleydo.core.view.opengl.layout2.manage.GLElementFactorySwitcher.ELazyiness;
+import org.caleydo.core.view.opengl.layout2.manage.GLElementFactoryContext.Builder;
+import org.caleydo.view.domino.internal.ui.prototype.ui.ANodeUI;
 
 import com.google.common.base.Predicates;
-import com.google.common.collect.ImmutableList;
 
 /**
  * @author Samuel Gratzl
@@ -56,17 +55,19 @@ public class NumericalData1DNode extends AData1DNode {
 		return new UI(this);
 	}
 
-	private static class UI extends GLElementDecorator {
-		private final NumericalData1DNode node;
+	private static class UI extends ANodeUI<NumericalData1DNode> {
 
 		public UI(NumericalData1DNode node) {
-			this.node = node;
-			setLayoutData(node);
-			GLElementFactoryContext context = GLElementFactoryContext.builder().withData(node.getData()).build();
-			ImmutableList<GLElementSupplier> children = GLElementFactories.getExtensions(context,
+			super(node);
+		}
+
+		@Override
+		protected List<GLElementSupplier> createVis() {
+			Builder b = GLElementFactoryContext.builder();
+			b.withData(node.getData());
+			b.put(EDimension.class, node.getDimension());
+			return GLElementFactories.getExtensions(b.build(),
 					"domino.1d.numerical", Predicates.alwaysTrue());
-			GLElementFactorySwitcher s = new GLElementFactorySwitcher(children, ELazyiness.DESTROY);
-			setContent(s);
 		}
 	}
 

@@ -17,12 +17,11 @@ import org.caleydo.core.data.datadomain.DataSupportDefinitions;
 import org.caleydo.core.data.perspective.table.TablePerspective;
 import org.caleydo.core.data.virtualarray.group.GroupList;
 import org.caleydo.core.view.opengl.layout2.GLElement;
-import org.caleydo.core.view.opengl.layout2.GLElementDecorator;
 import org.caleydo.core.view.opengl.layout2.manage.GLElementFactories;
 import org.caleydo.core.view.opengl.layout2.manage.GLElementFactories.GLElementSupplier;
 import org.caleydo.core.view.opengl.layout2.manage.GLElementFactoryContext;
-import org.caleydo.core.view.opengl.layout2.manage.GLElementFactorySwitcher;
-import org.caleydo.core.view.opengl.layout2.manage.GLElementFactorySwitcher.ELazyiness;
+import org.caleydo.core.view.opengl.layout2.manage.GLElementFactoryContext.Builder;
+import org.caleydo.view.domino.internal.ui.prototype.ui.ANodeUI;
 
 import com.google.common.base.Objects;
 import com.google.common.base.Predicates;
@@ -106,17 +105,17 @@ public final class CategoricalData1DNode extends AData1DNode {
 		return new UI(this);
 	}
 
-	private static class UI extends GLElementDecorator {
-		private final CategoricalData1DNode node;
+	private static class UI extends ANodeUI<CategoricalData1DNode> {
 
 		public UI(CategoricalData1DNode node) {
-			this.node = node;
-			setLayoutData(node);
-			GLElementFactoryContext context = GLElementFactoryContext.builder().withData(node.getData()).build();
-			ImmutableList<GLElementSupplier> children = GLElementFactories.getExtensions(context,
-					"domino.1d.categorical", Predicates.alwaysTrue());
-			GLElementFactorySwitcher s = new GLElementFactorySwitcher(children, ELazyiness.DESTROY);
-			setContent(s);
+			super(node);
+		}
+
+		@Override
+		protected List<GLElementSupplier> createVis() {
+			Builder b = GLElementFactoryContext.builder();
+			b.withData(node.getData());
+			return GLElementFactories.getExtensions(b.build(), "domino.1d.categorical", Predicates.alwaysTrue());
 		}
 	}
 

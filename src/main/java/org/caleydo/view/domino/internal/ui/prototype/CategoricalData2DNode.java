@@ -13,16 +13,13 @@ import org.caleydo.core.data.collection.table.CategoricalTable;
 import org.caleydo.core.data.datadomain.ATableBasedDataDomain;
 import org.caleydo.core.data.datadomain.DataSupportDefinitions;
 import org.caleydo.core.view.opengl.layout2.GLElement;
-import org.caleydo.core.view.opengl.layout2.GLElementDecorator;
-import org.caleydo.core.view.opengl.layout2.GLGraphics;
 import org.caleydo.core.view.opengl.layout2.manage.GLElementFactories;
 import org.caleydo.core.view.opengl.layout2.manage.GLElementFactories.GLElementSupplier;
 import org.caleydo.core.view.opengl.layout2.manage.GLElementFactoryContext;
-import org.caleydo.core.view.opengl.layout2.manage.GLElementFactorySwitcher;
-import org.caleydo.core.view.opengl.layout2.manage.GLElementFactorySwitcher.ELazyiness;
+import org.caleydo.core.view.opengl.layout2.manage.GLElementFactoryContext.Builder;
+import org.caleydo.view.domino.internal.ui.prototype.ui.ANodeUI;
 
 import com.google.common.base.Predicates;
-import com.google.common.collect.ImmutableList;
 
 /**
  * @author Samuel Gratzl
@@ -61,24 +58,17 @@ public class CategoricalData2DNode extends AData2DNode {
 		return (List<CategoryProperty<?>>) tmp;
 	}
 
-	private static class UI extends GLElementDecorator {
-		private final CategoricalData2DNode node;
+	private static class UI extends ANodeUI<CategoricalData2DNode> {
 
 		public UI(CategoricalData2DNode node) {
-			this.node = node;
-			setLayoutData(node);
-			GLElementFactoryContext context = GLElementFactoryContext.builder()
-					.withData(node.getDataDomain().getDefaultTablePerspective()).build();
-			ImmutableList<GLElementSupplier> children = GLElementFactories.getExtensions(context,
-					"domino.2d.categorical", Predicates.alwaysTrue());
-			GLElementFactorySwitcher s = new GLElementFactorySwitcher(children, ELazyiness.DESTROY);
-			setContent(s);
+			super(node);
 		}
 
 		@Override
-		protected void renderImpl(GLGraphics g, float w, float h) {
-			// g.color(node.getDataDomain().getColor()).fillRect(0, 0, w, h);
-			super.renderImpl(g, w, h);
+		protected List<GLElementSupplier> createVis() {
+			Builder b = GLElementFactoryContext.builder();
+			b.withData(node.getDataDomain().getDefaultTablePerspective());
+			return GLElementFactories.getExtensions(b.build(), "domino.2d.categorical", Predicates.alwaysTrue());
 		}
 	}
 }
