@@ -27,9 +27,9 @@ public class Nodes {
 		if (DataSupportDefinitions.numericalTables.apply(dataDomain))
 			return new NumericalData2DNode(dataDomain);
 		if (DataSupportDefinitions.categoricalColumns.apply(t))
-			return new CategoricalData1DNode(t, EDimension.DIMENSION);
+			return new CategoricalData1DNode(t, EDimension.RECORD);
 		if (DataSupportDefinitions.homogenousColumns.apply(t))
-			return new NumericalData1DNode(t, EDimension.DIMENSION);
+			return new NumericalData1DNode(t, EDimension.RECORD);
 		return null;
 	}
 

@@ -17,6 +17,7 @@ import org.caleydo.core.view.opengl.layout2.GLElementDecorator;
 import org.caleydo.core.view.opengl.layout2.basic.ScrollingDecorator;
 import org.caleydo.core.view.opengl.layout2.view.AMultiTablePerspectiveElementView;
 import org.caleydo.view.domino.internal.event.ToggleHeaderAlwaysEvent;
+import org.caleydo.view.domino.internal.serial.SerializedDominoView;
 import org.caleydo.view.domino.internal.ui.prototype.ui.GraphElement;
 
 /**
@@ -38,8 +39,7 @@ public class DominoView extends AMultiTablePerspectiveElementView {
 
 	@Override
 	public ASerializedView getSerializableRepresentation() {
-		//SerializedDominoView serializedForm = new SerializedDominoView(this);
-		return null;
+		return new SerializedDominoView(this);
 	}
 
 	@Override

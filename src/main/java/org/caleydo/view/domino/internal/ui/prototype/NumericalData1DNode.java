@@ -8,6 +8,7 @@ package org.caleydo.view.domino.internal.ui.prototype;
 import java.beans.PropertyChangeListener;
 import java.util.Objects;
 
+import org.caleydo.core.data.collection.EDataClass;
 import org.caleydo.core.data.collection.EDimension;
 import org.caleydo.core.data.datadomain.DataSupportDefinitions;
 import org.caleydo.core.data.perspective.table.TableDoubleLists;
@@ -29,7 +30,7 @@ public class NumericalData1DNode extends AData1DNode {
 	 */
 	public NumericalData1DNode(TablePerspective data, EDimension main) {
 		super(data, main);
-		assert DataSupportDefinitions.numericalTables.apply(data);
+		assert DataSupportDefinitions.dataClass(EDataClass.REAL_NUMBER, EDataClass.NATURAL_NUMBER).apply(data);
 	}
 
 	public NumericalData1DNode(NumericalData1DNode clone) {
