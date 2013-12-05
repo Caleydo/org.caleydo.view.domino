@@ -542,4 +542,11 @@ public class DominoGraph {
 		assert match(a, b, true);
 		return a.getIDType(EDimension.DIMENSION) != b.getIDType(EDimension.DIMENSION);
 	}
+
+	/**
+	 * @return
+	 */
+	public boolean hasPlaceholders() {
+		return Iterables.any(vertexSet(), Predicates.instanceOf(PlaceholderNode.class));
+	}
 }

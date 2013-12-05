@@ -24,6 +24,7 @@ public class PlaceholderNode extends ADataNode {
 	public PlaceholderNode(INode node, boolean transposed) {
 		super(node.getData(EDimension.DIMENSION), node.getData(EDimension.RECORD));
 		this.transposed = transposed;
+		setLayoutData(node.getLayoutDataAs(Object.class, null));
 	}
 
 	public PlaceholderNode(PlaceholderNode clone) {

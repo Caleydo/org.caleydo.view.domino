@@ -7,10 +7,7 @@ package org.caleydo.view.domino.internal.ui.prototype.ui;
 
 import gleem.linalg.Vec2f;
 
-import java.util.Set;
-
 import org.caleydo.core.data.selection.SelectionType;
-import org.caleydo.core.event.EventListenerManager.ListenTo;
 import org.caleydo.core.event.EventPublisher;
 import org.caleydo.core.util.color.Color;
 import org.caleydo.core.view.opengl.canvas.IGLMouseListener.IMouseEvent;
@@ -26,12 +23,9 @@ import org.caleydo.core.view.opengl.picking.Pick;
 import org.caleydo.view.domino.internal.dnd.NodeDragInfo;
 import org.caleydo.view.domino.internal.ui.ReScaleBorder;
 import org.caleydo.view.domino.internal.ui.prototype.INode;
-import org.caleydo.view.domino.internal.ui.prototype.graph.DominoGraph;
-import org.caleydo.view.domino.internal.ui.prototype.graph.Placeholder;
+import org.caleydo.view.domino.internal.ui.prototype.event.HidePlaceHoldersEvent;
+import org.caleydo.view.domino.internal.ui.prototype.event.ShowPlaceHoldersEvent;
 import org.eclipse.swt.SWT;
-
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Iterables;
 
 /**
  * @author Samuel Gratzl
@@ -50,18 +44,13 @@ public class NodeElement extends ANodeElement {
 
 		@Override
 		public IDragInfo startSWTDrag(IDragEvent event) {
-			EventPublisher.trigger(new ShowPlaceHoldersEvent().to(NodeElement.this));
+			EventPublisher.trigger(new ShowPlaceHoldersEvent(node).to(findParent(DominoNodeLayer.class)));
 			return new NodeDragInfo(node, event.getMousePos());
 		}
 
 		@Override
 		public void onDropped(IDnDItem info) {
-			DominoGraph graph = findGraph();
-			graph.removePlaceholders(ImmutableSet.copyOf(Iterables.filter(graph.vertexSet(), PlaceholderNode.class)));
-			// if (info.getType() == EDnDType.MOVE) {
-			// System.out.println("detach");
-			// Collection<IEdge> detached = graph.detach(node, true);
-			// }
+			EventPublisher.trigger(new HidePlaceHoldersEvent().to(findParent(DominoNodeLayer.class)));
 		}
 
 		@Override
@@ -78,13 +67,6 @@ public class NodeElement extends ANodeElement {
 		super.takeDown();
 	}
 
-	@ListenTo(sendToMe = true)
-	private void onShowPlaceHoldersEvent(ShowPlaceHoldersEvent event) {
-		DominoGraph graph = findGraph();
-		Set<Placeholder> placeholders = graph.findPlaceholders(node);
-		graph.insertPlaceholders(placeholders, node);
-
-	}
 
 	@Override
 	protected void onMainPick(Pick pick) {

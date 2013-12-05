@@ -338,6 +338,10 @@ public class DominoLayoutInfo implements IActiveChangedCallback, IGLLayout {
 	public Vec2f getSize() {
 		Vec2f minSize = getMinSize();
 		scale(minSize);
+		if (minSize.x() < 4)
+			minSize.setX(4);
+		if (minSize.y() < 4)
+			minSize.setY(4);
 		return minSize;
 	}
 

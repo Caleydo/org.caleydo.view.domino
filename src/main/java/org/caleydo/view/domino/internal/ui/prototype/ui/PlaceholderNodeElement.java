@@ -7,12 +7,15 @@ package org.caleydo.view.domino.internal.ui.prototype.ui;
 
 import gleem.linalg.Vec2f;
 
+import org.caleydo.core.event.EventPublisher;
 import org.caleydo.core.view.opengl.layout2.dnd.EDnDType;
 import org.caleydo.core.view.opengl.layout2.dnd.IDnDItem;
 import org.caleydo.core.view.opengl.layout2.dnd.IDropGLTarget;
 import org.caleydo.core.view.opengl.picking.Pick;
-import org.caleydo.view.domino.internal.dnd.NodeDragInfo;
 import org.caleydo.view.domino.internal.ui.prototype.INode;
+import org.caleydo.view.domino.internal.ui.prototype.Nodes;
+import org.caleydo.view.domino.internal.ui.prototype.event.HidePlaceHoldersEvent;
+import org.caleydo.view.domino.internal.ui.prototype.graph.DominoGraph;
 
 /**
  * @author Samuel Gratzl
@@ -46,7 +49,7 @@ public class PlaceholderNodeElement extends ANodeElement implements IDropGLTarge
 
 	@Override
 	public boolean canSWTDrop(IDnDItem item) {
-		boolean b = item.getInfo() instanceof NodeDragInfo;
+		boolean b = Nodes.canExtract(item);
 		return b;
 	}
 
@@ -57,13 +60,13 @@ public class PlaceholderNodeElement extends ANodeElement implements IDropGLTarge
 
 	@Override
 	public void onDrop(IDnDItem item) {
-		NodeDragInfo info = (NodeDragInfo) item.getInfo();
-		INode n = info.getNode();
-		if (item.getType() == EDnDType.COPY) {
-			n = n.clone();
-			findGraph().addVertex(n);
+		INode n = Nodes.extract(item);
+		DominoGraph graph = findGraph();
+		if (!graph.contains(n)) {
+			graph.addVertex(n);
 		}
-		findGraph().move(n, (PlaceholderNode) this.node);
+		graph.move(n, (PlaceholderNode) this.node);
+		EventPublisher.trigger(new HidePlaceHoldersEvent().to(findParent(DominoNodeLayer.class)));
 	}
 
 	@Override

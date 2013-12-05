@@ -7,13 +7,19 @@ package org.caleydo.view.domino.internal.ui.prototype.ui;
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.util.Set;
 
+import org.caleydo.core.event.EventListenerManager.ListenTo;
 import org.caleydo.core.view.opengl.layout2.GLElementContainer;
 import org.caleydo.core.view.opengl.layout2.layout.IGLLayout2;
 import org.caleydo.view.domino.internal.ui.prototype.INode;
+import org.caleydo.view.domino.internal.ui.prototype.event.HidePlaceHoldersEvent;
+import org.caleydo.view.domino.internal.ui.prototype.event.ShowPlaceHoldersEvent;
 import org.caleydo.view.domino.internal.ui.prototype.graph.DominoGraph;
+import org.caleydo.view.domino.internal.ui.prototype.graph.Placeholder;
 import org.caleydo.vis.lineup.ui.GLPropertyChangeListeners;
 
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 
 /**
@@ -23,12 +29,15 @@ import com.google.common.collect.Iterables;
 public class DominoNodeLayer extends GLElementContainer {
 	private final PropertyChangeListener repaint = GLPropertyChangeListeners.repaintOnEvent(this);
 	private final PropertyChangeListener relayout = GLPropertyChangeListeners.relayoutOnEvent(this);
+
+	private final DominoGraph graph;
 	/**
 	 * @param graph
 	 * @param graphElement
 	 */
 	public DominoNodeLayer(IGLLayout2 layout, DominoGraph graph) {
 		super(layout);
+		this.graph = graph;
 		graph.addPropertyChangeListener(DominoGraph.PROP_EDGES, repaint);
 		graph.addPropertyChangeListener(DominoGraph.PROP_TRANSPOSED, relayout);
 		graph.addPropertyChangeListener(DominoGraph.PROP_VERTICES, new PropertyChangeListener() {
@@ -43,6 +52,17 @@ public class DominoNodeLayer extends GLElementContainer {
 		for (INode node : graph.vertexSet()) {
 			add(node);
 		}
+	}
+
+	@ListenTo(sendToMe = true)
+	private void onShowPlaceHoldersEvent(ShowPlaceHoldersEvent event) {
+		Set<Placeholder> placeholders = graph.findPlaceholders(event.getNode());
+		graph.insertPlaceholders(placeholders, event.getNode());
+	}
+
+	@ListenTo(sendToMe = true)
+	private void onHidePlaceHoldersEvent(HidePlaceHoldersEvent event) {
+		graph.removePlaceholders(ImmutableSet.copyOf(Iterables.filter(graph.vertexSet(), PlaceholderNode.class)));
 	}
 
 	/**

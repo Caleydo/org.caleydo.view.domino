@@ -9,6 +9,12 @@ import org.caleydo.core.data.collection.EDimension;
 import org.caleydo.core.data.datadomain.ATableBasedDataDomain;
 import org.caleydo.core.data.datadomain.DataSupportDefinitions;
 import org.caleydo.core.data.perspective.table.TablePerspective;
+import org.caleydo.core.view.opengl.layout2.dnd.EDnDType;
+import org.caleydo.core.view.opengl.layout2.dnd.IDnDItem;
+import org.caleydo.core.view.opengl.layout2.dnd.IDragInfo;
+import org.caleydo.view.domino.internal.dnd.NodeDragInfo;
+import org.caleydo.view.domino.internal.dnd.PerspectiveDragInfo;
+import org.caleydo.view.domino.internal.dnd.TablePerspectiveDragInfo;
 
 /**
  * @author Samuel Gratzl
@@ -31,6 +37,34 @@ public class Nodes {
 		if (DataSupportDefinitions.homogenousColumns.apply(t))
 			return new NumericalData1DNode(t, EDimension.RECORD);
 		return null;
+	}
+
+	public static INode extract(IDnDItem item) {
+		IDragInfo info = item.getInfo();
+		if (info instanceof NodeDragInfo) {
+			NodeDragInfo ni = (NodeDragInfo) info;
+			INode n = ni.getNode();
+			return (item.getType() == EDnDType.COPY) ? n.clone() : n;
+		} else if (info instanceof TablePerspectiveDragInfo) {
+			INode node = Nodes.create(((TablePerspectiveDragInfo) info).getTablePerspective());
+			return node;
+		} else if (info instanceof PerspectiveDragInfo) {
+			PerspectiveDragInfo pinfo = (PerspectiveDragInfo) info;
+			StratificationNode node = new StratificationNode(pinfo.getPerspective(), pinfo.getDim(),
+					pinfo.getReferenceID());
+			return node;
+		}
+		return null;
+	}
+
+	/**
+	 * @param item
+	 * @return
+	 */
+	public static boolean canExtract(IDnDItem item) {
+		IDragInfo info = item.getInfo();
+		return info instanceof NodeDragInfo || info instanceof TablePerspectiveDragInfo
+				|| info instanceof PerspectiveDragInfo;
 	}
 
 }
