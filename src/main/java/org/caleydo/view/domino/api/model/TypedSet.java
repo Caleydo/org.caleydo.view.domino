@@ -28,7 +28,7 @@ import com.google.common.collect.Sets;
  * @author Samuel Gratzl
  *
  */
-public final class TypedSet extends AbstractSet<Integer> implements ITypedCollection {
+public class TypedSet extends AbstractSet<Integer> implements ITypedCollection {
 	private final Set<Integer> wrappee;
 	private final IDType idType;
 

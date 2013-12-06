@@ -5,17 +5,12 @@
  *******************************************************************************/
 package org.caleydo.view.domino.internal.ui.prototype;
 
-import java.util.Collections;
 import java.util.List;
 
 import org.caleydo.core.data.collection.EDimension;
-import org.caleydo.core.data.collection.column.container.CategoricalClassDescription;
 import org.caleydo.core.data.collection.column.container.CategoryProperty;
-import org.caleydo.core.data.collection.table.Table;
-import org.caleydo.core.data.datadomain.ATableBasedDataDomain;
 import org.caleydo.core.data.datadomain.DataSupportDefinitions;
 import org.caleydo.core.data.perspective.table.TablePerspective;
-import org.caleydo.core.data.virtualarray.group.GroupList;
 import org.caleydo.core.view.opengl.layout2.GLElement;
 import org.caleydo.core.view.opengl.layout2.manage.GLElementFactories;
 import org.caleydo.core.view.opengl.layout2.manage.GLElementFactories.GLElementSupplier;
@@ -42,7 +37,7 @@ public final class CategoricalData1DNode extends AData1DNode {
 	public CategoricalData1DNode(TablePerspective data, EDimension main) {
 		super(data, main);
 		assert DataSupportDefinitions.categoricalColumns.apply(data);
-		this.properties = resolveCategories(getSingleID(), getDataDomain(), main.opposite());
+		this.properties = Utils.resolveCategories(getSingleID().getId(), data.getDataDomain(), main.opposite());
 		this.categories = toCategories(properties);
 	}
 
@@ -55,10 +50,6 @@ public final class CategoricalData1DNode extends AData1DNode {
 	@Override
 	public CategoricalData1DNode clone() {
 		return new CategoricalData1DNode(this);
-	}
-
-	public GroupList getGroups() {
-		return data.getRecordPerspective().getVirtualArray().getGroupList();
 	}
 
 	/**
@@ -86,19 +77,6 @@ public final class CategoricalData1DNode extends AData1DNode {
 		return b.build();
 	}
 
-	@SuppressWarnings("unchecked")
-	static List<CategoryProperty<?>> resolveCategories(Integer singleID, ATableBasedDataDomain dataDomain,
-			EDimension dim) {
-		final Table table = dataDomain.getTable();
-
-		Object spec = table.getDataClassSpecificDescription(dim.select(singleID.intValue(), 0),
-				dim.select(0, singleID.intValue()));
-		if (spec instanceof CategoricalClassDescription<?>) {
-			List<?> tmp = ((CategoricalClassDescription<?>) spec).getCategoryProperties();
-			return ImmutableList.copyOf((List<CategoryProperty<?>>) tmp);
-		}
-		return Collections.emptyList();
-	}
 
 	@Override
 	public GLElement createUI() {
@@ -114,7 +92,7 @@ public final class CategoricalData1DNode extends AData1DNode {
 		@Override
 		protected List<GLElementSupplier> createVis() {
 			Builder b = GLElementFactoryContext.builder();
-			b.withData(node.getData());
+			// b.withData(node.getData());
 			return GLElementFactories.getExtensions(b.build(), "domino.1d.categorical", Predicates.alwaysTrue());
 		}
 	}

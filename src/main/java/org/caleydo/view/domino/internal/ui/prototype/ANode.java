@@ -28,11 +28,33 @@ public abstract class ANode implements INode {
 	protected final PropertyChangeSupport propertySupport = new PropertyChangeSupport(this);
 
 	private Object layoutData;
-	public ANode() {
+	private String label;
+
+	public ANode(String label) {
+		this.label = label;
 	}
 
 	public ANode(ANode clone) {
+		this.label = clone.label;
+	}
 
+	/**
+	 * @param label
+	 *            setter, see {@link label}
+	 */
+	@Override
+	public final void setLabel(String label) {
+		if (Objects.equals(label, this.label))
+			return;
+		propertySupport.firePropertyChange(PROP_LABEL, this.label, this.label = label);
+	}
+
+	/**
+	 * @return the label, see {@link #label}
+	 */
+	@Override
+	public final String getLabel() {
+		return label;
 	}
 
 	@Override

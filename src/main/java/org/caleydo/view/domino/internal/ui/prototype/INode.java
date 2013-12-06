@@ -21,6 +21,9 @@ import org.caleydo.view.domino.api.model.TypedSet;
  */
 public interface INode extends ILabeled, Cloneable, IHasGLLayoutData {
 	String PROP_TRANSPOSE = "transpose";
+	String PROP_LABEL = "label";
+
+	void setLabel(String label);
 
 	TypedSet getData(EDimension dim);
 

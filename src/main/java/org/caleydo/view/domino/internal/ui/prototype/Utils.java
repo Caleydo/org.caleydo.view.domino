@@ -5,12 +5,20 @@
  *******************************************************************************/
 package org.caleydo.view.domino.internal.ui.prototype;
 
+import java.util.Collections;
 import java.util.List;
 
+import org.caleydo.core.data.collection.EDimension;
+import org.caleydo.core.data.collection.column.container.CategoricalClassDescription;
+import org.caleydo.core.data.collection.column.container.CategoryProperty;
+import org.caleydo.core.data.collection.table.Table;
+import org.caleydo.core.data.datadomain.ATableBasedDataDomain;
 import org.caleydo.core.data.virtualarray.group.Group;
 import org.caleydo.core.data.virtualarray.group.GroupList;
 import org.caleydo.core.util.color.Color;
 import org.caleydo.core.view.opengl.layout2.GLGraphics;
+
+import com.google.common.collect.ImmutableList;
 
 /**
  * @author Samuel Gratzl
@@ -40,5 +48,18 @@ public class Utils {
 		}
 	}
 
+	@SuppressWarnings("unchecked")
+	static List<CategoryProperty<?>> resolveCategories(Integer singleID, ATableBasedDataDomain dataDomain,
+			EDimension dim) {
+		final Table table = dataDomain.getTable();
+
+		Object spec = table.getDataClassSpecificDescription(dim.select(singleID.intValue(), 0),
+				dim.select(0, singleID.intValue()));
+		if (spec instanceof CategoricalClassDescription<?>) {
+			List<?> tmp = ((CategoricalClassDescription<?>) spec).getCategoryProperties();
+			return ImmutableList.copyOf((List<CategoryProperty<?>>) tmp);
+		}
+		return Collections.emptyList();
+	}
 
 }

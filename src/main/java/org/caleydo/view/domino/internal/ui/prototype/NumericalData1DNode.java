@@ -6,14 +6,12 @@
 package org.caleydo.view.domino.internal.ui.prototype;
 
 import java.util.List;
-import java.util.Objects;
 
+import org.apache.commons.lang.math.NumberUtils;
 import org.caleydo.core.data.collection.EDataClass;
 import org.caleydo.core.data.collection.EDimension;
 import org.caleydo.core.data.datadomain.DataSupportDefinitions;
-import org.caleydo.core.data.perspective.table.TableDoubleLists;
 import org.caleydo.core.data.perspective.table.TablePerspective;
-import org.caleydo.core.util.function.IDoubleList;
 import org.caleydo.core.view.opengl.layout2.GLElement;
 import org.caleydo.core.view.opengl.layout2.manage.GLElementFactories;
 import org.caleydo.core.view.opengl.layout2.manage.GLElementFactories.GLElementSupplier;
@@ -46,10 +44,6 @@ public class NumericalData1DNode extends AData1DNode {
 		return new NumericalData1DNode(this);
 	}
 
-	public IDoubleList getNormalizedData() {
-		return TableDoubleLists.asNormalizedList(data);
-	}
-
 	@Override
 	public GLElement createUI() {
 		return new UI(this);
@@ -64,7 +58,7 @@ public class NumericalData1DNode extends AData1DNode {
 		@Override
 		protected List<GLElementSupplier> createVis() {
 			Builder b = GLElementFactoryContext.builder();
-			b.withData(node.getData());
+			// b.withData(node.getData());
 			b.put(EDimension.class, node.getDimension());
 			return GLElementFactories.getExtensions(b.build(),
 					"domino.1d.numerical", Predicates.alwaysTrue());
@@ -73,19 +67,8 @@ public class NumericalData1DNode extends AData1DNode {
 
 	@Override
 	public int compare(Integer o1, Integer o2) {
-		Object r1 = getRaw(o1);
-		Object r2 = getRaw(o2);
-		if (Objects.equals(r1, r2))
-			return 0;
-		if (r1 == null)
-			return 1;
-		if (r2 == null)
-			return -1;
-		assert r1 instanceof Number && r2 instanceof Number;
-		if (r1 instanceof Float && r2 instanceof Float)
-			return ((Float) r1).compareTo((Float) r2);
-		if (r1 instanceof Integer && r2 instanceof Integer)
-			return ((Integer) r1).compareTo((Integer) r2);
-		return Double.compare(((Number) r1).doubleValue(), ((Number) r2).doubleValue());
+		float r1 = getNormalized(o1);
+		float r2 = getNormalized(o2);
+		return NumberUtils.compare(r1, r2);
 	}
 }

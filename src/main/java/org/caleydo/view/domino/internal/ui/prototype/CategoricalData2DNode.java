@@ -27,16 +27,20 @@ import com.google.common.base.Predicates;
  */
 public class CategoricalData2DNode extends AData2DNode {
 
+	private final List<CategoryProperty<?>> categories;
+
 	/**
 	 * @param data
 	 */
 	public CategoricalData2DNode(ATableBasedDataDomain data) {
 		super(data);
 		assert DataSupportDefinitions.categoricalTables.apply(data);
+		this.categories = getCategories(data);
 	}
 
 	public CategoricalData2DNode(CategoricalData2DNode clone) {
 		super(clone);
+		this.categories = clone.categories;
 	}
 
 	@Override
@@ -50,8 +54,8 @@ public class CategoricalData2DNode extends AData2DNode {
 	}
 
 	@SuppressWarnings("unchecked")
-	public List<CategoryProperty<?>> getCategories() {
-		final CategoricalTable<?> table = (CategoricalTable<?>) getDataDomain().getTable();
+	private static List<CategoryProperty<?>> getCategories(ATableBasedDataDomain dataDomain) {
+		final CategoricalTable<?> table = (CategoricalTable<?>) dataDomain.getTable();
 
 		CategoricalClassDescription<?> cats = table.getCategoryDescriptions();
 		List<?> tmp = cats.getCategoryProperties();
@@ -67,7 +71,7 @@ public class CategoricalData2DNode extends AData2DNode {
 		@Override
 		protected List<GLElementSupplier> createVis() {
 			Builder b = GLElementFactoryContext.builder();
-			b.withData(node.getDataDomain().getDefaultTablePerspective());
+			// b.withData(node.getDataDomain().getDefaultTablePerspective());
 			return GLElementFactories.getExtensions(b.build(), "domino.2d.categorical", Predicates.alwaysTrue());
 		}
 	}

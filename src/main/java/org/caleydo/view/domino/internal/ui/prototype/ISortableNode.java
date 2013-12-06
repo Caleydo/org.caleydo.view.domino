@@ -7,7 +7,6 @@ package org.caleydo.view.domino.internal.ui.prototype;
 
 import org.caleydo.core.data.collection.EDimension;
 import org.caleydo.view.domino.api.model.ITypedComparator;
-import org.caleydo.view.domino.api.model.TypedList;
 
 /**
  * @author Samuel Gratzl
@@ -28,7 +27,6 @@ public interface ISortableNode extends INode {
 
 	void setSortingPriority(EDimension dim, int sortingPriority);
 
-	TypedList getTypedList(EDimension dim);
 
 	ITypedComparator getComparator(EDimension dim);
 }

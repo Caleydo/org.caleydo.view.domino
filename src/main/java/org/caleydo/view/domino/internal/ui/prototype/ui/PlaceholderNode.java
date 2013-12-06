@@ -22,18 +22,13 @@ import org.caleydo.view.domino.internal.ui.prototype.INode;
 public class PlaceholderNode extends ADataNode {
 
 	public PlaceholderNode(INode node, boolean transposed) {
-		super(node.getData(EDimension.DIMENSION), node.getData(EDimension.RECORD));
+		super("", node.getData(EDimension.DIMENSION), node.getData(EDimension.RECORD));
 		this.transposed = transposed;
 		setLayoutData(node.getLayoutDataAs(Object.class, null));
 	}
 
 	public PlaceholderNode(PlaceholderNode clone) {
 		super(clone);
-	}
-
-	@Override
-	public String getLabel() {
-		return "";
 	}
 
 	@Override

@@ -55,7 +55,7 @@ public class NumericalData2DNode extends AData2DNode {
 		@Override
 		protected List<GLElementSupplier> createVis() {
 			Builder b = GLElementFactoryContext.builder();
-			b.withData(node.getDataDomain().getDefaultTablePerspective());
+			// b.withData(node.getDataDomain().getDefaultTablePerspective());
 			return GLElementFactories.getExtensions(b.build(), "domino.2d.numerical", Predicates.alwaysTrue());
 		}
 	}

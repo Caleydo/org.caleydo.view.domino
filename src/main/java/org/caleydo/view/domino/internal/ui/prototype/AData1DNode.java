@@ -6,13 +6,13 @@
 package org.caleydo.view.domino.internal.ui.prototype;
 
 import org.caleydo.core.data.collection.EDimension;
-import org.caleydo.core.data.datadomain.ATableBasedDataDomain;
 import org.caleydo.core.data.perspective.table.TablePerspective;
 import org.caleydo.core.data.perspective.variable.Perspective;
 import org.caleydo.core.id.IDType;
+import org.caleydo.core.util.color.Color;
 import org.caleydo.view.domino.api.model.ITypedComparator;
 import org.caleydo.view.domino.api.model.TypedCollections;
-import org.caleydo.view.domino.api.model.TypedList;
+import org.caleydo.view.domino.api.model.TypedID;
 import org.caleydo.view.domino.api.model.TypedSet;
 
 /**
@@ -20,82 +20,56 @@ import org.caleydo.view.domino.api.model.TypedSet;
  *
  */
 public abstract class AData1DNode extends ANode implements ISortableNode, ITypedComparator {
-	protected final TablePerspective data;
-	private final EDimension main;
-	private final TypedSet ids;
-	private final IDType idType;
-	private final Integer id;
+	protected final EDimension main;
+	protected final DataDomainDataProvider data;
+	protected final TypedSet ids;
+	protected final TypedID id;
 	private boolean transposed = false;
 	private int sortingPriority = NO_SORTING;
 
-	public AData1DNode(TablePerspective data, EDimension main) {
+	public AData1DNode(String label, DataDomainDataProvider data, TypedSet ids, TypedID id, EDimension main) {
+		super(label);
 		this.data = data;
+		this.ids = ids;
+		this.id = id;
 		this.main = main;
-		Perspective p = getPerspective();
+	}
+
+	public AData1DNode(TablePerspective data, EDimension main) {
+		super(data.getLabel());
+		Perspective p = main.select(data.getDimensionPerspective(), data.getRecordPerspective());
 		Perspective o = main.opposite().select(data.getDimensionPerspective(), data.getRecordPerspective());
-		this.idType = o.getIdType();
+
+		this.data = new DataDomainDataProvider(data);
 		this.ids = TypedSet.of(p.getVirtualArray());
 		assert o.getVirtualArray().size() == 1;
-		this.id = o.getVirtualArray().get(0);
+		this.id = new TypedID(o.getVirtualArray().get(0),o.getIdType());
+		this.main = main;
 	}
-
-	private Perspective getPerspective() {
-		return main.select(data.getDimensionPerspective(), data.getRecordPerspective());
-	}
-
 	/**
 	 * @param clone
 	 */
 	public AData1DNode(AData1DNode clone) {
 		super(clone);
-		this.data = clone.data;
 		this.main = clone.main;
+		this.data = clone.data;
 		this.ids = clone.ids;
 		this.id = clone.id;
-		this.idType = clone.idType;
 		this.transposed = clone.transposed;
 		this.sortingPriority = NO_SORTING;
 	}
 
-	public final Integer getSingleID() {
+	public final TypedID getSingleID() {
 		return this.id;
 	}
 
 	@Override
 	public final IDType getIdType() {
-		return this.idType;
+		return this.ids.getIdType();
 	}
 
 	public int size() {
 		return this.ids.size();
-	}
-
-	public TypedList getTypedList() {
-		return TypedList.of(getPerspective().getVirtualArray());
-	}
-
-	/**
-	 * @param o1
-	 * @return
-	 */
-	protected Object getRaw(Integer recordID) {
-		return getDataDomain().getTable().getRaw(getSingleID(), recordID);
-	}
-
-	@Override
-	public final String getLabel() {
-		return data.getLabel();
-	}
-
-	/**
-	 * @return the data, see {@link #data}
-	 */
-	public final TablePerspective getData() {
-		return data;
-	}
-
-	public final ATableBasedDataDomain getDataDomain() {
-		return getData().getDataDomain();
 	}
 
 	@Override
@@ -146,8 +120,18 @@ public abstract class AData1DNode extends ANode implements ISortableNode, ITyped
 		return isRightDimension(dim) ? this : TypedCollections.NATURAL_ORDER;
 	}
 
-	@Override
-	public final TypedList getTypedList(EDimension dim) {
-		return isRightDimension(dim) ? getTypedList() : TypedCollections.INVALID_LIST;
+	public final Color getColor(Integer id) {
+		Integer single = getSingleID().getId();
+		return data.getColor(main.select(single, id), main.select(id, single));
+	}
+
+	public final Object getRaw(Integer id) {
+		Integer single = getSingleID().getId();
+		return data.getRaw(main.select(single, id), main.select(id, single));
+	}
+
+	public final float getNormalized(Integer id) {
+		Integer single = getSingleID().getId();
+		return data.getNormalized(main.select(single, id), main.select(id, single));
 	}
 }

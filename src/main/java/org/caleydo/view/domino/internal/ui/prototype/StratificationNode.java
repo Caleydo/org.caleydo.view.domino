@@ -12,6 +12,7 @@ import org.caleydo.core.data.collection.EDimension;
 import org.caleydo.core.data.collection.column.container.CategoryProperty;
 import org.caleydo.core.data.datadomain.ATableBasedDataDomain;
 import org.caleydo.core.data.perspective.variable.Perspective;
+import org.caleydo.core.data.virtualarray.VirtualArray;
 import org.caleydo.core.data.virtualarray.group.Group;
 import org.caleydo.core.data.virtualarray.group.GroupList;
 import org.caleydo.core.id.IDType;
@@ -24,57 +25,70 @@ import org.caleydo.core.view.opengl.layout2.manage.GLElementFactoryContext;
 import org.caleydo.core.view.opengl.layout2.manage.GLElementFactoryContext.Builder;
 import org.caleydo.view.domino.api.model.ITypedComparator;
 import org.caleydo.view.domino.api.model.TypedCollections;
-import org.caleydo.view.domino.api.model.TypedList;
+import org.caleydo.view.domino.api.model.TypedGroup;
 import org.caleydo.view.domino.api.model.TypedSet;
 import org.caleydo.view.domino.internal.ui.prototype.ui.ANodeUI;
 
 import com.google.common.base.Predicates;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 
 /**
  * @author Samuel Gratzl
  *
  */
 public class StratificationNode extends ANode implements ISortableNode, ITypedComparator {
-	private final Perspective data;
+	private final List<TypedGroup> groups;
 	private final TypedSet ids;
 	private final EDimension mainDim;
 	private EDimension dim;
 	private int sortingPriority = NO_SORTING;
-	private final Integer referenceId;
 
 	public StratificationNode(Perspective data, EDimension dim) {
 		this(data, dim, null);
 	}
 
 	public StratificationNode(Perspective data, EDimension dim, Integer referenceId) {
-		this.data = data;
-		this.referenceId = referenceId;
+		super(data.getLabel());
 		this.ids = TypedSet.of(data.getVirtualArray());
+		this.groups = extractGroups(data, referenceId, dim);
 		this.dim = this.mainDim = dim;
 	}
 
 	public StratificationNode(StratificationNode clone) {
 		super(clone);
-		this.data = clone.data;
 		this.mainDim = clone.mainDim;
-		this.referenceId = clone.referenceId;
+		this.groups = clone.groups;
 		this.ids = clone.ids;
 		this.dim = clone.dim;
 		this.sortingPriority = NO_SORTING;
 	}
 
-	public ATableBasedDataDomain getDataDomain() {
-		return (ATableBasedDataDomain) data.getDataDomain();
+	/**
+	 * @param referenceId
+	 * @param virtualArray
+	 * @return
+	 */
+	private static List<TypedGroup> extractGroups(Perspective p, Integer referenceId, EDimension mainDim) {
+		VirtualArray va = p.getVirtualArray();
+		GroupList groups = va.getGroupList();
+		List<Color> colors = getGroupColors(referenceId, (ATableBasedDataDomain)p.getDataDomain(), groups, mainDim);
+		List<TypedGroup> r = new ArrayList<>();
+		for (int i = 0; i < groups.size(); ++i) {
+			r.add(new TypedGroup(ImmutableSet.copyOf(va.getIDsOfGroup(i)), va.getIdType(), colors.get(i), groups.get(i)
+					.getLabel()));
+		}
+		return ImmutableList.copyOf(r);
 	}
 
-	public List<Color> getGroupColors() {
+	private static List<Color> getGroupColors(Integer referenceId, ATableBasedDataDomain dataDomain, GroupList groups,
+			EDimension mainDim) {
 		if (referenceId == null) {
-			return ColorBrewer.Set2.getColors(getGroups().size());
+			return ColorBrewer.Set2.getColors(groups.size());
 		}
 		// lookup the colors from the properties
-		List<CategoryProperty<?>> categories = CategoricalData1DNode.resolveCategories(referenceId, getDataDomain(),
+		List<CategoryProperty<?>> categories = Utils.resolveCategories(referenceId, dataDomain,
 				mainDim.opposite());
-		GroupList groups = getGroups();
 		List<Color> colors = new ArrayList<>(groups.size());
 		for (Group group : groups) {
 			String label = group.getLabel();
@@ -88,7 +102,7 @@ public class StratificationNode extends ANode implements ISortableNode, ITypedCo
 	 * @param label
 	 * @return
 	 */
-	private CategoryProperty<?> findProp(String label, List<CategoryProperty<?>> categories) {
+	private static CategoryProperty<?> findProp(String label, List<CategoryProperty<?>> categories) {
 		for (CategoryProperty<?> prop : categories) {
 			if (prop.getCategoryName().equals(label))
 				return prop;
@@ -107,25 +121,9 @@ public class StratificationNode extends ANode implements ISortableNode, ITypedCo
 		propertySupport.firePropertyChange(PROP_TRANSPOSE, !this.dim.isVertical(), this.dim.isVertical());
 	}
 
-	@Override
-	public final String getLabel() {
-		return data.getLabel();
-	}
-	/**
-	 * @return the data, see {@link #data}
-	 */
-	public Perspective getData() {
-		return data;
-	}
-
 	public int size() {
-		return data.getVirtualArray().size();
+		return ids.size();
 	}
-
-	public GroupList getGroups() {
-		return getData().getVirtualArray().getGroupList();
-	}
-
 
 	/**
 	 * @return the ids, see {@link #ids}
@@ -163,43 +161,38 @@ public class StratificationNode extends ANode implements ISortableNode, ITypedCo
 	}
 
 	@Override
-	public final TypedList getTypedList(EDimension dim) {
-		return isRightDimension(dim) ? TypedList.of(data.getVirtualArray()) : TypedCollections.INVALID_LIST;
-	}
-
-	@Override
 	public ITypedComparator getComparator(EDimension dim) {
 		return isRightDimension(dim) ? this : TypedCollections.NATURAL_ORDER;
 	}
 
 	@Override
 	public int compare(Integer o1, Integer o2) {
-		Group g1 = toGroup(o1);
-		Group g2 = toGroup(o2);
+		int g1 = toGroupIndex(o1);
+		int g2 = toGroupIndex(o2);
 		if (g1 == g2)
 			return 0;
-		if (g1 == null)
+		if (g1 < 0)
 			return 1;
-		if (g2 == null)
+		if (g2 < 0)
 			return -1;
-		return g1.getGroupIndex().compareTo(g2.getGroupIndex());
+		return g1 - g2;
 	}
 
 	@Override
 	public IDType getIdType() {
-		return data.getIdType();
+		return ids.getIdType();
 	}
 
-	/**
-	 * @param o1
-	 * @return
-	 */
-	private Group toGroup(Integer index) {
-		int i = data.getVirtualArray().indexOf(index);
-		if (i < 0)
-			return null;
-		Group group = getGroups().getGroupOfVAIndex(i);
-		return group;
+	private int toGroupIndex(Integer id) {
+		if (!ids.contains(id))
+			return -1;
+		int i = 0;
+		for (TypedGroup g : groups) {
+			if (g.contains(id))
+				return i;
+			i++;
+		}
+		return -1;
 	}
 
 	private static class UI extends ANodeUI<StratificationNode> {
@@ -209,8 +202,8 @@ public class StratificationNode extends ANode implements ISortableNode, ITypedCo
 		@Override
 		protected List<GLElementSupplier> createVis() {
 			Builder b = GLElementFactoryContext.builder();
-			b.put(Perspective.class, node.getData());
-			b.put("colors", node.getGroupColors().toArray(new Color[0]));
+			// b.put(Perspective.class, node.getData());
+			// b.put("colors", node.getGroupColors().toArray(new Color[0]));
 			return GLElementFactories.getExtensions(b.build(),"domino.stratification", Predicates.alwaysTrue());
 		}
 		//
