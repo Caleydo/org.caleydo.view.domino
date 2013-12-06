@@ -18,6 +18,7 @@ import org.caleydo.core.id.IDType;
 import org.caleydo.view.domino.internal.util.BitSetSet;
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterators;
 import com.google.common.collect.Sets;
@@ -39,6 +40,11 @@ public class TypedSet extends AbstractSet<Integer> implements ITypedCollection {
 
 	public static TypedSet of(VirtualArray per) {
 		return new TypedSet(ImmutableSet.copyOf(per), per.getIdType());
+	}
+
+	@Override
+	public TypedList asList() {
+		return new TypedList(ImmutableList.copyOf(wrappee), idType);
 	}
 
 	/**

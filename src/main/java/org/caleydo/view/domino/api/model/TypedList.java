@@ -33,6 +33,11 @@ public class TypedList extends AbstractList<Integer> implements ITypedCollection
 		return new TypedList(per.getIDs(), per.getIdType());
 	}
 
+	@Override
+	public TypedList asList() {
+		return this;
+	}
+
 	/**
 	 * @return the idType, see {@link #idType}
 	 */

@@ -13,4 +13,5 @@ import java.util.Collection;
  */
 public interface ITypedCollection extends Collection<Integer>, IHasIDType {
 
+	TypedList asList();
 }

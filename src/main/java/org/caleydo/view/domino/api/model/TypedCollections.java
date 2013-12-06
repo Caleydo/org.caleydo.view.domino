@@ -6,10 +6,14 @@
 package org.caleydo.view.domino.api.model;
 
 import java.util.Collections;
+import java.util.Set;
 
 import org.caleydo.core.data.collection.EDataType;
 import org.caleydo.core.id.IDCategory;
 import org.caleydo.core.id.IDType;
+import org.caleydo.core.id.IIDTypeMapper;
+
+import com.google.common.base.Function;
 
 /**
  * @author Samuel Gratzl
@@ -22,6 +26,9 @@ public class TypedCollections {
 	public static final TypedList INVALID_LIST;
 	public static final ITypedComparator NATURAL_ORDER;
 
+	public final static Integer INVALID_ID = Integer.valueOf(-1);
+
+
 	static {
 		IDTYPE = IDType.registerType("INVALID",
 				IDCategory.registerInternalCategory("INVALID"), EDataType.STRING);
@@ -30,10 +37,28 @@ public class TypedCollections {
 		NATURAL_ORDER = new TypedComparator(TypedComparator.NATURAL, IDTYPE);
 	}
 
+	public static final Function<Set<Integer>, Integer> toSingleOrInvalid = new Function<Set<Integer>, Integer>() {
+		@Override
+		public Integer apply(Set<Integer> input) {
+			if (input == null || input.isEmpty())
+				return INVALID_ID;
+			return input.iterator().next();
+		}
+	};
+
 	public static boolean isInvalid(IHasIDType col) {
 		return isInvalid(col.getIdType());
 	}
 	public static boolean isInvalid(IDType idType) {
 		return idType.equals(IDTYPE);
+	}
+
+	public static Integer mapSingle(IIDTypeMapper<Integer, Integer> mapper, Integer id) {
+		if (mapper == null)
+			return INVALID_ID;
+		Set<Integer> r = mapper.apply(id);
+		if (r == null || r.isEmpty())
+			return INVALID_ID;
+		return r.iterator().next();
 	}
 }
