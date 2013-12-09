@@ -20,6 +20,7 @@ import org.caleydo.view.domino.internal.util.BitSetSet;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.ImmutableSet.Builder;
 import com.google.common.collect.Iterators;
 import com.google.common.collect.Sets;
 
@@ -280,6 +281,18 @@ public class TypedSet extends AbstractSet<Integer> implements ITypedCollection {
 		builder.append(wrappee);
 		builder.append("]");
 		return builder.toString();
+	}
+
+	/**
+	 * @param same
+	 * @return
+	 */
+	public static TypedSet union(Iterable<TypedSet> same) {
+		Builder<Integer> b = ImmutableSet.builder();
+		for (TypedSet s : same)
+			b.addAll(s.wrappee);
+		return new TypedSet(b.build(), same.iterator().next().getIdType());
+
 	}
 
 }

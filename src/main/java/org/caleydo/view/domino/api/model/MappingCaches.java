@@ -29,6 +29,13 @@ public class MappingCaches {
 		return CacheBuilder.newBuilder().build(new MapperCache2());
 	}
 
+	public static IIDTypeMapper<Integer, Integer> findMapper(IDType from, IDType to) {
+		IDMappingManager m = IDMappingManagerRegistry.get().getIDMappingManager(from);
+		if (m == null)
+			return null;
+		return m.getIDTypeMapper(from, to);
+	}
+
 	private static final class MapperCache extends CacheLoader<IDType, IIDTypeMapper<Integer, Integer>> {
 		private final IDType source;
 		private final IDType target;

@@ -7,11 +7,19 @@ package org.caleydo.view.domino.api.model;
 
 import org.caleydo.core.id.IDType;
 
+import com.google.common.base.Function;
+
 /**
  * @author Samuel Gratzl
  *
  */
 public class TypedID implements IHasIDType {
+	public static final Function<TypedID, Integer> TO_ID = new Function<TypedID, Integer>() {
+		@Override
+		public Integer apply(TypedID input) {
+			return input == null ? null : input.getId();
+		}
+	};
 	private final int id;
 	private final IDType idType;
 
