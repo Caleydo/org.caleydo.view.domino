@@ -3,18 +3,24 @@
  * Copyright (c) The Caleydo Team. All rights reserved.
  * Licensed under the new BSD license, available at http://caleydo.org/license
  *******************************************************************************/
-package org.caleydo.view.domino.api.model;
+package org.caleydo.view.domino.api.model.typed;
 
 import java.util.AbstractList;
 import java.util.Objects;
 
 /**
+ * a special ro list, which just returns the same value over and over again
+ *
  * @author Samuel Gratzl
  *
  */
 public class RepeatingList<T> extends AbstractList<T> {
 	private final T value;
 	private final int size;
+
+	public static <T> RepeatingList<T> repeat(T value, int size) {
+		return new RepeatingList<>(value, size);
+	}
 
 	public RepeatingList(T value, int size) {
 		this.value = value;

@@ -13,7 +13,7 @@ import org.caleydo.core.id.IDType;
 import org.caleydo.core.util.base.ILabeled;
 import org.caleydo.core.view.opengl.layout2.GLElement;
 import org.caleydo.core.view.opengl.layout2.layout.IHasGLLayoutData;
-import org.caleydo.view.domino.api.model.TypedSet;
+import org.caleydo.view.domino.api.model.typed.TypedSet;
 
 /**
  * @author Samuel Gratzl

@@ -16,7 +16,7 @@ import org.caleydo.core.data.collection.EDimension;
 import org.caleydo.core.util.color.Color;
 import org.caleydo.core.view.opengl.layout2.geom.Rect;
 import org.caleydo.view.domino.api.model.BandRoute;
-import org.caleydo.view.domino.api.model.TypedCollections;
+import org.caleydo.view.domino.api.model.typed.TypedCollections;
 import org.caleydo.view.domino.api.ui.band.Route;
 import org.caleydo.view.domino.internal.ui.DominoBandLayer.IBandRoutesProvider;
 import org.caleydo.view.domino.internal.ui.prototype.BandEdge;

@@ -23,10 +23,10 @@ import org.caleydo.core.view.opengl.layout2.manage.GLElementFactories;
 import org.caleydo.core.view.opengl.layout2.manage.GLElementFactories.GLElementSupplier;
 import org.caleydo.core.view.opengl.layout2.manage.GLElementFactoryContext;
 import org.caleydo.core.view.opengl.layout2.manage.GLElementFactoryContext.Builder;
-import org.caleydo.view.domino.api.model.ITypedComparator;
-import org.caleydo.view.domino.api.model.TypedCollections;
-import org.caleydo.view.domino.api.model.TypedGroup;
-import org.caleydo.view.domino.api.model.TypedSet;
+import org.caleydo.view.domino.api.model.typed.ITypedComparator;
+import org.caleydo.view.domino.api.model.typed.TypedCollections;
+import org.caleydo.view.domino.api.model.typed.TypedGroup;
+import org.caleydo.view.domino.api.model.typed.TypedSet;
 import org.caleydo.view.domino.internal.ui.prototype.ui.ANodeUI;
 
 import com.google.common.base.Predicates;

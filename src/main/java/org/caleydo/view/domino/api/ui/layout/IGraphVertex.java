@@ -11,7 +11,7 @@ import java.util.Set;
 
 import org.caleydo.core.data.collection.EDimension;
 import org.caleydo.core.view.opengl.layout2.geom.Rect;
-import org.caleydo.view.domino.api.model.TypedSet;
+import org.caleydo.view.domino.api.model.typed.TypedSet;
 
 /**
  * @author Samuel Gratzl

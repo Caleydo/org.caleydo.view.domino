@@ -6,7 +6,7 @@
 package org.caleydo.view.domino.internal.ui.prototype;
 
 import org.caleydo.core.data.collection.EDimension;
-import org.caleydo.view.domino.api.model.ITypedComparator;
+import org.caleydo.view.domino.api.model.typed.ITypedComparator;
 
 /**
  * @author Samuel Gratzl

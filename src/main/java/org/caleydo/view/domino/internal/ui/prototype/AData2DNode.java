@@ -7,7 +7,7 @@ package org.caleydo.view.domino.internal.ui.prototype;
 
 import org.caleydo.core.data.datadomain.ATableBasedDataDomain;
 import org.caleydo.core.data.perspective.table.TablePerspective;
-import org.caleydo.view.domino.api.model.TypedSet;
+import org.caleydo.view.domino.api.model.typed.TypedSet;
 
 /**
  * @author Samuel Gratzl

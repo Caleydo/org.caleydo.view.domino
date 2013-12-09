@@ -48,7 +48,7 @@ import org.caleydo.core.view.opengl.layout2.renderer.GLRenderers;
 import org.caleydo.core.view.opengl.picking.IPickingListener;
 import org.caleydo.core.view.opengl.picking.Pick;
 import org.caleydo.view.domino.api.model.TablePerspectiveMetaData;
-import org.caleydo.view.domino.api.model.TypedSet;
+import org.caleydo.view.domino.api.model.typed.TypedSet;
 import org.caleydo.view.domino.api.ui.DominoMultiElement;
 import org.caleydo.view.domino.internal.ui.menu.SwitcherMenuElement;
 import org.caleydo.view.domino.internal.util.BitSetSet;

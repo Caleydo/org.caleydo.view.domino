@@ -10,10 +10,10 @@ import org.caleydo.core.data.perspective.table.TablePerspective;
 import org.caleydo.core.data.perspective.variable.Perspective;
 import org.caleydo.core.id.IDType;
 import org.caleydo.core.util.color.Color;
-import org.caleydo.view.domino.api.model.ITypedComparator;
-import org.caleydo.view.domino.api.model.TypedCollections;
-import org.caleydo.view.domino.api.model.TypedID;
-import org.caleydo.view.domino.api.model.TypedSet;
+import org.caleydo.view.domino.api.model.typed.ITypedComparator;
+import org.caleydo.view.domino.api.model.typed.TypedCollections;
+import org.caleydo.view.domino.api.model.typed.TypedID;
+import org.caleydo.view.domino.api.model.typed.TypedSet;
 
 /**
  * @author Samuel Gratzl

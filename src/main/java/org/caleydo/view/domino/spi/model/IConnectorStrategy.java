@@ -6,7 +6,7 @@
 package org.caleydo.view.domino.spi.model;
 
 import org.caleydo.view.domino.api.model.CenterRadius;
-import org.caleydo.view.domino.api.model.TypedSet;
+import org.caleydo.view.domino.api.model.typed.TypedSet;
 import org.caleydo.view.domino.api.ui.layout.IVertexConnector;
 
 /**

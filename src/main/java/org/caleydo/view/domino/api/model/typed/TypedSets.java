@@ -3,12 +3,12 @@
  * Copyright (c) The Caleydo Team. All rights reserved.
  * Licensed under the new BSD license, available at http://caleydo.org/license
  *******************************************************************************/
-package org.caleydo.view.domino.api.model;
+package org.caleydo.view.domino.api.model.typed;
 
-import static org.caleydo.view.domino.api.model.MappingCaches.findMapper;
-import static org.caleydo.view.domino.api.model.TypedCollections.INVALID_ID;
-import static org.caleydo.view.domino.api.model.TypedCollections.mapSingle;
-import static org.caleydo.view.domino.api.model.TypedCollections.toSingleOrInvalid;
+import static org.caleydo.view.domino.api.model.typed.MappingCaches.findMapper;
+import static org.caleydo.view.domino.api.model.typed.TypedCollections.INVALID_ID;
+import static org.caleydo.view.domino.api.model.typed.TypedCollections.mapSingle;
+import static org.caleydo.view.domino.api.model.typed.TypedCollections.toSingleOrInvalid;
 
 import java.util.AbstractList;
 import java.util.AbstractSet;
@@ -47,11 +47,34 @@ import com.google.common.primitives.Ints;
  */
 public class TypedSets {
 
+	/**
+	 * produces a union of the given sets, in constrast to {@link #union(TypedSet...)} multi mapped indices will be
+	 * added
+	 *
+	 * @param sets
+	 * @return
+	 */
+	public static MultiTypedSet unionDeep(TypedSet... sets) {
+		return unionImpl(true, sets);
+	}
 
+
+	/**
+	 * produces a union of the given sets
+	 *
+	 * @param sets
+	 * @return
+	 */
 	public static MultiTypedSet union(TypedSet... sets) {
-		if (sets.length == 0)
+		return unionImpl(false, sets);
+	}
+
+	private static MultiTypedSet unionImpl(boolean deep, TypedSet... sets) {
+		if (sets.length == 0) // empty
 			return new MultiTypedSet(new IDType[0], Collections.<int[]>emptySet());
+		// union same idtypes
 		sets = compress(sets);
+
 		final int l = sets.length;
 		if (l == 1) { // single id type
 			return MultiTypedSet.single(sets[0]);
@@ -59,7 +82,8 @@ public class TypedSets {
 
 		final LoadingCache<Pair<IDType, IDType>, IIDTypeMapper<Integer, Integer>> cache = MappingCaches.create();
 
-		sets = expandMapped(sets, cache);
+		if (deep) // expand to all mappable ids
+			sets = expandMapped(sets, cache);
 
 		Set<List<Integer>> r = new HashSet<>();
 		IDType[] t = new IDType[l];

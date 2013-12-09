@@ -3,7 +3,7 @@
  * Copyright (c) The Caleydo Team. All rights reserved.
  * Licensed under the new BSD license, available at http://caleydo.org/license
  *******************************************************************************/
-package org.caleydo.view.domino.api.model;
+package org.caleydo.view.domino.api.model.typed;
 
 import org.caleydo.core.id.IDMappingManager;
 import org.caleydo.core.id.IDMappingManagerRegistry;
@@ -21,14 +21,32 @@ import com.google.common.cache.LoadingCache;
  */
 public class MappingCaches {
 
+	/**
+	 * create a mapping cache for converting to a fix source or targets asssert that source or target is null
+	 *
+	 * @param source
+	 * @param target
+	 * @return
+	 */
 	public static LoadingCache<IDType, IIDTypeMapper<Integer, Integer>> create(IDType source, IDType target) {
 		return CacheBuilder.newBuilder().build(new MapperCache(source, target));
 	}
 
+	/**
+	 *
+	 * @return a generic cache for creating a mapper
+	 */
 	public static LoadingCache<Pair<IDType, IDType>, IIDTypeMapper<Integer, Integer>> create() {
 		return CacheBuilder.newBuilder().build(new MapperCache2());
 	}
 
+	/**
+	 * find a specific mapper
+	 *
+	 * @param from
+	 * @param to
+	 * @return
+	 */
 	public static IIDTypeMapper<Integer, Integer> findMapper(IDType from, IDType to) {
 		IDMappingManager m = IDMappingManagerRegistry.get().getIDMappingManager(from);
 		if (m == null)
@@ -45,7 +63,7 @@ public class MappingCaches {
 		public MapperCache(IDType source, IDType target) {
 			this.source = source;
 			this.target = target;
-			assert this.source != null ^ this.target != null;
+			assert this.source != null ^ this.target != null; // exactly one is null
 			IDType i = source != null ? source : target;
 			manager = IDMappingManagerRegistry.get().getIDMappingManager(i);
 		}

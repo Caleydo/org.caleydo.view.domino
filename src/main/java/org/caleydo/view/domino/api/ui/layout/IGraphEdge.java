@@ -5,7 +5,7 @@
  *******************************************************************************/
 package org.caleydo.view.domino.api.ui.layout;
 
-import org.caleydo.view.domino.api.model.TypedSet;
+import org.caleydo.view.domino.api.model.typed.TypedSet;
 
 
 /**

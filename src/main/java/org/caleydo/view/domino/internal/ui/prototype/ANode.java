@@ -14,7 +14,7 @@ import java.util.Set;
 import org.caleydo.core.data.collection.EDimension;
 import org.caleydo.core.id.IDType;
 import org.caleydo.core.view.opengl.layout2.layout.GLLayouts;
-import org.caleydo.view.domino.api.model.TypedCollections;
+import org.caleydo.view.domino.api.model.typed.TypedCollections;
 
 import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;

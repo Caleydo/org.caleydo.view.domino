@@ -3,9 +3,9 @@
  * Copyright (c) The Caleydo Team. All rights reserved.
  * Licensed under the new BSD license, available at http://caleydo.org/license
  *******************************************************************************/
-package org.caleydo.view.domino.api.model;
+package org.caleydo.view.domino.api.model.typed;
 
-import static org.caleydo.view.domino.api.model.TypedCollections.mapSingle;
+import static org.caleydo.view.domino.api.model.typed.TypedCollections.mapSingle;
 
 import java.util.Comparator;
 import java.util.Map;
@@ -19,10 +19,13 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableMap.Builder;
 
 /**
+ * set of comparator that handle conversion of ids for {@link ITypedComparator} correctly
+ *
  * @author Samuel Gratzl
  *
  */
 public class MappingComparators {
+
 
 	public static Comparator<TypedID> of(ITypedComparator... comparators) {
 		return new Complex(comparators);
@@ -32,6 +35,13 @@ public class MappingComparators {
 		return new Single(idType, comparators);
 	}
 
+	/**
+	 * comparator for a {@link IMultiTypedCollection} based comparison
+	 *
+	 * @param idTypes
+	 * @param comparators
+	 * @return
+	 */
 	public static Comparator<int[]> of(IDType[] idTypes, ITypedComparator... comparators) {
 		return new Multi(idTypes, comparators);
 	}
@@ -121,6 +131,7 @@ public class MappingComparators {
 		public int compare(Integer o1, Integer o2) {
 			for (ITypedComparator c : comparators) {
 				IDType target = c.getIdType();
+				// map to target type
 				Integer id1 = map(o1, target);
 				Integer id2 = map(o2, target);
 				int r = c.compare(id1, id2);

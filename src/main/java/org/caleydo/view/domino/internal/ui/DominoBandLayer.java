@@ -22,7 +22,7 @@ import org.caleydo.core.view.opengl.picking.IPickingLabelProvider;
 import org.caleydo.core.view.opengl.picking.IPickingListener;
 import org.caleydo.core.view.opengl.picking.Pick;
 import org.caleydo.core.view.opengl.picking.PickingListenerComposite;
-import org.caleydo.view.domino.api.model.TypedSet;
+import org.caleydo.view.domino.api.model.typed.TypedSet;
 import org.caleydo.view.domino.spi.model.IBandRenderer;
 import org.caleydo.view.domino.spi.model.IBandRenderer.IBandHost;
 

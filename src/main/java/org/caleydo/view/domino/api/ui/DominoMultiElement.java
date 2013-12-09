@@ -39,7 +39,7 @@ import org.caleydo.view.domino.api.model.CenterRadius;
 import org.caleydo.view.domino.api.model.ConnectorStrategies;
 import org.caleydo.view.domino.api.model.PerspectiveMetaData;
 import org.caleydo.view.domino.api.model.TablePerspectiveMetaData;
-import org.caleydo.view.domino.api.model.TypedSet;
+import org.caleydo.view.domino.api.model.typed.TypedSet;
 import org.caleydo.view.domino.api.ui.layout.EEdgeType;
 import org.caleydo.view.domino.api.ui.layout.IGraphEdge;
 import org.caleydo.view.domino.api.ui.layout.IGraphVertex;

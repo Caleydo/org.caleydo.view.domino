@@ -13,6 +13,7 @@ import org.caleydo.core.id.IDType;
 import org.caleydo.core.util.color.Color;
 import org.caleydo.core.util.function.InterpolatingFunctions;
 import org.caleydo.core.view.opengl.layout2.GLGraphics;
+import org.caleydo.view.domino.api.model.typed.TypedSet;
 import org.caleydo.view.domino.api.ui.band.Route;
 import org.caleydo.view.domino.spi.model.IBandRenderer;
 
