@@ -8,12 +8,15 @@ package org.caleydo.view.domino.api.model;
 import static org.caleydo.view.domino.api.model.TypedCollections.mapSingle;
 
 import java.util.Comparator;
+import java.util.Map;
 
 import org.caleydo.core.id.IDType;
 import org.caleydo.core.id.IIDTypeMapper;
 import org.caleydo.core.util.collection.Pair;
 
 import com.google.common.cache.LoadingCache;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableMap.Builder;
 
 /**
  * @author Samuel Gratzl
@@ -27,6 +30,10 @@ public class MappingComparators {
 
 	public static Comparator<Integer> of(IDType idType, ITypedComparator... comparators) {
 		return new Single(idType, comparators);
+	}
+
+	public static Comparator<int[]> of(IDType[] idTypes, ITypedComparator... comparators) {
+		return new Multi(idTypes, comparators);
 	}
 
 	private static final class Complex implements Comparator<TypedID> {
@@ -60,6 +67,39 @@ public class MappingComparators {
 
 			IIDTypeMapper<Integer, Integer> m = cache.apply(Pair.make(source, target));
 			return mapSingle(m, id.getId());
+		}
+	}
+
+	private static final class Multi implements Comparator<int[]> {
+		private final ITypedComparator[] comparators;
+		private final Map<IDType, Integer> lookup;
+
+		/**
+		 * @param idTypes
+		 * @param comparators
+		 */
+		public Multi(IDType[] idTypes, ITypedComparator... comparators) {
+			this.comparators = comparators;
+			Builder<IDType, Integer> builder = ImmutableMap.builder();
+			for (int i = 0; i < idTypes.length; ++i)
+				builder.put(idTypes[i], i);
+			this.lookup = builder.build();
+		}
+
+		@Override
+		public int compare(int[] o1, int[] o2) {
+			for (ITypedComparator c : comparators) {
+				IDType target = c.getIdType();
+				Integer index = lookup.get(target);
+				if (index == null) // nothing to map
+					continue;
+				Integer id1 = o1[index];
+				Integer id2 = o2[index];
+				int r = c.compare(id1, id2);
+				if (r != 0)
+					return r;
+			}
+			return 0;
 		}
 	}
 

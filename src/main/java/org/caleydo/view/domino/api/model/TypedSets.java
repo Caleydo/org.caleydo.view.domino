@@ -61,17 +61,18 @@ public class TypedSets {
 
 		sets = expandMapped(sets, cache);
 
-		// convert to right structure
 		Set<List<Integer>> r = new HashSet<>();
 		IDType[] t = new IDType[l];
 		for(int i = 0; i < sets.length; ++i) {
 			t[i] = sets[i].getIdType();
 			fill(sets, i, cache, r);
 		}
-		Set<int[]> r_s = new HashSet<>();
+
+		// convert to right structure
+		ImmutableSet.Builder<int[]> r_s = ImmutableSet.builder();
 		for(List<Integer> ri : r)
 			r_s.add(Ints.toArray(ri));
-		return new MultiTypedSet(t, r_s);
+		return new MultiTypedSet(t, r_s.build());
 	}
 
 	/**
@@ -86,14 +87,18 @@ public class TypedSets {
 			LoadingCache<Pair<IDType, IDType>, IIDTypeMapper<Integer, Integer>> cache) {
 		Set<TypedID> todo = new HashSet<>();
 		Set<TypedID> done = new HashSet<>();
+
 		for (TypedSet s : sets)
+			// init
 			todo.addAll(new SingleTypedIDSet(s));
+
 		while (!todo.isEmpty()) {
 			Iterator<TypedID> it = todo.iterator();
 			TypedID r = it.next();
 			it.remove();
 			done.add(r);
-			for (TypedSet s : sets) {
+
+			for (TypedSet s : sets) { // map to all other types
 				IDType s_idType = s.getIdType();
 				if (s_idType == r.getIdType())
 					continue;
@@ -103,7 +108,7 @@ public class TypedSets {
 				Set<Integer> apply = m.apply(r.getId());
 				if (apply == null)
 					continue;
-				for (Integer s_r : apply) {
+				for (Integer s_r : apply) { // produce new todo items it not already done
 					TypedID i = new TypedID(s_r, s_idType);
 					if (done.contains(i))
 						continue;
@@ -112,12 +117,20 @@ public class TypedSets {
 			}
 		}
 
-		ListMultimap<IDType, TypedID> index = Multimaps.index(done, TypedCollections.toIDType);
-		TypedSet[] new_ = new TypedSet[index.keySet().size()];
-		int i = 0;
+		Collection<TypedSet> new_ = toTypedSets(done);
+		return new_.toArray(new TypedSet[0]);
+	}
+
+	public static Collection<TypedSet> toTypedSets(Set<TypedID> set) {
+		if (set instanceof SingleTypedIDSet) { // its just a wrapper
+			return Collections.singleton(((SingleTypedIDSet) set).wrappee);
+		}
+		// compress to typed sets
+		ListMultimap<IDType, TypedID> index = Multimaps.index(set, TypedCollections.toIDType);
+		Collection<TypedSet> new_ = new ArrayList<>(index.keySet().size());
 		for (IDType idType : index.keySet()) {
 			List<TypedID> same = index.get(idType);
-			new_[i++] = new TypedSet(ImmutableSet.copyOf(Lists.transform(same, TypedID.TO_ID)), idType);
+			new_.add(new TypedSet(ImmutableSet.copyOf(Lists.transform(same, TypedID.TO_ID)), idType));
 		}
 		return new_;
 	}
@@ -192,7 +205,7 @@ public class TypedSets {
 			return sets;
 		TypedSet[] new_ = new TypedSet[index.keySet().size()];
 		int i = 0;
-		for(IDType idType : index.keySet()) {
+		for (IDType idType : index.keySet()) {
 			List<TypedSet> same = index.get(idType);
 			new_[i++] = TypedSet.union(same);
 		}
@@ -340,6 +353,15 @@ public class TypedSets {
 		return new SingleTypedIDList(new TypedList(Arrays.asList(r), in.getIdType()));
 	}
 
+	public static MultiTypedList sort(IMultiTypedCollection in, ITypedComparator... comparators) {
+		// nothing to sort
+		if (comparators.length == 0 || in.size() <= 1)
+			return in.asList();
+
+		int[][] r = in.toArray(new int[0][]);
+		Arrays.sort(r, MappingComparators.of(in.getIDTypes(), comparators));
+		return new MultiTypedList(in.getIDTypes(), ImmutableList.copyOf(r));
+	}
 	/**
 	 * @param cache
 	 * @return

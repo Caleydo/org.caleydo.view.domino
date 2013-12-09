@@ -7,54 +7,58 @@ package org.caleydo.view.domino.api.model;
 
 import static org.caleydo.view.domino.api.model.TypedCollections.INVALID_ID;
 
-import java.util.AbstractSet;
+import java.util.AbstractList;
 import java.util.Arrays;
 import java.util.Iterator;
-import java.util.Set;
+import java.util.List;
 
 import org.caleydo.core.id.IDType;
 
 import com.google.common.base.Function;
 import com.google.common.collect.Collections2;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterators;
 
 /**
  * @author Samuel Gratzl
  *
  */
-public class MultiTypedSet extends AbstractSet<int[]> implements IMultiTypedCollection {
+public class MultiTypedList extends AbstractList<int[]> implements IMultiTypedCollection {
 	private final IDType[] idTypes;
-	private final Set<int[]> ids;
+	private final List<int[]> ids;
 
-	public MultiTypedSet(IDType[] idTypes, Set<int[]> ids) {
+	public MultiTypedList(IDType[] idTypes, List<int[]> ids) {
 		this.idTypes = idTypes;
 		this.ids = ids;
-	}
-
-	@Override
-	public MultiTypedList asList() {
-		return new MultiTypedList(idTypes, ImmutableList.copyOf(ids));
 	}
 
 	public int depth() {
 		return idTypes.length;
 	}
 
-	public TypedSet slice(IDType idType) {
-		int index = index(idType);
-		if (index < 0)
-			return new TypedSet(ImmutableSet.<Integer> of(), idType);
-		if (depth() == 1 && ids instanceof Single)
-			return ((Single) ids).set;
-		return new TypedSet(ImmutableSet.copyOf(Collections2.transform(ids, slice(index))), idType);
+	@Override
+	public MultiTypedList asList() {
+		return this;
 	}
 
-	public TypedList sliceList(IDType idType) {
+	@Override
+	public int[] get(int index) {
+		return ids.get(index);
+	}
+
+	public int get(IDType idType, int index) {
+		int jindex = index(idType);
+		if (jindex < 0)
+			return INVALID_ID;
+		return get(index)[jindex];
+	}
+
+	public TypedList slice(IDType idType) {
 		int index = index(idType);
 		if (index < 0)
 			return new TypedList(new RepeatingList<Integer>(INVALID_ID, size()), idType);
+		if (depth() == 1 && ids instanceof Single)
+			return ((Single) ids).data;
 		return new TypedList(ImmutableList.copyOf(Collections2.transform(ids, slice(index))), idType);
 	}
 
@@ -89,29 +93,35 @@ public class MultiTypedSet extends AbstractSet<int[]> implements IMultiTypedColl
 		return Iterators.unmodifiableIterator(ids.iterator());
 	}
 
-	private static final class Single extends AbstractSet<int[]> implements Function<Integer,int[]> {
-		private final TypedSet set;
+	private static final class Single extends AbstractList<int[]> implements Function<Integer, int[]> {
+		private final TypedList data;
 
-		public Single(TypedSet set) {
-			this.set = set;
+		public Single(TypedList set) {
+			this.data = set;
 		}
 		@Override
 		public int size() {
-			return set.size();
+			return data.size();
 		}
 		@Override
 		public int[] apply(Integer input) {
 			return new int[] {input.intValue()};
 		}
 
+
 		@Override
 		public Iterator<int[]> iterator() {
-			return Iterators.transform(set.iterator(), this);
+			return Iterators.transform(data.iterator(), this);
+		}
+
+		@Override
+		public int[] get(int index) {
+			return apply(data.get(index));
 		}
 	}
 
-	public static MultiTypedSet single(TypedSet set) {
-		return new MultiTypedSet(new IDType[] { set.getIdType() }, new Single(set));
+	public static MultiTypedList single(TypedList set) {
+		return new MultiTypedList(new IDType[] { set.getIdType() }, new Single(set));
 	}
 
 	@Override
