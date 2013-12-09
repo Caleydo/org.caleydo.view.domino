@@ -11,15 +11,12 @@ import org.caleydo.core.data.collection.EDimension;
 import org.caleydo.core.data.collection.column.container.CategoryProperty;
 import org.caleydo.core.data.datadomain.DataSupportDefinitions;
 import org.caleydo.core.data.perspective.table.TablePerspective;
-import org.caleydo.core.view.opengl.layout2.GLElement;
-import org.caleydo.core.view.opengl.layout2.manage.GLElementFactories;
-import org.caleydo.core.view.opengl.layout2.manage.GLElementFactories.GLElementSupplier;
-import org.caleydo.core.view.opengl.layout2.manage.GLElementFactoryContext;
 import org.caleydo.core.view.opengl.layout2.manage.GLElementFactoryContext.Builder;
+import org.caleydo.view.domino.api.model.typed.TypedList;
 import org.caleydo.view.domino.internal.ui.prototype.ui.ANodeUI;
+import org.caleydo.view.domino.internal.ui.prototype.ui.INodeUI;
 
 import com.google.common.base.Objects;
-import com.google.common.base.Predicates;
 import com.google.common.collect.ImmutableList;
 
 /**
@@ -79,7 +76,7 @@ public final class CategoricalData1DNode extends AData1DNode {
 
 
 	@Override
-	public GLElement createUI() {
+	public INodeUI createUI() {
 		return new UI(this);
 	}
 
@@ -90,10 +87,13 @@ public final class CategoricalData1DNode extends AData1DNode {
 		}
 
 		@Override
-		protected List<GLElementSupplier> createVis() {
-			Builder b = GLElementFactoryContext.builder();
-			// b.withData(node.getData());
-			return GLElementFactories.getExtensions(b.build(), "domino.1d.categorical", Predicates.alwaysTrue());
+		protected String getExtensionID() {
+			return "1d.categorical";
+		}
+
+		@Override
+		protected void fill(Builder b, TypedList dim, TypedList rec) {
+
 		}
 	}
 

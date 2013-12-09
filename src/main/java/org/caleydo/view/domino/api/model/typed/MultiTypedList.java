@@ -19,6 +19,7 @@ import com.google.common.base.Functions;
 import com.google.common.collect.Collections2;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterators;
+import com.google.common.collect.Lists;
 
 /**
  * @author Samuel Gratzl
@@ -70,10 +71,10 @@ public class MultiTypedList extends AbstractList<int[]> implements IMultiTypedCo
 	public TypedList slice(IDType idType) {
 		int index = index(idType);
 		if (index < 0)
-			return new TypedList(new RepeatingList<Integer>(INVALID_ID, size()), idType);
+			return new TypedList(RepeatingList.repeat(INVALID_ID, size()), idType);
 		if (depth() == 1 && ids instanceof Single)
 			return ((Single) ids).data;
-		return new TypedList(ImmutableList.copyOf(Collections2.transform(ids, slice(index))), idType);
+		return new TypedList(Lists.transform(ids, slice(index)), idType);
 	}
 
 	@Override

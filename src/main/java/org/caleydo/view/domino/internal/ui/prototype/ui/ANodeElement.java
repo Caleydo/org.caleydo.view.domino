@@ -38,6 +38,7 @@ public abstract class ANodeElement extends GLElementContainer implements IHasMin
 	protected static final int BORDER = 2;
 	protected final PickingBarrier content;
 	protected final INode node;
+	private final INodeUI nodeUI;
 	private float scale = 20;
 	protected DominoLayoutInfo info;
 
@@ -56,7 +57,8 @@ public abstract class ANodeElement extends GLElementContainer implements IHasMin
 			this.info.setZoomFactor(0.2f, 0.2f); // todo better values
 			node.setLayoutData(this.info);
 		}
-		this.content = new PickingBarrier(node.createUI());
+		this.nodeUI = node.createUI();
+		this.content = new PickingBarrier(this.nodeUI.asGLElement());
 		this.node = node;
 		this.node.addPropertyChangeListener(INode.PROP_TRANSPOSE, this);
 		this.add(content);

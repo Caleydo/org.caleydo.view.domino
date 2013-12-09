@@ -18,18 +18,15 @@ import org.caleydo.core.data.virtualarray.group.GroupList;
 import org.caleydo.core.id.IDType;
 import org.caleydo.core.util.color.Color;
 import org.caleydo.core.util.color.ColorBrewer;
-import org.caleydo.core.view.opengl.layout2.GLElement;
-import org.caleydo.core.view.opengl.layout2.manage.GLElementFactories;
-import org.caleydo.core.view.opengl.layout2.manage.GLElementFactories.GLElementSupplier;
-import org.caleydo.core.view.opengl.layout2.manage.GLElementFactoryContext;
 import org.caleydo.core.view.opengl.layout2.manage.GLElementFactoryContext.Builder;
 import org.caleydo.view.domino.api.model.typed.ITypedComparator;
 import org.caleydo.view.domino.api.model.typed.TypedCollections;
 import org.caleydo.view.domino.api.model.typed.TypedGroup;
+import org.caleydo.view.domino.api.model.typed.TypedList;
 import org.caleydo.view.domino.api.model.typed.TypedSet;
 import org.caleydo.view.domino.internal.ui.prototype.ui.ANodeUI;
+import org.caleydo.view.domino.internal.ui.prototype.ui.INodeUI;
 
-import com.google.common.base.Predicates;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 
@@ -138,7 +135,7 @@ public class StratificationNode extends ANode implements ISortableNode, ITypedCo
 	}
 
 	@Override
-	public GLElement createUI() {
+	public INodeUI createUI() {
 		return new UI(this);
 	}
 
@@ -199,22 +196,14 @@ public class StratificationNode extends ANode implements ISortableNode, ITypedCo
 		public UI(StratificationNode node) {
 			super(node);
 		}
+
 		@Override
-		protected List<GLElementSupplier> createVis() {
-			Builder b = GLElementFactoryContext.builder();
-			// b.put(Perspective.class, node.getData());
-			// b.put("colors", node.getGroupColors().toArray(new Color[0]));
-			return GLElementFactories.getExtensions(b.build(),"domino.stratification", Predicates.alwaysTrue());
+		protected String getExtensionID() {
+			return "stratification";
 		}
-		//
-		// @Override
-		// protected void renderImpl(GLGraphics g, float w, float h) {
-		// GroupList groups = node.getGroups();
-		// final int total = node.size();
-		// boolean horizontal = node.dim.isHorizontal();
-		// List<Color> colors = node.getGroupColors();
-		// Utils.renderCategorical(g, w, h, groups, total, horizontal, colors);
-		// super.renderImpl(g, w, h);
-		// }
+
+		@Override
+		protected void fill(Builder b, TypedList dim, TypedList rec) {
+		}
 	}
 }

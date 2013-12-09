@@ -7,25 +7,78 @@ package org.caleydo.view.domino.internal.ui.prototype.ui;
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
-import java.util.List;
 
+import org.caleydo.core.data.collection.EDimension;
+import org.caleydo.core.view.opengl.layout2.GLElement;
 import org.caleydo.core.view.opengl.layout2.GLElementDecorator;
 import org.caleydo.core.view.opengl.layout2.IGLElementContext;
+import org.caleydo.core.view.opengl.layout2.manage.GLElementFactories;
 import org.caleydo.core.view.opengl.layout2.manage.GLElementFactories.GLElementSupplier;
+import org.caleydo.core.view.opengl.layout2.manage.GLElementFactoryContext;
+import org.caleydo.core.view.opengl.layout2.manage.GLElementFactoryContext.Builder;
 import org.caleydo.core.view.opengl.layout2.manage.GLElementFactorySwitcher;
 import org.caleydo.core.view.opengl.layout2.manage.GLElementFactorySwitcher.ELazyiness;
+import org.caleydo.view.domino.api.model.typed.TypedCollections;
+import org.caleydo.view.domino.api.model.typed.TypedList;
 import org.caleydo.view.domino.internal.ui.prototype.INode;
+
+import com.google.common.base.Predicate;
+import com.google.common.collect.ImmutableList;
 
 /**
  * @author Samuel Gratzl
  *
  */
-public abstract class ANodeUI<T extends INode> extends GLElementDecorator implements PropertyChangeListener {
+public abstract class ANodeUI<T extends INode> extends GLElementDecorator implements PropertyChangeListener, INodeUI,
+		Predicate<String> {
 	protected final T node;
+
+	private TypedList dimData = TypedCollections.INVALID_LIST;
+	private TypedList recData = TypedCollections.INVALID_LIST;
+	private boolean rebuild = true;
 
 	public ANodeUI(T node) {
 		this.node = node;
 		setLayoutData(node);
+	}
+
+	protected abstract String getExtensionID();
+
+	@Override
+	public void layout(int deltaTimeMs) {
+		if (rebuild) {
+			rebuild = false;
+			Builder b = GLElementFactoryContext.builder();
+			fill(b, dimData, recData);
+			ImmutableList<GLElementSupplier> extensions = GLElementFactories.getExtensions(b.build(), "domino."
+					+ getExtensionID(),
+					this);
+			GLElementFactorySwitcher s = new GLElementFactorySwitcher(extensions, ELazyiness.DESTROY);
+			setContent(s);
+		}
+		super.layout(deltaTimeMs);
+	}
+
+
+	protected abstract void fill(Builder b, TypedList dim, TypedList rec);
+
+	@Override
+	public boolean apply(String input) {
+		return true;
+	}
+
+	@Override
+	public final GLElement asGLElement() {
+		return this;
+	}
+
+	@Override
+	public void setData(EDimension dim, TypedList data) {
+		if (dim.isHorizontal())
+			dimData = data;
+		else
+			recData = data;
+		rebuild();
 	}
 
 	@Override
@@ -51,11 +104,8 @@ public abstract class ANodeUI<T extends INode> extends GLElementDecorator implem
 	}
 
 	private void rebuild() {
-		List<GLElementSupplier> children = createVis();
-		GLElementFactorySwitcher s = new GLElementFactorySwitcher(children, ELazyiness.DESTROY);
-		setContent(s);
+		this.rebuild = true;
+		relayout();
 	}
-
-	protected abstract List<GLElementSupplier> createVis();
 
 }

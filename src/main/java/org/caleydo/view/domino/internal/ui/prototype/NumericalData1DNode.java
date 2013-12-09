@@ -5,21 +5,15 @@
  *******************************************************************************/
 package org.caleydo.view.domino.internal.ui.prototype;
 
-import java.util.List;
-
 import org.apache.commons.lang.math.NumberUtils;
 import org.caleydo.core.data.collection.EDataClass;
 import org.caleydo.core.data.collection.EDimension;
 import org.caleydo.core.data.datadomain.DataSupportDefinitions;
 import org.caleydo.core.data.perspective.table.TablePerspective;
-import org.caleydo.core.view.opengl.layout2.GLElement;
-import org.caleydo.core.view.opengl.layout2.manage.GLElementFactories;
-import org.caleydo.core.view.opengl.layout2.manage.GLElementFactories.GLElementSupplier;
-import org.caleydo.core.view.opengl.layout2.manage.GLElementFactoryContext;
 import org.caleydo.core.view.opengl.layout2.manage.GLElementFactoryContext.Builder;
+import org.caleydo.view.domino.api.model.typed.TypedList;
 import org.caleydo.view.domino.internal.ui.prototype.ui.ANodeUI;
-
-import com.google.common.base.Predicates;
+import org.caleydo.view.domino.internal.ui.prototype.ui.INodeUI;
 
 /**
  * @author Samuel Gratzl
@@ -45,7 +39,7 @@ public class NumericalData1DNode extends AData1DNode {
 	}
 
 	@Override
-	public GLElement createUI() {
+	public INodeUI createUI() {
 		return new UI(this);
 	}
 
@@ -56,12 +50,13 @@ public class NumericalData1DNode extends AData1DNode {
 		}
 
 		@Override
-		protected List<GLElementSupplier> createVis() {
-			Builder b = GLElementFactoryContext.builder();
-			// b.withData(node.getData());
+		protected String getExtensionID() {
+			return "1d.numerical";
+		}
+
+		@Override
+		protected void fill(Builder b, TypedList dim, TypedList rec) {
 			b.put(EDimension.class, node.getDimension());
-			return GLElementFactories.getExtensions(b.build(),
-					"domino.1d.numerical", Predicates.alwaysTrue());
 		}
 	}
 

@@ -11,6 +11,8 @@ import org.caleydo.core.data.collection.EDimension;
 import org.caleydo.core.util.color.Color;
 import org.caleydo.core.view.opengl.layout2.GLElement;
 import org.caleydo.core.view.opengl.layout2.GLGraphics;
+import org.caleydo.view.domino.api.model.typed.TypedCollections;
+import org.caleydo.view.domino.api.model.typed.TypedList;
 import org.caleydo.view.domino.internal.ui.prototype.ADataNode;
 import org.caleydo.view.domino.internal.ui.prototype.ANode;
 import org.caleydo.view.domino.internal.ui.prototype.INode;
@@ -32,7 +34,7 @@ public class PlaceholderNode extends ADataNode {
 	}
 
 	@Override
-	public GLElement createUI() {
+	public INodeUI createUI() {
 		return new UI(this);
 	}
 
@@ -41,12 +43,27 @@ public class PlaceholderNode extends ADataNode {
 		return new PlaceholderNode(this);
 	}
 
-	private static class UI extends GLElement {
+	private static class UI extends GLElement implements INodeUI {
 		private final PlaceholderNode node;
+		private TypedList dimData = TypedCollections.INVALID_LIST;
+		private TypedList recData = TypedCollections.INVALID_LIST;
 
 		public UI(PlaceholderNode node) {
 			this.node = node;
 			setLayoutData(node);
+		}
+
+		@Override
+		public GLElement asGLElement() {
+			return this;
+		}
+
+		@Override
+		public void setData(EDimension dim, TypedList data) {
+			if (dim.isHorizontal())
+				dimData = data;
+			else
+				recData = data;
 		}
 
 		@Override

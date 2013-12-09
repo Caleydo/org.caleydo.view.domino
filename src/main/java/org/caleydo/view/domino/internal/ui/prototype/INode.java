@@ -11,9 +11,9 @@ import java.util.Set;
 import org.caleydo.core.data.collection.EDimension;
 import org.caleydo.core.id.IDType;
 import org.caleydo.core.util.base.ILabeled;
-import org.caleydo.core.view.opengl.layout2.GLElement;
 import org.caleydo.core.view.opengl.layout2.layout.IHasGLLayoutData;
 import org.caleydo.view.domino.api.model.typed.TypedSet;
+import org.caleydo.view.domino.internal.ui.prototype.ui.INodeUI;
 
 /**
  * @author Samuel Gratzl
@@ -40,7 +40,7 @@ public interface INode extends ILabeled, Cloneable, IHasGLLayoutData {
 	/**
 	 * @return
 	 */
-	GLElement createUI();
+	INodeUI createUI();
 
 	INode clone();
 
