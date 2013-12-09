@@ -5,11 +5,17 @@
  *******************************************************************************/
 package org.caleydo.view.domino.api.model.typed;
 
+import static org.caleydo.view.domino.api.model.typed.TypedCollections.INVALID_ID;
+
+import java.util.Objects;
+
 import org.caleydo.core.id.IDType;
 
 import com.google.common.base.Function;
 
 /**
+ * a typed id is an integer id along with their idtype
+ *
  * @author Samuel Gratzl
  *
  */
@@ -20,6 +26,9 @@ public class TypedID implements IHasIDType {
 			return input == null ? null : input.getId();
 		}
 	};
+	public static final Function<IHasIDType, IDType> TO_IDTYPE = TypedCollections.TO_IDTYPE;
+
+
 	private final int id;
 	private final IDType idType;
 
@@ -74,12 +83,16 @@ public class TypedID implements IHasIDType {
 		TypedID other = (TypedID) obj;
 		if (id != other.id)
 			return false;
-		if (idType == null) {
-			if (other.idType != null)
-				return false;
-		} else if (!idType.equals(other.idType))
-			return false;
-		return true;
+		return Objects.equals(idType, other.idType);
+	}
+
+	public static Function<Integer, TypedID> toTypedId(final IDType idType) {
+		return new Function<Integer, TypedID>() {
+			@Override
+			public TypedID apply(Integer input) {
+				return new TypedID(input == null ? INVALID_ID : input.intValue(), idType);
+			}
+		};
 	}
 
 }

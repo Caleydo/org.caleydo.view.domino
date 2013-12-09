@@ -28,7 +28,7 @@ public class TypedCollections {
 
 	public final static Integer INVALID_ID = Integer.valueOf(-1);
 
-	public static Function<IHasIDType, IDType> toIDType = new Function<IHasIDType, IDType>() {
+	public static Function<IHasIDType, IDType> TO_IDTYPE = new Function<IHasIDType, IDType>() {
 		@Override
 		public IDType apply(IHasIDType input) {
 			return input == null ? null : input.getIdType();

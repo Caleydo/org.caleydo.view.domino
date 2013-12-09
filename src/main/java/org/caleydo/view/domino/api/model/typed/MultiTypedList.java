@@ -15,6 +15,7 @@ import java.util.List;
 import org.caleydo.core.id.IDType;
 
 import com.google.common.base.Function;
+import com.google.common.base.Functions;
 import com.google.common.collect.Collections2;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterators;
@@ -39,6 +40,19 @@ public class MultiTypedList extends AbstractList<int[]> implements IMultiTypedCo
 	@Override
 	public MultiTypedList asList() {
 		return this;
+	}
+
+	@Override
+	public List<TypedID> asInhomogenous() {
+		if (ids instanceof Single)
+			return new SingleTypedIDList(((Single) ids).data);
+		ImmutableList.Builder<TypedID> b = ImmutableList.builder();
+		for (int i = 0; i < depth(); ++i) {
+			IDType idType = idTypes[i];
+			// select just the slice and map to typed id
+			b.addAll(Collections2.transform(ids, Functions.compose(TypedID.toTypedId(idType), slice(i))));
+		}
+		return b.build();
 	}
 
 	@Override

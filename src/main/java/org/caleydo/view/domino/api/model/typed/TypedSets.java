@@ -10,8 +10,6 @@ import static org.caleydo.view.domino.api.model.typed.TypedCollections.INVALID_I
 import static org.caleydo.view.domino.api.model.typed.TypedCollections.mapSingle;
 import static org.caleydo.view.domino.api.model.typed.TypedCollections.toSingleOrInvalid;
 
-import java.util.AbstractList;
-import java.util.AbstractSet;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -35,7 +33,6 @@ import com.google.common.cache.LoadingCache;
 import com.google.common.collect.Collections2;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Iterators;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multimaps;
@@ -49,14 +46,13 @@ public class TypedSets {
 
 	/**
 	 * produces a union of the given sets, in contrast to {@link #union(TypedSet...)} multi mapped indices will be added
-	 * 
+	 *
 	 * @param sets
 	 * @return
 	 */
 	public static MultiTypedSet unionDeep(TypedSet... sets) {
 		return unionImpl(true, sets);
 	}
-
 
 	/**
 	 * produces a union of the given sets
@@ -152,10 +148,10 @@ public class TypedSets {
 	 */
 	public static Collection<TypedSet> toTypedSets(Set<TypedID> set) {
 		if (set instanceof SingleTypedIDSet) { // its just a wrapper
-			return Collections.singleton(((SingleTypedIDSet) set).wrappee);
+			return Collections.singleton(((SingleTypedIDSet) set).getData());
 		}
 		// compress to typed sets
-		ListMultimap<IDType, TypedID> index = Multimaps.index(set, TypedCollections.toIDType);
+		ListMultimap<IDType, TypedID> index = Multimaps.index(set, TypedID.TO_IDTYPE);
 		Collection<TypedSet> new_ = new ArrayList<>(index.keySet().size());
 		for (IDType idType : index.keySet()) {
 			List<TypedID> same = index.get(idType);
@@ -228,7 +224,7 @@ public class TypedSets {
 	 * @return
 	 */
 	private static TypedSet[] compress(TypedSet[] sets) {
-		ListMultimap<IDType, TypedSet> index = Multimaps.index(Arrays.asList(sets), TypedCollections.toIDType);
+		ListMultimap<IDType, TypedSet> index = Multimaps.index(Arrays.asList(sets), TypedCollections.TO_IDTYPE);
 
 		if (index.size() == sets.length) // nothing to compress
 			return sets;
@@ -331,11 +327,11 @@ public class TypedSets {
 		if (in instanceof SingleTypedIDList) {
 			SingleTypedIDList l = (SingleTypedIDList) in;
 			if (l.getIdType() == target)
-				return l.wrappee;
+				return l.getData();
 			IIDTypeMapper<Integer, Integer> m = findMapper(l.getIdType(), target);
 			if (m == null) // not mappable all invalid
 				return allInvalid(in, target);
-			Collection<Set<Integer>> r = m.applySeq(l.wrappee);
+			Collection<Set<Integer>> r = m.applySeq(l.getData());
 			if (r == null)
 				return allInvalid(in, target);
 			// map result to a list
@@ -411,118 +407,4 @@ public class TypedSets {
 		return new TypedList(new RepeatingList<Integer>(INVALID_ID, in.size()), target);
 	}
 
-	private interface ISingleTypedIDCollection extends IHasIDType, Collection<TypedID> {
-		ITypedCollection getData();
-	}
-
-	/**
-	 * utility class for a {@link TypedID} based set based on a single {@link TypedSet}
-	 *
-	 * @author Samuel Gratzl
-	 *
-	 */
-	private static class SingleTypedIDSet extends AbstractSet<TypedID> implements Function<Integer, TypedID>,
-			ISingleTypedIDCollection {
-		private final TypedSet wrappee;
-
-		public SingleTypedIDSet(TypedSet wrappee) {
-			this.wrappee = wrappee;
-		}
-
-		@Override
-		public TypedSet getData() {
-			return wrappee;
-		}
-
-		@Override
-		public Iterator<TypedID> iterator() {
-			return Iterators.transform(wrappee.iterator(), this);
-		}
-
-		@Override
-		public IDType getIdType() {
-			return wrappee.getIdType();
-		}
-
-		@Override
-		public TypedID apply(Integer input) {
-			return new TypedID(input == null ? -1 : input.intValue(), wrappee.getIdType());
-		}
-
-		@Override
-		public boolean contains(Object o) {
-			if (!(o instanceof TypedID))
-				return false;
-			TypedID t = (TypedID) o;
-			if (t.getIdType() != wrappee.getIdType())
-				return false;
-			return wrappee.contains(t.getId());
-		}
-
-
-		@Override
-		public int size() {
-			return wrappee.size();
-		}
-	}
-
-	private static class SingleTypedIDList extends AbstractList<TypedID> implements Function<Integer, TypedID>,
-			ISingleTypedIDCollection {
-		private final TypedList wrappee;
-
-		public SingleTypedIDList(TypedList wrappee) {
-			this.wrappee = wrappee;
-		}
-
-		@Override
-		public TypedList getData() {
-			return wrappee;
-		}
-
-		@Override
-		public IDType getIdType() {
-			return wrappee.getIdType();
-		}
-
-
-		@Override
-		public Iterator<TypedID> iterator() {
-			return Iterators.transform(wrappee.iterator(), this);
-		}
-
-		@Override
-		public TypedID apply(Integer input) {
-			return new TypedID(input == null ? -1 : input.intValue(), wrappee.getIdType());
-		}
-
-		@Override
-		public int size() {
-			return wrappee.size();
-		}
-
-		@Override
-		public int indexOf(Object o) {
-			if (!(o instanceof TypedID))
-				return -1;
-			TypedID t = (TypedID) o;
-			if (t.getIdType() != wrappee.getIdType())
-				return -1;
-			return wrappee.indexOf(t.getId());
-		}
-
-		@Override
-		public boolean contains(Object o) {
-			if (!(o instanceof TypedID))
-				return false;
-			TypedID t = (TypedID) o;
-			if (t.getIdType() != wrappee.getIdType())
-				return false;
-			return wrappee.contains(t.getId());
-		}
-
-		@Override
-		public TypedID get(int index) {
-			return apply(wrappee.get(index));
-		}
-	}
 }

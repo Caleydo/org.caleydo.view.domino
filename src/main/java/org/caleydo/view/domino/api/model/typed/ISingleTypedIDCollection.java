@@ -7,19 +7,11 @@ package org.caleydo.view.domino.api.model.typed;
 
 import java.util.Collection;
 
-import org.caleydo.core.id.IDType;
-
 /**
- * a multi typed collection is a collection, which already multiple types per id exists stored in a set of arrays
- *
  * @author Samuel Gratzl
  *
  */
-public interface IMultiTypedCollection extends Collection<int[]> {
-
-	IDType[] getIDTypes();
-
-	MultiTypedList asList();
-
-	Collection<TypedID> asInhomogenous();
+public interface ISingleTypedIDCollection extends IHasIDType, Collection<TypedID> {
+	ITypedCollection getData();
 }
+

@@ -15,6 +15,7 @@ import java.util.Set;
 import org.caleydo.core.id.IDType;
 
 import com.google.common.base.Function;
+import com.google.common.base.Functions;
 import com.google.common.collect.Collections2;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
@@ -33,9 +34,23 @@ public class MultiTypedSet extends AbstractSet<int[]> implements IMultiTypedColl
 		this.ids = ids;
 	}
 
+
 	@Override
 	public MultiTypedList asList() {
 		return new MultiTypedList(idTypes, ImmutableList.copyOf(ids));
+	}
+
+	@Override
+	public Set<TypedID> asInhomogenous() {
+		if (ids instanceof Single)
+			return new SingleTypedIDSet(((Single) ids).set);
+		ImmutableSet.Builder<TypedID> b = ImmutableSet.builder();
+		for (int i = 0; i < depth(); ++i) {
+			IDType idType = idTypes[i];
+			// select just the slice and map to typed id
+			b.addAll(Collections2.transform(ids, Functions.compose(TypedID.toTypedId(idType), slice(i))));
+		}
+		return b.build();
 	}
 
 	public int depth() {
