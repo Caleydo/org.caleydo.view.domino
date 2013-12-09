@@ -48,9 +48,8 @@ import com.google.common.primitives.Ints;
 public class TypedSets {
 
 	/**
-	 * produces a union of the given sets, in constrast to {@link #union(TypedSet...)} multi mapped indices will be
-	 * added
-	 *
+	 * produces a union of the given sets, in contrast to {@link #union(TypedSet...)} multi mapped indices will be added
+	 * 
 	 * @param sets
 	 * @return
 	 */
@@ -145,6 +144,12 @@ public class TypedSets {
 		return new_.toArray(new TypedSet[0]);
 	}
 
+	/**
+	 * convert a inhomogenous set of {@link TypedID} to a collection of {@link TypedSet}s
+	 *
+	 * @param set
+	 * @return
+	 */
 	public static Collection<TypedSet> toTypedSets(Set<TypedID> set) {
 		if (set instanceof SingleTypedIDSet) { // its just a wrapper
 			return Collections.singleton(((SingleTypedIDSet) set).wrappee);
@@ -410,6 +415,12 @@ public class TypedSets {
 		ITypedCollection getData();
 	}
 
+	/**
+	 * utility class for a {@link TypedID} based set based on a single {@link TypedSet}
+	 *
+	 * @author Samuel Gratzl
+	 *
+	 */
 	private static class SingleTypedIDSet extends AbstractSet<TypedID> implements Function<Integer, TypedID>,
 			ISingleTypedIDCollection {
 		private final TypedSet wrappee;

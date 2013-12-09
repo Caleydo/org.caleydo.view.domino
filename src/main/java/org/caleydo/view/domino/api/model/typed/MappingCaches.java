@@ -16,8 +16,10 @@ import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 
 /**
+ * mapping cache utilities
+ * 
  * @author Samuel Gratzl
- *
+ * 
  */
 public class MappingCaches {
 
