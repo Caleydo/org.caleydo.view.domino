@@ -13,6 +13,7 @@ import org.caleydo.core.util.color.Color;
 import org.caleydo.view.domino.api.model.typed.ITypedComparator;
 import org.caleydo.view.domino.api.model.typed.TypedCollections;
 import org.caleydo.view.domino.api.model.typed.TypedID;
+import org.caleydo.view.domino.api.model.typed.TypedList;
 import org.caleydo.view.domino.api.model.typed.TypedSet;
 
 /**
@@ -71,6 +72,23 @@ public abstract class AData1DNode extends ANode implements ISortableNode, ITyped
 	public int size() {
 		return this.ids.size();
 	}
+
+	/**
+	 * @param data
+	 * @return
+	 */
+	protected final TablePerspective asTablePerspective(TypedList data) {
+		TypedID singleID = getSingleID();
+		TypedList single = TypedCollections.singletonList(singleID);
+		if (this.isRightDimension(EDimension.DIMENSION)) {
+			TypedList t = single;
+			single = data;
+			data = t;
+		}
+		return this.data.asTablePerspective(single, data);
+	}
+
+
 
 	@Override
 	public void transpose() {

@@ -18,9 +18,9 @@ import com.google.common.collect.Iterators;
 
 /**
  * a reaonly list of integers with their id type
- * 
+ *
  * @author Samuel Gratzl
- * 
+ *
  */
 public class TypedList extends AbstractList<Integer> implements ITypedCollection {
 	private final List<Integer> wrappee;

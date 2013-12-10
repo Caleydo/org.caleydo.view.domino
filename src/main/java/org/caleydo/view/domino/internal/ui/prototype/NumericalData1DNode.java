@@ -57,6 +57,9 @@ public class NumericalData1DNode extends AData1DNode {
 		@Override
 		protected void fill(Builder b, TypedList dim, TypedList rec) {
 			b.put(EDimension.class, node.getDimension());
+			final TypedList data = node.getDimension().select(dim, rec);
+			TablePerspective t = node.asTablePerspective(data);
+			b.withData(t);
 		}
 	}
 

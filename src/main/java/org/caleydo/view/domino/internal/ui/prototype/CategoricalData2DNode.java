@@ -12,6 +12,7 @@ import org.caleydo.core.data.collection.column.container.CategoryProperty;
 import org.caleydo.core.data.collection.table.CategoricalTable;
 import org.caleydo.core.data.datadomain.ATableBasedDataDomain;
 import org.caleydo.core.data.datadomain.DataSupportDefinitions;
+import org.caleydo.core.data.perspective.table.TablePerspective;
 import org.caleydo.core.view.opengl.layout2.manage.GLElementFactoryContext.Builder;
 import org.caleydo.view.domino.api.model.typed.TypedList;
 import org.caleydo.view.domino.internal.ui.prototype.ui.ANodeUI;
@@ -71,7 +72,8 @@ public class CategoricalData2DNode extends AData2DNode {
 
 		@Override
 		protected void fill(Builder b, TypedList dim, TypedList rec) {
-
+			TablePerspective t = node.asTablePerspective(dim, rec);
+			b.withData(t);
 		}
 	}
 }

@@ -204,6 +204,7 @@ public class StratificationNode extends ANode implements ISortableNode, ITypedCo
 
 		@Override
 		protected void fill(Builder b, TypedList dim, TypedList rec) {
+
 		}
 	}
 }

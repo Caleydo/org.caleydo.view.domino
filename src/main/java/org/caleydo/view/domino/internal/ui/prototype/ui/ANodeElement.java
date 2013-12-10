@@ -13,6 +13,7 @@ import java.util.List;
 
 import org.caleydo.core.data.collection.EDimension;
 import org.caleydo.core.view.opengl.canvas.IGLMouseListener.IMouseEvent;
+import org.caleydo.core.view.opengl.layout2.GLElement;
 import org.caleydo.core.view.opengl.layout2.GLElementContainer;
 import org.caleydo.core.view.opengl.layout2.GLGraphics;
 import org.caleydo.core.view.opengl.layout2.IGLElementContext;
@@ -22,6 +23,7 @@ import org.caleydo.core.view.opengl.layout2.layout.IGLLayout2;
 import org.caleydo.core.view.opengl.layout2.layout.IGLLayoutElement;
 import org.caleydo.core.view.opengl.picking.IPickingListener;
 import org.caleydo.core.view.opengl.picking.Pick;
+import org.caleydo.view.domino.api.model.typed.TypedList;
 import org.caleydo.view.domino.internal.ui.DominoLayoutInfo;
 import org.caleydo.view.domino.internal.ui.prototype.INode;
 import org.caleydo.view.domino.internal.ui.prototype.graph.DominoGraph;
@@ -34,7 +36,7 @@ import com.google.common.base.Supplier;
  *
  */
 public abstract class ANodeElement extends GLElementContainer implements IHasMinSize, IGLLayout2, IPickingListener,
-		PropertyChangeListener {
+		PropertyChangeListener,INodeUI {
 	protected static final int BORDER = 2;
 	protected final PickingBarrier content;
 	protected final INode node;
@@ -109,6 +111,13 @@ public abstract class ANodeElement extends GLElementContainer implements IHasMin
 		return info;
 	}
 
+	/**
+	 * @return the nodeUI, see {@link #nodeUI}
+	 */
+	public INodeUI getNodeUI() {
+		return nodeUI;
+	}
+
 	@Override
 	public void pick(Pick pick) {
 		IMouseEvent event = ((IMouseEvent) pick);
@@ -177,8 +186,19 @@ public abstract class ANodeElement extends GLElementContainer implements IHasMin
 	/**
 	 * @return the node, see {@link #node}
 	 */
-	public INode getNode() {
+	@Override
+	public INode asNode() {
 		return node;
+	}
+
+	@Override
+	public GLElement asGLElement() {
+		return this;
+	}
+
+	@Override
+	public void setData(EDimension dim, TypedList data) {
+		nodeUI.setData(dim, data);
 	}
 
 	@Override

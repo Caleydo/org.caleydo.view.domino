@@ -67,4 +67,11 @@ public class TypedCollections {
 			return INVALID_ID;
 		return r.iterator().next();
 	}
+
+	/**
+	 * @param singleID
+	 */
+	public static TypedList singletonList(TypedID singleID) {
+		return new TypedList(Collections.singletonList(singleID.getId()), singleID.getIdType());
+	}
 }

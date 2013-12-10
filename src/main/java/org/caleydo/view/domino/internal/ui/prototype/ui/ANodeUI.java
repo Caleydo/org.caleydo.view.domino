@@ -22,6 +22,7 @@ import org.caleydo.view.domino.api.model.typed.TypedCollections;
 import org.caleydo.view.domino.api.model.typed.TypedList;
 import org.caleydo.view.domino.internal.ui.prototype.INode;
 
+import com.google.common.base.Function;
 import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableList;
 
@@ -40,6 +41,11 @@ public abstract class ANodeUI<T extends INode> extends GLElementDecorator implem
 	public ANodeUI(T node) {
 		this.node = node;
 		setLayoutData(node);
+	}
+
+	@Override
+	public final T asNode() {
+		return node;
 	}
 
 	protected abstract String getExtensionID();
@@ -107,5 +113,12 @@ public abstract class ANodeUI<T extends INode> extends GLElementDecorator implem
 		this.rebuild = true;
 		relayout();
 	}
+
+	public static final Function<INodeUI, INode> TO_NODE = new Function<INodeUI, INode>() {
+		@Override
+		public INode apply(INodeUI input) {
+			return input == null ? null : input.asNode();
+		}
+	};
 
 }

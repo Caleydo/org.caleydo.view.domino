@@ -7,6 +7,7 @@ package org.caleydo.view.domino.internal.ui.prototype;
 
 import org.caleydo.core.data.datadomain.ATableBasedDataDomain;
 import org.caleydo.core.data.perspective.table.TablePerspective;
+import org.caleydo.view.domino.api.model.typed.TypedList;
 import org.caleydo.view.domino.api.model.typed.TypedSet;
 
 /**
@@ -36,5 +37,14 @@ public abstract class AData2DNode extends ADataNode {
 	public AData2DNode(AData2DNode clone) {
 		super(clone);
 		this.data = clone.data;
+	}
+
+	public TablePerspective asTablePerspective(TypedList dim, TypedList rec) {
+		if (this.transposed) { // swap if transposed
+			TypedList tmp = dim;
+			dim = rec;
+			rec = tmp;
+		}
+		return this.data.asTablePerspective(dim, rec);
 	}
 }

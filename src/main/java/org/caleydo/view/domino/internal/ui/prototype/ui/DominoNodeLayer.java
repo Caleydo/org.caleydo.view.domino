@@ -70,7 +70,7 @@ public class DominoNodeLayer extends GLElementContainer {
 	 */
 	private void remove(INode vertex) {
 		for (ANodeElement elem : Iterables.filter(this, ANodeElement.class)) {
-			if (elem.getNode() == vertex) {
+			if (elem.asNode() == vertex) {
 				remove(elem);
 				break;
 			}
@@ -100,7 +100,7 @@ public class DominoNodeLayer extends GLElementContainer {
 	 */
 	public ANodeElement find(INode n) {
 		for (ANodeElement elem : getNodes())
-			if (elem.getNode() == n)
+			if (elem.asNode() == n)
 				return elem;
 		return null;
 	}

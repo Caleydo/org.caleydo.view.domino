@@ -54,6 +54,11 @@ public class PlaceholderNode extends ADataNode {
 		}
 
 		@Override
+		public INode asNode() {
+			return node;
+		}
+
+		@Override
 		public GLElement asGLElement() {
 			return this;
 		}
