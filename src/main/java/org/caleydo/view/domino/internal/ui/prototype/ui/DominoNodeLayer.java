@@ -9,6 +9,7 @@ import gleem.linalg.Vec2f;
 import gleem.linalg.Vec4f;
 
 import java.util.ArrayDeque;
+import java.util.BitSet;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Deque;
@@ -39,8 +40,10 @@ import org.caleydo.view.domino.internal.ui.prototype.graph.IDominoGraphListener;
 import org.caleydo.view.domino.internal.ui.prototype.graph.IEdge;
 import org.caleydo.view.domino.internal.ui.prototype.graph.Placeholder;
 
+import com.google.common.base.Function;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Collections2;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
@@ -49,7 +52,8 @@ import com.google.common.collect.Maps;
  * @author Samuel Gratzl
  *
  */
-public class DominoNodeLayer extends AnimatedGLElementContainer implements IDominoGraphListener, IGLLayout2 {
+public class DominoNodeLayer extends AnimatedGLElementContainer implements IDominoGraphListener, IGLLayout2,
+		Function<INode, ANodeElement> {
 
 	private final DominoGraph graph;
 	private Deque<IChange> changes = new ArrayDeque<>();
@@ -90,21 +94,56 @@ public class DominoNodeLayer extends AnimatedGLElementContainer implements IDomi
 			new_ = new NodeElement(node);
 		this.add(new_);
 		this.changes.add(new Added(new_));
+
+		updateData(node, new_);
+	}
+
+	private void updateData(INode node, ANodeElement new_) {
+		if (node instanceof PlaceholderNode)
+			return;
+		// check data changes
+		for (EDimension dim : EDimension.values()) {
+			List<INode> nodes = graph.walkAlong(dim, node, Edges.SAME_SORTING);
+			if (nodes.size() <= 1)
+				continue;
+			updateDataImpl(dim, node, new_, nodes);
+		}
+	}
+
+	private void updateDataImpl(EDimension dim, INode node, ANodeElement new_, Collection<INode> nodes) {
+		ImmutableList<ANodeElement> anodes = ImmutableList.copyOf(Collections2.transform(nodes, this));
+		// we have to adapt the values
+		EDimension toAdapt = dim.opposite();
+		BitSet changes = LinearBlock.updateData(toAdapt, anodes, new_);
+		for (int i = changes.nextSetBit(0); i != -1; i = changes.nextSetBit(i + 1)) {
+			final ANodeElement nodei = anodes.get(i);
+			this.changes.add(new Resized(nodei, toAdapt, toAdapt.select(nodei.info.getSize())));
+		}
 	}
 
 	@Override
-	public void vertexRemoved(INode vertex, Collection<IEdge> edges) {
-		ANodeElement elem = find(vertex);
+	public void vertexRemoved(INode node, Collection<IEdge> edges) {
+		ANodeElement elem = apply(node);
 		this.remove(elem);
 		Vec2f size = elem.getSize();
 		edges = Collections2.filter(edges, Edges.SAME_SORTING);
 		for(EDimension dim : EDimension.values()) {
-			Pair<ANodeElement,ANodeElement> leftRight = extract(edges,vertex, dim);
+			Pair<ANodeElement, ANodeElement> leftRight = extract(edges, node, dim);
 			ANodeElement l = leftRight.getFirst();
 			ANodeElement r = leftRight.getSecond();
 			if (l == null && r == null)
 				continue;
 			this.changes.add(new Removed(dim, dim.select(size), l, r));
+
+			if (!(node instanceof PlaceholderNode)) {
+				List<INode> ls = graph.walkAlong(EDirection.getPrimary(dim), l == null ? null : l.asNode(),
+						Edges.SAME_SORTING);
+				List<INode> rs = graph.walkAlong(EDirection.getPrimary(dim).opposite(), r == null ? null : r.asNode(),
+						Edges.SAME_SORTING);
+				if ((ls.size() + rs.size()) < 1)
+					continue;
+				updateDataImpl(dim, node, elem, ImmutableList.<INode> builder().addAll(ls).addAll(rs).build());
+			}
 		}
 	}
 
@@ -118,7 +157,7 @@ public class DominoNodeLayer extends AnimatedGLElementContainer implements IDomi
 			else if (edge.getDirection(vertex) == primaryDir.opposite())
 				r = edge.getOpposite(vertex);
 		}
-		return Pair.make(find(l),find(r));
+		return Pair.make(apply(l), apply(r));
 	}
 
 	@Override
@@ -133,27 +172,30 @@ public class DominoNodeLayer extends AnimatedGLElementContainer implements IDomi
 		changes.clear();
 		while (!change.isEmpty()) {
 			IChange next = change.pollFirst();
-			// if (next instanceof Resized) {
-			// Resized s = (Resized) next;
-			// IGLLayoutElement node = lookup.get(s.node);
-			// float scale = s.scale;
-			// if (scale == 1)
-			// continue;
-			// final EDimension dim = s.dim;
-			// float v = dim.select(node.getWidth(), node.getHeight());
-			// float v_new = v * scale;
-			// float v_delta = v_new - v;
-			// Pair<? extends IGLLayoutElement, ? extends IGLLayoutElement> neighors = move(node, v_delta, dim,
-			// children);
-			// node.setSize(dim.select(v_new, node.getWidth()), dim.select(node.getHeight(), v_new));
-			// final Vec2f loc = node.getLocation();
-			// float shift = 0;
-			// if ((neighors.getFirst() == null) == (neighors.getSecond() == null))
-			// shift = v_delta * 0.5f;
-			// else if (neighors.getSecond() != null)
-			// shift = v_delta;
-			// node.setLocation(loc.x() - dim.select(shift, 0), loc.y() - dim.select(0, shift));
-			// }
+			if (next instanceof Resized) {
+				Resized s = (Resized) next;
+				IGLLayoutElement node = lookup.get(s.node);
+				if (node == null)
+					continue;
+				final INode nnode = s.node.node;
+				final EDimension dim = s.dim;
+				float v = dim.select(node.getWidth(), node.getHeight());
+				float v_new = s.new_;
+				float v_delta = v_new - v;
+				if (v_delta == 0)
+					continue;
+				move(node, v_delta, dim, children);
+				node.setSize(dim.select(v_new, node.getWidth()), dim.select(node.getHeight(), v_new));
+				final Vec2f loc = node.getLocation();
+				float shift = 0;
+				INode leftN = graph.getNeighbor(EDirection.getPrimary(dim), nnode, Edges.SAME_SORTING);
+				INode rightN = graph.getNeighbor(EDirection.getPrimary(dim).opposite(), nnode, Edges.SAME_SORTING);
+				if ((leftN == null) == (rightN == null))
+					shift = v_delta * 0.5f;
+				else if (rightN != null)
+					shift = v_delta;
+				node.setLocation(loc.x() - dim.select(shift, 0), loc.y() - dim.select(0, shift));
+			}
 			if (next instanceof Added) {
 				Added r = (Added) next;
 				IGLLayoutElement node = lookup.get(r.node);
@@ -171,16 +213,16 @@ public class DominoNodeLayer extends AnimatedGLElementContainer implements IDomi
 
 				if (leftN != null) {
 					Rect left = lookup2.get(leftN).getRectBounds();
-					node.setLocation(left.x2(), left.y());
+					node.setLocation(left.x2(), left.y() + (left.height() - size.y()) * 0.5f);
 				} else if (rightN != null) {
 					Rect right = lookup2.get(rightN).getRectBounds();
-					node.setLocation(right.x() - size.x(), right.y());
+					node.setLocation(right.x() - size.x(), right.y() + (right.height() - size.y()) * 0.5f);
 				} else if (aboveN != null) {
 					Rect left = lookup2.get(aboveN).getRectBounds();
-					node.setLocation(left.x(), left.y2());
+					node.setLocation(left.x() + (left.width() - size.x()) * 0.5f, left.y2());
 				} else if (belowN != null) {
 					Rect right = lookup2.get(belowN).getRectBounds();
-					node.setLocation(right.x(), right.y() - size.y());
+					node.setLocation(right.x() + (right.width() - size.x()) * 0.5f, right.y() - size.y());
 				}
 			}
 			if (next instanceof Removed) {
@@ -224,7 +266,7 @@ public class DominoNodeLayer extends AnimatedGLElementContainer implements IDomi
 			return Collections.emptyList();
 
 		final INode start = node.getLayoutDataAs(INode.class, null);
-		final Set<INode> reachable = graph.allReachable(dir, start, Edges.SAME_SORTING);
+		final Set<INode> reachable = graph.allReachable(dir, start, Edges.SAME_SORTING, include);
 		return Collections2.filter(children, new Predicate<T>() {
 			@Override
 			public boolean apply(T input) {
@@ -270,7 +312,8 @@ public class DominoNodeLayer extends AnimatedGLElementContainer implements IDomi
 	 * @param n
 	 * @return
 	 */
-	public ANodeElement find(INode n) {
+	@Override
+	public ANodeElement apply(INode n) {
 		if (n == null)
 			return null;
 		for (ANodeElement elem : getNodes())
@@ -279,12 +322,42 @@ public class DominoNodeLayer extends AnimatedGLElementContainer implements IDomi
 		return null;
 	}
 
+	public void resized(INode n, EDimension dim, float new_) {
+		ANodeElement r = apply(n);
+		if (r == null)
+			return;
+		changes.add(new Resized(r, dim, new_));
+		relayout();
+	}
+
+	public void resized(INode n, float w, float h) {
+		ANodeElement r = apply(n);
+		if (r == null)
+			return;
+		changes.add(new Resized(r, EDimension.DIMENSION, w));
+		changes.add(new Resized(r, EDimension.RECORD, h));
+		relayout();
+	}
+
 	private interface IChange {
 
 	}
 
+	private class Resized implements IChange {
+		public final ANodeElement node;
+		public final EDimension dim;
+		public final float new_;
+
+		public Resized(ANodeElement node, EDimension dim, float new_) {
+			this.node = node;
+			this.dim = dim;
+			this.new_ = new_;
+		}
+
+	}
+
 	private class Added implements IChange {
-		private ANodeElement node;
+		public final ANodeElement node;
 
 		public Added(ANodeElement node) {
 			this.node = node;
@@ -293,9 +366,9 @@ public class DominoNodeLayer extends AnimatedGLElementContainer implements IDomi
 	}
 
 	private class Removed implements IChange {
-		private EDimension dim;
-		private float size;
-		private ANodeElement left, right;
+		public final EDimension dim;
+		public final float size;
+		public final ANodeElement left, right;
 
 		public Removed(EDimension dim, float size, ANodeElement left, ANodeElement right) {
 			this.dim = dim;

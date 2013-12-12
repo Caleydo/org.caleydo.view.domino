@@ -81,7 +81,7 @@ public class DataDomainDataProvider {
 	public TablePerspective asTablePerspective(TypedList dim, TypedList rec) {
 		Perspective d = asPerspective(dim);
 		Perspective r = asPerspective(rec);
-		TablePerspective t = new TablePerspective(this.d, d, r);
+		TablePerspective t = new TablePerspective(this.d, r, d);
 		return t;
 	}
 

@@ -147,11 +147,20 @@ public abstract class ANodeElement extends GLElementContainer implements IHasMin
 	}
 
 	@Override
+	public int getSize(EDimension dim) {
+		return nodeUI.getSize(dim);
+	}
+
+	@Override
 	public void pick(Pick pick) {
 		IMouseEvent event = ((IMouseEvent) pick);
+		DominoGraph graph = findGraph();
 		switch (pick.getPickingMode()) {
 		case MOUSE_WHEEL:
 			info.zoom(event);
+			break;
+		case RIGHT_CLICKED:
+			graph.remove(node);
 			break;
 		default:
 			break;
@@ -193,7 +202,7 @@ public abstract class ANodeElement extends GLElementContainer implements IHasMin
 
 
 	protected Vec2f getNodeSize() {
-		return new Vec2f(fix(node.getSize(EDimension.DIMENSION)), fix(node.getSize(EDimension.RECORD)));
+		return new Vec2f(fix(nodeUI.getSize(EDimension.DIMENSION)), fix(nodeUI.getSize(EDimension.RECORD)));
 	}
 
 	/**
@@ -225,8 +234,8 @@ public abstract class ANodeElement extends GLElementContainer implements IHasMin
 	}
 
 	@Override
-	public void setData(EDimension dim, TypedList data) {
-		nodeUI.setData(dim, data);
+	public boolean setData(EDimension dim, TypedList data) {
+		return nodeUI.setData(dim, data);
 	}
 
 	@Override

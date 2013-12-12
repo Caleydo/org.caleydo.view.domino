@@ -64,11 +64,21 @@ public class PlaceholderNode extends ADataNode {
 		}
 
 		@Override
-		public void setData(EDimension dim, TypedList data) {
+		public boolean setData(EDimension dim, TypedList data) {
+			int old = dim.select(dimData, recData).size();
 			if (dim.isHorizontal())
 				dimData = data;
 			else
 				recData = data;
+			return old != data.size();
+		}
+
+		@Override
+		public int getSize(EDimension dim) {
+			TypedList l = dim.select(dimData, recData);
+			if (!l.isEmpty())
+				return l.size();
+			return node.getSize(dim);
 		}
 
 		@Override

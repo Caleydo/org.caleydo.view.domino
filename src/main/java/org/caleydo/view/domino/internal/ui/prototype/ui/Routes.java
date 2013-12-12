@@ -15,6 +15,7 @@ import java.util.List;
 import org.caleydo.core.data.collection.EDimension;
 import org.caleydo.core.util.color.Color;
 import org.caleydo.core.view.opengl.layout2.geom.Rect;
+import org.caleydo.core.view.opengl.layout2.layout.IGLLayoutElement;
 import org.caleydo.view.domino.api.model.BandRoute;
 import org.caleydo.view.domino.api.model.typed.TypedCollections;
 import org.caleydo.view.domino.api.ui.band.Route;
@@ -48,11 +49,11 @@ public class Routes implements IBandRoutesProvider {
 	 * @param graph
 	 * @param lookup
 	 */
-	public void update(DominoGraph graph, Function<INode, NodeLayoutElement> lookup) {
+	public void update(DominoGraph graph, Function<INode, IGLLayoutElement> lookup) {
 		routes.clear();
 		for (IEdge edge : graph.edgeSet()) {
-			NodeLayoutElement source = lookup.apply(edge.getSource());
-			NodeLayoutElement target = lookup.apply(edge.getTarget());
+			IGLLayoutElement source = lookup.apply(edge.getSource());
+			IGLLayoutElement target = lookup.apply(edge.getTarget());
 
 			final Rect sourceB = source.getRectBounds();
 			final Rect targetB = target.getRectBounds();

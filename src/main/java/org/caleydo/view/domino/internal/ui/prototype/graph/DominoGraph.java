@@ -406,20 +406,29 @@ public class DominoGraph {
 	 * @return
 	 */
 	public Set<INode> allReachable(EDirection dir, INode start, Predicate<? super IEdge> filter) {
+		return allReachable(dir, start, filter, false);
+	}
+
+	public Set<INode> allReachable(EDirection dir, INode start, Predicate<? super IEdge> filter, boolean include) {
 		if (!graph.containsVertex(start))
 			return ImmutableSet.of();
 		ImmutableSet.Builder<INode> b = ImmutableSet.builder();
-		allReachableImpl(dir, start, filter, b);
+		allReachableImpl(dir, start, filter, b, include);
 
 		return b.build();
 	}
 
+	public Set<INode> allReachableInclude(EDirection dir, INode start, Predicate<? super IEdge> filter) {
+		return allReachable(dir, start, filter, true);
+	}
+
 	private void allReachableImpl(EDirection dir, INode start, Predicate<? super IEdge> filter,
-			ImmutableSet.Builder<INode> b) {
+			ImmutableSet.Builder<INode> b, boolean include) {
 
 		Set<IEdge> badEdges = new HashSet<>(edgesOf(start));
 		for(Iterator<IEdge> it = badEdges.iterator(); it.hasNext(); ) {
-			if (it.next().getDirection(start) == dir) //remove the good edge
+			final EDirection sdir = it.next().getDirection(start);
+			if ((!include && sdir == dir) || (include && sdir != dir)) // remove the good edge
 				it.remove();
 		}
 		// idea: filter the graph such that all other edges from the start node except the target dir are removed

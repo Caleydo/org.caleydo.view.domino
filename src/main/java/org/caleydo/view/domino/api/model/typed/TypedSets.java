@@ -226,7 +226,7 @@ public class TypedSets {
 	private static TypedSet[] compress(TypedSet[] sets) {
 		ListMultimap<IDType, TypedSet> index = Multimaps.index(Arrays.asList(sets), TypedCollections.TO_IDTYPE);
 
-		if (index.size() == sets.length) // nothing to compress
+		if (index.keySet().size() == sets.length) // nothing to compress
 			return sets;
 		TypedSet[] new_ = new TypedSet[index.keySet().size()];
 		int i = 0;

@@ -17,10 +17,16 @@ import org.caleydo.view.domino.internal.ui.prototype.INode;
 public interface INodeUI {
 	GLElement asGLElement();
 
-	void setData(EDimension dim, TypedList data);
+	boolean setData(EDimension dim, TypedList data);
 
 	/**
 	 * @return
 	 */
 	INode asNode();
+
+	/**
+	 * @param dimension
+	 * @return
+	 */
+	int getSize(EDimension dim);
 }

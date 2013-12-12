@@ -40,6 +40,8 @@ public abstract class ANodeUI<T extends INode> extends GLElementDecorator implem
 
 	public ANodeUI(T node) {
 		this.node = node;
+		this.dimData = node.getData(EDimension.DIMENSION).asList();
+		this.recData = node.getData(EDimension.RECORD).asList();
 		setLayoutData(node);
 	}
 
@@ -79,12 +81,22 @@ public abstract class ANodeUI<T extends INode> extends GLElementDecorator implem
 	}
 
 	@Override
-	public void setData(EDimension dim, TypedList data) {
+	public boolean setData(EDimension dim, TypedList data) {
+		int old = dim.select(dimData, recData).size();
 		if (dim.isHorizontal())
 			dimData = data;
 		else
 			recData = data;
 		rebuild();
+		return old != data.size();
+	}
+
+	@Override
+	public int getSize(EDimension dim) {
+		TypedList l = dim.select(dimData, recData);
+		if (!l.isEmpty())
+			return l.size();
+		return node.getSize(dim);
 	}
 
 	@Override
