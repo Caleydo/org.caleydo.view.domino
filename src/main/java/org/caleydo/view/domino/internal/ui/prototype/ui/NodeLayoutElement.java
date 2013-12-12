@@ -7,9 +7,12 @@ package org.caleydo.view.domino.internal.ui.prototype.ui;
 
 import gleem.linalg.Vec2f;
 
+import org.caleydo.core.data.collection.EDimension;
+import org.caleydo.core.view.opengl.layout2.GLElement;
 import org.caleydo.core.view.opengl.layout2.geom.Rect;
 import org.caleydo.core.view.opengl.layout2.layout.GLLayoutDatas;
 import org.caleydo.core.view.opengl.layout2.layout.IGLLayoutElement;
+import org.caleydo.view.domino.api.model.typed.TypedList;
 import org.caleydo.view.domino.internal.ui.DominoLayoutInfo;
 import org.caleydo.view.domino.internal.ui.prototype.INode;
 
@@ -17,9 +20,10 @@ import org.caleydo.view.domino.internal.ui.prototype.INode;
  * @author Samuel Gratzl
  *
  */
-class NodeLayoutElement {
+class NodeLayoutElement implements INodeUI {
 	private final IGLLayoutElement elem;
 	private final DominoLayoutInfo info;
+	private boolean setLocation = false;
 
 	public NodeLayoutElement(IGLLayoutElement elem) {
 		this.elem = elem;
@@ -38,8 +42,19 @@ class NodeLayoutElement {
 	/**
 	 * @return
 	 */
+	@Override
 	public INode asNode() {
 		return elem.getLayoutDataAs(INode.class, GLLayoutDatas.<INode> throwInvalidException());
+	}
+
+	@Override
+	public GLElement asGLElement() {
+		return elem.asElement();
+	}
+
+	@Override
+	public void setData(EDimension dim, TypedList data) {
+		((INodeUI) elem.asElement()).setData(dim, data);
 	}
 
 	public IGLLayoutElement asElem() {
@@ -73,4 +88,22 @@ class NodeLayoutElement {
 		return info.isDragged();
 	}
 
+	/**
+	 * @param dir
+	 * @param v
+	 */
+	public void setSize(EDimension dir, float v) {
+		float w = dir.select(v, elem.getWidth());
+		float h = dir.select(elem.getHeight(), v);
+		elem.setSize(w, h);
+	}
+
+	public void setLocation(float x, float y) {
+		setLocation = true;
+		elem.setLocation(x, y);
+	}
+
+	public Vec2f getLocation() {
+		return elem.getLocation();
+	}
 }

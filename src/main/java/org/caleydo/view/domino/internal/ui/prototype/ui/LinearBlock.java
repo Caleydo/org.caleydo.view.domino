@@ -8,8 +8,10 @@ package org.caleydo.view.domino.internal.ui.prototype.ui;
 import gleem.linalg.Vec2f;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Iterator;
 import java.util.List;
 
 import org.caleydo.core.data.collection.EDimension;
@@ -24,35 +26,74 @@ import org.caleydo.view.domino.internal.ui.prototype.INode;
 import org.caleydo.view.domino.internal.ui.prototype.ISortableNode;
 
 import com.google.common.base.Function;
+import com.google.common.collect.Collections2;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
+import com.google.common.collect.Iterators;
 
 /**
  * @author Samuel Gratzl
  *
  */
-public class LinearBlock {
+public class LinearBlock implements Iterable<NodeLayoutElement> {
 	private Rect bounds = new Rect();
 	private final EDimension dim;
-	private final List<ANodeElement> nodes;
+	private final List<NodeLayoutElement> nodes = new ArrayList<>();
 
 	private MultiTypedList data;
 
-	public LinearBlock(EDimension dim, List<ANodeElement> nodes) {
+	public LinearBlock(EDimension dim) {
 		this.dim = dim;
-		this.nodes = ImmutableList.copyOf(nodes);
+	}
+
+	/**
+	 * @return the dim, see {@link #dim}
+	 */
+	public EDimension getDim() {
+		return dim;
+	}
+
+	public void remove(NodeLayoutElement node) {
+		if (this.nodes.remove(node))
+			dirty();
+	}
+
+	/**
+	 * @param nodee
+	 * @return
+	 */
+	public boolean contains(NodeLayoutElement node) {
+		return nodes.contains(node);
+	}
+
+	/**
+	 *
+	 */
+	private void dirty() {
+		// TODO Auto-generated method stub
+
+	}
+
+	public void add(NodeLayoutElement node) {
+		if (this.nodes.add(node))
+			dirty();
+
+	}
+
+	@Override
+	public Iterator<NodeLayoutElement> iterator() {
+		return Iterators.unmodifiableIterator(nodes.iterator());
 	}
 
 	public void setLocation(Vec2f xy) {
 		bounds.xy(xy);
 	}
 
-	public void updateBounds() {
+	public void updateBounds(EDimension inDir) {
 		float w = 0;
 		float h = 0;
-		for (ANodeElement elem : nodes) {
-			Vec2f size = elem.getNodeSize();
+		for (NodeLayoutElement elem : nodes) {
+			Vec2f size = elem.getSize();
 			if (dim.isHorizontal()) {
 				w += size.x();
 				h = Math.max(h, size.y());
@@ -61,7 +102,17 @@ public class LinearBlock {
 				h += size.y();
 			}
 		}
-		bounds.width(w).height(h);
+		if (inDir.isHorizontal())
+			bounds.width(w);
+		else
+			bounds.height(h);
+	}
+
+	public void applyBounds(EDimension inDir) {
+		float v = inDir.select(bounds.width(), bounds.height());
+		for (NodeLayoutElement elem : nodes) {
+			elem.setSize(inDir, v);
+		}
 	}
 
 	public void resort() {
@@ -81,7 +132,9 @@ public class LinearBlock {
 	}
 
 	public void update() {
-		List<TypedSet> sets = Lists.transform(nodes, new Function<INodeUI, TypedSet>() {
+		if (nodes.isEmpty())
+			return;
+		Collection<TypedSet> sets = Collections2.transform(nodes, new Function<INodeUI, TypedSet>() {
 			@Override
 			public TypedSet apply(INodeUI input) {
 				return input.asNode().getData(dim);
@@ -115,8 +168,32 @@ public class LinearBlock {
 	}
 
 	public void apply() {
-		for (ANodeElement node : nodes) {
+		for (NodeLayoutElement node : nodes) {
 			node.setData(dim, data.slice(node.asNode().getIDType(dim)));
 		}
+	}
+
+	/**
+	 * @param transform
+	 */
+	public void addAll(Collection<NodeLayoutElement> elems) {
+		this.nodes.addAll(elems);
+		dirty();
+	}
+
+	/**
+	 * @param shared
+	 * @return
+	 */
+	public List<NodeLayoutElement> before(NodeLayoutElement shared) {
+		return this.nodes.subList(0, nodes.indexOf(shared));
+	}
+
+	/**
+	 * @param shared
+	 * @return
+	 */
+	public List<NodeLayoutElement> after(NodeLayoutElement shared) {
+		return this.nodes.subList(nodes.indexOf(shared) + 1, this.nodes.size());
 	}
 }

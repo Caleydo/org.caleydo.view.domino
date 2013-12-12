@@ -9,8 +9,10 @@ import gleem.linalg.Vec2f;
 
 import java.awt.Point;
 import java.awt.Rectangle;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 
 import org.apache.commons.lang.ArrayUtils;
 import org.caleydo.core.data.collection.EDimension;
@@ -33,9 +35,8 @@ import com.google.common.collect.Multiset;
  *
  */
 class LayoutBlock implements Runnable {
+	private final Set<ANodeElement> nodes = new HashSet<>();
 	private final NodeLayoutElement[][] arr;
-	private final float[] cols;
-	private final float[] rows;
 
 	private final BlockInfo info;
 

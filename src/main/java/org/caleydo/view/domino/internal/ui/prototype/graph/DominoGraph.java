@@ -33,9 +33,6 @@ import org.caleydo.view.domino.internal.ui.prototype.ui.PlaceholderNode;
 import org.jgrapht.ListenableGraph;
 import org.jgrapht.UndirectedGraph;
 import org.jgrapht.alg.ConnectivityInspector;
-import org.jgrapht.event.GraphEdgeChangeEvent;
-import org.jgrapht.event.GraphListener;
-import org.jgrapht.event.GraphVertexChangeEvent;
 import org.jgrapht.graph.DefaultListenableGraph;
 import org.jgrapht.graph.Pseudograph;
 
@@ -48,7 +45,6 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
 
 /**
  * @author Samuel Gratzl
@@ -76,7 +72,6 @@ public class DominoGraph {
 		this.connectivity = new ConnectivityInspector<>(GraphViews.edgeView(graph,
 				Predicates.instanceOf(MagneticEdge.class)));
 		this.graph.addGraphListener(this.connectivity);
-		this.graph.addGraphListener(new GraphListenerAdapter(propertySupport));
 
 		// Demo.fill(this);
 	}
@@ -338,12 +333,11 @@ public class DominoGraph {
 	 * @param start
 	 * @return
 	 */
-	public Set<INode> walkAlong(EDimension dim, INode start, Predicate<? super IEdge> filter) {
-		if (dim.isHorizontal())
-			return Sets.union(walkAlong(EDirection.LEFT_OF, start, filter),
-					walkAlong(EDirection.RIGHT_OF, start, filter));
-		else
-			return Sets.union(walkAlong(EDirection.ABOVE, start, filter), walkAlong(EDirection.BELOW, start, filter));
+	public List<INode> walkAlong(EDimension dim, INode start, Predicate<? super IEdge> filter) {
+		List<INode> before = walkAlong(dim.select(EDirection.LEFT_OF, EDirection.ABOVE), start, filter);
+		List<INode> after = walkAlong(dim.select(EDirection.RIGHT_OF, EDirection.BELOW), start, filter);
+		// as we have the start twice
+		return ImmutableList.<INode> builder().addAll(before).addAll(after.subList(1, after.size())).build();
 	}
 
 	/**
@@ -357,16 +351,17 @@ public class DominoGraph {
 	 *            filter edges to stop walking
 	 * @return
 	 */
-	public Set<INode> walkAlong(EDirection dir, INode start, Predicate<? super IEdge> filter) {
+	public List<INode> walkAlong(EDirection dir, INode start, Predicate<? super IEdge> filter) {
 		if (!graph.containsVertex(start))
-			return ImmutableSet.of();
+			return ImmutableList.of();
 
-		ImmutableSet.Builder<INode> b = ImmutableSet.builder();
+		ImmutableList.Builder<INode> b = ImmutableList.builder();
 		walkAlongImpl(dir, start, Predicates.and(dir, filter), b);
 		return b.build();
 	}
 
-	private void walkAlongImpl(EDirection dir, INode start, Predicate<? super IEdge> filter, ImmutableSet.Builder<INode> b) {
+	private void walkAlongImpl(EDirection dir, INode start, Predicate<? super IEdge> filter,
+			ImmutableList.Builder<INode> b) {
 		b.add(start);
 		for (IEdge edge : Iterables.filter(edgesOfSource(start), filter)) {
 			INode next = edge.getTarget();
@@ -387,7 +382,7 @@ public class DominoGraph {
 			}
 		};
 		// find relevant
-		Set<INode> sortingRelevant = walkAlong(dim, node, Predicates.not(Predicates.instanceOf(ISortBarrier.class)));
+		List<INode> sortingRelevant = walkAlong(dim, node, Predicates.not(Predicates.instanceOf(ISortBarrier.class)));
 		// remove invalid
 		Iterable<ISortableNode> sortingReallyRelevant = Iterables.filter(sortingRelevant, ISortableNode.class);
 
@@ -430,38 +425,6 @@ public class DominoGraph {
 				.addAll(Iterables.filter(sorting, isPartOfSorting)).build();
 		// TODO create a comparator or something like that, which determines the order
 		// TODO now we must apply the new sorting to all nodes
-	}
-
-	/**
-	 * @author Samuel Gratzl
-	 *
-	 */
-	private static final class GraphListenerAdapter implements GraphListener<INode, IEdge> {
-		private final PropertyChangeSupport propertySupport;
-
-		public GraphListenerAdapter(PropertyChangeSupport propertySupport) {
-			this.propertySupport = propertySupport;
-		}
-
-		@Override
-		public void vertexRemoved(GraphVertexChangeEvent<INode> e) {
-			propertySupport.firePropertyChange(PROP_VERTICES, e.getVertex(), null);
-		}
-
-		@Override
-		public void vertexAdded(GraphVertexChangeEvent<INode> e) {
-			propertySupport.firePropertyChange(PROP_VERTICES, null, e.getVertex());
-		}
-
-		@Override
-		public void edgeRemoved(GraphEdgeChangeEvent<INode, IEdge> e) {
-			propertySupport.firePropertyChange(PROP_EDGES, e.getEdge(), null);
-		}
-
-		@Override
-		public void edgeAdded(GraphEdgeChangeEvent<INode, IEdge> e) {
-			propertySupport.firePropertyChange(PROP_EDGES, null, e.getEdge());
-		}
 	}
 
 	public interface ListenableUndirectedGraph<V, E> extends ListenableGraph<V, E>, UndirectedGraph<V, E> {

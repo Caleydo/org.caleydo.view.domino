@@ -78,6 +78,16 @@ public enum EDirection implements Predicate<IEdge> {
 	}
 
 	/**
+	 * @return a set of all directions within in the given dimension
+	 */
+	public static EDirection getPrimary(EDimension dim) {
+		if (dim.isHorizontal())
+			return EDirection.LEFT_OF;
+		else
+			return EDirection.ABOVE;
+	}
+
+	/**
 	 * filter edges, whether they have the right direction
 	 */
 	@Override

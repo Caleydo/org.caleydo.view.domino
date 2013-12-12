@@ -81,10 +81,12 @@ public class DominoNodeLayer extends GLElementContainer {
 	 * @param node
 	 */
 	private void add(INode node) {
+		ANodeElement new_;
 		if (node instanceof PlaceholderNode)
-			this.add(new PlaceholderNodeElement((PlaceholderNode) node));
+			new_ = new PlaceholderNodeElement((PlaceholderNode) node);
 		else
-			this.add(new NodeElement(node));
+			new_ = new NodeElement(node);
+		this.add(new_);
 	}
 
 	/**
