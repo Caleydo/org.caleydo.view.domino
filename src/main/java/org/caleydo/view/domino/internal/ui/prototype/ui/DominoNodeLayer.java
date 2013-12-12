@@ -9,6 +9,7 @@ import gleem.linalg.Vec2f;
 import gleem.linalg.Vec4f;
 
 import java.util.ArrayDeque;
+import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.Collection;
 import java.util.Collections;
@@ -93,32 +94,43 @@ public class DominoNodeLayer extends AnimatedGLElementContainer implements IDomi
 		else
 			new_ = new NodeElement(node);
 		this.add(new_);
-		this.changes.add(new Added(new_));
 
-		updateData(node, new_);
+		Collection<IChange> changes = updateData(node, new_);
+		this.changes.add(new Added(new_));
+		this.changes.addAll(changes);
 	}
 
-	private void updateData(INode node, ANodeElement new_) {
+	private Collection<IChange> updateData(INode node, ANodeElement new_) {
 		if (node instanceof PlaceholderNode)
-			return;
+			return Collections.emptyList();
 		// check data changes
+		List<IChange> r = new ArrayList<>(2);
 		for (EDimension dim : EDimension.values()) {
 			List<INode> nodes = graph.walkAlong(dim, node, Edges.SAME_SORTING);
 			if (nodes.size() <= 1)
 				continue;
-			updateDataImpl(dim, node, new_, nodes);
+			IChange cr = updateDataImpl(dim, node, new_, nodes);
+			if (cr != null)
+				r.add(cr);
 		}
+		return r;
 	}
 
-	private void updateDataImpl(EDimension dim, INode node, ANodeElement new_, Collection<INode> nodes) {
+	private IChange updateDataImpl(EDimension dim, INode node, ANodeElement new_, Collection<INode> nodes) {
 		ImmutableList<ANodeElement> anodes = ImmutableList.copyOf(Collections2.transform(nodes, this));
 		// we have to adapt the values
 		EDimension toAdapt = dim.opposite();
 		BitSet changes = LinearBlock.updateData(toAdapt, anodes, new_);
+		Resized return_ = null;
 		for (int i = changes.nextSetBit(0); i != -1; i = changes.nextSetBit(i + 1)) {
 			final ANodeElement nodei = anodes.get(i);
-			this.changes.add(new Resized(nodei, toAdapt, toAdapt.select(nodei.info.getSize())));
+			final Resized r = new Resized(nodei, toAdapt, toAdapt.select(nodei.info.getSize()));
+			if (new_ == nodei)
+				return_ = r;
+			else
+				this.changes.add(r);
 		}
+		return return_;
 	}
 
 	@Override
