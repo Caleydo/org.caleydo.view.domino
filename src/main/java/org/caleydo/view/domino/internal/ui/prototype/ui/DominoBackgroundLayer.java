@@ -71,7 +71,7 @@ public class DominoBackgroundLayer extends PickableGLElement implements IDropGLT
 			ANodeElement elem = nodes.find(n);
 			if (elem != null)
 				elem.setLocation(pos.x(), pos.y());
-			graph.detach(n, true);
+			graph.moveToAlone(n);
 		}
 		EventPublisher.trigger(new HidePlaceHoldersEvent().to(nodes));
 	}

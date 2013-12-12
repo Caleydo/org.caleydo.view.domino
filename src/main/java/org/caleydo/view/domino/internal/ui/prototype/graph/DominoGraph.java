@@ -5,14 +5,14 @@
  *******************************************************************************/
 package org.caleydo.view.domino.internal.ui.prototype.graph;
 
-import java.beans.PropertyChangeListener;
-import java.beans.PropertyChangeSupport;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.EnumSet;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -20,26 +20,22 @@ import java.util.SortedSet;
 
 import org.caleydo.core.data.collection.EDimension;
 import org.caleydo.core.id.IDType;
-import org.caleydo.view.domino.internal.ui.prototype.AEdge;
-import org.caleydo.view.domino.internal.ui.prototype.BandEdge;
 import org.caleydo.view.domino.internal.ui.prototype.EDirection;
 import org.caleydo.view.domino.internal.ui.prototype.GraphViews;
-import org.caleydo.view.domino.internal.ui.prototype.IEdge;
 import org.caleydo.view.domino.internal.ui.prototype.INode;
-import org.caleydo.view.domino.internal.ui.prototype.ISortBarrier;
 import org.caleydo.view.domino.internal.ui.prototype.ISortableNode;
-import org.caleydo.view.domino.internal.ui.prototype.MagneticEdge;
 import org.caleydo.view.domino.internal.ui.prototype.ui.PlaceholderNode;
 import org.jgrapht.ListenableGraph;
 import org.jgrapht.UndirectedGraph;
 import org.jgrapht.alg.ConnectivityInspector;
 import org.jgrapht.graph.DefaultListenableGraph;
 import org.jgrapht.graph.Pseudograph;
+import org.jgrapht.traverse.DepthFirstIterator;
 
 import com.google.common.base.Function;
 import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
-import com.google.common.collect.Collections2;
+import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedSet;
@@ -51,17 +47,7 @@ import com.google.common.collect.Maps;
  *
  */
 public class DominoGraph {
-	private static final Function<IEdge, EDirection> TO_DIRECTION = new Function<IEdge, EDirection>() {
-		@Override
-		public EDirection apply(IEdge input) {
-			return input == null ? null : input.getDirection();
-		}
-	};
-	public static final String PROP_VERTICES = "vertices";
-	public static final String PROP_EDGES = "edges";
-	public static final String PROP_TRANSPOSED = "transposed";
-
-	private final PropertyChangeSupport propertySupport = new PropertyChangeSupport(this);
+	private final List<IDominoGraphListener> listeners = new ArrayList<>(2);
 	private final ListenableUndirectedGraph<INode, IEdge> graph = new ListenableUndirectedMultigraph<>(IEdge.class);
 	private final ConnectivityInspector<INode, IEdge> connectivity;
 
@@ -76,67 +62,50 @@ public class DominoGraph {
 		// Demo.fill(this);
 	}
 
-	public final void addPropertyChangeListener(PropertyChangeListener listener) {
-		propertySupport.addPropertyChangeListener(listener);
+	public void addGraphListener(IDominoGraphListener l) {
+		this.listeners.add(l);
 	}
 
-	public final void addPropertyChangeListener(String propertyName, PropertyChangeListener listener) {
-		propertySupport.addPropertyChangeListener(propertyName, listener);
+	public void removeGraphListener(IDominoGraphListener l) {
+		this.listeners.remove(l);
 	}
 
-	public final void removePropertyChangeListener(PropertyChangeListener listener) {
-		propertySupport.removePropertyChangeListener(listener);
+	private void band(INode a, EDirection dir, INode b) {
+		addEdge(a, dir, b, new BandEdge(dir));
 	}
 
-	public final void removePropertyChangeListener(String propertyName, PropertyChangeListener listener) {
-		propertySupport.removePropertyChangeListener(propertyName, listener);
+	private void magnetic(INode a, EDirection dir, INode b) {
+		addEdge(a, dir, b, new MagneticEdge(dir));
 	}
 
-	public boolean addVertex(INode v) {
-		return graph.addVertex(v);
+	private void beam(INode a, EDirection dir, INode b) {
+		addEdge(a, dir, b, new BeamEdge(dir));
 	}
 
-	public void band(INode a, EDirection dir, INode b) {
-		assert isCompatible(a.getIDType(dir.asDim()), b.getIDType(dir.asDim()));
-		if (!dir.isPrimaryDirection()) {
-			dir = dir.opposite();
-			INode t = a;
-			a = b;
-			b = t;
-		}
-		graph.addEdge(a, b, new BandEdge(dir));
+	private void edgeLike(IEdge edge, INode from, INode to) {
+		INode other = edge.getOpposite(from);
+		EDirection dir = edge.getDirection(from);
+		if (edge instanceof BandEdge)
+			band(to, dir, other);
+		else if (edge instanceof MagneticEdge)
+			magnetic(to, dir, other);
+		else if (edge instanceof BeamEdge)
+			beam(to, dir, other);
 	}
 
-	public void magnetic(INode a, EDirection dir, INode b) {
+	private void addEdge(INode a, EDirection dir, INode b, final IEdge edge) {
 		assert isCompatible(a.getIDType(dir.asDim().opposite()), b.getIDType(dir.asDim().opposite()));
 		if (!dir.isPrimaryDirection()) {
-			dir = dir.opposite();
 			INode t = a;
 			a = b;
 			b = t;
+			edge.swapDirection();
 		}
-		graph.addEdge(a, b, new MagneticEdge(dir));
+		graph.addEdge(a, b, edge);
 	}
 
-	public void magnetic(INode node, Placeholder placeholder) {
-		magnetic(placeholder.getNode(), placeholder.getDir(), node);
-	}
-
-	/**
-	 * returns a view of the edges of a node, where it will always be the source
-	 *
-	 * @param vertex
-	 * @return
-	 */
-	public Collection<IEdge> edgesOfSource(INode source) {
-		return edgesOf(source, true);
-	}
-
-	public Collection<IEdge> edgesOf(INode vertex, boolean ensureSource) {
-		Set<IEdge> edges = graph.edgesOf(vertex);
-		if (!ensureSource)
-			return edges;
-		return Collections2.transform(edges, AEdge.unify(vertex));
+	public Set<IEdge> edgesOf(INode vertex) {
+		return graph.edgesOf(vertex);
 	}
 
 	public boolean contains(INode v) {
@@ -144,11 +113,11 @@ public class DominoGraph {
 	}
 
 	public Set<IEdge> edgeSet() {
-		return graph.edgeSet();
+		return Collections.unmodifiableSet(graph.edgeSet());
 	}
 
 	public Set<INode> vertexSet() {
-		return graph.vertexSet();
+		return Collections.unmodifiableSet(graph.vertexSet());
 	}
 
 	public Set<INode> connectedSetOf(INode vertex) {
@@ -163,23 +132,23 @@ public class DominoGraph {
 		return connectivity.pathExists(sourceVertex, targetVertex);
 	}
 
-	/**
-	 * transpose a node and all the connected set of it
-	 *
-	 * @param start
-	 */
-	public void transpose(INode start) {
-		Set<INode> nodes = connectivity.connectedSetOf(start);
-		for (INode node : nodes) {
-			node.transpose();
-		}
-		Set<IEdge> edgeSet = ImmutableSet.copyOf(graph.edgeSet());
-		for (IEdge edge : edgeSet)
-			if (nodes.contains(edge.getSource()) || nodes.contains(edge.getTarget())) {
-				edge.transpose();
-			}
-		propertySupport.firePropertyChange(PROP_TRANSPOSED, null, nodes);
-	}
+	// /**
+	// * transpose a node and all the connected set of it
+	// *
+	// * @param start
+	// */
+	// public void transpose(INode start) {
+	// Set<INode> nodes = connectivity.connectedSetOf(start);
+	// for (INode node : nodes) {
+	// node.transpose();
+	// }
+	// Set<IEdge> edgeSet = ImmutableSet.copyOf(graph.edgeSet());
+	// for (IEdge edge : edgeSet)
+	// if (nodes.contains(edge.getSource()) || nodes.contains(edge.getTarget())) {
+	// edge.transpose();
+	// }
+	// propertySupport.firePropertyChange(PROP_TRANSPOSED, null, nodes);
+	// }
 
 	/**
 	 * detaches a node from the graph and connects related together
@@ -187,34 +156,64 @@ public class DominoGraph {
 	 * @param node
 	 * @return
 	 */
-	public Collection<IEdge> detach(INode node, boolean mergeNeighbors) {
+	private Collection<IEdge> detach(INode node) {
 		if (!graph.containsVertex(node))
 			return Collections.emptyList();
-		Collection<IEdge> edges = edgesOfSource(node);
+		Collection<IEdge> edges = ImmutableList.copyOf(edgesOf(node));
 		if (edges.isEmpty())
 			return Collections.emptyList();
-		if (mergeNeighbors) {
-			Map<EDirection, IEdge> index = Maps.uniqueIndex(edges, TO_DIRECTION);
-			// a-X-b -> a-b
-			// connect a and b if in between was our target node X with a band
 
-			for (EDirection dir : EnumSet.of(EDirection.LEFT_OF, EDirection.BELOW)) {
-				if (index.containsKey(dir) && index.containsKey(dir.opposite())) {
-					INode leftNode = index.get(dir.opposite()).getTarget();
-					INode rightNode = index.get(dir).getTarget();
-					band(leftNode, dir, rightNode);
-				}
-			}
+		Map<EDirection, IEdge> index = Maps.uniqueIndex(edges, to_direction(node));
+		// a-X-b -> a-b
+		// connect a and b if in between was our target node X with a band
+
+		IEdge above = index.get(EDirection.ABOVE);
+		IEdge below = index.get(EDirection.BELOW);
+		IEdge leftOf = index.get(EDirection.LEFT_OF);
+		IEdge rightOf = index.get(EDirection.RIGHT_OF);
+		boolean hasVertical = above != null || below != null;
+		boolean hasHorizontal = leftOf != null || rightOf != null;
+
+		if (above != null && below != null) {
+			INode top = above.getOpposite(node);
+			INode bottom = below.getOpposite(node);
+			if (hasHorizontal)
+				band(top, EDirection.ABOVE, bottom);
+			else
+				magnetic(top, EDirection.ABOVE, bottom);
 		}
-		graph.removeAllEdges(ImmutableList.copyOf(edgesOf(node, false)));
+		if (leftOf != null && rightOf != null) {
+			INode top = leftOf.getOpposite(node);
+			INode bottom = rightOf.getOpposite(node);
+			if (hasVertical)
+				band(top, EDirection.LEFT_OF, bottom);
+			else
+				magnetic(top, EDirection.LEFT_OF, bottom);
+		}
+		graph.removeAllEdges(edges);
 		return edges;
+	}
+
+	/**
+	 * @param node
+	 * @return
+	 */
+	private Function<? super IEdge, EDirection> to_direction(final INode node) {
+		return new Function<IEdge, EDirection>() {
+			@Override
+			public EDirection apply(IEdge input) {
+				return input == null ? null : input.getDirection(node);
+			}
+		};
 	}
 
 	public void remove(INode node) {
 		if (!graph.containsVertex(node))
 			return;
-		detach(node, true);
+		Collection<IEdge> edges = detach(node);
 		graph.removeVertex(node);
+		for (IDominoGraphListener l : listeners)
+			l.vertexRemoved(node, edges);
 	}
 
 	public enum EPlaceHolderFlag {
@@ -250,15 +249,15 @@ public class DominoGraph {
 		if (!isCompatible(v.getIDType(vdim), node.getIDType(dim))) // check the dimension types are
 			return; // compatible
 		boolean transposed = dim != vdim;
-		Collection<IEdge> edges = edgesOfSource(v);
+		Collection<IEdge> edges = edgesOf(v);
 		for (EDirection dir : EDirection.get(vdim.opposite())) {
-			IEdge edge = hasEdge(dir, edges);
+			IEdge edge = hasEdge(v, dir, edges);
 			if (edge == null) {
 				places.add(new Placeholder(v, dir, transposed));
 			} else if ((flags.contains(EPlaceHolderFlag.INCLUDE_BETWEEN_BANDS) && (edge instanceof BandEdge))) {
 				places.add(new Placeholder(v, dir, transposed));
 			} else if (flags.contains(EPlaceHolderFlag.INCLUDE_BETWEEN_MAGNETIC) && edge instanceof MagneticEdge) {
-				INode o = edge.getTarget();
+				INode o = edge.getOpposite(v);
 				if (o != node && !(o instanceof PlaceholderNode)
 						&& (dir == EDirection.LEFT_OF || dir == EDirection.ABOVE))
 					places.add(new Placeholder(v, dir, transposed));
@@ -278,23 +277,41 @@ public class DominoGraph {
 		for (Placeholder p : placeholders) {
 			PlaceholderNode n = new PlaceholderNode(template, p.isTransposed());
 			places.add(n);
-			addVertex(n);
+			graph.addVertex(n);
 			INode v = p.getNode();
-			if (v == null) // free node
-				continue;
-			EDirection dir = p.getDir();
-			IEdge edge = getEdge(v, dir);
-			if (edge != null) { // no split needed
-				INode v2 = edge.getTarget();
-				graph.removeEdge(edge.getRawSource(), edge.getRawTarget());
-				if (edge instanceof BandEdge)
-					band(n, dir, v2);
-				else
-					magnetic(n, dir, v2);
+			if (v != null) {// non free node
+				EDirection dir = p.getDir();
+				IEdge edge = getEdge(v, dir); // right of
+				if (edge != null) { // split needed
+					INode v2 = edge.getOpposite(v);
+					graph.removeEdge(edge);
+					if (edge instanceof BandEdge)
+						band(n, dir, v2);
+					else
+						magnetic(n, dir, v2);
+				}
+				magnetic(v, dir, n);
 			}
-			magnetic(v, dir, n);
+			vertexAdded(n);
 		}
 		return ImmutableSet.copyOf(places);
+	}
+
+	/**
+	 * @param n
+	 */
+	public void addVertex(INode n) {
+		graph.addVertex(n);
+		vertexAdded(n);
+	}
+
+	/**
+	 * @param n
+	 */
+	private void vertexAdded(INode n) {
+		Collection<IEdge> edges = edgesOf(n);
+		for (IDominoGraphListener l : listeners)
+			l.vertexAdded(n, edges);
 	}
 
 	public void removePlaceholders(Set<PlaceholderNode> placeholders) {
@@ -309,15 +326,15 @@ public class DominoGraph {
 	 * @return
 	 */
 	private IEdge getEdge(INode node, EDirection dir) {
-		for (IEdge edge : edgesOfSource(node))
-			if (edge.getDirection() == dir)
+		for (IEdge edge : edgesOf(node))
+			if (edge.getDirection(node) == dir)
 				return edge;
 		return null;
 	}
 
-	private static IEdge hasEdge(EDirection dir, Iterable<IEdge> edges) {
+	private static IEdge hasEdge(INode v, EDirection dir, Iterable<IEdge> edges) {
 		for (IEdge edge : edges)
-			if (edge.getDirection() == dir)
+			if (edge.getDirection(v) == dir)
 				return edge;
 		return null;
 	}
@@ -356,17 +373,62 @@ public class DominoGraph {
 			return ImmutableList.of();
 
 		ImmutableList.Builder<INode> b = ImmutableList.builder();
-		walkAlongImpl(dir, start, Predicates.and(dir, filter), b);
+		walkAlongImpl(dir, start, filter, b);
 		return b.build();
 	}
 
 	private void walkAlongImpl(EDirection dir, INode start, Predicate<? super IEdge> filter,
-			ImmutableList.Builder<INode> b) {
+			ImmutableCollection.Builder<INode> b) {
+
 		b.add(start);
-		for (IEdge edge : Iterables.filter(edgesOfSource(start), filter)) {
-			INode next = edge.getTarget();
+		for (IEdge edge : Iterables.filter(edgesOf(start), filter)) {
+			if (edge.getDirection(start) != dir)
+				continue;
+			INode next = edge.getOpposite(start);
 			walkAlongImpl(dir, next, filter, b);
 		}
+	}
+
+	public INode getNeighbor(EDirection dir, INode start, Predicate<? super IEdge> filter) {
+		for (IEdge edge : Iterables.filter(edgesOf(start), filter)) {
+			if (edge.getDirection(start) == dir)
+				return edge.getOpposite(start);
+		}
+		return null;
+	}
+
+	/**
+	 * returns all reachable nodes of a given start node in a given direction
+	 *
+	 * @param dir
+	 * @param start
+	 * @param filter
+	 * @return
+	 */
+	public Set<INode> allReachable(EDirection dir, INode start, Predicate<? super IEdge> filter) {
+		if (!graph.containsVertex(start))
+			return ImmutableSet.of();
+		ImmutableSet.Builder<INode> b = ImmutableSet.builder();
+		allReachableImpl(dir, start, filter, b);
+
+		return b.build();
+	}
+
+	private void allReachableImpl(EDirection dir, INode start, Predicate<? super IEdge> filter,
+			ImmutableSet.Builder<INode> b) {
+
+		Set<IEdge> badEdges = new HashSet<>(edgesOf(start));
+		for(Iterator<IEdge> it = badEdges.iterator(); it.hasNext(); ) {
+			if (it.next().getDirection(start) == dir) //remove the good edge
+				it.remove();
+		}
+		// idea: filter the graph such that all other edges from the start node except the target dir are removed
+		// and iterate over the rest
+		UndirectedGraph<INode, IEdge> filtered = GraphViews.graphView(graph, Predicates.in(connectedSetOf(start)),
+				Predicates.and(filter, Predicates.not(Predicates.in(badEdges))));
+
+		DepthFirstIterator<INode, IEdge> it = new DepthFirstIterator<INode, IEdge>(filtered, start);
+		b.addAll(it);
 	}
 
 	/**
@@ -440,6 +502,11 @@ public class DominoGraph {
 		}
 	}
 
+	public boolean moveToAlone(INode node) {
+		remove(node);
+		addVertex(node);
+		return true;
+	}
 	/**
 	 * @param node
 	 * @param node2
@@ -449,34 +516,25 @@ public class DominoGraph {
 			return false;
 		if (!match(node, to, true))
 			return false;
-		detach(node, true);
+		remove(node);
+
 		if (needTranspose(node, to))
 			node.transpose();
-		Collection<IEdge> edges = edgesOfSource(to);
-		for (IEdge edge : edges) {
-			edgeLike(edge, node, null);
-		}
-		detach(to, false);
+
+		Collection<IEdge> edges = ImmutableSet.copyOf(edgesOf(to));
 		remove(to);
+		graph.addVertex(node);
+
+		for (IEdge edge : edges) {
+			edgeLike(edge, to, node);
+		}
+
+		vertexAdded(node);
 		return true;
 	}
 
 
-	/**
-	 * @param edge
-	 * @param to
-	 * @param object
-	 */
-	private void edgeLike(IEdge edge, INode s, INode t) {
-		if (s == null)
-			s = edge.getSource();
-		if (t == null)
-			t = edge.getTarget();
-		if (edge instanceof BandEdge)
-			band(s, edge.getDirection(), t);
-		else
-			magnetic(s, edge.getDirection(), t);
-	}
+
 
 
 	/**

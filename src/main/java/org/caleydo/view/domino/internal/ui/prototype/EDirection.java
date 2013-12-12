@@ -7,7 +7,6 @@ package org.caleydo.view.domino.internal.ui.prototype;
 
 import org.caleydo.core.data.collection.EDimension;
 
-import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 
@@ -15,7 +14,7 @@ import com.google.common.collect.Sets;
  * @author Samuel Gratzl
  *
  */
-public enum EDirection implements Predicate<IEdge> {
+public enum EDirection {
 	ABOVE, LEFT_OF, BELOW, RIGHT_OF;
 
 	public EDimension asDim() {
@@ -86,13 +85,4 @@ public enum EDirection implements Predicate<IEdge> {
 		else
 			return EDirection.ABOVE;
 	}
-
-	/**
-	 * filter edges, whether they have the right direction
-	 */
-	@Override
-	public boolean apply(IEdge input) {
-		return input != null && input.getDirection() == this;
-	}
-
 }

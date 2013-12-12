@@ -62,9 +62,6 @@ public class PlaceholderNodeElement extends ANodeElement implements IDropGLTarge
 	public void onDrop(IDnDItem item) {
 		INode n = Nodes.extract(item);
 		DominoGraph graph = findGraph();
-		if (!graph.contains(n)) {
-			graph.addVertex(n);
-		}
 		graph.move(n, (PlaceholderNode) this.node);
 		EventPublisher.trigger(new HidePlaceHoldersEvent().to(findParent(DominoNodeLayer.class)));
 	}

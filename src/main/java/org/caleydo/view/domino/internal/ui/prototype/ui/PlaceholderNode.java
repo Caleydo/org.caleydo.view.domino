@@ -73,6 +73,7 @@ public class PlaceholderNode extends ADataNode {
 
 		@Override
 		protected void renderImpl(GLGraphics g, float w, float h) {
+			g.color(Color.DARK_BLUE).fillRect(0, 0, w, h);
 			g.gl.glEnable(GL2.GL_LINE_STIPPLE);
 			g.gl.glLineStipple(2, (short) 0xAAAA);
 			g.lineWidth(2);

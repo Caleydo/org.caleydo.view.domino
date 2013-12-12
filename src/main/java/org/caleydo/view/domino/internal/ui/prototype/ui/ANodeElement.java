@@ -66,6 +66,8 @@ public abstract class ANodeElement extends GLElementContainer implements IHasMin
 		this.add(content);
 		setVisibility(EVisibility.PICKABLE);
 		onPick(this);
+		Vec2f s = this.info.getSize();
+		this.setSize(s.x(), s.y());
 	}
 
 	@Override
@@ -97,7 +99,8 @@ public abstract class ANodeElement extends GLElementContainer implements IHasMin
 		DominoGraph graph = findGraph();
 		switch (pick.getPickingMode()) {
 		case RIGHT_CLICKED:
-			graph.transpose(node);
+			graph.remove(node);
+			// graph.transpose(node);
 			break;
 		default:
 			break;
@@ -198,7 +201,7 @@ public abstract class ANodeElement extends GLElementContainer implements IHasMin
 	 * @return
 	 */
 	private float fix(int size) {
-		return size <= 0 ? (node instanceof PlaceholderNode ? 10 : 1) : size;
+		return size <= 0 ? (node instanceof PlaceholderNode ? 100 : 1) : size;
 	}
 
 	/**

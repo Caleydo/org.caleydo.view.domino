@@ -11,7 +11,6 @@ import org.caleydo.core.data.datadomain.ATableBasedDataDomain;
 import org.caleydo.core.data.perspective.table.TablePerspective;
 import org.caleydo.core.data.perspective.variable.Perspective;
 import org.caleydo.core.data.perspective.variable.PerspectiveInitializationData;
-import org.caleydo.core.data.virtualarray.VirtualArray;
 import org.caleydo.core.id.IDType;
 import org.caleydo.core.util.color.Color;
 import org.caleydo.view.domino.api.model.typed.TypedList;
@@ -80,20 +79,16 @@ public class DataDomainDataProvider {
 	}
 
 	public TablePerspective asTablePerspective(TypedList dim, TypedList rec) {
-		Perspective d = asPerspective(asVirtualArray(dim));
-		Perspective r = asPerspective(asVirtualArray(rec));
+		Perspective d = asPerspective(dim);
+		Perspective r = asPerspective(rec);
 		TablePerspective t = new TablePerspective(this.d, d, r);
 		return t;
 	}
 
-	private static VirtualArray asVirtualArray(TypedList data) {
-		return new VirtualArray(data.getIdType(), data);
-	}
-
-	private static Perspective asPerspective(VirtualArray va) {
+	private Perspective asPerspective(TypedList data) {
 		PerspectiveInitializationData init = new PerspectiveInitializationData();
-		init.setData(va);
-		Perspective d = new Perspective();
+		init.setData(data);
+		Perspective d = new Perspective(this.d, data.getIdType());
 		d.init(init);
 		return d;
 	}

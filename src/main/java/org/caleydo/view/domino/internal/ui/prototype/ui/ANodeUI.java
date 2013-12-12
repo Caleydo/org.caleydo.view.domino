@@ -52,7 +52,7 @@ public abstract class ANodeUI<T extends INode> extends GLElementDecorator implem
 
 	@Override
 	public void layout(int deltaTimeMs) {
-		if (rebuild) {
+		if (rebuild && !dimData.isEmpty() && !recData.isEmpty()) {
 			rebuild = false;
 			Builder b = GLElementFactoryContext.builder();
 			fill(b, dimData, recData);

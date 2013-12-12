@@ -19,10 +19,10 @@ import org.caleydo.view.domino.api.model.BandRoute;
 import org.caleydo.view.domino.api.model.typed.TypedCollections;
 import org.caleydo.view.domino.api.ui.band.Route;
 import org.caleydo.view.domino.internal.ui.DominoBandLayer.IBandRoutesProvider;
-import org.caleydo.view.domino.internal.ui.prototype.BandEdge;
-import org.caleydo.view.domino.internal.ui.prototype.IEdge;
 import org.caleydo.view.domino.internal.ui.prototype.INode;
+import org.caleydo.view.domino.internal.ui.prototype.graph.BandEdge;
 import org.caleydo.view.domino.internal.ui.prototype.graph.DominoGraph;
+import org.caleydo.view.domino.internal.ui.prototype.graph.IEdge;
 import org.caleydo.view.domino.spi.model.IBandRenderer;
 
 import com.google.common.base.Function;
@@ -56,7 +56,7 @@ public class Routes implements IBandRoutesProvider {
 
 			final Rect sourceB = source.getRectBounds();
 			final Rect targetB = target.getRectBounds();
-			final EDimension dim = edge.getDirection().asDim();
+			final EDimension dim = edge.getDirection(edge.getSource()).asDim();
 
 			List<Vec2f> curve;
 			if (dim == EDimension.RECORD) {

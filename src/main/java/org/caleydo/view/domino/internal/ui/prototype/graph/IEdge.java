@@ -3,7 +3,10 @@
  * Copyright (c) The Caleydo Team. All rights reserved.
  * Licensed under the new BSD license, available at http://caleydo.org/license
  *******************************************************************************/
-package org.caleydo.view.domino.internal.ui.prototype;
+package org.caleydo.view.domino.internal.ui.prototype.graph;
+
+import org.caleydo.view.domino.internal.ui.prototype.EDirection;
+import org.caleydo.view.domino.internal.ui.prototype.INode;
 
 
 /**
@@ -11,28 +14,23 @@ package org.caleydo.view.domino.internal.ui.prototype;
  *
  */
 public interface IEdge {
-	EDirection getDirection();
+	EDirection getDirection(INode source);
 
+	INode getOpposite(INode node);
+
+	/**
+	 * @return
+	 */
 	INode getSource();
 
+	/**
+	 * @return
+	 */
 	INode getTarget();
+
 	/**
 	 *
 	 */
-	void transpose();
+	void swapDirection();
 
-	/**
-	 * @return
-	 */
-	IEdge reverse();
-
-	/**
-	 * @return
-	 */
-	INode getRawSource();
-
-	/**
-	 * @return
-	 */
-	INode getRawTarget();
 }

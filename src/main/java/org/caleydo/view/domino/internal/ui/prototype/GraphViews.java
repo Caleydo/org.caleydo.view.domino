@@ -5,6 +5,7 @@
  *******************************************************************************/
 package org.caleydo.view.domino.internal.ui.prototype;
 
+import org.caleydo.view.domino.internal.ui.prototype.graph.IEdge;
 import org.jgrapht.DirectedGraph;
 import org.jgrapht.UndirectedGraph;
 import org.jgrapht.graph.DirectedMaskSubgraph;
