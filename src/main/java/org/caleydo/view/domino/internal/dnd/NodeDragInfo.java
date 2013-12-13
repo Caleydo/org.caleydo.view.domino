@@ -10,8 +10,8 @@ import gleem.linalg.Vec2f;
 import org.caleydo.core.view.opengl.layout2.GLElement;
 import org.caleydo.core.view.opengl.layout2.GLElement.EVisibility;
 import org.caleydo.core.view.opengl.layout2.dnd.IUIDragInfo;
+import org.caleydo.view.domino.internal.ui.DndNodeElement;
 import org.caleydo.view.domino.internal.ui.prototype.INode;
-import org.caleydo.view.domino.internal.ui.prototype.ui.DndNodeElement;
 
 /**
  * @author Samuel Gratzl
@@ -41,8 +41,6 @@ public class NodeDragInfo implements IUIDragInfo {
 	@Override
 	public GLElement createUI() {
 		DndNodeElement elem = new DndNodeElement(node);
-		Vec2f s = elem.getInfo().getSize();
-		elem.setSize(s.x(), s.y());
 		elem.setLocation(-offset.x(), -offset.y());
 		elem.setVisibility(EVisibility.VISIBLE);
 		return elem;

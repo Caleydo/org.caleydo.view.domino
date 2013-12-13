@@ -24,8 +24,9 @@ import org.caleydo.view.domino.api.model.typed.TypedCollections;
 import org.caleydo.view.domino.api.model.typed.TypedGroup;
 import org.caleydo.view.domino.api.model.typed.TypedList;
 import org.caleydo.view.domino.api.model.typed.TypedSet;
-import org.caleydo.view.domino.internal.ui.prototype.ui.ANodeUI;
-import org.caleydo.view.domino.internal.ui.prototype.ui.INodeUI;
+import org.caleydo.view.domino.internal.ui.ANodeUI;
+import org.caleydo.view.domino.internal.ui.INodeUI;
+import org.caleydo.view.domino.internal.ui.model.ANode;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;

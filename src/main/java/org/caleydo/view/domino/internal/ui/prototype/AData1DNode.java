@@ -15,6 +15,7 @@ import org.caleydo.view.domino.api.model.typed.TypedCollections;
 import org.caleydo.view.domino.api.model.typed.TypedID;
 import org.caleydo.view.domino.api.model.typed.TypedList;
 import org.caleydo.view.domino.api.model.typed.TypedSet;
+import org.caleydo.view.domino.internal.ui.model.ANode;
 
 /**
  * @author Samuel Gratzl

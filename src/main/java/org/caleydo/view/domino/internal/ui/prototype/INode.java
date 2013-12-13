@@ -13,7 +13,8 @@ import org.caleydo.core.id.IDType;
 import org.caleydo.core.util.base.ILabeled;
 import org.caleydo.core.view.opengl.layout2.layout.IHasGLLayoutData;
 import org.caleydo.view.domino.api.model.typed.TypedSet;
-import org.caleydo.view.domino.internal.ui.prototype.ui.INodeUI;
+import org.caleydo.view.domino.internal.ui.INodeUI;
+import org.caleydo.view.domino.internal.ui.model.NodeUIState;
 
 /**
  * @author Samuel Gratzl
@@ -22,6 +23,8 @@ import org.caleydo.view.domino.internal.ui.prototype.ui.INodeUI;
 public interface INode extends ILabeled, Cloneable, IHasGLLayoutData {
 	String PROP_TRANSPOSE = "transpose";
 	String PROP_LABEL = "label";
+
+	NodeUIState getUIState();
 
 	void setLabel(String label);
 

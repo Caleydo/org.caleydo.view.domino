@@ -10,8 +10,8 @@ import org.caleydo.core.data.datadomain.DataSupportDefinitions;
 import org.caleydo.core.data.perspective.table.TablePerspective;
 import org.caleydo.core.view.opengl.layout2.manage.GLElementFactoryContext.Builder;
 import org.caleydo.view.domino.api.model.typed.TypedList;
-import org.caleydo.view.domino.internal.ui.prototype.ui.ANodeUI;
-import org.caleydo.view.domino.internal.ui.prototype.ui.INodeUI;
+import org.caleydo.view.domino.internal.ui.ANodeUI;
+import org.caleydo.view.domino.internal.ui.INodeUI;
 
 /**
  * @author Samuel Gratzl

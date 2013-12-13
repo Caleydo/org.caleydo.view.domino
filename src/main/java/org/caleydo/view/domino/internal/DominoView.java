@@ -18,7 +18,7 @@ import org.caleydo.core.view.opengl.layout2.basic.ScrollingDecorator;
 import org.caleydo.core.view.opengl.layout2.view.AMultiTablePerspectiveElementView;
 import org.caleydo.view.domino.internal.event.ToggleHeaderAlwaysEvent;
 import org.caleydo.view.domino.internal.serial.SerializedDominoView;
-import org.caleydo.view.domino.internal.ui.prototype.ui.GraphElement;
+import org.caleydo.view.domino.internal.ui.GraphElement;
 
 /**
  * basic view based on {@link GLElement} with a {@link AMultiTablePerspectiveElementView}
