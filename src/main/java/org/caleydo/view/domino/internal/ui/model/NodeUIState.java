@@ -7,6 +7,7 @@ package org.caleydo.view.domino.internal.ui.model;
 
 import gleem.linalg.Vec2f;
 
+import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 
 import org.apache.commons.lang.BitField;
@@ -39,6 +40,21 @@ public class NodeUIState {
 		return true;
 	}
 
+	public final void addPropertyChangeListener(PropertyChangeListener listener) {
+		propertySupport.addPropertyChangeListener(listener);
+	}
+
+	public final void addPropertyChangeListener(String propertyName, PropertyChangeListener listener) {
+		propertySupport.addPropertyChangeListener(propertyName, listener);
+	}
+
+	public final void removePropertyChangeListener(PropertyChangeListener listener) {
+		propertySupport.removePropertyChangeListener(listener);
+	}
+
+	public final void removePropertyChangeListener(String propertyName, PropertyChangeListener listener) {
+		propertySupport.removePropertyChangeListener(propertyName, listener);
+	}
 	/**
 	 * @return the zoom, see {@link #zoom}
 	 */

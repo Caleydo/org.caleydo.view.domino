@@ -235,7 +235,7 @@ public abstract class ANodeElement extends GLElementContainer implements IHasMin
 	 * @return
 	 */
 	public Vec2f getPreferredSize() {
-		Vec2f s = getMinSize().copy();
+		Vec2f s = getNodeSize().copy();
 		Vec2f z = node.getUIState().getZoom();
 		s.setX(s.x() * z.x());
 		s.setY(s.y() * z.y());

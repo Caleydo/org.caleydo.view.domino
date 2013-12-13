@@ -8,12 +8,15 @@ package org.caleydo.view.domino.internal.ui;
 import gleem.linalg.Vec2f;
 import gleem.linalg.Vec4f;
 
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Deque;
+import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -37,6 +40,7 @@ import org.caleydo.view.domino.internal.ui.model.DominoGraph;
 import org.caleydo.view.domino.internal.ui.model.Edges;
 import org.caleydo.view.domino.internal.ui.model.IDominoGraphListener;
 import org.caleydo.view.domino.internal.ui.model.IEdge;
+import org.caleydo.view.domino.internal.ui.model.NodeUIState;
 import org.caleydo.view.domino.internal.ui.model.Placeholder;
 import org.caleydo.view.domino.internal.ui.prototype.EDirection;
 import org.caleydo.view.domino.internal.ui.prototype.INode;
@@ -58,7 +62,8 @@ public class DominoNodeLayer extends AnimatedGLElementContainer implements IDomi
 		Function<INode, ANodeElement> {
 
 	private final DominoGraph graph;
-	private Deque<IChange> changes = new ArrayDeque<>();
+	private final Deque<IChange> changes = new ArrayDeque<>();
+	private final Map<INode, PropertyChangeListener> metaData = new IdentityHashMap<>();
 
 	/**
 	 * @param graph
@@ -92,13 +97,50 @@ public class DominoNodeLayer extends AnimatedGLElementContainer implements IDomi
 		ANodeElement new_;
 		if (node instanceof PlaceholderNode)
 			new_ = new PlaceholderNodeElement((PlaceholderNode) node);
-		else
+		else {
 			new_ = new NodeElement(node);
+			initListeners(new_);
+		}
 		this.add(new_);
 
 		Collection<IChange> changes = updateData(node, new_);
 		this.changes.add(new Added(new_));
 		this.changes.addAll(changes);
+	}
+
+	/**
+	 * @param new_
+	 */
+	private void initListeners(final ANodeElement node) {
+		NodeUIState state = node.getUIState();
+		final PropertyChangeListener listener = new PropertyChangeListener() {
+			@Override
+			public void propertyChange(PropertyChangeEvent evt) {
+				switch (evt.getPropertyName()) {
+				case NodeUIState.PROP_ZOOM:
+					Vec2f old = (Vec2f) evt.getOldValue();
+					Vec2f new_ = (Vec2f) evt.getNewValue();
+					Vec2f size = node.getPreferredSize();
+					for (EDimension dim : EDimension.values()) {
+						if (dim.select(old) != dim.select(new_)) {
+							changes.add(new Resized(node, dim, dim.select(size)));
+						}
+					}
+					relayout();
+				}
+
+			}
+		};
+		this.metaData.put(node.asNode(), listener);
+		state.addPropertyChangeListener(listener);
+	}
+
+	/**
+	 * @param elem
+	 */
+	private void removeListener(ANodeElement node) {
+		NodeUIState state = node.getUIState();
+		state.removePropertyChangeListener(metaData.remove(node.asNode()));
 	}
 
 	private Collection<IChange> updateData(INode node, ANodeElement new_) {
@@ -138,6 +180,7 @@ public class DominoNodeLayer extends AnimatedGLElementContainer implements IDomi
 	public void vertexRemoved(INode node, Collection<IEdge> edges) {
 		ANodeElement elem = apply(node);
 		this.remove(elem);
+		removeListener(elem);
 		Vec2f size = elem.getSize();
 		edges = Collections2.filter(edges, Edges.SAME_SORTING);
 		for(EDimension dim : EDimension.values()) {
