@@ -353,6 +353,7 @@ public class DominoNodeLayer extends AnimatedGLElementContainer implements IDomi
 				else if (rightN != null)
 					shift = v_delta;
 				node.setLocation(loc.x() - dim.select(shift, 0), loc.y() - dim.select(0, shift));
+				change.addAll(resizeAll(node, v_new, dim, children));
 			}
 			if (next instanceof Added) {
 				Added r = (Added) next;
@@ -400,6 +401,30 @@ public class DominoNodeLayer extends AnimatedGLElementContainer implements IDomi
 			}
 		}
 		return false;
+	}
+
+	/**
+	 * @param node
+	 * @param v_new
+	 * @param dim
+	 * @param children
+	 * @return
+	 */
+	private Collection<IChange> resizeAll(IGLLayoutElement node, float v_new, EDimension dim,
+			List<? extends IGLLayoutElement> children) {
+		EDirection prim = EDirection.getPrimary(dim);
+		Collection<? extends IGLLayoutElement> leftOf = allReachable(node, prim, children, false);
+		Collection<? extends IGLLayoutElement> rightOf = allReachable(node, prim.opposite(), children, false);
+		List<IChange> r = new ArrayList<>();
+		for (IGLLayoutElement elem : Iterables.concat(leftOf, rightOf)) {
+			if (elem == node)
+				continue;
+			float c = dim.select(elem.getSetSize());
+			if (c == v_new)
+				continue;
+			r.add(new Resized((ANodeElement) node.asElement(), dim, v_new));
+		}
+		return r;
 	}
 
 	private void move(IGLLayoutElement node, float v_delta,
