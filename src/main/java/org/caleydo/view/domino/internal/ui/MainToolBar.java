@@ -7,7 +7,9 @@ package org.caleydo.view.domino.internal.ui;
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.net.URL;
 import java.util.Collection;
+import java.util.List;
 import java.util.Set;
 
 import org.caleydo.core.data.collection.EDimension;
@@ -21,9 +23,11 @@ import org.caleydo.core.view.opengl.layout2.GLElement;
 import org.caleydo.core.view.opengl.layout2.GLElementContainer;
 import org.caleydo.core.view.opengl.layout2.GLGraphics;
 import org.caleydo.core.view.opengl.layout2.basic.GLButton;
-import org.caleydo.core.view.opengl.layout2.basic.GLButton.ISelectionCallback;
 import org.caleydo.core.view.opengl.layout2.layout.GLLayouts;
+import org.caleydo.core.view.opengl.layout2.layout.IGLLayout2;
+import org.caleydo.core.view.opengl.layout2.layout.IGLLayoutElement;
 import org.caleydo.core.view.opengl.layout2.renderer.GLRenderers;
+import org.caleydo.view.domino.internal.Resources;
 import org.caleydo.view.domino.internal.ui.model.DominoGraph;
 import org.caleydo.view.domino.internal.ui.model.IDominoGraphListener;
 import org.caleydo.view.domino.internal.ui.model.IEdge;
@@ -87,14 +91,7 @@ public class MainToolBar extends GLElementContainer implements PropertyChangeLis
 			final INode node = graph.apply(id);
 			if (node != null) {
 				this.add(new GLElement(GLRenderers.drawText(node.getLabel())));
-				if (node instanceof ISortableNode) {
-					this.add(new GLButton().setCallback(new ISelectionCallback() {
-						@Override
-						public void onSelectionChanged(GLButton button, boolean selected) {
-							graph.sortBy((ISortableNode) node, EDimension.DIMENSION);
-						}
-					}).setRenderer(GLButton.createCheckRenderer("Sort By Dim")));
-				}
+				this.add(new NodeToolBar(node, graph));
 			}
 		}
 	}
@@ -111,4 +108,63 @@ public class MainToolBar extends GLElementContainer implements PropertyChangeLis
 			super.renderImpl(g, w, h);
 		}
 	}
+
+	private static class NodeToolBar extends GLElementContainer implements GLButton.ISelectionCallback, IGLLayout2 {
+		private final INode node;
+		private final DominoGraph graph;
+
+		public NodeToolBar(INode node, DominoGraph graph) {
+			this.graph = graph;
+			setLayout(this);
+			this.node = node;
+			if (node instanceof ISortableNode) {
+				ISortableNode snode = (ISortableNode) node;
+				if (snode.isSortable(EDimension.DIMENSION))
+					addButton("Sort Dim", Resources.ICON_SORT_DIM);
+				if (snode.isSortable(EDimension.RECORD)) {
+					addButton("Sort Rec", Resources.ICON_SORT_REC);
+				}
+			}
+			addButton("Remove", Resources.deleteIcon());
+		}
+
+		@Override
+		public boolean doLayout(List<? extends IGLLayoutElement> children, float w, float h, IGLLayoutElement parent,
+				int deltaTimeMs) {
+			float x = 0;
+			for (IGLLayoutElement child : children) {
+				child.setBounds(x, 0, h, h);
+				x += h + 3;
+			}
+			return false;
+		}
+
+		@Override
+		public void onSelectionChanged(GLButton button, boolean selected) {
+			switch (button.getTooltip()) {
+			case "Sort Dim":
+				graph.sortBy((ISortableNode) node, EDimension.DIMENSION);
+				break;
+			case "Sort Rec":
+				graph.sortBy((ISortableNode) node, EDimension.RECORD);
+				break;
+			case "Remove":
+				graph.remove(node);
+			}
+		}
+
+		/**
+		 * @param string
+		 * @param iconSortDim
+		 */
+		private void addButton(String string, URL iconSortDim) {
+			GLButton b = new GLButton();
+			b.setCallback(this);
+			b.setRenderer(GLRenderers.fillImage(iconSortDim));
+			b.setTooltip(string);
+			this.add(b);
+		}
+
+	}
+
 }

@@ -269,6 +269,7 @@ public class DominoNodeLayer extends AnimatedGLElementContainer implements IDomi
 	public void vertexRemoved(INode node, Collection<IEdge> edges) {
 		ANodeElement elem = apply(node);
 		this.remove(elem);
+		select(node, SelectionType.SELECTION, false, false);
 		removeListener(elem);
 		Vec2f size = elem.getSize();
 		edges = Collections2.filter(edges, Edges.SAME_SORTING);
