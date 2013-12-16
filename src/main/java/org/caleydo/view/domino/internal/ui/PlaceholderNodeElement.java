@@ -22,6 +22,7 @@ import org.caleydo.view.domino.internal.ui.prototype.Nodes;
  *
  */
 public class PlaceholderNodeElement extends ANodeElement implements IDropGLTarget {
+
 	public PlaceholderNodeElement(PlaceholderNode node) {
 		super(node);
 	}
@@ -41,6 +42,7 @@ public class PlaceholderNodeElement extends ANodeElement implements IDropGLTarge
 			break;
 		case MOUSE_OUT:
 			context.getMouseLayer().removeDropTarget(this);
+			((PlaceholderNode.UI) nodeUI).setArmed(false);
 			break;
 		default:
 			break;
@@ -68,7 +70,7 @@ public class PlaceholderNodeElement extends ANodeElement implements IDropGLTarge
 
 	@Override
 	public void onItemChanged(IDnDItem item) {
-
+		((PlaceholderNode.UI) nodeUI).setArmed(true);
 	}
 
 	@Override

@@ -366,10 +366,10 @@ public class DominoNodeLayer extends AnimatedGLElementContainer implements IDomi
 				INode belowN = graph.getNeighbor(EDirection.BELOW, nnode, Edges.SAME_SORTING);
 
 				if (leftN != null || rightN != null) {
-					size.setY(lookup.get(leftN == null ? rightN : leftN).getHeight());
+					size.setY(lookup2.get(leftN == null ? rightN : leftN).getHeight());
 				}
 				if (belowN != null || aboveN != null) {
-					size.setX(lookup.get(aboveN == null ? belowN : aboveN).getWidth());
+					size.setX(lookup2.get(aboveN == null ? belowN : aboveN).getWidth());
 				}
 
 				move(node, size.x(), EDimension.DIMENSION, children);

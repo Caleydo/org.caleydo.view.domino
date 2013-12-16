@@ -83,7 +83,8 @@ public class MainToolBar extends GLElementContainer implements PropertyChangeLis
 		this.clear();
 		for (Integer id : items) {
 			INode node = graph.apply(id);
-			this.add(new GLElement(GLRenderers.drawText(node.getLabel())));
+			if (node != null)
+				this.add(new GLElement(GLRenderers.drawText(node.getLabel())));
 		}
 	}
 

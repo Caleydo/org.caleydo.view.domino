@@ -43,10 +43,12 @@ public class PlaceholderNode extends ADataNode {
 		return new PlaceholderNode(this);
 	}
 
-	private static class UI extends GLElement implements INodeUI {
+	static class UI extends GLElement implements INodeUI {
 		private final PlaceholderNode node;
 		private TypedList dimData = TypedCollections.INVALID_LIST;
 		private TypedList recData = TypedCollections.INVALID_LIST;
+
+		private boolean armed = false;
 
 		public UI(PlaceholderNode node) {
 			this.node = node;
@@ -56,6 +58,17 @@ public class PlaceholderNode extends ADataNode {
 		@Override
 		public INode asNode() {
 			return node;
+		}
+
+		/**
+		 * @param armed
+		 *            setter, see {@link armed}
+		 */
+		public void setArmed(boolean armed) {
+			if (this.armed = armed)
+				return;
+			this.armed = armed;
+			repaint();
 		}
 
 		@Override
@@ -93,7 +106,7 @@ public class PlaceholderNode extends ADataNode {
 			g.gl.glLineStipple(2, (short) 0xAAAA);
 			g.lineWidth(2);
 			g.color(0.95f).fillRoundedRect(0, 0, w, h, 5);
-			g.color(Color.GRAY).drawRoundedRect(0, 0, w, h, 5);
+			g.color(armed ? Color.DARK_GRAY : Color.GRAY).drawRoundedRect(0, 0, w, h, 5);
 			g.gl.glDisable(GL2.GL_LINE_STIPPLE);
 			g.lineWidth(1);
 			super.renderImpl(g, w, h);

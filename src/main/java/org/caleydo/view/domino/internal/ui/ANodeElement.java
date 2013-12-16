@@ -40,7 +40,7 @@ public abstract class ANodeElement extends GLElementContainer implements IHasMin
 	protected static final int BORDER = 2;
 	protected final PickingBarrier content;
 	protected final INode node;
-	private final INodeUI nodeUI;
+	protected final INodeUI nodeUI;
 
 	private int mainPickingId;
 
@@ -257,6 +257,7 @@ public abstract class ANodeElement extends GLElementContainer implements IHasMin
 		Vec2f z = node.getUIState().getZoom();
 		s.setX(s.x() * z.x());
 		s.setY(s.y() * z.y());
+		s.add(new Vec2f(BORDER * 2, BORDER * 2));
 		return s;
 	}
 }
