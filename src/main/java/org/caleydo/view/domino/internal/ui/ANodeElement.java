@@ -181,6 +181,8 @@ public abstract class ANodeElement extends GLElementContainer implements IHasMin
 			Vec2f z = s.getZoom();
 			s.setZoom(z.y(), z.x());
 			break;
+		default:
+			repaint();
 		}
 	}
 

@@ -8,14 +8,21 @@ package org.caleydo.view.domino.internal.ui;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.Collection;
+import java.util.Set;
 
 import org.caleydo.core.data.collection.EDimension;
+import org.caleydo.core.data.selection.MultiSelectionManagerMixin;
+import org.caleydo.core.data.selection.MultiSelectionManagerMixin.ISelectionMixinCallback;
+import org.caleydo.core.data.selection.SelectionManager;
+import org.caleydo.core.data.selection.SelectionType;
+import org.caleydo.core.event.EventListenerManager.DeepScan;
 import org.caleydo.core.util.color.Color;
 import org.caleydo.core.view.opengl.layout2.GLElement;
 import org.caleydo.core.view.opengl.layout2.GLElementContainer;
 import org.caleydo.core.view.opengl.layout2.GLGraphics;
 import org.caleydo.core.view.opengl.layout2.layout.GLLayouts;
 import org.caleydo.core.view.opengl.layout2.renderer.GLRenderers;
+import org.caleydo.view.domino.internal.ui.model.DominoGraph;
 import org.caleydo.view.domino.internal.ui.model.IDominoGraphListener;
 import org.caleydo.view.domino.internal.ui.model.IEdge;
 import org.caleydo.view.domino.internal.ui.model.NodeUIState;
@@ -26,13 +33,21 @@ import org.caleydo.view.domino.internal.ui.prototype.ISortableNode;
  * @author Samuel Gratzl
  *
  */
-public class MainToolBar extends GLElementContainer implements PropertyChangeListener, IDominoGraphListener {
+public class MainToolBar extends GLElementContainer implements PropertyChangeListener, IDominoGraphListener,
+		ISelectionMixinCallback {
 
-	private INode active;
+	private final DominoGraph graph;
+	private final DominoNodeLayer nodes;
 
-	public MainToolBar() {
+	@DeepScan
+	private final MultiSelectionManagerMixin selections = new MultiSelectionManagerMixin(this);
+
+	public MainToolBar(DominoNodeLayer nodes, DominoGraph graph) {
 		super(GLLayouts.flowHorizontal(3));
+		this.nodes = nodes;
+		this.graph = graph;
 		setRenderer(GLRenderers.fillRect(new Color(0.95f)));
+		selections.add(DominoGraph.newNodeSelectionManager());
 	}
 
 	@Override
@@ -56,32 +71,20 @@ public class MainToolBar extends GLElementContainer implements PropertyChangeLis
 
 	@Override
 	public void propertyChange(PropertyChangeEvent evt) {
-		INode source = (INode) evt.getSource();
 		switch (evt.getPropertyName()) {
 		case NodeUIState.PROP_PROXIMITY_MODE:
-
-			break;
-		case NodeUIState.PROP_STATE:
-			if (source.getUIState().isSelected()) {
-				setActive(source);
-			} else if (!source.getUIState().isSelected() && active == source)
-				setActive(null);
 			break;
 		}
 	}
 
-	/**
-	 * @param source
-	 */
-	private void setActive(INode node) {
-		if (this.active == node)
-			return;
-		this.active = node;
-
-		if (this.active == null)
-			this.clear();
-		else
+	@Override
+	public void onSelectionUpdate(SelectionManager manager) {
+		Set<Integer> items = manager.getElements(SelectionType.SELECTION);
+		this.clear();
+		for (Integer id : items) {
+			INode node = graph.apply(id);
 			this.add(new GLElement(GLRenderers.drawText(node.getLabel())));
+		}
 	}
 
 	private static class Separator extends GLElement {

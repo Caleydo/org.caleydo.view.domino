@@ -32,18 +32,17 @@ public class GraphElement extends GLElementContainer implements IGLLayout2 {
 	public GraphElement() {
 		setLayout(this);
 
-		this.topToolBar = new MainToolBar();
-		graph.addGraphListener(this.topToolBar);
-		this.add(this.topToolBar);
-		this.leftToolBar = new LeftToolBar();
-		this.add(this.leftToolBar);
-
 		DominoBandLayer band = new DominoBandLayer(routes);
 		this.add(band);
 
 		this.nodes = new DominoNodeLayer(graph);
 		this.add(nodes);
 
+		this.topToolBar = new MainToolBar(nodes, graph);
+		graph.addGraphListener(this.topToolBar);
+		this.add(0, this.topToolBar);
+		this.leftToolBar = new LeftToolBar();
+		this.add(1, this.leftToolBar);
 		this.add(2, new DominoBackgroundLayer(nodes, graph));
 	}
 

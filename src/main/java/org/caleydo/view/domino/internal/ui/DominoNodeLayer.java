@@ -22,6 +22,11 @@ import java.util.Map;
 import java.util.Set;
 
 import org.caleydo.core.data.collection.EDimension;
+import org.caleydo.core.data.selection.MultiSelectionManagerMixin;
+import org.caleydo.core.data.selection.MultiSelectionManagerMixin.ISelectionMixinCallback;
+import org.caleydo.core.data.selection.SelectionManager;
+import org.caleydo.core.data.selection.SelectionType;
+import org.caleydo.core.event.EventListenerManager.DeepScan;
 import org.caleydo.core.event.EventListenerManager.ListenTo;
 import org.caleydo.core.util.collection.Pair;
 import org.caleydo.core.view.opengl.layout2.GLElement;
@@ -59,11 +64,14 @@ import com.google.common.collect.Maps;
  *
  */
 public class DominoNodeLayer extends AnimatedGLElementContainer implements IDominoGraphListener, IGLLayout2,
-		Function<INode, ANodeElement> {
+		Function<INode, ANodeElement>, ISelectionMixinCallback {
 
 	private final DominoGraph graph;
 	private final Deque<IChange> changes = new ArrayDeque<>();
 	private final Map<INode, NodeData> metaData = new IdentityHashMap<>();
+
+	@DeepScan
+	private final MultiSelectionManagerMixin selections = new MultiSelectionManagerMixin(this);
 
 	/**
 	 * @param graph
@@ -90,6 +98,36 @@ public class DominoNodeLayer extends AnimatedGLElementContainer implements IDomi
 				return new Vec4f(0, 0, 0, 0);
 			}
 		});
+
+		selections.add(DominoGraph.newNodeSelectionManager());
+	}
+
+	public boolean isSelected(INode node, SelectionType type) {
+		return selections.get(0).checkStatus(type, node.getID());
+	}
+
+	/**
+	 * @param mouseOver
+	 * @param b
+	 */
+	public void select(INode node, SelectionType type, boolean enable, boolean clear) {
+		SelectionManager m = selections.get(0);
+		if (clear)
+			m.clearSelection(type);
+		if (node != null) {
+			if (enable)
+				m.addToType(type, node.getID());
+			else
+				m.removeFromType(type, node.getID());
+		}
+		selections.fireSelectionDelta(m);
+		onSelectionUpdate(m);
+	}
+
+	@Override
+	public void onSelectionUpdate(SelectionManager manager) {
+		// TODO Auto-generated method stub
+
 	}
 
 	@Override

@@ -9,7 +9,6 @@ import gleem.linalg.Vec2f;
 
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
-import java.util.BitSet;
 
 import org.caleydo.core.data.collection.EDimension;
 import org.caleydo.core.view.opengl.canvas.IGLMouseListener.IMouseEvent;
@@ -22,16 +21,9 @@ public class NodeUIState {
 	protected final PropertyChangeSupport propertySupport = new PropertyChangeSupport(this);
 
 	public static final String PROP_ZOOM = "zoom";
-	public static final String PROP_STATE = "state";
 	public static final String PROP_PROXIMITY_MODE = "proximityMode";
 
-	private final BitSet states = new BitSet(32);
-
 	private final Vec2f zoom = new Vec2f(1, 1);
-
-	private final static int STATE_SELECTED = 1 << 0;
-	private final static int STATE_HOVERED = 1 << 1;
-	private final static int STATE_DRAGGED = 1 << 2;
 
 	private EProximityMode proximityMode = EProximityMode.FREE;
 
@@ -133,60 +125,5 @@ public class NodeUIState {
 			return 0;
 		int factor = w > 0 ? 1 : -1;
 		return event.isCtrlDown() || dim.select(event.isAltDown(), event.isShiftDown()) ? factor : 0;
-	}
-
-	/**
-	 * @param hovered
-	 *            setter, see {@link hovered}
-	 */
-	public void setHovered(boolean hovered) {
-		set(STATE_HOVERED, hovered);
-	}
-
-	/**
-	 * @param b
-	 */
-	public void setSelected(boolean selected) {
-		set(STATE_SELECTED, selected);
-	}
-
-	/**
-	 * @param dragged
-	 *            setter, see {@link dragged}
-	 */
-	public void setDragged(boolean dragged) {
-		set(STATE_DRAGGED, dragged);
-	}
-
-	/**
-	 * @param stateDragged
-	 * @param dragged
-	 */
-	private void set(int state, boolean value) {
-		if (states.get(state) == value)
-			return;
-		states.set(state, value);
-		propertySupport.fireIndexedPropertyChange(PROP_STATE, state, !value, value);
-	}
-
-	/**
-	 * @return the dragged, see {@link #dragged}
-	 */
-	public boolean isDragged() {
-		return states.get(STATE_DRAGGED);
-	}
-
-	/**
-	 * @return the selected, see {@link #selected}
-	 */
-	public boolean isSelected() {
-		return states.get(STATE_SELECTED);
-	}
-
-	/**
-	 * @return the hovered, see {@link #hovered}
-	 */
-	public boolean isHovered() {
-		return states.get(STATE_HOVERED);
 	}
 }

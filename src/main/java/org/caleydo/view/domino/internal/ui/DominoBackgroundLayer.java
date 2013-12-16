@@ -7,6 +7,7 @@ package org.caleydo.view.domino.internal.ui;
 
 import gleem.linalg.Vec2f;
 
+import org.caleydo.core.data.selection.SelectionType;
 import org.caleydo.core.event.EventListenerManager.ListenTo;
 import org.caleydo.core.event.EventPublisher;
 import org.caleydo.core.view.opengl.layout2.PickableGLElement;
@@ -56,9 +57,15 @@ public class DominoBackgroundLayer extends PickableGLElement implements IDropGLT
 	}
 
 	@Override
+	protected void onMouseReleased(Pick pick) {
+		nodes.select(null, SelectionType.SELECTION, false, true);
+	}
+
+	@Override
 	public void onItemChanged(IDnDItem item) {
 
 	}
+
 
 	@Override
 	public void onDrop(IDnDItem item) {

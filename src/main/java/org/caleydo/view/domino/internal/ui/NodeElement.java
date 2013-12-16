@@ -7,9 +7,14 @@ package org.caleydo.view.domino.internal.ui;
 
 import gleem.linalg.Vec2f;
 
+import org.caleydo.core.data.selection.MultiSelectionManagerMixin;
+import org.caleydo.core.data.selection.MultiSelectionManagerMixin.ISelectionMixinCallback;
+import org.caleydo.core.data.selection.SelectionManager;
 import org.caleydo.core.data.selection.SelectionType;
+import org.caleydo.core.event.EventListenerManager.DeepScan;
 import org.caleydo.core.event.EventPublisher;
 import org.caleydo.core.util.color.Color;
+import org.caleydo.core.view.opengl.canvas.IGLMouseListener.IMouseEvent;
 import org.caleydo.core.view.opengl.layout.Column.VAlign;
 import org.caleydo.core.view.opengl.layout2.GLElement;
 import org.caleydo.core.view.opengl.layout2.GLGraphics;
@@ -22,19 +27,24 @@ import org.caleydo.core.view.opengl.picking.Pick;
 import org.caleydo.view.domino.internal.dnd.NodeDragInfo;
 import org.caleydo.view.domino.internal.event.HidePlaceHoldersEvent;
 import org.caleydo.view.domino.internal.event.ShowPlaceHoldersEvent;
+import org.caleydo.view.domino.internal.ui.model.DominoGraph;
 import org.caleydo.view.domino.internal.ui.prototype.INode;
 
 /**
  * @author Samuel Gratzl
  *
  */
-public class NodeElement extends ANodeElement {
+public class NodeElement extends ANodeElement implements ISelectionMixinCallback {
 	private final IBorderGLRenderer border;
+
+	@DeepScan
+	private final MultiSelectionManagerMixin selections = new MultiSelectionManagerMixin(this);
 
 	public NodeElement(INode node) {
 		super(node);
 		this.border = Borders.createBorder(Color.BLACK);
 		this.add(new GLElement(border));
+		selections.add(DominoGraph.newNodeSelectionManager());
 	}
 
 	private final IDragGLSource source = new IDragGLSource() {
@@ -75,11 +85,7 @@ public class NodeElement extends ANodeElement {
 			context.getMouseLayer().removeDragSource(source);
 			break;
 		case MOUSE_RELEASED:
-			node.getUIState().setSelected(!node.getUIState().isSelected());
-			if (!node.getUIState().isSelected())
-				border.setColor(SelectionType.MOUSE_OVER.getColor());
-			else
-				border.setColor(SelectionType.SELECTION.getColor());
+			select(SelectionType.SELECTION, !isSelected(SelectionType.SELECTION), !((IMouseEvent) pick).isCtrlDown());
 			break;
 		default:
 			break;
@@ -87,24 +93,45 @@ public class NodeElement extends ANodeElement {
 	}
 
 	@Override
+	public void onSelectionUpdate(SelectionManager manager) {
+		SelectionType s = manager.getHighestSelectionType(node.getID());
+		border.setColor(s == null ? Color.BLACK : s.getColor());
+		get(1).repaint();
+	}
+
+	@Override
 	public void pick(Pick pick) {
 		super.pick(pick);
 		switch (pick.getPickingMode()) {
 		case MOUSE_OVER:
-			if (!node.getUIState().isSelected())
-				border.setColor(SelectionType.MOUSE_OVER.getColor());
-			get(1).repaint();
-			node.getUIState().setHovered(true);
+			select(SelectionType.MOUSE_OVER, true, true);
 			break;
 		case MOUSE_OUT:
-			if (!node.getUIState().isSelected())
-				border.setColor(Color.BLACK);
-			node.getUIState().setHovered(false);
-			get(1).repaint();
+			select(SelectionType.MOUSE_OVER, false, true);
 			break;
 		default:
 			break;
 		}
+	}
+
+	public boolean isSelected(SelectionType type) {
+		return selections.get(0).checkStatus(type, node.getID());
+	}
+
+	/**
+	 * @param mouseOver
+	 * @param b
+	 */
+	private void select(SelectionType type, boolean enable, boolean clear) {
+		SelectionManager m = selections.get(0);
+		if (clear)
+			m.clearSelection(type);
+		if (enable)
+			m.addToType(type, node.getID());
+		else
+			m.removeFromType(type, node.getID());
+		selections.fireSelectionDelta(m);
+		onSelectionUpdate(m);
 	}
 
 	@Override

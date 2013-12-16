@@ -13,6 +13,7 @@ import java.util.Objects;
 import java.util.Set;
 
 import org.caleydo.core.data.collection.EDimension;
+import org.caleydo.core.id.IDCreator;
 import org.caleydo.core.id.IDType;
 import org.caleydo.core.view.opengl.layout2.layout.GLLayouts;
 import org.caleydo.view.domino.api.model.typed.TypedCollections;
@@ -28,6 +29,8 @@ import com.google.common.collect.Sets;
  */
 public abstract class ANode implements INode {
 	protected final PropertyChangeSupport propertySupport = new PropertyChangeSupport(this);
+
+	private final int id = IDCreator.createVMUniqueID(INode.class);
 
 	private Object layoutData;
 	private String label;
@@ -45,6 +48,14 @@ public abstract class ANode implements INode {
 
 	public ANode(ANode clone) {
 		this(clone.label);
+	}
+
+	/**
+	 * @return the id, see {@link #id}
+	 */
+	@Override
+	public int getID() {
+		return id;
 	}
 
 	@Override

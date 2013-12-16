@@ -20,6 +20,7 @@ import java.util.SortedSet;
 
 import org.caleydo.core.data.collection.EDataType;
 import org.caleydo.core.data.collection.EDimension;
+import org.caleydo.core.data.selection.SelectionManager;
 import org.caleydo.core.id.IDCategory;
 import org.caleydo.core.id.IDType;
 import org.caleydo.view.domino.internal.ui.PlaceholderNode;
@@ -48,7 +49,7 @@ import com.google.common.collect.Maps;
  * @author Samuel Gratzl
  *
  */
-public class DominoGraph {
+public class DominoGraph implements Function<Integer, INode> {
 	private final List<IDominoGraphListener> listeners = new ArrayList<>(2);
 	private final ListenableUndirectedGraph<INode, IEdge> graph = new ListenableUndirectedMultigraph<>(IEdge.class);
 	private final ConnectivityInspector<INode, IEdge> connectivity;
@@ -66,6 +67,18 @@ public class DominoGraph {
 		this.graph.addGraphListener(this.connectivity);
 
 		// Demo.fill(this);
+	}
+
+	public INode getByID(int id) {
+		for (INode node : vertexSet())
+			if (node.getID() == id)
+				return node;
+		return null;
+	}
+
+	@Override
+	public INode apply(Integer input) {
+		return input == null ? null : getByID(input.intValue());
 	}
 
 	public void addGraphListener(IDominoGraphListener l) {
@@ -615,5 +628,12 @@ public class DominoGraph {
 	 */
 	public boolean hasPlaceholders() {
 		return Iterables.any(vertexSet(), Predicates.instanceOf(PlaceholderNode.class));
+	}
+
+	/**
+	 * @return
+	 */
+	public static SelectionManager newNodeSelectionManager() {
+		return new SelectionManager(DominoGraph.NODE_IDTYPE);
 	}
 }
