@@ -18,7 +18,6 @@ import org.caleydo.core.view.opengl.layout2.GLElementContainer;
 import org.caleydo.core.view.opengl.layout2.GLGraphics;
 import org.caleydo.core.view.opengl.layout2.IGLElementContext;
 import org.caleydo.core.view.opengl.layout2.basic.ScrollingDecorator.IHasMinSize;
-import org.caleydo.core.view.opengl.layout2.layout.GLLayouts;
 import org.caleydo.core.view.opengl.layout2.layout.IGLLayout2;
 import org.caleydo.core.view.opengl.layout2.layout.IGLLayoutElement;
 import org.caleydo.core.view.opengl.picking.IPickingListener;
@@ -196,7 +195,8 @@ public abstract class ANodeElement extends GLElementContainer implements IHasMin
 	@Override
 	public boolean doLayout(List<? extends IGLLayoutElement> children, float w, float h, IGLLayoutElement parent,
 			int deltaTimeMs) {
-		GLLayouts.LAYERS.doLayout(children, w, h, parent, deltaTimeMs);
+		for (IGLLayoutElement elem : children)
+			elem.setBounds(BORDER, BORDER, w - 2 * BORDER, h - 2 * BORDER);
 		return false;
 	}
 
