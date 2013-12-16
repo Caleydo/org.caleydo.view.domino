@@ -70,7 +70,7 @@ public class LinearBlock {
 	 * @param data2
 	 */
 	private void resortImpl(IMultiTypedCollection data) {
-		List<ITypedComparator> c = findComparators(Iterables.transform(nodes, ANodeUI.TO_NODE), dim);
+		List<ITypedComparator> c = findComparators(Iterables.transform(nodes, ANodeUI.TO_NODE), dim.opposite());
 
 		this.data = TypedSets.sort(data, c.toArray(new ITypedComparator[0]));
 	}

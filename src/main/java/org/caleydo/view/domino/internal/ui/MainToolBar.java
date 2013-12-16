@@ -20,6 +20,8 @@ import org.caleydo.core.util.color.Color;
 import org.caleydo.core.view.opengl.layout2.GLElement;
 import org.caleydo.core.view.opengl.layout2.GLElementContainer;
 import org.caleydo.core.view.opengl.layout2.GLGraphics;
+import org.caleydo.core.view.opengl.layout2.basic.GLButton;
+import org.caleydo.core.view.opengl.layout2.basic.GLButton.ISelectionCallback;
 import org.caleydo.core.view.opengl.layout2.layout.GLLayouts;
 import org.caleydo.core.view.opengl.layout2.renderer.GLRenderers;
 import org.caleydo.view.domino.internal.ui.model.DominoGraph;
@@ -82,9 +84,18 @@ public class MainToolBar extends GLElementContainer implements PropertyChangeLis
 		Set<Integer> items = manager.getElements(SelectionType.SELECTION);
 		this.clear();
 		for (Integer id : items) {
-			INode node = graph.apply(id);
-			if (node != null)
+			final INode node = graph.apply(id);
+			if (node != null) {
 				this.add(new GLElement(GLRenderers.drawText(node.getLabel())));
+				if (node instanceof ISortableNode) {
+					this.add(new GLButton().setCallback(new ISelectionCallback() {
+						@Override
+						public void onSelectionChanged(GLButton button, boolean selected) {
+							graph.sortBy((ISortableNode) node, EDimension.DIMENSION);
+						}
+					}).setRenderer(GLButton.createCheckRenderer("Sort By Dim")));
+				}
+			}
 		}
 	}
 
