@@ -75,6 +75,11 @@ public class NodeElement extends ANodeElement {
 			context.getMouseLayer().removeDragSource(source);
 			break;
 		case MOUSE_RELEASED:
+			node.getUIState().setSelected(!node.getUIState().isSelected());
+			if (!node.getUIState().isSelected())
+				border.setColor(SelectionType.MOUSE_OVER.getColor());
+			else
+				border.setColor(SelectionType.SELECTION.getColor());
 			break;
 		default:
 			break;
@@ -86,14 +91,16 @@ public class NodeElement extends ANodeElement {
 		super.pick(pick);
 		switch (pick.getPickingMode()) {
 		case MOUSE_OVER:
-			border.setColor(SelectionType.MOUSE_OVER.getColor());
+			if (!node.getUIState().isSelected())
+				border.setColor(SelectionType.MOUSE_OVER.getColor());
 			get(1).repaint();
 			node.getUIState().setHovered(true);
 			break;
 		case MOUSE_OUT:
-			border.setColor(Color.BLACK);
+			if (!node.getUIState().isSelected())
+				border.setColor(Color.BLACK);
+			node.getUIState().setHovered(false);
 			get(1).repaint();
-			node.getUIState().setHovered(node.getUIState().isSelected());
 			break;
 		default:
 			break;

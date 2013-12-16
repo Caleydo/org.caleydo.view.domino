@@ -59,6 +59,11 @@ public class PlaceholderNode extends ADataNode {
 		}
 
 		@Override
+		public GLElement getToolBar() {
+			return null;
+		}
+
+		@Override
 		public GLElement asGLElement() {
 			return this;
 		}
@@ -74,11 +79,11 @@ public class PlaceholderNode extends ADataNode {
 		}
 
 		@Override
-		public int getSize(EDimension dim) {
+		public double getSize(EDimension dim) {
 			TypedList l = dim.select(dimData, recData);
 			if (!l.isEmpty())
 				return l.size();
-			return node.getSize(dim);
+			return 80;
 		}
 
 		@Override

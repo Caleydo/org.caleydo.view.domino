@@ -28,5 +28,7 @@ public interface INodeUI {
 	 * @param dimension
 	 * @return
 	 */
-	int getSize(EDimension dim);
+	double getSize(EDimension dim);
+
+	GLElement getToolBar();
 }

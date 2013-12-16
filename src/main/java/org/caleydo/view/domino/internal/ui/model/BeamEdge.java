@@ -19,4 +19,8 @@ public class BeamEdge extends ALinearEdge implements IStratificationBarrier {
 		super(direction);
 	}
 
+	@Override
+	public EProximityMode asMode() {
+		return EProximityMode.DETACHED;
+	}
 }

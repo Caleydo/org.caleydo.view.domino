@@ -7,6 +7,7 @@ package org.caleydo.view.domino.internal.ui.model;
 
 import java.util.Collection;
 
+import org.caleydo.core.data.collection.EDimension;
 import org.caleydo.view.domino.internal.ui.prototype.INode;
 import org.caleydo.view.domino.internal.ui.prototype.ISortableNode;
 
@@ -19,5 +20,5 @@ public interface IDominoGraphListener {
 
 	void vertexRemoved(INode vertex, Collection<IEdge> edges);
 
-	void vertexSortingChanged(ISortableNode vertex);
+	void vertexSortingChanged(ISortableNode vertex, EDimension dim);
 }

@@ -26,6 +26,11 @@ public class BandEdge extends AEdge implements ISortBarrier {
 	}
 
 	@Override
+	public EProximityMode asMode() {
+		return EProximityMode.FREE;
+	}
+
+	@Override
 	public EDirection getDirection(INode of) {
 		return EDirection.getPrimary(getDimension(of));
 	}

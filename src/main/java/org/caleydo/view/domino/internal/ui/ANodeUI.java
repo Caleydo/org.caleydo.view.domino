@@ -12,6 +12,7 @@ import org.caleydo.core.data.collection.EDimension;
 import org.caleydo.core.view.opengl.layout2.GLElement;
 import org.caleydo.core.view.opengl.layout2.GLElementDecorator;
 import org.caleydo.core.view.opengl.layout2.IGLElementContext;
+import org.caleydo.core.view.opengl.layout2.manage.GLElementDimensionDesc;
 import org.caleydo.core.view.opengl.layout2.manage.GLElementFactories;
 import org.caleydo.core.view.opengl.layout2.manage.GLElementFactories.GLElementSupplier;
 import org.caleydo.core.view.opengl.layout2.manage.GLElementFactoryContext;
@@ -20,6 +21,7 @@ import org.caleydo.core.view.opengl.layout2.manage.GLElementFactorySwitcher;
 import org.caleydo.core.view.opengl.layout2.manage.GLElementFactorySwitcher.ELazyiness;
 import org.caleydo.view.domino.api.model.typed.TypedCollections;
 import org.caleydo.view.domino.api.model.typed.TypedList;
+import org.caleydo.view.domino.internal.ui.model.NodeUIState;
 import org.caleydo.view.domino.internal.ui.prototype.INode;
 
 import com.google.common.base.Function;
@@ -43,6 +45,7 @@ public abstract class ANodeUI<T extends INode> extends GLElementDecorator implem
 		this.dimData = node.getData(EDimension.DIMENSION).asList();
 		this.recData = node.getData(EDimension.RECORD).asList();
 		setLayoutData(node);
+		build();
 	}
 
 	@Override
@@ -56,15 +59,31 @@ public abstract class ANodeUI<T extends INode> extends GLElementDecorator implem
 	public void layout(int deltaTimeMs) {
 		if (rebuild) {
 			rebuild = false;
-			Builder b = GLElementFactoryContext.builder();
-			fill(b, dimData, recData);
-			ImmutableList<GLElementSupplier> extensions = GLElementFactories.getExtensions(b.build(), "domino."
-					+ getExtensionID(),
-					this);
-			GLElementFactorySwitcher s = new GLElementFactorySwitcher(extensions, ELazyiness.DESTROY);
-			setContent(s);
+			build();
 		}
 		super.layout(deltaTimeMs);
+	}
+
+	private void build() {
+		Builder b = GLElementFactoryContext.builder();
+		fill(b, dimData, recData);
+		ImmutableList<GLElementSupplier> extensions = GLElementFactories.getExtensions(b.build(), "domino."
+				+ getExtensionID(), node.getUIState().getProximityMode());
+		GLElementFactorySwitcher s = new GLElementFactorySwitcher(extensions, ELazyiness.DESTROY);
+		setContent(s);
+	}
+
+	@Override
+	public GLElement getToolBar() {
+		GLElementFactorySwitcher s = getSwitcher();
+		if (s == null)
+			return null;
+		return s.createButtonBarBuilder().build();
+	}
+
+	private GLElementFactorySwitcher getSwitcher() {
+		GLElementFactorySwitcher s = (GLElementFactorySwitcher) getContent();
+		return s;
 	}
 
 
@@ -92,7 +111,12 @@ public abstract class ANodeUI<T extends INode> extends GLElementDecorator implem
 	}
 
 	@Override
-	public int getSize(EDimension dim) {
+	public double getSize(EDimension dim) {
+		GLElementDimensionDesc desc = getSwitcher().getActiveDesc(dim);
+		return desc.getSize(getDataSafe(dim));
+	}
+
+	private int getDataSafe(EDimension dim) {
 		TypedList l = dim.select(dimData, recData);
 		if (!l.isEmpty())
 			return l.size();
@@ -103,12 +127,14 @@ public abstract class ANodeUI<T extends INode> extends GLElementDecorator implem
 	protected void init(IGLElementContext context) {
 		rebuild();
 		node.addPropertyChangeListener(INode.PROP_TRANSPOSE, this);
+		node.getUIState().addPropertyChangeListener(NodeUIState.PROP_PROXIMITY_MODE, this);
 		super.init(context);
 	}
 
 	@Override
 	protected void takeDown() {
 		node.removePropertyChangeListener(INode.PROP_TRANSPOSE, this);
+		node.getUIState().removePropertyChangeListener(NodeUIState.PROP_PROXIMITY_MODE, this);
 		super.takeDown();
 	}
 
@@ -116,6 +142,9 @@ public abstract class ANodeUI<T extends INode> extends GLElementDecorator implem
 	public void propertyChange(PropertyChangeEvent evt) {
 		switch (evt.getPropertyName()) {
 		case INode.PROP_TRANSPOSE:
+			rebuild();
+			break;
+		case NodeUIState.PROP_PROXIMITY_MODE:
 			rebuild();
 			break;
 		}

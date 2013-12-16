@@ -27,6 +27,7 @@ import org.caleydo.view.domino.api.model.typed.TypedList;
 import org.caleydo.view.domino.internal.ui.model.DominoGraph;
 import org.caleydo.view.domino.internal.ui.model.NodeUIState;
 import org.caleydo.view.domino.internal.ui.prototype.INode;
+import org.caleydo.view.domino.internal.ui.prototype.ISortableNode;
 
 import com.google.common.base.Supplier;
 
@@ -51,16 +52,22 @@ public abstract class ANodeElement extends GLElementContainer implements IHasMin
 		Vec2f pos = node.getLayoutDataAs(Vec2f.class, null);
 		if (pos != null)
 			setLocation(pos.x(), pos.y());
-		node.getUIState().setZoom(0.2f, 0.2f); // todo better values
-
 		this.nodeUI = node.createUI();
 		this.content = new PickingBarrier(this.nodeUI.asGLElement());
 		this.add(content);
 
 		setVisibility(EVisibility.PICKABLE);
 		onPick(this);
+		guessZoomSettings();
 		Vec2f s = getPreferredSize();
 		this.setSize(s.x(), s.y());
+	}
+
+	/**
+	 *
+	 */
+	private void guessZoomSettings() {
+
 	}
 
 	@Override
@@ -137,7 +144,12 @@ public abstract class ANodeElement extends GLElementContainer implements IHasMin
 	}
 
 	@Override
-	public int getSize(EDimension dim) {
+	public GLElement getToolBar() {
+		return nodeUI.getToolBar();
+	}
+
+	@Override
+	public double getSize(EDimension dim) {
 		return nodeUI.getSize(dim);
 	}
 
@@ -151,6 +163,10 @@ public abstract class ANodeElement extends GLElementContainer implements IHasMin
 			break;
 		case RIGHT_CLICKED:
 			graph.remove(node);
+			break;
+		case DOUBLE_CLICKED:
+			if (node instanceof ISortableNode)
+				graph.sortBy((ISortableNode) node, EDimension.DIMENSION);
 			break;
 		default:
 			break;
@@ -201,8 +217,8 @@ public abstract class ANodeElement extends GLElementContainer implements IHasMin
 	 * @param size
 	 * @return
 	 */
-	private float fix(int size) {
-		return size <= 0 ? (node instanceof PlaceholderNode ? 100 : 1) : size;
+	private float fix(double size) {
+		return size <= 0 ? (node instanceof PlaceholderNode ? 100 : 1) : (float) size;
 	}
 
 

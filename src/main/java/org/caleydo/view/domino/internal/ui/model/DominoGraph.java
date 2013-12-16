@@ -18,7 +18,9 @@ import java.util.Map;
 import java.util.Set;
 import java.util.SortedSet;
 
+import org.caleydo.core.data.collection.EDataType;
 import org.caleydo.core.data.collection.EDimension;
+import org.caleydo.core.id.IDCategory;
 import org.caleydo.core.id.IDType;
 import org.caleydo.view.domino.internal.ui.PlaceholderNode;
 import org.caleydo.view.domino.internal.ui.prototype.EDirection;
@@ -50,6 +52,10 @@ public class DominoGraph {
 	private final List<IDominoGraphListener> listeners = new ArrayList<>(2);
 	private final ListenableUndirectedGraph<INode, IEdge> graph = new ListenableUndirectedMultigraph<>(IEdge.class);
 	private final ConnectivityInspector<INode, IEdge> connectivity;
+
+	public final static IDCategory GRAPH_CATEGORY = IDCategory.registerInternalCategory("domino");
+	public final static IDType NODE_IDTYPE = IDType.registerInternalType("dominoNode", GRAPH_CATEGORY,
+			EDataType.INTEGER);
 
 	/**
 	 *
@@ -100,6 +106,21 @@ public class DominoGraph {
 			edge.swapDirection(a);
 		}
 		graph.addEdge(a, b, edge);
+		if (!(a instanceof PlaceholderNode) && !(b instanceof PlaceholderNode)) {
+			updateProximity(a, edge);
+			updateProximity(b, edge);
+		}
+	}
+
+	private void updateProximity(INode node, IEdge edge) {
+		final NodeUIState uiState = node.getUIState();
+		EProximityMode m;
+		if (edge != null) { // added
+			m = EProximityMode.min(uiState.getProximityMode(), edge.asMode());
+		} else { // removed
+			m = EProximityMode.min(edgesOf(node));
+		}
+		uiState.setProximityMode(m);
 	}
 
 	public Set<IEdge> edgesOf(INode vertex) {
@@ -209,6 +230,11 @@ public class DominoGraph {
 		if (!graph.containsVertex(node))
 			return;
 		Collection<IEdge> edges = detach(node);
+		if (!(node instanceof PlaceholderNode)) {
+			for (IEdge edge : edges) {
+				updateProximity(edge.getOpposite(node), null);
+			}
+		}
 		graph.removeVertex(node);
 		for (IDominoGraphListener l : listeners)
 			l.vertexRemoved(node, edges);
@@ -505,17 +531,8 @@ public class DominoGraph {
 				}
 			}
 		}
-
-		Predicate<ISortableNode> isPartOfSorting = new Predicate<ISortableNode>() {
-			@Override
-			public boolean apply(ISortableNode input) {
-				return input != null && input.getSortingPriority(dim) != ISortableNode.NO_SORTING;
-			}
-		};
-		SortedSet<ISortableNode> sortCriteria = ImmutableSortedSet.orderedBy(bySortingPriority)
-				.addAll(Iterables.filter(sorting, isPartOfSorting)).build();
-		// TODO create a comparator or something like that, which determines the order
-		// TODO now we must apply the new sorting to all nodes
+		for (IDominoGraphListener l : listeners)
+			l.vertexSortingChanged(node, dim);
 	}
 
 	public interface ListenableUndirectedGraph<V, E> extends ListenableGraph<V, E>, UndirectedGraph<V, E> {

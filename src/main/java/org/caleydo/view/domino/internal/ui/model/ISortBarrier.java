@@ -9,6 +9,6 @@ package org.caleydo.view.domino.internal.ui.model;
  * @author Samuel Gratzl
  *
  */
-public interface ISortBarrier extends IStratificationBarrier {
+public interface ISortBarrier {
 
 }

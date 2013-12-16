@@ -33,4 +33,5 @@ public interface IEdge {
 	 */
 	void swapDirection(INode of);
 
+	EProximityMode asMode();
 }

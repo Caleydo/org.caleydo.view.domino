@@ -12,7 +12,8 @@ import org.caleydo.view.domino.internal.ui.prototype.INode;
  * @author Samuel Gratzl
  *
  */
-public class ALinearEdge extends AEdge {
+public abstract class ALinearEdge extends AEdge {
+	private static final long serialVersionUID = 7503595941233324714L;
 	private EDirection direction;
 
 	public ALinearEdge(EDirection direction) {

@@ -5,6 +5,7 @@
  *******************************************************************************/
 package org.caleydo.view.domino.internal.ui.model;
 
+import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.util.EnumSet;
@@ -34,10 +35,16 @@ public abstract class ANode implements INode {
 
 	public ANode(String label) {
 		this.label = label;
+		this.uiState.addPropertyChangeListener(new PropertyChangeListener() {
+			@Override
+			public void propertyChange(PropertyChangeEvent evt) {
+				propertySupport.firePropertyChange(evt.getPropertyName(), evt.getOldValue(), evt.getNewValue());
+			}
+		});
 	}
 
 	public ANode(ANode clone) {
-		this.label = clone.label;
+		this(clone.label);
 	}
 
 	@Override

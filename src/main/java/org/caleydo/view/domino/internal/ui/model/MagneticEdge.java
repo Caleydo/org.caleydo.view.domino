@@ -19,4 +19,8 @@ public class MagneticEdge extends ALinearEdge {
 		super(direction);
 	}
 
+	@Override
+	public EProximityMode asMode() {
+		return EProximityMode.ATTACHED;
+	}
 }
