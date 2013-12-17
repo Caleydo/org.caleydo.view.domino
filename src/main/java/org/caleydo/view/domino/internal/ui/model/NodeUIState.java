@@ -110,6 +110,9 @@ public class NodeUIState {
 		float factorX = dim == 0 ? 1 : factor;
 		float factorY = rec == 0 ? 1 : factor;
 		zoom(factorX, factorY);
+		// float shiftX = dim == 0 ? 0 : event.getWheelRotation() * 5;
+		// float shiftY = rec == 0 ? 0 : event.getWheelRotation() * 5;
+		// setZoom(zoom.x() + shiftX, zoom.y() + shiftY);
 	}
 
 	/**

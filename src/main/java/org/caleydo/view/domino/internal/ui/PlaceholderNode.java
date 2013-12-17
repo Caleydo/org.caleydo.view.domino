@@ -65,7 +65,7 @@ public class PlaceholderNode extends ADataNode {
 		 *            setter, see {@link armed}
 		 */
 		public void setArmed(boolean armed) {
-			if (this.armed = armed)
+			if (this.armed == armed)
 				return;
 			this.armed = armed;
 			repaint();
@@ -105,8 +105,8 @@ public class PlaceholderNode extends ADataNode {
 			g.gl.glEnable(GL2.GL_LINE_STIPPLE);
 			g.gl.glLineStipple(2, (short) 0xAAAA);
 			g.lineWidth(2);
-			g.color(0.95f).fillRoundedRect(0, 0, w, h, 5);
-			g.color(armed ? Color.DARK_GRAY : Color.GRAY).drawRoundedRect(0, 0, w, h, 5);
+			g.color(armed ? 0.80f : 0.95f).fillRoundedRect(0, 0, w, h, 5);
+			g.color(Color.GRAY).drawRoundedRect(0, 0, w, h, 5);
 			g.gl.glDisable(GL2.GL_LINE_STIPPLE);
 			g.lineWidth(1);
 			super.renderImpl(g, w, h);

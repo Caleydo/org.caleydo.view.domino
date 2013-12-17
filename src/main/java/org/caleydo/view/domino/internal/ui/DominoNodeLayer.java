@@ -282,10 +282,10 @@ public class DominoNodeLayer extends AnimatedGLElementContainer implements IDomi
 			this.changes.add(new Removed(dim, dim.select(size), l, r));
 
 			if (!(node instanceof PlaceholderNode)) {
-				List<INode> ls = graph.walkAlong(EDirection.getPrimary(dim), l == null ? null : l.asNode(),
-						Edges.SAME_SORTING);
-				List<INode> rs = graph.walkAlong(EDirection.getPrimary(dim).opposite(), r == null ? null : r.asNode(),
-						Edges.SAME_SORTING);
+				List<INode> ls = filterPlaceholder(graph.walkAlong(EDirection.getPrimary(dim),
+						l == null ? null : l.asNode(), Edges.SAME_SORTING));
+				List<INode> rs = filterPlaceholder(graph.walkAlong(EDirection.getPrimary(dim).opposite(),
+						r == null ? null : r.asNode(), Edges.SAME_SORTING));
 				if ((ls.size() + rs.size()) < 1)
 					continue;
 				updateDataImpl(dim, node, elem, ImmutableList.<INode> builder().addAll(ls).addAll(rs).build());
@@ -385,12 +385,18 @@ public class DominoNodeLayer extends AnimatedGLElementContainer implements IDomi
 				} else if (rightN != null) {
 					Rect right = lookup2.get(rightN).getRectBounds();
 					node.setLocation(right.x() - size.x(), right.y() + (right.height() - size.y()) * 0.5f);
-				} else if (aboveN != null) {
+				} else if (nnode instanceof ISortableNode) {
+					((ISortableNode) nnode).setSortingPriority(EDimension.DIMENSION, ISortableNode.TOP_PRIORITY);
+				}
+
+				if (aboveN != null) {
 					Rect left = lookup2.get(aboveN).getRectBounds();
 					node.setLocation(left.x() + (left.width() - size.x()) * 0.5f, left.y2());
 				} else if (belowN != null) {
 					Rect right = lookup2.get(belowN).getRectBounds();
 					node.setLocation(right.x() + (right.width() - size.x()) * 0.5f, right.y() - size.y());
+				} else if (nnode instanceof ISortableNode) {
+					((ISortableNode) nnode).setSortingPriority(EDimension.RECORD, ISortableNode.TOP_PRIORITY);
 				}
 			}
 			if (next instanceof Removed) {
