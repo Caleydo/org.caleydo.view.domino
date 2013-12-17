@@ -110,7 +110,15 @@ public final class CategoricalData1DNode extends AData1DNode {
 			return 1;
 		if (cat2 == null)
 			return -1;
-		return categories.indexOf(cat1) - categories.indexOf(cat2);
+		final int i1 = categories.indexOf(cat1);
+		final int i2 = categories.indexOf(cat2);
+		if (i1 == i2)
+			return 0;
+		if (i1 < 0)
+			return 1;
+		if (i2 < 0)
+			return -1;
+		return i1 - i2;
 	}
 
 }

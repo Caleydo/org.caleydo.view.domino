@@ -18,6 +18,7 @@ import org.caleydo.core.data.virtualarray.group.GroupList;
 import org.caleydo.core.id.IDType;
 import org.caleydo.core.util.color.Color;
 import org.caleydo.core.util.color.ColorBrewer;
+import org.caleydo.core.util.function.Function2;
 import org.caleydo.core.view.opengl.layout2.manage.GLElementFactoryContext.Builder;
 import org.caleydo.view.domino.api.model.typed.ITypedComparator;
 import org.caleydo.view.domino.api.model.typed.TypedCollections;
@@ -35,7 +36,8 @@ import com.google.common.collect.ImmutableSet;
  * @author Samuel Gratzl
  *
  */
-public class StratificationNode extends ANode implements ISortableNode, ITypedComparator {
+public class StratificationNode extends ANode implements ISortableNode, ITypedComparator,
+		Function2<Integer, Integer, Color> {
 	private final List<TypedGroup> groups;
 	private final TypedSet ids;
 	private final EDimension mainDim;
@@ -108,6 +110,13 @@ public class StratificationNode extends ANode implements ISortableNode, ITypedCo
 		return null;
 	}
 
+	/**
+	 * @return the dim, see {@link #dim}
+	 */
+	public EDimension getDimension() {
+		return dim;
+	}
+
 	@Override
 	public StratificationNode clone() {
 		return new StratificationNode(this);
@@ -142,17 +151,17 @@ public class StratificationNode extends ANode implements ISortableNode, ITypedCo
 
 	@Override
 	public boolean isSortable(EDimension dim) {
-		return isRightDimension(dim);
+		return isRightDimension(dim.opposite());
 	}
 
 	@Override
 	public int getSortingPriority(EDimension dim) {
-		return isRightDimension(dim) ? sortingPriority : NO_SORTING;
+		return isRightDimension(dim.opposite()) ? sortingPriority : NO_SORTING;
 	}
 
 	@Override
 	public void setSortingPriority(EDimension dim, int sortingPriority) {
-		if (!isRightDimension(dim))
+		if (!isRightDimension(dim.opposite()))
 			return;
 		propertySupport.firePropertyChange(SORTING_PRIORITY, this.sortingPriority,
 				this.sortingPriority = sortingPriority);
@@ -160,7 +169,7 @@ public class StratificationNode extends ANode implements ISortableNode, ITypedCo
 
 	@Override
 	public ITypedComparator getComparator(EDimension dim) {
-		return isRightDimension(dim) ? this : TypedCollections.NATURAL_ORDER;
+		return isRightDimension(dim.opposite()) ? this : TypedCollections.NATURAL_ORDER;
 	}
 
 	@Override
@@ -193,6 +202,16 @@ public class StratificationNode extends ANode implements ISortableNode, ITypedCo
 		return -1;
 	}
 
+
+	@Override
+	public Color apply(Integer dimension, Integer record) {
+		Integer id = getDimension().select(dimension, record);
+		int groupIndex = toGroupIndex(id);
+		if (groupIndex < 0)
+			return Color.NOT_A_NUMBER_COLOR;
+		return groups.get(groupIndex).getColor();
+	}
+
 	private static class UI extends ANodeUI<StratificationNode> {
 		public UI(StratificationNode node) {
 			super(node);
@@ -205,7 +224,18 @@ public class StratificationNode extends ANode implements ISortableNode, ITypedCo
 
 		@Override
 		protected void fill(Builder b, TypedList dim, TypedList rec) {
-
+			final EDimension dimension = node.getDimension();
+			b.put(EDimension.class, dimension);
+			final TypedList data = dimension.select(dim, rec);
+			final List<Integer> op = ImmutableList.of(0);
+			String prim = dimension.select("dimensions", "records");
+			String sec = dimension.select("records", "dimensions");
+			b.put("heatmap." + prim, data);
+			b.put("heatmap." + prim + ".idType", node.getIdType());
+			b.put("heatmap." + sec, op);
+			b.put("heatmap." + sec + ".idType", TypedCollections.INVALID_IDTYPE);
+			b.set("heatmap." + "forceTextures");
+			b.put(Function2.class, node);
 		}
 	}
 }

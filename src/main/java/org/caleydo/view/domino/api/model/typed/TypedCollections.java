@@ -20,7 +20,7 @@ import com.google.common.base.Function;
  *
  */
 public class TypedCollections {
-	private static final IDType IDTYPE;
+	public static final IDType INVALID_IDTYPE;
 
 	public static final TypedSet INVALID_SET;
 	public static final TypedList INVALID_LIST;
@@ -36,11 +36,11 @@ public class TypedCollections {
 	};
 
 	static {
-		IDTYPE = IDType.registerType("INVALID",
+		INVALID_IDTYPE = IDType.registerType("INVALID",
 				IDCategory.registerInternalCategory("INVALID"), EDataType.STRING);
-		INVALID_SET = new TypedSet(Collections.<Integer> emptySet(), IDTYPE);
-		INVALID_LIST = new TypedList(Collections.<Integer> emptyList(), IDTYPE);
-		NATURAL_ORDER = new TypedComparator(TypedComparator.NATURAL, IDTYPE);
+		INVALID_SET = new TypedSet(Collections.<Integer> emptySet(), INVALID_IDTYPE);
+		INVALID_LIST = new TypedList(Collections.<Integer> emptyList(), INVALID_IDTYPE);
+		NATURAL_ORDER = new TypedComparator(TypedComparator.NATURAL, INVALID_IDTYPE);
 	}
 
 	public static final Function<Set<Integer>, Integer> toSingleOrInvalid = new Function<Set<Integer>, Integer>() {
@@ -56,7 +56,7 @@ public class TypedCollections {
 		return isInvalid(col.getIdType());
 	}
 	public static boolean isInvalid(IDType idType) {
-		return idType.equals(IDTYPE);
+		return idType.equals(INVALID_IDTYPE);
 	}
 
 	public static Integer mapSingle(IIDTypeMapper<Integer, Integer> mapper, Integer id) {
