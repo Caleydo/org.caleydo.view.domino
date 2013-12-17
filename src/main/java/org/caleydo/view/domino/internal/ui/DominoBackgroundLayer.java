@@ -15,6 +15,7 @@ import org.caleydo.core.view.opengl.layout2.dnd.EDnDType;
 import org.caleydo.core.view.opengl.layout2.dnd.IDnDItem;
 import org.caleydo.core.view.opengl.layout2.dnd.IDropGLTarget;
 import org.caleydo.core.view.opengl.picking.Pick;
+import org.caleydo.view.domino.internal.dnd.NodeDragInfo;
 import org.caleydo.view.domino.internal.event.HidePlaceHoldersEvent;
 import org.caleydo.view.domino.internal.event.ShowPlaceHoldersEvent;
 import org.caleydo.view.domino.internal.ui.model.DominoGraph;
@@ -71,6 +72,9 @@ public class DominoBackgroundLayer extends PickableGLElement implements IDropGLT
 	public void onDrop(IDnDItem item) {
 		Vec2f pos = toRelative(item.getMousePos());
 		INode n = Nodes.extract(item);
+		if (item.getInfo() instanceof NodeDragInfo) {
+			pos.sub(((NodeDragInfo) item.getInfo()).getOffset());
+		}
 		if (!graph.contains(n)) {
 			n.setLayoutData(pos);
 			graph.addVertex(n);

@@ -41,7 +41,7 @@ public abstract class ATourGuideAdapter implements ITourGuideAdapter {
 
 	@Override
 	public final URL getIcon() {
-		return Resources.icon();
+		return Resources.ICON;
 	}
 
 	@Override

@@ -125,7 +125,7 @@ public class MainToolBar extends GLElementContainer implements PropertyChangeLis
 					addButton("Sort Rec", Resources.ICON_SORT_REC);
 				}
 			}
-			addButton("Remove", Resources.deleteIcon());
+			addButton("Remove", Resources.ICON_DELETE);
 		}
 
 		@Override

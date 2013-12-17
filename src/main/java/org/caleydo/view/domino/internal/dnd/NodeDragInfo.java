@@ -19,11 +19,27 @@ import org.caleydo.view.domino.internal.ui.prototype.INode;
  */
 public class NodeDragInfo implements IUIDragInfo {
 	private final INode node;
-	private final Vec2f offset;
+	private final Vec2f mousePos;
+	private Vec2f offset = new Vec2f(0, 0);
 
-	public NodeDragInfo(INode node, Vec2f offset) {
+	public NodeDragInfo(INode node, Vec2f mousePos) {
 		this.node = node;
+		this.mousePos = mousePos;
+	}
+
+	/**
+	 * @param offset
+	 *            setter, see {@link offset}
+	 */
+	public void setOffset(Vec2f offset) {
 		this.offset = offset;
+	}
+
+	/**
+	 * @return the offset, see {@link #offset}
+	 */
+	public Vec2f getOffset() {
+		return offset;
 	}
 
 	@Override
@@ -32,10 +48,10 @@ public class NodeDragInfo implements IUIDragInfo {
 	}
 
 	/**
-	 * @return the offset, see {@link #offset}
+	 * @return the offset, see {@link #mousePos}
 	 */
-	public Vec2f getOffset() {
-		return offset;
+	public Vec2f getMousePos() {
+		return mousePos;
 	}
 
 	@Override

@@ -63,8 +63,11 @@ public class NodeElement extends ANodeElement implements ISelectionMixinCallback
 		@Override
 		public GLElement createUI(IDragInfo info) {
 			NodeDragInfo d = ((NodeDragInfo) info);
-			GLElement e = d.createUI();
-			return e;
+			Vec2f mousePos = d.getMousePos();
+			Vec2f loc = getAbsoluteLocation();
+			Vec2f offset = mousePos.minus(loc);
+			d.setOffset(offset);
+			return d.createUI();
 		}
 	};
 

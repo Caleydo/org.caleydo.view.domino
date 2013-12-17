@@ -39,14 +39,8 @@ public class Resources {
 
 	public static final URL ICON_SORT_DIM = icon("sort_columns_dim.png");
 	public static final URL ICON_SORT_REC = icon("sort_columns.png");
-
-	public static final URL deleteIcon() {
-		return icon("cross.png");
-	}
-
-	public static final URL icon() {
-		return icon("icon.png");
-	}
+	public static final URL ICON_DELETE = icon("cross.png");
+	public static final URL ICON = icon("icon.png");
 
 	/**
 	 * @param string
