@@ -26,7 +26,6 @@ import org.caleydo.core.view.opengl.layout2.renderer.Borders.IBorderGLRenderer;
 import org.caleydo.core.view.opengl.picking.Pick;
 import org.caleydo.view.domino.internal.dnd.NodeDragInfo;
 import org.caleydo.view.domino.internal.event.HidePlaceHoldersEvent;
-import org.caleydo.view.domino.internal.event.ShowPlaceHoldersEvent;
 import org.caleydo.view.domino.internal.ui.model.DominoGraph;
 import org.caleydo.view.domino.internal.ui.prototype.INode;
 
@@ -51,7 +50,7 @@ public class NodeElement extends ANodeElement implements ISelectionMixinCallback
 
 		@Override
 		public IDragInfo startSWTDrag(IDragEvent event) {
-			EventPublisher.trigger(new ShowPlaceHoldersEvent(node).to(findParent(DominoNodeLayer.class)));
+			// EventPublisher.trigger(new ShowPlaceHoldersEvent(node).to(findParent(DominoNodeLayer.class)));
 			return new NodeDragInfo(node, event.getMousePos());
 		}
 

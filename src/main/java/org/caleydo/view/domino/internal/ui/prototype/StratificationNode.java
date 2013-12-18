@@ -204,7 +204,7 @@ public class StratificationNode extends ANode implements ISortableNode, ITypedCo
 
 
 	@Override
-	public Color apply(Integer dimension, Integer record) {
+	public Color apply(Integer record, Integer dimension) {
 		Integer id = getDimension().select(dimension, record);
 		int groupIndex = toGroupIndex(id);
 		if (groupIndex < 0)

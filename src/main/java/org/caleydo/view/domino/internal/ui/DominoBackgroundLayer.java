@@ -93,7 +93,7 @@ public class DominoBackgroundLayer extends PickableGLElement implements IDropGLT
 	@Override
 	public boolean canSWTDrop(IDnDItem item) {
 		boolean r = Nodes.canExtract(item);
-		if (r && !item.isInternal())
+		if (r)
 			EventPublisher.trigger(new ShowPlaceHoldersEvent(Nodes.extract(item)).to(this));
 		return r;
 	}
