@@ -52,12 +52,12 @@ public class DataDomainScoreRow extends AVirtualArrayScoreRow implements ITableP
 
 	@Override
 	public Iterable<Integer> getDimensionIDs() {
-		return dataDomain.getTable().getDefaultDimensionPerspective(false).getVirtualArray();
+		return dataDomain.getTable().getDefaultDimensionPerspective(true).getVirtualArray();
 	}
 
 	@Override
 	public VirtualArray getVirtualArray() {
-		return dataDomain.getTable().getDefaultRecordPerspective(false).getVirtualArray();
+		return dataDomain.getTable().getDefaultRecordPerspective(true).getVirtualArray();
 	}
 
 	@Override
@@ -77,12 +77,14 @@ public class DataDomainScoreRow extends AVirtualArrayScoreRow implements ITableP
 
 	@Override
 	public boolean is(Perspective p) {
-		return dataDomain.getTable().getDefaultRecordPerspective(false).equals(p);
+		return dataDomain.getTable().getDefaultRecordPerspective(true).equals(p);
 	}
 
 	@Override
 	public TablePerspective asTablePerspective() {
-		return dataDomain.getDefaultTablePerspective();
+		final Perspective r = dataDomain.getTable().getDefaultRecordPerspective(true);
+		final Perspective d = dataDomain.getTable().getDefaultDimensionPerspective(true);
+		return dataDomain.getTablePerspective(r.getPerspectiveID(), d.getPerspectiveID());
 	}
 
 }
