@@ -346,11 +346,24 @@ public class DominoNodeLayer extends AnimatedGLElementContainer implements IDomi
 
 				final Vec2f loc = node.getLocation();
 				float shift = 0;
-				INode leftN = graph.getNeighbor(EDirection.getPrimary(dim), nnode, Edges.SAME_SORTING);
-				INode rightN = graph.getNeighbor(EDirection.getPrimary(dim).opposite(), nnode, Edges.SAME_SORTING);
-				if ((leftN == null) == (rightN == null))
+				List<INode> neighbors = graph.walkAlong(dim.opposite(), nnode, Edges.SAME_SORTING);
+				boolean anyLeft = false;
+				for (INode neighor : neighbors) {
+					if (graph.getNeighbor(EDirection.getPrimary(dim), neighor, Edges.SAME_SORTING) != null) {
+						anyLeft = true;
+						break;
+					}
+				}
+				boolean anyRight = false;
+				for (INode neighor : neighbors) {
+					if (graph.getNeighbor(EDirection.getPrimary(dim).opposite(), neighor, Edges.SAME_SORTING) != null) {
+						anyRight = true;
+						break;
+					}
+				}
+				if (anyLeft == anyRight)
 					shift = v_delta * 0.5f;
-				else if (rightN != null)
+				else if (anyRight)
 					shift = v_delta;
 				node.setLocation(loc.x() - dim.select(shift, 0), loc.y() - dim.select(0, shift));
 				change.addAll(resizeAll(node, v_new, dim, children));
@@ -418,7 +431,7 @@ public class DominoNodeLayer extends AnimatedGLElementContainer implements IDomi
 	 */
 	private Collection<IChange> resizeAll(IGLLayoutElement node, float v_new, EDimension dim,
 			List<? extends IGLLayoutElement> children) {
-		EDirection prim = EDirection.getPrimary(dim);
+		EDirection prim = EDirection.getPrimary(dim.opposite());
 		Collection<? extends IGLLayoutElement> leftOf = allReachable(node, prim, children, false);
 		Collection<? extends IGLLayoutElement> rightOf = allReachable(node, prim.opposite(), children, false);
 		List<IChange> r = new ArrayList<>();
@@ -428,7 +441,7 @@ public class DominoNodeLayer extends AnimatedGLElementContainer implements IDomi
 			float c = dim.select(elem.getSetSize());
 			if (c == v_new)
 				continue;
-			r.add(new Resized((ANodeElement) node.asElement(), dim, v_new));
+			r.add(new Resized((ANodeElement) elem.asElement(), dim, v_new));
 		}
 		return r;
 	}

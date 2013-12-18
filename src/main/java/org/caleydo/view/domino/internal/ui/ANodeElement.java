@@ -257,7 +257,7 @@ public abstract class ANodeElement extends GLElementContainer implements IHasMin
 		Vec2f z = node.getUIState().getZoom();
 		s.setX(s.x() * z.x());
 		s.setY(s.y() * z.y());
-		s.add(new Vec2f(BORDER * 2, BORDER * 2));
+		s.add(new Vec2f(BORDER * 4, BORDER * 4));
 		return s;
 	}
 }
