@@ -373,9 +373,13 @@ public class TypedSets {
 	 * @return
 	 */
 	public static List<TypedID> sort(ISingleTypedIDCollection in, ITypedComparator... comparators) {
-		Integer[] r = in.getData().toArray(new Integer[0]);
+		return new SingleTypedIDList(sort(in.getData(), comparators));
+	}
+
+	public static TypedList sort(ITypedCollection in, ITypedComparator... comparators) {
+		Integer[] r = in.toArray(new Integer[0]);
 		Arrays.sort(r, MappingComparators.of(in.getIdType(), comparators));
-		return new SingleTypedIDList(new TypedList(Arrays.asList(r), in.getIdType()));
+		return new TypedList(Arrays.asList(r), in.getIdType());
 	}
 
 	public static MultiTypedList sort(IMultiTypedCollection in, ITypedComparator... comparators) {

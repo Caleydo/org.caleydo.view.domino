@@ -177,12 +177,24 @@ public class DominoNodeLayer extends AnimatedGLElementContainer implements IDomi
 				Vec2f size = node.getPreferredSize();
 				for (EDimension dim : EDimension.values()) {
 					if (dim.select(old) != dim.select(new_)) {
-						changes.add(new Resized(node, dim, dim.select(size)));
+						resize(node, dim, dim.select(size));
 					}
 				}
 				relayout();
 			}
 		}
+	}
+
+	void resize(ANodeElement r, EDimension dim, float value) {
+		List<INode> neighbors = graph.walkAlong(dim.opposite(), r.asNode(), Edges.SAME_SORTING);
+		for (INode node : neighbors) {
+			ANodeElement rn = apply(node);
+			if (rn == null)
+				continue;
+			changes.add(new Resized(rn, dim, value));
+		}
+
+		relayout();
 	}
 	/**
 	 * @param new_
@@ -247,7 +259,7 @@ public class DominoNodeLayer extends AnimatedGLElementContainer implements IDomi
 		// we have to adapt the values
 		EDimension toAdapt = dim.opposite();
 		Resized return_ = null;
-		LinearBlock b = new LinearBlock(toAdapt, anodes, new_);
+		LinearBlock b = new LinearBlock(toAdapt, anodes);
 		for (ANodeElement elem : anodes) {
 			getMetaData(elem).setBlock(dim, b);
 		}
@@ -296,7 +308,7 @@ public class DominoNodeLayer extends AnimatedGLElementContainer implements IDomi
 	@Override
 	public void vertexSortingChanged(ISortableNode vertex, EDimension dim) {
 		NodeData data = getMetaData(apply(vertex));
-		LinearBlock block = data.getBlock(dim);
+		LinearBlock block = data.getBlock(dim.opposite()); // since we sort vertically but have a horizontal block
 		if (block != null) {
 			block.resort();
 			block.apply();
@@ -366,7 +378,27 @@ public class DominoNodeLayer extends AnimatedGLElementContainer implements IDomi
 				else if (anyRight)
 					shift = v_delta;
 				node.setLocation(loc.x() - dim.select(shift, 0), loc.y() - dim.select(0, shift));
-				change.addAll(resizeAll(node, v_new, dim, children));
+				// change.addAll(resizeAll(node, v_new, dim, children, shift));
+			}
+			if (next instanceof Resized2) {
+				Resized2 s = (Resized2) next;
+				IGLLayoutElement node = lookup.get(s.node);
+				if (node == null)
+					continue;
+				final INode nnode = s.node.node;
+				final EDimension dim = s.dim;
+				float v = dim.select(node.getWidth(), node.getHeight());
+				float v_new = s.new_;
+				float v_delta = v_new - v;
+				if (v_delta == 0)
+					continue;
+				move(node, v_delta, dim, children);
+
+				node.setSize(dim.select(v_new, node.getWidth()), dim.select(node.getHeight(), v_new));
+
+				final Vec2f loc = node.getLocation();
+				float shift = s.shift;
+				node.setLocation(loc.x() - dim.select(shift, 0), loc.y() - dim.select(0, shift));
 			}
 			if (next instanceof Added) {
 				Added r = (Added) next;
@@ -394,20 +426,20 @@ public class DominoNodeLayer extends AnimatedGLElementContainer implements IDomi
 
 				if (leftN != null) {
 					Rect left = lookup2.get(leftN).getRectBounds();
-					node.setLocation(left.x2(), left.y() + (left.height() - size.y()) * 0.5f);
+					node.setLocation(left.x2(), left.y());
 				} else if (rightN != null) {
 					Rect right = lookup2.get(rightN).getRectBounds();
-					node.setLocation(right.x() - size.x(), right.y() + (right.height() - size.y()) * 0.5f);
+					node.setLocation(right.x() - size.x(), right.y());
 				} else if (nnode instanceof ISortableNode) {
 					((ISortableNode) nnode).setSortingPriority(EDimension.DIMENSION, ISortableNode.TOP_PRIORITY);
 				}
 
 				if (aboveN != null) {
 					Rect left = lookup2.get(aboveN).getRectBounds();
-					node.setLocation(left.x() + (left.width() - size.x()) * 0.5f, left.y2());
+					node.setLocation(left.x(), left.y2());
 				} else if (belowN != null) {
 					Rect right = lookup2.get(belowN).getRectBounds();
-					node.setLocation(right.x() + (right.width() - size.x()) * 0.5f, right.y() - size.y());
+					node.setLocation(right.x(), right.y() - size.y());
 				} else if (nnode instanceof ISortableNode) {
 					((ISortableNode) nnode).setSortingPriority(EDimension.RECORD, ISortableNode.TOP_PRIORITY);
 				}
@@ -427,10 +459,11 @@ public class DominoNodeLayer extends AnimatedGLElementContainer implements IDomi
 	 * @param v_new
 	 * @param dim
 	 * @param children
+	 * @param shift
 	 * @return
 	 */
 	private Collection<IChange> resizeAll(IGLLayoutElement node, float v_new, EDimension dim,
-			List<? extends IGLLayoutElement> children) {
+			List<? extends IGLLayoutElement> children, float shift) {
 		EDirection prim = EDirection.getPrimary(dim.opposite());
 		Collection<? extends IGLLayoutElement> leftOf = allReachable(node, prim, children, false);
 		Collection<? extends IGLLayoutElement> rightOf = allReachable(node, prim.opposite(), children, false);
@@ -441,7 +474,7 @@ public class DominoNodeLayer extends AnimatedGLElementContainer implements IDomi
 			float c = dim.select(elem.getSetSize());
 			if (c == v_new)
 				continue;
-			r.add(new Resized((ANodeElement) elem.asElement(), dim, v_new));
+			r.add(new Resized2((ANodeElement) elem.asElement(), dim, v_new, shift));
 		}
 		return r;
 	}
@@ -533,23 +566,6 @@ public class DominoNodeLayer extends AnimatedGLElementContainer implements IDomi
 		return null;
 	}
 
-	public void resized(INode n, EDimension dim, float new_) {
-		ANodeElement r = apply(n);
-		if (r == null)
-			return;
-		changes.add(new Resized(r, dim, new_));
-		relayout();
-	}
-
-	public void resized(INode n, float w, float h) {
-		ANodeElement r = apply(n);
-		if (r == null)
-			return;
-		changes.add(new Resized(r, EDimension.DIMENSION, w));
-		changes.add(new Resized(r, EDimension.RECORD, h));
-		relayout();
-	}
-
 	private interface IChange {
 
 	}
@@ -563,6 +579,21 @@ public class DominoNodeLayer extends AnimatedGLElementContainer implements IDomi
 			this.node = node;
 			this.dim = dim;
 			this.new_ = new_;
+		}
+
+	}
+
+	private class Resized2 implements IChange {
+		public final ANodeElement node;
+		public final EDimension dim;
+		public final float new_;
+		private float shift;
+
+		public Resized2(ANodeElement node, EDimension dim, float new_, float shift) {
+			this.node = node;
+			this.dim = dim;
+			this.new_ = new_;
+			this.shift = shift;
 		}
 
 	}

@@ -62,7 +62,7 @@ public class StratifiationTourGuideAdapter extends ATourGuideAdapter implements 
 			return true;
 		IDType idType = null;
 		if (query instanceof ASingleIDDataDomainQuery) {
-			idType = ((ASingleIDDataDomainQuery) query).getSingleIDType();
+			idType = ((ASingleIDDataDomainQuery) query).getStratificationIDType();
 		} else if (query instanceof StratificationDataDomainQuery) {
 			idType = ((StratificationDataDomainQuery) query).getIDType();
 		}

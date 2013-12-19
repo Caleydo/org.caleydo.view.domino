@@ -151,17 +151,17 @@ public class StratificationNode extends ANode implements ISortableNode, ITypedCo
 
 	@Override
 	public boolean isSortable(EDimension dim) {
-		return isRightDimension(dim.opposite());
+		return isRightDimension(dim);
 	}
 
 	@Override
 	public int getSortingPriority(EDimension dim) {
-		return isRightDimension(dim.opposite()) ? sortingPriority : NO_SORTING;
+		return isRightDimension(dim) ? sortingPriority : NO_SORTING;
 	}
 
 	@Override
 	public void setSortingPriority(EDimension dim, int sortingPriority) {
-		if (!isRightDimension(dim.opposite()))
+		if (!isRightDimension(dim))
 			return;
 		propertySupport.firePropertyChange(SORTING_PRIORITY, this.sortingPriority,
 				this.sortingPriority = sortingPriority);
@@ -169,7 +169,7 @@ public class StratificationNode extends ANode implements ISortableNode, ITypedCo
 
 	@Override
 	public ITypedComparator getComparator(EDimension dim) {
-		return isRightDimension(dim.opposite()) ? this : TypedCollections.NATURAL_ORDER;
+		return isRightDimension(dim) ? this : TypedCollections.NATURAL_ORDER;
 	}
 
 	@Override

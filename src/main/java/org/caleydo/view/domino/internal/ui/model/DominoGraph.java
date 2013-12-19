@@ -512,7 +512,8 @@ public class DominoGraph implements Function<Integer, INode> {
 			}
 		};
 		// find relevant
-		List<INode> sortingRelevant = walkAlong(dim, node, Predicates.not(Predicates.instanceOf(ISortBarrier.class)));
+		List<INode> sortingRelevant = walkAlong(dim.opposite(), node,
+				Predicates.not(Predicates.instanceOf(ISortBarrier.class)));
 		// remove invalid
 		Iterable<ISortableNode> sortingReallyRelevant = Iterables.filter(sortingRelevant, ISortableNode.class);
 
@@ -524,28 +525,40 @@ public class DominoGraph implements Function<Integer, INode> {
 		if (priority == ISortableNode.TOP_PRIORITY) { // deselect
 			node.setSortingPriority(dim, ISortableNode.NO_SORTING);
 			for (ISortableNode n : sorting) {
-				if (n != null && n.getSortingPriority(dim) != ISortableNode.NO_SORTING)
+				if (n != node && n != null && n.getSortingPriority(dim) != ISortableNode.NO_SORTING)
 					n.setSortingPriority(dim, n.getSortingPriority(dim) - 1);
 			}
 		} else if (priority == ISortableNode.NO_SORTING) {
 			node.setSortingPriority(dim, ISortableNode.TOP_PRIORITY);
 			for (ISortableNode n : sorting) {
-				if (n != null && n.getSortingPriority(dim) != ISortableNode.NO_SORTING) {
-					n.setSortingPriority(dim, n.getSortingPriority(dim) + 1);
-					if (n.getSortingPriority(dim) > ISortableNode.MINIMUM_PRIORITY)
+				final int npriority = n.getSortingPriority(dim);
+				if (n != node && npriority != ISortableNode.NO_SORTING) {
+					n.setSortingPriority(dim, npriority + 1);
+					if (npriority > ISortableNode.MINIMUM_PRIORITY)
 						n.setSortingPriority(dim, ISortableNode.NO_SORTING);
 				}
 			}
 		} else { // increase sorting
 			node.setSortingPriority(dim, ISortableNode.TOP_PRIORITY);
 			for (ISortableNode n : sorting) {
-				if (n != null && n.getSortingPriority(dim) < priority) {
-					n.setSortingPriority(dim, n.getSortingPriority(dim) + 1);
+				final int npriority = n.getSortingPriority(dim);
+				if (n != node && npriority < priority) {
+					n.setSortingPriority(dim, nextPriority(npriority));
 				}
 			}
 		}
 		for (IDominoGraphListener l : listeners)
 			l.vertexSortingChanged(node, dim);
+	}
+
+	/**
+	 * @param npriority
+	 * @return
+	 */
+	private static int nextPriority(int p) {
+		if (p >= ISortableNode.MINIMUM_PRIORITY)
+			return ISortableNode.NO_SORTING;
+		return p + 1;
 	}
 
 	public interface ListenableUndirectedGraph<V, E> extends ListenableGraph<V, E>, UndirectedGraph<V, E> {

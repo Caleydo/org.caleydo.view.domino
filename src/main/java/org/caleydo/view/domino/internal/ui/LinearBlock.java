@@ -33,20 +33,16 @@ import com.google.common.collect.Iterables;
  */
 public class LinearBlock {
 	private final EDimension dim;
-	private final INodeUI changed;
 	private MultiTypedList data;
 	private final Collection<? extends INodeUI> nodes;
 
-	public LinearBlock(EDimension dim, Collection<? extends INodeUI> nodes, INodeUI changed) {
+	public LinearBlock(EDimension dim, Collection<? extends INodeUI> nodes) {
 		this.dim = dim;
 		this.nodes = nodes;
-		this.changed = changed;
 	}
 
-	public static BitSet updateData(EDimension dim, Collection<? extends INodeUI> nodes, INodeUI changed) {
-		if (changed == null || !changed.asNode().hasDimension(dim))
-			return new BitSet();
-		LinearBlock b = new LinearBlock(dim, nodes, changed);
+	public static BitSet updateData(EDimension dim, Collection<? extends INodeUI> nodes) {
+		LinearBlock b = new LinearBlock(dim, nodes);
 		b.update();
 		return b.apply();
 	}
@@ -70,7 +66,7 @@ public class LinearBlock {
 	 * @param data2
 	 */
 	private void resortImpl(IMultiTypedCollection data) {
-		List<ITypedComparator> c = findComparators(Iterables.transform(nodes, ANodeUI.TO_NODE), dim.opposite());
+		List<ITypedComparator> c = findComparators(Iterables.transform(nodes, ANodeUI.TO_NODE), dim);
 
 		this.data = TypedSets.sort(data, c.toArray(new ITypedComparator[0]));
 	}

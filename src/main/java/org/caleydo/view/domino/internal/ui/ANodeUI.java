@@ -19,10 +19,11 @@ import org.caleydo.core.view.opengl.layout2.manage.GLElementFactoryContext;
 import org.caleydo.core.view.opengl.layout2.manage.GLElementFactoryContext.Builder;
 import org.caleydo.core.view.opengl.layout2.manage.GLElementFactorySwitcher;
 import org.caleydo.core.view.opengl.layout2.manage.GLElementFactorySwitcher.ELazyiness;
-import org.caleydo.view.domino.api.model.typed.TypedCollections;
 import org.caleydo.view.domino.api.model.typed.TypedList;
+import org.caleydo.view.domino.api.model.typed.TypedSets;
 import org.caleydo.view.domino.internal.ui.model.NodeUIState;
 import org.caleydo.view.domino.internal.ui.prototype.INode;
+import org.caleydo.view.domino.internal.ui.prototype.ISortableNode;
 
 import com.google.common.base.Function;
 import com.google.common.base.Predicate;
@@ -36,16 +37,23 @@ public abstract class ANodeUI<T extends INode> extends GLElementDecorator implem
 		Predicate<String> {
 	protected final T node;
 
-	private TypedList dimData = TypedCollections.INVALID_LIST;
-	private TypedList recData = TypedCollections.INVALID_LIST;
+	private TypedList dimData;
+	private TypedList recData;
 	private boolean rebuild = true;
 
 	public ANodeUI(T node) {
 		this.node = node;
-		this.dimData = node.getData(EDimension.DIMENSION).asList();
-		this.recData = node.getData(EDimension.RECORD).asList();
+		this.dimData = toData(EDimension.DIMENSION, node);
+		this.recData = toData(EDimension.RECORD, node);
 		setLayoutData(node);
 		build();
+	}
+
+	private static TypedList toData(EDimension dim, INode node) {
+		if (node.hasDimension(dim) && node instanceof ISortableNode && ((ISortableNode) node).isSortable(dim))
+			return TypedSets.sort(node.getData(dim), ((ISortableNode) node).getComparator(dim));
+		else
+			return node.getData(dim).asList();
 	}
 
 	@Override
