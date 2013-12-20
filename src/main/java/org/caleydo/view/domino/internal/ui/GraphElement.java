@@ -23,7 +23,6 @@ public class GraphElement extends GLElementContainer implements IGLLayout2 {
 	private final LeftToolBar leftToolBar;
 
 	private final DominoGraph graph = new DominoGraph();
-	private final Routes routes = new Routes();
 	private final DominoNodeLayer nodes;
 
 	/**
@@ -32,11 +31,12 @@ public class GraphElement extends GLElementContainer implements IGLLayout2 {
 	public GraphElement() {
 		setLayout(this);
 
-		DominoBandLayer band = new DominoBandLayer(routes);
-		this.add(band);
-
 		this.nodes = new DominoNodeLayer(graph);
 		this.add(nodes);
+
+		DominoBandLayer band = new DominoBandLayer(graph, nodes);
+		band.setzDelta(-0.2f);
+		this.add(band);
 
 		this.topToolBar = new MainToolBar(nodes, graph);
 		graph.addGraphListener(this.topToolBar);

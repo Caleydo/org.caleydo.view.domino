@@ -15,14 +15,14 @@ import org.caleydo.view.domino.internal.ui.prototype.INode;
  * @author Samuel Gratzl
  *
  */
-public class BandEdge extends AEdge implements ISortBarrier {
+public class BandEdge extends AEdge implements ISortBarrier, IStratificationBarrier {
 	private static final long serialVersionUID = 418966282805280479L;
-	private EDimension sourceDir;
-	private EDimension targetDir;
+	private final EDimension sourceDim;
+	private final EDimension targetDim;
 
-	public BandEdge(EDimension sourceDir, EDimension targetDir) {
-		this.sourceDir = sourceDir;
-		this.targetDir = targetDir;
+	public BandEdge(EDimension sourceDim, EDimension targetDim) {
+		this.sourceDim = sourceDim;
+		this.targetDim = targetDim;
 	}
 
 	@Override
@@ -32,22 +32,14 @@ public class BandEdge extends AEdge implements ISortBarrier {
 
 	@Override
 	public EDirection getDirection(INode of) {
-		return EDirection.getPrimary(getDimension(of));
+		final EDirection dir = EDirection.getPrimary(getDimension(of));
+		return getSource() == of ? dir : dir.opposite();
 	}
 
-	private EDimension getDimension(INode of) {
+	public EDimension getDimension(INode of) {
 		if (getSource() == of)
-			return sourceDir;
+			return sourceDim;
 		else
-			return targetDir;
+			return targetDim;
 	}
-
-	@Override
-	public void swapDirection(INode of) {
-		if (getSource() == of)
-			sourceDir = sourceDir.opposite();
-		else
-			targetDir = targetDir.opposite();
-	}
-
 }

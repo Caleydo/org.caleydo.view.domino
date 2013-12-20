@@ -6,8 +6,8 @@
 package org.caleydo.view.domino.internal.ui;
 
 import gleem.linalg.Vec2f;
-import gleem.linalg.Vec4f;
 
+import java.awt.geom.Rectangle2D;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.ArrayDeque;
@@ -30,9 +30,7 @@ import org.caleydo.core.event.EventListenerManager.DeepScan;
 import org.caleydo.core.event.EventListenerManager.ListenTo;
 import org.caleydo.core.util.collection.Pair;
 import org.caleydo.core.view.opengl.layout2.GLElement;
-import org.caleydo.core.view.opengl.layout2.animation.AnimatedGLElementContainer;
-import org.caleydo.core.view.opengl.layout2.animation.InOutTransitions.IInTransition;
-import org.caleydo.core.view.opengl.layout2.animation.InOutTransitions.IOutTransition;
+import org.caleydo.core.view.opengl.layout2.GLElementContainer;
 import org.caleydo.core.view.opengl.layout2.geom.Rect;
 import org.caleydo.core.view.opengl.layout2.layout.AGLLayoutElement;
 import org.caleydo.core.view.opengl.layout2.layout.GLLayoutDatas;
@@ -42,6 +40,7 @@ import org.caleydo.core.view.opengl.layout2.layout.IHasGLLayoutData;
 import org.caleydo.view.domino.internal.event.HidePlaceHoldersEvent;
 import org.caleydo.view.domino.internal.event.ShowPlaceHoldersEvent;
 import org.caleydo.view.domino.internal.ui.model.DominoGraph;
+import org.caleydo.view.domino.internal.ui.model.DominoGraph.EPlaceHolderFlag;
 import org.caleydo.view.domino.internal.ui.model.Edges;
 import org.caleydo.view.domino.internal.ui.model.IDominoGraphListener;
 import org.caleydo.view.domino.internal.ui.model.IEdge;
@@ -63,7 +62,7 @@ import com.google.common.collect.Maps;
  * @author Samuel Gratzl
  *
  */
-public class DominoNodeLayer extends AnimatedGLElementContainer implements IDominoGraphListener, IGLLayout2,
+public class DominoNodeLayer extends GLElementContainer implements IDominoGraphListener, IGLLayout2,
 		Function<INode, ANodeElement>, ISelectionMixinCallback {
 
 	private final DominoGraph graph;
@@ -84,20 +83,20 @@ public class DominoNodeLayer extends AnimatedGLElementContainer implements IDomi
 		for (INode node : graph.vertexSet()) {
 			vertexAdded(node, null);
 		}
-		setDefaultInTransition(new IInTransition() {
-			@Override
-			public Vec4f in(Vec4f to, float w, float h, float alpha) {
-				if (alpha >= 1)
-					return to.copy();
-				return new Vec4f(0, 0, 0, 0);
-			}
-		});
-		setDefaultOutTransition(new IOutTransition() {
-			@Override
-			public Vec4f out(Vec4f from, float w, float h, float alpha) {
-				return new Vec4f(0, 0, 0, 0);
-			}
-		});
+		// setDefaultInTransition(new IInTransition() {
+		// @Override
+		// public Vec4f in(Vec4f to, float w, float h, float alpha) {
+		// if (alpha >= 1)
+		// return to.copy();
+		// return new Vec4f(0, 0, 0, 0);
+		// }
+		// });
+		// setDefaultOutTransition(new IOutTransition() {
+		// @Override
+		// public Vec4f out(Vec4f from, float w, float h, float alpha) {
+		// return new Vec4f(0, 0, 0, 0);
+		// }
+		// });
 
 		selections.add(DominoGraph.newNodeSelectionManager());
 	}
@@ -280,6 +279,8 @@ public class DominoNodeLayer extends AnimatedGLElementContainer implements IDomi
 	@Override
 	public void vertexRemoved(INode node, Collection<IEdge> edges) {
 		ANodeElement elem = apply(node);
+		if (elem == null)
+			return;
 		this.remove(elem);
 		select(node, SelectionType.SELECTION, false, false);
 		removeListener(elem);
@@ -333,6 +334,7 @@ public class DominoNodeLayer extends AnimatedGLElementContainer implements IDomi
 			int deltaTimeMs) {
 		if (changes.isEmpty())
 			return false;
+		System.out.println("update nodes");
 		Deque<IChange> change = new ArrayDeque<>(changes);
 		Map<GLElement, ? extends IGLLayoutElement> lookup = Maps.uniqueIndex(children, AGLLayoutElement.TO_GL_ELEMENT);
 		Map<INode, ? extends IGLLayoutElement> lookup2 = Maps.uniqueIndex(children,
@@ -535,13 +537,30 @@ public class DominoNodeLayer extends AnimatedGLElementContainer implements IDomi
 
 	@ListenTo(sendToMe = true)
 	private void onShowPlaceHoldersEvent(ShowPlaceHoldersEvent event) {
-		Set<Placeholder> placeholders = graph.findPlaceholders(event.getNode());
+		Set<Placeholder> placeholders = graph.findPlaceholders(event.getNode(), EPlaceHolderFlag.INCLUDE_BETWEEN_BANDS,
+				EPlaceHolderFlag.INCLUDE_TRANSPOSE);
 		graph.insertPlaceholders(placeholders, event.getNode());
 	}
 
 	@ListenTo(sendToMe = true)
 	private void onHidePlaceHoldersEvent(HidePlaceHoldersEvent event) {
 		graph.removePlaceholders(ImmutableSet.copyOf(Iterables.filter(graph.vertexSet(), PlaceholderNode.class)));
+	}
+
+	public Rect getBounds(Iterable<INode> nodes) {
+		Rectangle2D r = null;
+		for (INode n : nodes) {
+			ANodeElement elem = apply(n);
+			if (elem == null)
+				continue;
+			if (r == null) {
+				r = elem.getRectangleBounds();
+			} else
+				Rectangle2D.union(r, elem.getRectangleBounds(), r);
+		}
+		if (r == null)
+			return null;
+		return new Rect((float) r.getX(), (float) r.getY(), (float) r.getWidth(), (float) r.getHeight());
 	}
 
 

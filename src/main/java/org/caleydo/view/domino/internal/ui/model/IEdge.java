@@ -28,10 +28,5 @@ public interface IEdge {
 	 */
 	INode getTarget();
 
-	/**
-	 *
-	 */
-	void swapDirection(INode of);
-
 	EProximityMode asMode();
 }

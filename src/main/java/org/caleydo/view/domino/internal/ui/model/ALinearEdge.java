@@ -14,7 +14,7 @@ import org.caleydo.view.domino.internal.ui.prototype.INode;
  */
 public abstract class ALinearEdge extends AEdge {
 	private static final long serialVersionUID = 7503595941233324714L;
-	private EDirection direction;
+	private final EDirection direction;
 
 	public ALinearEdge(EDirection direction) {
 		this.direction = direction;
@@ -23,11 +23,6 @@ public abstract class ALinearEdge extends AEdge {
 	@Override
 	public EDirection getDirection(INode source) {
 		return getSource() == source ? getDirection() : getDirection().opposite();
-	}
-
-	@Override
-	public void swapDirection(INode to) {
-		this.direction = direction.opposite();
 	}
 
 	public EDirection getDirection() {

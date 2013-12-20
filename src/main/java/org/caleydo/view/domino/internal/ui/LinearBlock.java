@@ -10,6 +10,7 @@ import java.util.BitSet;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Iterator;
 import java.util.List;
 
 import org.caleydo.core.data.collection.EDimension;
@@ -26,25 +27,25 @@ import com.google.common.base.Function;
 import com.google.common.collect.Collections2;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
+import com.google.common.collect.Iterators;
 
 /**
  * @author Samuel Gratzl
  *
  */
-public class LinearBlock {
+public class LinearBlock implements Iterable<INodeUI> {
 	private final EDimension dim;
 	private MultiTypedList data;
-	private final Collection<? extends INodeUI> nodes;
+	private final List<? extends INodeUI> nodes;
 
-	public LinearBlock(EDimension dim, Collection<? extends INodeUI> nodes) {
+	public LinearBlock(EDimension dim, List<? extends INodeUI> nodes) {
 		this.dim = dim;
 		this.nodes = nodes;
 	}
 
-	public static BitSet updateData(EDimension dim, Collection<? extends INodeUI> nodes) {
-		LinearBlock b = new LinearBlock(dim, nodes);
-		b.update();
-		return b.apply();
+	@Override
+	public Iterator<INodeUI> iterator() {
+		return Iterators.filter(nodes.iterator(), INodeUI.class);
 	}
 
 	/**

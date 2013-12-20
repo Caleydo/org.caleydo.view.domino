@@ -38,11 +38,13 @@ import org.jgrapht.traverse.DepthFirstIterator;
 import com.google.common.base.Function;
 import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
+import com.google.common.collect.Collections2;
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
 /**
@@ -65,8 +67,6 @@ public class DominoGraph implements Function<Integer, INode> {
 		this.connectivity = new ConnectivityInspector<>(GraphViews.edgeView(graph,
 				Predicates.instanceOf(MagneticEdge.class)));
 		this.graph.addGraphListener(this.connectivity);
-
-		// Demo.fill(this);
 	}
 
 	public INode getByID(int id) {
@@ -89,35 +89,57 @@ public class DominoGraph implements Function<Integer, INode> {
 		this.listeners.remove(l);
 	}
 
+	/**
+	 * @param n
+	 */
+	public void addVertex(INode n) {
+		graph.addVertex(n);
+		vertexAdded(n);
+	}
+
 	private void magnetic(INode a, EDirection dir, INode b) {
-		addEdge(a, dir, b, new MagneticEdge(dir));
+		addEdge(a, b, new MagneticEdge(dir));
 	}
 
 	private void beam(INode a, EDirection dir, INode b) {
-		addEdge(a, dir, b, new BeamEdge(dir));
+		addEdge(a, b, new BeamEdge(dir));
 	}
 
-	private void band(INode a, EDirection dir, INode b) {
-		addEdge(a, dir, b, new BandEdge(dir.asDim(), dir.asDim()));
+	private void band(INode a, EDimension dir, INode b) {
+		band(a, dir, b, dir);
+	}
+
+	private void band(INode a, EDimension dirA, INode b, EDimension dirB) {
+		addEdge(a, b, new BandEdge(dirA, dirB));
 	}
 
 	private void edgeLike(IEdge edge, INode from, INode to) {
 		INode other = edge.getOpposite(from);
 		EDirection dir = edge.getDirection(from);
+		if (edge instanceof BandEdge)
+			band(other, edge.getDirection(other).asDim(), to, dir.asDim());
 		if (edge instanceof MagneticEdge)
 			magnetic(to, dir, other);
 		else if (edge instanceof BeamEdge)
 			beam(to, dir, other);
 	}
 
-	private void addEdge(INode a, EDirection dir, INode b, final IEdge edge) {
-		assert isCompatible(a.getIDType(dir.asDim().opposite()), b.getIDType(dir.asDim().opposite()));
-		if (!dir.isPrimaryDirection()) {
-			INode t = a;
-			a = b;
-			b = t;
-			edge.swapDirection(a);
-		}
+	private void addEdge(INode a, INode b, final IEdge edge) {
+		EDirection ad = edge.getDirection(a);
+		EDirection bd = edge.getDirection(b);
+		assert isCompatible(a.getIDType(ad.asDim().opposite()), b.getIDType(bd.asDim().opposite()));
+		// if (!dirA.isPrimaryDirection()) {
+		// INode t = a;
+		// a = b;
+		// b = t;
+		// edge.swapDirection(a);
+		// }
+		// if (!dirA.isPrimaryDirection()) {
+		// INode t = a;
+		// a = b;
+		// b = t;
+		// edge.swapDirection(a);
+		// }
 		graph.addEdge(a, b, edge);
 		if (!(a instanceof PlaceholderNode) && !(b instanceof PlaceholderNode)) {
 			updateProximity(a, edge);
@@ -195,6 +217,29 @@ public class DominoGraph implements Function<Integer, INode> {
 		if (edges.isEmpty())
 			return Collections.emptyList();
 
+		mergeMagnetic(node, Collections2.filter(edges, Edges.SAME_STRATIFICATION));
+		copyBands(node, Iterables.filter(edges, BandEdge.class));
+		graph.removeAllEdges(edges);
+		return edges;
+	}
+
+	/**
+	 * @param node
+	 * @param filter
+	 */
+	private void copyBands(INode node, Iterable<BandEdge> edges) {
+		for (BandEdge edge : edges) {
+			EDirection sdir = edge.getDirection(node);
+			INode neighbor = getNeighbor(sdir.opposite(), node, Edges.SAME_STRATIFICATION);
+			if (neighbor == null)
+				continue;
+			INode t = edge.getOpposite(node);
+			EDimension tdir = edge.getDimension(t);
+			band(neighbor, sdir.asDim(), t, tdir);
+		}
+	}
+
+	private void mergeMagnetic(INode node, Collection<IEdge> edges) {
 		Map<EDirection, IEdge> index = Maps.uniqueIndex(edges, to_direction(node));
 		// a-X-b -> a-b
 		// connect a and b if in between was our target node X with a band
@@ -210,20 +255,18 @@ public class DominoGraph implements Function<Integer, INode> {
 			INode top = above.getOpposite(node);
 			INode bottom = below.getOpposite(node);
 			if (hasHorizontal)
-				band(top, EDirection.ABOVE, bottom);
+				band(top, EDimension.RECORD, bottom);
 			else
-				magnetic(top, EDirection.ABOVE, bottom);
+				edgeLike(above, top, bottom);
 		}
 		if (leftOf != null && rightOf != null) {
 			INode top = leftOf.getOpposite(node);
 			INode bottom = rightOf.getOpposite(node);
 			if (hasVertical)
-				band(top, EDirection.LEFT_OF, bottom);
+				band(top, EDimension.DIMENSION, bottom);
 			else
-				magnetic(top, EDirection.LEFT_OF, bottom);
+				edgeLike(leftOf, top, bottom);
 		}
-		graph.removeAllEdges(edges);
-		return edges;
 	}
 
 	/**
@@ -254,7 +297,7 @@ public class DominoGraph implements Function<Integer, INode> {
 	}
 
 	public enum EPlaceHolderFlag {
-		INCLUDE_TRANSPOSE, INCLUDE_BETWEEN_BANDS, INCLUDE_BETWEEN_MAGNETIC
+		INCLUDE_TRANSPOSE, INCLUDE_BETWEEN_BANDS, INCLUDE_BETWEEN_BLOCK
 	}
 	/**
 	 * find all placed where this node can be attached
@@ -291,9 +334,9 @@ public class DominoGraph implements Function<Integer, INode> {
 			IEdge edge = hasEdge(v, dir, edges);
 			if (edge == null) {
 				places.add(new Placeholder(v, dir, transposed));
-			} else if ((flags.contains(EPlaceHolderFlag.INCLUDE_BETWEEN_BANDS) && (edge instanceof BandEdge))) {
+			} else if ((flags.contains(EPlaceHolderFlag.INCLUDE_BETWEEN_BANDS) && Edges.BANDS.apply(edge))) {
 				places.add(new Placeholder(v, dir, transposed));
-			} else if (flags.contains(EPlaceHolderFlag.INCLUDE_BETWEEN_MAGNETIC) && edge instanceof MagneticEdge) {
+			} else if (flags.contains(EPlaceHolderFlag.INCLUDE_BETWEEN_BLOCK) && Edges.SAME_STRATIFICATION.apply(edge)) {
 				INode o = edge.getOpposite(v);
 				if (o != node && !(o instanceof PlaceholderNode)
 						&& (dir == EDirection.LEFT_OF || dir == EDirection.ABOVE))
@@ -322,10 +365,7 @@ public class DominoGraph implements Function<Integer, INode> {
 				if (edge != null) { // split needed
 					INode v2 = edge.getOpposite(v);
 					graph.removeEdge(edge);
-					if (edge instanceof BandEdge)
-						band(n, dir, v2);
-					else
-						magnetic(n, dir, v2);
+					edgeLike(edge, v2, n);
 				}
 				magnetic(v, dir, n);
 			}
@@ -337,16 +377,9 @@ public class DominoGraph implements Function<Integer, INode> {
 	/**
 	 * @param n
 	 */
-	public void addVertex(INode n) {
-		graph.addVertex(n);
-		vertexAdded(n);
-	}
-
-	/**
-	 * @param n
-	 */
 	private void vertexAdded(INode n) {
-		createBandEdges(n);
+		for (EDimension dim : n.dimensions())
+			createBandEdges(n, dim);
 		Collection<IEdge> edges = edgesOf(n);
 		for (IDominoGraphListener l : listeners)
 			l.vertexAdded(n, edges);
@@ -355,20 +388,20 @@ public class DominoGraph implements Function<Integer, INode> {
 	/**
 	 * @param n
 	 */
-	private void createBandEdges(INode n) {
-		Set<INode> toCheck = new HashSet<>(vertexSet());
-		toCheck.removeAll(walkAlong(EDimension.DIMENSION, n, Edges.SAME_STRATIFICATION));
-		toCheck.removeAll(walkAlong(EDimension.RECORD, n, Edges.SAME_STRATIFICATION));
+	private void createBandEdges(INode start, EDimension dim) {
+		Set<INode> done = new HashSet<>();
+		done.addAll(walkAlong(dim.opposite(), start, Edges.SAME_STRATIFICATION));
 
-		for (EDimension dim : n.dimensions()) {
-			final IDType idType = n.getIDType(dim);
-			for (INode other : toCheck) {
-				if (isCompatible(idType, other.getIDType(dim))) {
-					// band n dim - dim other
-				}
-				if (isCompatible(idType, other.getIDType(dim.opposite()))) {
-					// band n dim - opp other
-				}
+		final IDType idType = start.getIDType(dim);
+		for (INode node : vertexSet()) {
+			if (done.contains(node))
+				continue;
+			for (EDimension dim2 : node.dimensions()) {
+				if (!isCompatible(node.getIDType(dim2), idType))
+					continue;
+				List<INode> neighors = walkAlong(dim2.opposite(), node, Edges.SAME_STRATIFICATION);
+				band(neighors.get(0), dim2.opposite(), start, dim.opposite());
+				done.addAll(neighors);
 			}
 		}
 	}
@@ -413,7 +446,8 @@ public class DominoGraph implements Function<Integer, INode> {
 		List<INode> before = walkAlong(dim.select(EDirection.LEFT_OF, EDirection.ABOVE), start, filter);
 		List<INode> after = walkAlong(dim.select(EDirection.RIGHT_OF, EDirection.BELOW), start, filter);
 		// as we have the start twice
-		return ImmutableList.<INode> builder().addAll(before).addAll(after.subList(1, after.size())).build();
+		return ImmutableList.<INode> builder().addAll(Lists.reverse(before)).addAll(after.subList(1, after.size()))
+				.build();
 	}
 
 	/**
@@ -444,6 +478,8 @@ public class DominoGraph implements Function<Integer, INode> {
 			if (edge.getDirection(start) != dir)
 				continue;
 			INode next = edge.getOpposite(start);
+			if (next == start)
+				continue;
 			walkAlongImpl(dir, next, filter, b);
 		}
 	}

@@ -411,4 +411,25 @@ public class TypedSets {
 		return new TypedList(new RepeatingList<Integer>(INVALID_ID, in.size()), target);
 	}
 
+	/**
+	 * @param a
+	 * @param b
+	 * @return
+	 */
+	public static TypedSet intersect(TypedSet a, TypedSet b) {
+		final IDType bIdType = b.getIdType();
+		final IDType aIdType = a.getIdType();
+
+		if (aIdType.equals(bIdType))
+			return a.intersect(b);
+		IIDTypeMapper<Integer, Integer> a2b = MappingCaches.findMapper(aIdType, bIdType);
+		IIDTypeMapper<Integer, Integer> b2a = MappingCaches.findMapper(bIdType, aIdType);
+		if (a2b == null || b2a == null)
+			return TypedCollections.INVALID_SET;
+		Set<Integer> as = b2a.apply(b);
+		Set<Integer> r = new HashSet<>(a);
+		r.retainAll(as);
+		return new TypedSet(ImmutableSet.copyOf(r), aIdType);
+	}
+
 }
