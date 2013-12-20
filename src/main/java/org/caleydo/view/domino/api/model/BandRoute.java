@@ -7,12 +7,12 @@ package org.caleydo.view.domino.api.model;
 
 import java.util.Arrays;
 
-import org.apache.commons.lang.StringUtils;
 import org.caleydo.core.data.selection.SelectionType;
 import org.caleydo.core.id.IDType;
 import org.caleydo.core.util.color.Color;
 import org.caleydo.core.util.function.InterpolatingFunctions;
 import org.caleydo.core.view.opengl.layout2.GLGraphics;
+import org.caleydo.view.domino.api.model.typed.MultiTypedSet;
 import org.caleydo.view.domino.api.model.typed.TypedSet;
 import org.caleydo.view.domino.api.ui.band.Route;
 import org.caleydo.view.domino.spi.model.IBandRenderer;
@@ -27,60 +27,83 @@ public class BandRoute implements IBandRenderer {
 	private final Route route;
 	private final Color color;
 
-	private final TypedSet ids;
+	private final MultiTypedSet shared;
 
-	private final float radius1;
-	private final float radius2;
+	private final TypedSet sData, sShared;
+	private final float sRadius;
 
-	public BandRoute(Route route, Color color, TypedSet ids, float radius1, float radius2) {
+	private final TypedSet tData, tShared;
+	private final float tRadius;
+
+	public BandRoute(Route route, Color color, MultiTypedSet shared, TypedSet sData, TypedSet tData,
+			float sRadius, float tRadius) {
 		this.route = route;
 		this.color = color;
-		this.ids = ids;
-		this.radius1 = radius1;
-		this.radius2 = radius2;
+		this.shared = shared;
+		this.sData = sData;
+		this.tData = tData;
+		this.sRadius = sRadius;
+		this.tRadius = tRadius;
+		this.sShared = shared.slice(sData.getIdType());
+		this.tShared = shared.slice(tData.getIdType());
 	}
 
 	@Override
 	public void render(GLGraphics g, float w, float h, IBandHost host) {
-		renderRoute(g, 1.0f, color);
-		float factor = 1.f / ids.size();
+		float sR = ratio(SourceTarget.SOURCE);
+		float tR = ratio(SourceTarget.TARGET);
+		renderRoute(g, sR, tR, color);
+
 		for (SelectionType type : Arrays.asList(SelectionType.MOUSE_OVER, SelectionType.SELECTION)) {
-			int s = host.getSelected(ids, type);
-			if (s > 0)
-				renderRoute(g, s * factor, type.getColor());
+			int sS = host.getSelected(sShared, type).size();
+			int tS = host.getSelected(tShared, type).size();
+			if (sS > 0 && tS > 0)
+				renderRoute(g, sR * sS / sShared.size(), tR * tS / tShared.size(), type.getColor());
 		}
 
 		g.color(color.darker());
-		route.setRadiusInterpolator(InterpolatingFunctions.linear(radius1, radius2));
+		route.setRadiusInterpolator(InterpolatingFunctions.linear(sRadius * sR, tRadius * tR));
 		g.drawPath(route);
 	}
 
-	private void renderRoute(GLGraphics g, float f, Color c) {
+	private void renderRoute(GLGraphics g, float sf, float tf, Color c) {
 		g.color(c.r, c.g, c.b, 0.5f);
-		route.setRadiusInterpolator(InterpolatingFunctions.linear(radius1 * f, radius2 * f));
+		route.setRadiusInterpolator(InterpolatingFunctions.linear(sRadius * sf, tRadius * tf));
 		g.fillPolygon(route);
 	}
 
 	@Override
 	public String getLabel() {
-		return ids.getIdType().getTypeName() + ": " + StringUtils.join(ids, ",");
-	}
-
-	/**
-	 * @return the ids, see {@link #ids}
-	 */
-	@Override
-	public TypedSet getIds() {
-		return ids;
+		return ""; // shared.getIdType().getTypeName() + ": " + StringUtils.join(shared, ",");
 	}
 
 	@Override
-	public IDType getIdType() {
-		return ids.getIdType();
+	public TypedSet getIds(SourceTarget type) {
+		return type.select(sShared, tShared);
+	}
+
+	public TypedSet getAll(SourceTarget type) {
+		return type.select(sData, tData);
+	}
+
+	@Override
+	public IDType getIdType(SourceTarget type) {
+		return getIds(type).getIdType();
 	}
 
 	@Override
 	public void renderPick(GLGraphics g, float w, float h, IBandHost host) {
-		renderRoute(g, 1, color);
+		renderRoute(g, ratio(SourceTarget.SOURCE), ratio(SourceTarget.TARGET), color);
+	}
+
+	/**
+	 * @param source
+	 * @return
+	 */
+	private float ratio(SourceTarget type) {
+		if (type == SourceTarget.SOURCE)
+			return ((float) sShared.size()) / sData.size();
+		else
+			return ((float) tShared.size()) / tData.size();
 	}
 }

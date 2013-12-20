@@ -9,6 +9,7 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 
 import org.caleydo.core.data.collection.EDimension;
+import org.caleydo.core.view.opengl.canvas.EDetailLevel;
 import org.caleydo.core.view.opengl.layout2.GLElement;
 import org.caleydo.core.view.opengl.layout2.GLElementDecorator;
 import org.caleydo.core.view.opengl.layout2.IGLElementContext;
@@ -75,6 +76,7 @@ public abstract class ANodeUI<T extends INode> extends GLElementDecorator implem
 	private void build() {
 		Builder b = GLElementFactoryContext.builder();
 		fill(b, dimData, recData);
+		b.put(EDetailLevel.class, EDetailLevel.HIGH);
 		ImmutableList<GLElementSupplier> extensions = GLElementFactories.getExtensions(b.build(), "domino."
 				+ getExtensionID(), node.getUIState().getProximityMode());
 		GLElementFactorySwitcher s = new GLElementFactorySwitcher(extensions, ELazyiness.DESTROY);

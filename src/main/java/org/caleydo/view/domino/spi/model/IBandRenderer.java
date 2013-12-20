@@ -19,6 +19,22 @@ import org.caleydo.view.domino.api.model.typed.TypedSet;
  *
  */
 public interface IBandRenderer extends ILabeled {
+	public enum SourceTarget {
+		SOURCE, TARGET;
+
+		public float select(float source, float target) {
+			return this == SOURCE ? source : target;
+		}
+
+		public int select(int source, int target) {
+			return this == SOURCE ? source : target;
+		}
+
+		public <T> T select(T source, T target) {
+			return this == SOURCE ? source : target;
+		}
+	}
+
 	void render(GLGraphics g, float w, float h, IBandHost host);
 
 	void renderPick(GLGraphics g, float w, float h, IBandHost host);
@@ -28,14 +44,14 @@ public interface IBandRenderer extends ILabeled {
 	 *
 	 * @return
 	 */
-	TypedSet getIds();
+	TypedSet getIds(SourceTarget type);
 
 	/**
 	 * return the id type represented by the {@link #getIds()}
-	 * 
+	 *
 	 * @return
 	 */
-	IDType getIdType();
+	IDType getIdType(SourceTarget type);
 
 	/**
 	 * the host of the band
@@ -51,7 +67,7 @@ public interface IBandRenderer extends ILabeled {
 		 * @param type
 		 * @return
 		 */
-		int getSelected(TypedSet ids, SelectionType type);
+		TypedSet getSelected(TypedSet ids, SelectionType type);
 
 		/**
 		 * return the {@link IGLElementContext}

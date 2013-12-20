@@ -76,18 +76,39 @@ public class NodeElement extends ANodeElement implements ISelectionMixinCallback
 		super.takeDown();
 	}
 
+	protected boolean isContentPickable() {
+		return content.getVisibility() == EVisibility.PICKABLE;
+	}
+
 
 	@Override
 	protected void onMainPick(Pick pick) {
 		switch (pick.getPickingMode()) {
 		case MOUSE_OVER:
-			context.getMouseLayer().addDragSource(source);
+			if (!isContentPickable())
+				context.getMouseLayer().addDragSource(source);
 			break;
 		case MOUSE_OUT:
 			context.getMouseLayer().removeDragSource(source);
 			break;
 		case MOUSE_RELEASED:
 			select(SelectionType.SELECTION, !isSelected(SelectionType.SELECTION), !((IMouseEvent) pick).isCtrlDown());
+			break;
+		case RIGHT_CLICKED:
+			findGraph().remove(node);
+			break;
+		case DOUBLE_CLICKED:
+			// graph.remove(node);
+			content.setVisibility(content.getVisibility() == EVisibility.PICKABLE ? EVisibility.VISIBLE
+					: EVisibility.PICKABLE);
+			System.out.println(content.getVisibility());
+			if (isContentPickable()) {
+				border.setColor(Color.RED);
+				context.getMouseLayer().removeDragSource(source);
+			} else {
+				border.setColor(Color.BLUE);
+				context.getMouseLayer().addDragSource(source);
+			}
 			break;
 		default:
 			break;
@@ -104,6 +125,8 @@ public class NodeElement extends ANodeElement implements ISelectionMixinCallback
 	@Override
 	public void pick(Pick pick) {
 		super.pick(pick);
+		IMouseEvent event = ((IMouseEvent) pick);
+		DominoGraph graph = findGraph();
 		switch (pick.getPickingMode()) {
 		case MOUSE_OVER:
 			select(SelectionType.MOUSE_OVER, true, true);

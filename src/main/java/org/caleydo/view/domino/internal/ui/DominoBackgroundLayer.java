@@ -28,8 +28,8 @@ import org.caleydo.view.domino.internal.ui.prototype.Nodes;
  */
 public class DominoBackgroundLayer extends PickableGLElement implements IDropGLTarget {
 
-	private final DominoNodeLayer nodes;
-	private final DominoGraph graph;
+	protected final DominoNodeLayer nodes;
+	protected final DominoGraph graph;
 
 	/**
 	 * @param nodes

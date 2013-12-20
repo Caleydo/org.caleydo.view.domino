@@ -68,10 +68,9 @@ public class TypedSets {
 		if (sets.length == 0) // empty
 			return new MultiTypedSet(new IDType[0], Collections.<int[]>emptySet());
 		// union same idtypes
-		sets = compress(sets);
+		sets = compress(sets, true);
 
-		final int l = sets.length;
-		if (l == 1) { // single id type
+		if (sets.length == 1) { // single id type
 			return MultiTypedSet.single(sets[0]);
 		}
 
@@ -80,11 +79,21 @@ public class TypedSets {
 		if (deep) // expand to all mappable ids
 			sets = expandMapped(sets, cache);
 
+		boolean union = true;
+		return setOperation(sets, union, cache);
+	}
+
+	private static MultiTypedSet setOperation(TypedSet[] sets, boolean union,
+			final LoadingCache<Pair<IDType, IDType>, IIDTypeMapper<Integer, Integer>> cache) {
+		if (sets.length == 0) {
+			return new MultiTypedSet(new IDType[0], Collections.<int[]> emptySet());
+		}
+		final int l = sets.length;
 		Set<List<Integer>> r = new HashSet<>();
 		IDType[] t = new IDType[l];
 		for(int i = 0; i < sets.length; ++i) {
 			t[i] = sets[i].getIdType();
-			fill(sets, i, cache, r);
+			fill(sets, i, cache, r, union);
 		}
 
 		// convert to right structure
@@ -92,6 +101,57 @@ public class TypedSets {
 		for(List<Integer> ri : r)
 			r_s.add(Ints.toArray(ri));
 		return new MultiTypedSet(t, r_s.build());
+	}
+
+	/**
+	 * @param a
+	 * @param b
+	 * @return
+	 */
+	public static MultiTypedSet intersect(TypedSet... sets) {
+		if (sets.length == 0) // empty
+			return new MultiTypedSet(new IDType[0], Collections.<int[]> emptySet());
+		// union same idtypes
+		sets = compress(sets, false);
+
+		final int l = sets.length;
+		if (l == 1) { // single id type
+			return MultiTypedSet.single(sets[0]);
+		}
+		final LoadingCache<Pair<IDType, IDType>, IIDTypeMapper<Integer, Integer>> cache = MappingCaches.create();
+
+		// remove from an idtype all ids which the others can't be mapped to
+		sets = removeNotMapped(sets, cache);
+
+		return setOperation(sets, false, cache);
+	}
+
+	/**
+	 * @param sets
+	 * @param cache
+	 * @return
+	 */
+	private static TypedSet[] removeNotMapped(TypedSet[] sets,
+			LoadingCache<Pair<IDType, IDType>, IIDTypeMapper<Integer, Integer>> cache) {
+		TypedSet[] r = new TypedSet[sets.length];
+		for (int i = 0; i < sets.length; ++i) {
+			TypedSet act = sets[i];
+			Set<Integer> ids = new HashSet<>(act);
+			for (int j = 0; j < sets.length; ++j) {
+				if (j == i)
+					continue;
+				TypedSet b = sets[j];
+				IIDTypeMapper<Integer, Integer> b2a = cache.getUnchecked(Pair.make(b.getIdType(), act.getIdType()));
+				Set<Integer> m = b2a == null ? null : b2a.apply(b);
+				if (m == null) // no mapping remove all = no intersection
+					return new TypedSet[0];
+				ids.retainAll(m);
+				if (ids.isEmpty()) // empty nothing to intersect
+					return new TypedSet[0];
+			}
+			r[i] = new TypedSet(ids, act.getIdType());
+		}
+		return r;
 	}
 
 	/**
@@ -139,7 +199,6 @@ public class TypedSets {
 		Collection<TypedSet> new_ = toTypedSets(done);
 		return new_.toArray(new TypedSet[0]);
 	}
-
 	/**
 	 * convert a inhomogenous set of {@link TypedID} to a collection of {@link TypedSet}s
 	 *
@@ -213,8 +272,10 @@ public class TypedSets {
 		TypedSet a_s = new TypedSet(ImmutableSet.of(1, 2, 3), a);
 		TypedSet b_s = new TypedSet(ImmutableSet.of(bB, bC, bD), b);
 
-		MultiTypedSet r = union(a_s, b_s);
-		System.out.println(r);
+		MultiTypedSet union = union(a_s, b_s);
+		System.out.println(union);
+		MultiTypedSet intersection = intersect(a_s, b_s);
+		System.out.println(intersection);
 	}
 
 	/**
@@ -223,7 +284,7 @@ public class TypedSets {
 	 * @param sets
 	 * @return
 	 */
-	private static TypedSet[] compress(TypedSet[] sets) {
+	private static TypedSet[] compress(TypedSet[] sets, boolean union) {
 		ListMultimap<IDType, TypedSet> index = Multimaps.index(Arrays.asList(sets), TypedCollections.TO_IDTYPE);
 
 		if (index.keySet().size() == sets.length) // nothing to compress
@@ -232,7 +293,7 @@ public class TypedSets {
 		int i = 0;
 		for (IDType idType : index.keySet()) {
 			List<TypedSet> same = index.get(idType);
-			new_[i++] = TypedSet.union(same);
+			new_[i++] = union ? TypedSet.union(same) : TypedSet.intersection(same);
 		}
 		return new_;
 	}
@@ -246,7 +307,8 @@ public class TypedSets {
 	 * @param r
 	 */
 	private static void fill(TypedSet[] sets, int act_i,
-			LoadingCache<Pair<IDType, IDType>, IIDTypeMapper<Integer, Integer>> cache, Set<List<Integer>> r) {
+			LoadingCache<Pair<IDType, IDType>, IIDTypeMapper<Integer, Integer>> cache, Set<List<Integer>> r,
+			boolean union) {
 		TypedSet act = sets[act_i];
 		final int l = sets.length;
 		List<Iterator<Set<Integer>>> mapped = new ArrayList<>(l);
@@ -282,23 +344,25 @@ public class TypedSets {
 				r.add(Ints.asList(singles));
 			} else {
 				// some multi mappings, we need to create the product of all combinations
-				product(multi, 0, singles, acts, r);
+				product(multi, 0, singles, acts, r, union ? null : sets);
 			}
 		}
 	}
 
-
 	private static void product(List<Integer> multi, int start, int[] singles, List<Set<Integer>> acts,
-			Set<List<Integer>> r) {
+			Set<List<Integer>> r, TypedSet[] partOf) {
 		if (multi.size() <= start) { // flush
 			r.add(Ints.asList(Arrays.copyOf(singles, singles.length)));
 			return;
 		}
 		int next = multi.get(start);
 		Set<Integer> all = acts.get(next);
+		TypedSet partOfElem = partOf == null ? null : partOf[next];
 		for (Integer ai : all) {
+			if (partOfElem != null && !partOfElem.contains(ai))
+				continue;
 			singles[next] = ai;
-			product(multi, start + 1, singles, acts, r);
+			product(multi, start + 1, singles, acts, r, partOf);
 		}
 	}
 
@@ -409,27 +473,6 @@ public class TypedSets {
 
 	private static TypedList allInvalid(List<TypedID> in, IDType target) {
 		return new TypedList(new RepeatingList<Integer>(INVALID_ID, in.size()), target);
-	}
-
-	/**
-	 * @param a
-	 * @param b
-	 * @return
-	 */
-	public static TypedSet intersect(TypedSet a, TypedSet b) {
-		final IDType bIdType = b.getIdType();
-		final IDType aIdType = a.getIdType();
-
-		if (aIdType.equals(bIdType))
-			return a.intersect(b);
-		IIDTypeMapper<Integer, Integer> a2b = MappingCaches.findMapper(aIdType, bIdType);
-		IIDTypeMapper<Integer, Integer> b2a = MappingCaches.findMapper(bIdType, aIdType);
-		if (a2b == null || b2a == null)
-			return TypedCollections.INVALID_SET;
-		Set<Integer> as = b2a.apply(b);
-		Set<Integer> r = new HashSet<>(a);
-		r.retainAll(as);
-		return new TypedSet(ImmutableSet.copyOf(r), aIdType);
 	}
 
 }

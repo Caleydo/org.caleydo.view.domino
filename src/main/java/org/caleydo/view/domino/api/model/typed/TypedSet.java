@@ -9,6 +9,7 @@ import java.util.AbstractSet;
 import java.util.BitSet;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Objects;
 import java.util.Set;
@@ -292,6 +293,18 @@ public class TypedSet extends AbstractSet<Integer> implements ITypedCollection {
 		for (TypedSet s : same)
 			b.addAll(s.wrappee);
 		return new TypedSet(b.build(), same.iterator().next().getIdType());
+
+	}
+
+	/**
+	 * @param same
+	 * @return
+	 */
+	public static TypedSet intersection(Iterable<TypedSet> same) {
+		Set<Integer> r = new HashSet<>(same.iterator().next());
+		for (TypedSet s : same)
+			r.retainAll(s);
+		return new TypedSet(r, same.iterator().next().getIdType());
 
 	}
 

@@ -249,7 +249,7 @@ public class DominoNodeLayer extends GLElementContainer implements IDominoGraphL
 		if (walkAlong.size() <= 1)
 			return walkAlong;
 		int i = walkAlong.get(0) instanceof PlaceholderNode ? 1 : 0;
-		int j = walkAlong.size() + (walkAlong.get(walkAlong.size() - 1) instanceof PlaceholderNode ? -1 : -2);
+		int j = walkAlong.size() + (walkAlong.get(walkAlong.size() - 1) instanceof PlaceholderNode ? -1 : 0);
 		return walkAlong.subList(i, j);
 	}
 
@@ -537,7 +537,7 @@ public class DominoNodeLayer extends GLElementContainer implements IDominoGraphL
 
 	@ListenTo(sendToMe = true)
 	private void onShowPlaceHoldersEvent(ShowPlaceHoldersEvent event) {
-		Set<Placeholder> placeholders = graph.findPlaceholders(event.getNode(), EPlaceHolderFlag.INCLUDE_BETWEEN_BANDS,
+		Set<Placeholder> placeholders = graph.findPlaceholders(event.getNode(), EPlaceHolderFlag.INCLUDE_BETWEEN_BAND,
 				EPlaceHolderFlag.INCLUDE_TRANSPOSE);
 		graph.insertPlaceholders(placeholders, event.getNode());
 	}

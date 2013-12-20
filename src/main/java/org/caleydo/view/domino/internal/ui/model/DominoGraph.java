@@ -110,6 +110,7 @@ public class DominoGraph implements Function<Integer, INode> {
 	}
 
 	private void band(INode a, EDimension dirA, INode b, EDimension dirB) {
+		System.out.println("add band: " + a + " " + b);
 		addEdge(a, b, new BandEdge(dirA, dirB));
 	}
 
@@ -297,7 +298,7 @@ public class DominoGraph implements Function<Integer, INode> {
 	}
 
 	public enum EPlaceHolderFlag {
-		INCLUDE_TRANSPOSE, INCLUDE_BETWEEN_BANDS, INCLUDE_BETWEEN_BLOCK
+		INCLUDE_TRANSPOSE, INCLUDE_BETWEEN_BAND, INCLUDE_BETWEEN_MAGNETIC, INCLUDE_BETWEEN_BEAM
 	}
 	/**
 	 * find all placed where this node can be attached
@@ -334,9 +335,11 @@ public class DominoGraph implements Function<Integer, INode> {
 			IEdge edge = hasEdge(v, dir, edges);
 			if (edge == null) {
 				places.add(new Placeholder(v, dir, transposed));
-			} else if ((flags.contains(EPlaceHolderFlag.INCLUDE_BETWEEN_BANDS) && Edges.BANDS.apply(edge))) {
+			} else if ((flags.contains(EPlaceHolderFlag.INCLUDE_BETWEEN_BAND) && Edges.BANDS.apply(edge))) {
 				places.add(new Placeholder(v, dir, transposed));
-			} else if (flags.contains(EPlaceHolderFlag.INCLUDE_BETWEEN_BLOCK) && Edges.SAME_STRATIFICATION.apply(edge)) {
+			} else if ((flags.contains(EPlaceHolderFlag.INCLUDE_BETWEEN_BEAM) && Edges.SAME_STRATIFICATION.apply(edge))) {
+				places.add(new Placeholder(v, dir, transposed));
+			} else if (flags.contains(EPlaceHolderFlag.INCLUDE_BETWEEN_MAGNETIC) && Edges.SAME_SORTING.apply(edge)) {
 				INode o = edge.getOpposite(v);
 				if (o != node && !(o instanceof PlaceholderNode)
 						&& (dir == EDirection.LEFT_OF || dir == EDirection.ABOVE))
@@ -363,9 +366,8 @@ public class DominoGraph implements Function<Integer, INode> {
 				EDirection dir = p.getDir();
 				IEdge edge = getEdge(v, dir); // right of
 				if (edge != null) { // split needed
-					INode v2 = edge.getOpposite(v);
 					graph.removeEdge(edge);
-					edgeLike(edge, v2, n);
+					edgeLike(edge, v, n);
 				}
 				magnetic(v, dir, n);
 			}
@@ -378,8 +380,10 @@ public class DominoGraph implements Function<Integer, INode> {
 	 * @param n
 	 */
 	private void vertexAdded(INode n) {
-		for (EDimension dim : n.dimensions())
-			createBandEdges(n, dim);
+		if (!(n instanceof PlaceholderNode)) {
+			for (EDimension dim : n.dimensions())
+				createBandEdges(n, dim);
+		}
 		Collection<IEdge> edges = edgesOf(n);
 		for (IDominoGraphListener l : listeners)
 			l.vertexAdded(n, edges);

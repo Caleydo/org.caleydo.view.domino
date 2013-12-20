@@ -12,6 +12,7 @@ import java.beans.PropertyChangeListener;
 import java.util.List;
 
 import org.caleydo.core.data.collection.EDimension;
+import org.caleydo.core.util.color.Color;
 import org.caleydo.core.view.opengl.canvas.IGLMouseListener.IMouseEvent;
 import org.caleydo.core.view.opengl.layout2.GLElement;
 import org.caleydo.core.view.opengl.layout2.GLElementContainer;
@@ -20,13 +21,13 @@ import org.caleydo.core.view.opengl.layout2.IGLElementContext;
 import org.caleydo.core.view.opengl.layout2.basic.ScrollingDecorator.IHasMinSize;
 import org.caleydo.core.view.opengl.layout2.layout.IGLLayout2;
 import org.caleydo.core.view.opengl.layout2.layout.IGLLayoutElement;
+import org.caleydo.core.view.opengl.layout2.renderer.GLRenderers;
 import org.caleydo.core.view.opengl.picking.IPickingListener;
 import org.caleydo.core.view.opengl.picking.Pick;
 import org.caleydo.view.domino.api.model.typed.TypedList;
 import org.caleydo.view.domino.internal.ui.model.DominoGraph;
 import org.caleydo.view.domino.internal.ui.model.NodeUIState;
 import org.caleydo.view.domino.internal.ui.prototype.INode;
-import org.caleydo.view.domino.internal.ui.prototype.ISortableNode;
 
 import com.google.common.base.Supplier;
 
@@ -54,6 +55,7 @@ public abstract class ANodeElement extends GLElementContainer implements IHasMin
 		this.nodeUI = node.createUI();
 		this.content = new PickingBarrier(this.nodeUI.asGLElement());
 		this.add(content);
+		setPicker(GLRenderers.fillRect(Color.LIGHT_RED));
 
 		setVisibility(EVisibility.PICKABLE);
 		onPick(this);
@@ -98,7 +100,7 @@ public abstract class ANodeElement extends GLElementContainer implements IHasMin
 		DominoGraph graph = findGraph();
 		switch (pick.getPickingMode()) {
 		case RIGHT_CLICKED:
-			graph.remove(node);
+			// graph.remove(node);
 			// graph.transpose(node);
 			break;
 		default:
@@ -160,13 +162,6 @@ public abstract class ANodeElement extends GLElementContainer implements IHasMin
 		case MOUSE_WHEEL:
 			node.getUIState().zoom(event);
 			break;
-		case RIGHT_CLICKED:
-			graph.remove(node);
-			break;
-		case DOUBLE_CLICKED:
-			if (node instanceof ISortableNode)
-				graph.sortBy((ISortableNode) node, EDimension.DIMENSION);
-			break;
 		default:
 			break;
 		}
@@ -204,7 +199,7 @@ public abstract class ANodeElement extends GLElementContainer implements IHasMin
 	protected void renderPickImpl(GLGraphics g, float w, float h) {
 		if (getVisibility() == EVisibility.PICKABLE) {
 			g.pushName(mainPickingId);
-			g.fillRect(0, 0, w, h);
+			g.incZ(0.05f).color(Color.GREEN).fillRect(0, 0, w, h).color(Color.BLACK).incZ(-0.05f);
 			g.popName();
 		}
 		super.renderPickImpl(g, w, h);
