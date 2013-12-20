@@ -76,8 +76,22 @@ public class NodeElement extends ANodeElement implements ISelectionMixinCallback
 		super.takeDown();
 	}
 
-	protected boolean isContentPickable() {
+	protected boolean isSelectState() {
 		return content.getVisibility() == EVisibility.PICKABLE;
+	}
+
+	public ENodeUIState getState() {
+		return isSelectState() ? ENodeUIState.SELECT : ENodeUIState.MOVE;
+	}
+
+	/**
+	 * @param move
+	 */
+	public void setState(ENodeUIState state) {
+		if (state == ENodeUIState.MOVE) {
+			content.setVisibility(EVisibility.VISIBLE);
+		} else
+			content.setVisibility(EVisibility.PICKABLE);
 	}
 
 
@@ -85,7 +99,7 @@ public class NodeElement extends ANodeElement implements ISelectionMixinCallback
 	protected void onMainPick(Pick pick) {
 		switch (pick.getPickingMode()) {
 		case MOUSE_OVER:
-			if (!isContentPickable())
+			if (!isSelectState())
 				context.getMouseLayer().addDragSource(source);
 			break;
 		case MOUSE_OUT:
@@ -99,10 +113,8 @@ public class NodeElement extends ANodeElement implements ISelectionMixinCallback
 			break;
 		case DOUBLE_CLICKED:
 			// graph.remove(node);
-			content.setVisibility(content.getVisibility() == EVisibility.PICKABLE ? EVisibility.VISIBLE
-					: EVisibility.PICKABLE);
-			System.out.println(content.getVisibility());
-			if (isContentPickable()) {
+			setState(getState().opposite());
+			if (isSelectState()) {
 				border.setColor(Color.RED);
 				context.getMouseLayer().removeDragSource(source);
 			} else {
@@ -125,8 +137,6 @@ public class NodeElement extends ANodeElement implements ISelectionMixinCallback
 	@Override
 	public void pick(Pick pick) {
 		super.pick(pick);
-		IMouseEvent event = ((IMouseEvent) pick);
-		DominoGraph graph = findGraph();
 		switch (pick.getPickingMode()) {
 		case MOUSE_OVER:
 			select(SelectionType.MOUSE_OVER, true, true);
@@ -178,5 +188,16 @@ public class NodeElement extends ANodeElement implements ISelectionMixinCallback
 		Vec2f s = getNodeSize();
 		s.add(new Vec2f(BORDER * 2, BORDER * 2));
 		return s;
+	}
+
+	public static enum ENodeUIState {
+		MOVE, SELECT;
+
+		/**
+		 * @return
+		 */
+		public ENodeUIState opposite() {
+			return this == MOVE ? SELECT : MOVE;
+		}
 	}
 }

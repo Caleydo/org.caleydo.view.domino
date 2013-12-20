@@ -36,7 +36,7 @@ public class GraphElement extends GLElementContainer implements IGLLayout2 {
 		this.topToolBar = new MainToolBar(nodes, graph);
 		graph.addGraphListener(this.topToolBar);
 		this.add(this.topToolBar);
-		this.leftToolBar = new LeftToolBar();
+		this.leftToolBar = new LeftToolBar(nodes, graph);
 		this.add(this.leftToolBar);
 		this.add(nodes);
 		this.add(new DominoBandLayer(graph, nodes));

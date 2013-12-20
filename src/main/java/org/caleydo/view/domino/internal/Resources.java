@@ -42,6 +42,9 @@ public class Resources {
 	public static final URL ICON_DELETE = icon("cross.png");
 	public static final URL ICON = icon("icon.png");
 
+	public static final URL ICON_STATE_MOVE = icon("transform_move.png");
+	public static final URL ICON_STATE_SELECT = icon("select.png");
+
 	/**
 	 * @param string
 	 * @return
