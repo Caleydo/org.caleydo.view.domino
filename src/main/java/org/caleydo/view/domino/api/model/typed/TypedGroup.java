@@ -9,6 +9,7 @@ import java.util.AbstractCollection;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 
 import org.caleydo.core.id.IDType;
@@ -90,6 +91,29 @@ public class TypedGroup extends AbstractCollection<Integer> implements ITypedGro
 	@Override
 	public final boolean containsAll(Collection<?> c) {
 		return data.containsAll(c);
+	}
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((color == null) ? 0 : color.hashCode());
+		result = prime * result + ((data == null) ? 0 : data.hashCode());
+		result = prime * result + ((label == null) ? 0 : label.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		TypedGroup other = (TypedGroup) obj;
+		return Objects.equals(color, other.color) && Objects.equals(label, other.label)
+				&& Objects.equals(data, other.data);
 	}
 
 }

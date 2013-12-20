@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Objects;
 
 import org.caleydo.core.util.color.Color;
 
@@ -66,6 +67,26 @@ public class TypedGroupList extends TypedList implements ITypedCollection {
 	 */
 	public List<TypedGroup> getGroups() {
 		return groups;
+	}
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = super.hashCode();
+		result = prime * result + ((groups == null) ? 0 : groups.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (!super.equals(obj))
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		TypedGroupList other = (TypedGroupList) obj;
+		return Objects.equals(groups, other.groups);
 	}
 
 	/**

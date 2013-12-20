@@ -9,6 +9,7 @@ import java.util.AbstractList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Objects;
 
 import org.caleydo.core.data.virtualarray.VirtualArray;
 import org.caleydo.core.id.IDType;
@@ -99,5 +100,26 @@ public class TypedList extends AbstractList<Integer> implements ITypedCollection
 	@Override
 	public final boolean containsAll(Collection<?> c) {
 		return wrappee.containsAll(c);
+	}
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = super.hashCode();
+		result = prime * result + ((idType == null) ? 0 : idType.hashCode());
+		result = prime * result + ((wrappee == null) ? 0 : wrappee.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (!super.equals(obj))
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		TypedList other = (TypedList) obj;
+		return Objects.equals(idType, other.idType) && Objects.equals(wrappee, other.wrappee);
 	}
 }

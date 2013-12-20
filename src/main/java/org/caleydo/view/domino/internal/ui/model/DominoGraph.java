@@ -573,7 +573,7 @@ public class DominoGraph implements Function<Integer, INode> {
 			}
 		} else if (priority == ISortableNode.TOP_PRIORITY && stratify && node instanceof IStratisfyingableNode) { // toggle
 																													// stratify
-			((IStratisfyingableNode) node).setStratisfied(dim, true);
+			((IStratisfyingableNode) node).setStratisfied(dim, !((IStratisfyingableNode) node).isStratisfied(dim));
 			for (ISortableNode n : sorting) {
 				if (n != node && n instanceof IStratisfyingableNode)
 					((IStratisfyingableNode) n).setStratisfied(dim, false);
