@@ -24,7 +24,6 @@ import org.caleydo.core.view.opengl.layout2.GLGraphics;
 import org.caleydo.view.domino.api.model.typed.TypedGroup;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSet;
 
 /**
  * @author Samuel Gratzl
@@ -79,7 +78,8 @@ public class Utils {
 		List<Color> colors = getGroupColors(referenceId, (ATableBasedDataDomain) p.getDataDomain(), groups, mainDim);
 		List<TypedGroup> r = new ArrayList<>();
 		for (int i = 0; i < groups.size(); ++i) {
-			r.add(new TypedGroup(ImmutableSet.copyOf(va.getIDsOfGroup(i)), va.getIdType(), colors.get(i), groups.get(i)
+			r.add(new TypedGroup(ImmutableList.copyOf(va.getIDsOfGroup(i)), va.getIdType(), colors.get(i), groups
+					.get(i)
 					.getLabel()));
 		}
 		return ImmutableList.copyOf(r);

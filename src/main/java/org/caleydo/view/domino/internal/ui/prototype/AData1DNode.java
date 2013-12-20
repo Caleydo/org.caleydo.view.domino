@@ -12,6 +12,7 @@ import org.caleydo.core.id.IDType;
 import org.caleydo.core.util.color.Color;
 import org.caleydo.view.domino.api.model.typed.ITypedComparator;
 import org.caleydo.view.domino.api.model.typed.TypedCollections;
+import org.caleydo.view.domino.api.model.typed.TypedGroupList;
 import org.caleydo.view.domino.api.model.typed.TypedID;
 import org.caleydo.view.domino.api.model.typed.TypedList;
 import org.caleydo.view.domino.api.model.typed.TypedSet;
@@ -89,6 +90,17 @@ public abstract class AData1DNode extends ANode implements ISortableNode, ITyped
 		return this.data.asTablePerspective(single, data);
 	}
 
+	protected final TablePerspective asTablePerspective(TypedGroupList data) {
+		TypedID singleID = getSingleID();
+		TypedGroupList single = TypedGroupList.createUngrouped(TypedCollections.singletonList(singleID));
+		if (this.isRightDimension(EDimension.DIMENSION)) {
+			TypedGroupList t = single;
+			single = data;
+			data = t;
+		}
+		return this.data.asTablePerspective(single, data);
+	}
+
 
 
 	@Override
@@ -130,7 +142,7 @@ public abstract class AData1DNode extends ANode implements ISortableNode, ITyped
 	public final void setSortingPriority(EDimension dim, int sortingPriority) {
 		if (!isRightDimension(dim))
 			return;
-		propertySupport.firePropertyChange(SORTING_PRIORITY, this.sortingPriority,
+		propertySupport.firePropertyChange(PROP_SORTING_PRIORITY, this.sortingPriority,
 				this.sortingPriority = sortingPriority);
 	}
 

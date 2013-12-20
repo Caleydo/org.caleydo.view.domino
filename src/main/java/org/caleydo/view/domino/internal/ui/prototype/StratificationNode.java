@@ -16,6 +16,7 @@ import org.caleydo.core.view.opengl.layout2.manage.GLElementFactoryContext.Build
 import org.caleydo.view.domino.api.model.typed.ITypedComparator;
 import org.caleydo.view.domino.api.model.typed.TypedCollections;
 import org.caleydo.view.domino.api.model.typed.TypedGroup;
+import org.caleydo.view.domino.api.model.typed.TypedGroupList;
 import org.caleydo.view.domino.api.model.typed.TypedList;
 import org.caleydo.view.domino.api.model.typed.TypedSet;
 import org.caleydo.view.domino.internal.ui.ANodeUI;
@@ -35,6 +36,7 @@ public class StratificationNode extends ANode implements IStratisfyingableNode, 
 	private final EDimension mainDim;
 	private EDimension dim;
 	private int sortingPriority = NO_SORTING;
+	private boolean isStratified;
 
 	public StratificationNode(Perspective data, EDimension dim) {
 		this(data, dim, null);
@@ -106,6 +108,18 @@ public class StratificationNode extends ANode implements IStratisfyingableNode, 
 	}
 
 	@Override
+	public boolean isStratisfied(EDimension dim) {
+		return isRightDimension(dim) && isStratified;
+	}
+
+	@Override
+	public void setStratisfied(EDimension dim, boolean isStratified) {
+		if (!isRightDimension(dim))
+			return;
+		propertySupport.firePropertyChange(PROP_IS_STRATISFIED, this.isStratified, this.isStratified = isStratified);
+	}
+
+	@Override
 	public List<TypedGroup> getGroups(EDimension dim) {
 		return groups;
 	}
@@ -119,7 +133,7 @@ public class StratificationNode extends ANode implements IStratisfyingableNode, 
 	public void setSortingPriority(EDimension dim, int sortingPriority) {
 		if (!isRightDimension(dim))
 			return;
-		propertySupport.firePropertyChange(SORTING_PRIORITY, this.sortingPriority,
+		propertySupport.firePropertyChange(PROP_SORTING_PRIORITY, this.sortingPriority,
 				this.sortingPriority = sortingPriority);
 	}
 
@@ -179,7 +193,7 @@ public class StratificationNode extends ANode implements IStratisfyingableNode, 
 		}
 
 		@Override
-		protected void fill(Builder b, TypedList dim, TypedList rec) {
+		protected void fill(Builder b, TypedGroupList dim, TypedGroupList rec) {
 			final EDimension dimension = node.getDimension();
 			b.put(EDimension.class, dimension);
 			final TypedList data = dimension.select(dim, rec);

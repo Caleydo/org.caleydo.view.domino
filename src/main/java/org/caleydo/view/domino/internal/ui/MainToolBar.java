@@ -68,14 +68,10 @@ public class MainToolBar extends GLElementContainer implements PropertyChangeLis
 	}
 
 	@Override
-	public void vertexSortingChanged(ISortableNode vertex, EDimension dim) {
+	public void vertexSortingChanged(ISortableNode vertex, EDimension dim, boolean stratisfy) {
 
 	}
 
-	@Override
-	public void vertexStratificationChanged(IStratisfyingableNode vertex, EDimension dim) {
-
-	}
 
 	public void addSeparator() {
 		this.add(new Separator());

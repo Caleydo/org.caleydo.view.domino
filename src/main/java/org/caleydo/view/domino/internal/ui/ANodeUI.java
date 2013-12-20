@@ -21,6 +21,7 @@ import org.caleydo.core.view.opengl.layout2.manage.GLElementFactoryContext;
 import org.caleydo.core.view.opengl.layout2.manage.GLElementFactoryContext.Builder;
 import org.caleydo.core.view.opengl.layout2.manage.GLElementFactorySwitcher;
 import org.caleydo.core.view.opengl.layout2.manage.GLElementFactorySwitcher.ELazyiness;
+import org.caleydo.view.domino.api.model.typed.TypedGroupList;
 import org.caleydo.view.domino.api.model.typed.TypedList;
 import org.caleydo.view.domino.api.model.typed.TypedSets;
 import org.caleydo.view.domino.internal.ui.model.NodeUIState;
@@ -39,8 +40,8 @@ public abstract class ANodeUI<T extends INode> extends GLElementDecorator implem
 		Predicate<String> {
 	protected final T node;
 
-	private TypedList dimData;
-	private TypedList recData;
+	private TypedGroupList dimData;
+	private TypedGroupList recData;
 	private boolean rebuild = false;
 
 	public ANodeUI(T node) {
@@ -51,11 +52,15 @@ public abstract class ANodeUI<T extends INode> extends GLElementDecorator implem
 		build();
 	}
 
-	private static TypedList toData(EDimension dim, INode node) {
+	private static TypedList toList(EDimension dim, INode node) {
 		if (node.hasDimension(dim) && node instanceof ISortableNode && ((ISortableNode) node).isSortable(dim))
 			return TypedSets.sort(node.getData(dim), ((ISortableNode) node).getComparator(dim));
 		else
 			return node.getData(dim).asList();
+	}
+
+	private static TypedGroupList toData(EDimension dim, INode node) {
+		return TypedGroupList.createUngrouped(toList(dim, node));
 	}
 
 	@Override
@@ -79,6 +84,7 @@ public abstract class ANodeUI<T extends INode> extends GLElementDecorator implem
 		Builder b = GLElementFactoryContext.builder();
 		fill(b, dimData, recData);
 		b.put(EDetailLevel.class, EDetailLevel.HIGH);
+		b.set("heatmap.renderGroupHints");
 		ImmutableList<GLElementSupplier> extensions = GLElementFactories.getExtensions(b.build(), "domino."
 				+ getExtensionID(), node.getUIState().getProximityMode());
 		GLElementFactorySwitcher s = new GLElementFactorySwitcher(extensions, ELazyiness.DESTROY);
@@ -99,7 +105,7 @@ public abstract class ANodeUI<T extends INode> extends GLElementDecorator implem
 	}
 
 
-	protected abstract void fill(Builder b, TypedList dim, TypedList rec);
+	protected abstract void fill(Builder b, TypedGroupList dimData, TypedGroupList recData);
 
 	@Override
 	public boolean apply(String input) {
@@ -112,8 +118,8 @@ public abstract class ANodeUI<T extends INode> extends GLElementDecorator implem
 	}
 
 	@Override
-	public boolean setData(EDimension dim, TypedList data) {
-		final TypedList oldList = dim.select(dimData, recData);
+	public boolean setData(EDimension dim, TypedGroupList data) {
+		final TypedGroupList oldList = dim.select(dimData, recData);
 		if (Objects.equals(oldList, data))
 			return false;
 		int old = oldList.size();

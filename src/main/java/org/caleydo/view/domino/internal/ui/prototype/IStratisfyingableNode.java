@@ -15,7 +15,18 @@ import org.caleydo.view.domino.api.model.typed.TypedGroup;
  *
  */
 public interface IStratisfyingableNode extends ISortableNode {
+	String PROP_IS_STRATISFIED = "isStratisfied";
+
 	List<TypedGroup> getGroups(EDimension dim);
 
 	boolean isStratisfyable(EDimension dim);
+
+	/**
+	 * @param dim
+	 * @return
+	 */
+
+	boolean isStratisfied(EDimension dim);
+
+	void setStratisfied(EDimension dim, boolean isStratified);
 }

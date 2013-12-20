@@ -36,7 +36,7 @@ public class TypedSet extends AbstractSet<Integer> implements ITypedCollection {
 	private final IDType idType;
 
 	public TypedSet(Set<Integer> wrappee, IDType idType) {
-		this.wrappee = Preconditions.checkNotNull(wrappee);
+		this.wrappee = wrappee instanceof TypedSet ? ((TypedSet) wrappee).wrappee : Preconditions.checkNotNull(wrappee);
 		this.idType = Preconditions.checkNotNull(idType);
 	}
 

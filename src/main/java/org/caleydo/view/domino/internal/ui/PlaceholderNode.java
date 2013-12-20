@@ -12,6 +12,7 @@ import org.caleydo.core.util.color.Color;
 import org.caleydo.core.view.opengl.layout2.GLElement;
 import org.caleydo.core.view.opengl.layout2.GLGraphics;
 import org.caleydo.view.domino.api.model.typed.TypedCollections;
+import org.caleydo.view.domino.api.model.typed.TypedGroupList;
 import org.caleydo.view.domino.api.model.typed.TypedList;
 import org.caleydo.view.domino.internal.ui.model.ANode;
 import org.caleydo.view.domino.internal.ui.prototype.ADataNode;
@@ -45,8 +46,8 @@ public class PlaceholderNode extends ADataNode {
 
 	static class UI extends GLElement implements INodeUI {
 		private final PlaceholderNode node;
-		private TypedList dimData = TypedCollections.INVALID_LIST;
-		private TypedList recData = TypedCollections.INVALID_LIST;
+		private TypedGroupList dimData = TypedCollections.INVALID_GROUP_LIST;
+		private TypedGroupList recData = TypedCollections.INVALID_GROUP_LIST;
 
 		private boolean armed = false;
 
@@ -82,7 +83,7 @@ public class PlaceholderNode extends ADataNode {
 		}
 
 		@Override
-		public boolean setData(EDimension dim, TypedList data) {
+		public boolean setData(EDimension dim, TypedGroupList data) {
 			int old = dim.select(dimData, recData).size();
 			if (dim.isHorizontal())
 				dimData = data;

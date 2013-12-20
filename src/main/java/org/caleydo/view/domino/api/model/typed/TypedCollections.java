@@ -24,6 +24,7 @@ public class TypedCollections {
 
 	public static final TypedSet INVALID_SET;
 	public static final TypedList INVALID_LIST;
+	public static final TypedGroupList INVALID_GROUP_LIST;
 	public static final ITypedComparator NATURAL_ORDER;
 
 	public final static Integer INVALID_ID = Integer.valueOf(-1);
@@ -41,6 +42,7 @@ public class TypedCollections {
 		INVALID_SET = new TypedSet(Collections.<Integer> emptySet(), INVALID_IDTYPE);
 		INVALID_LIST = new TypedList(Collections.<Integer> emptyList(), INVALID_IDTYPE);
 		NATURAL_ORDER = new TypedComparator(TypedComparator.NATURAL, INVALID_IDTYPE);
+		INVALID_GROUP_LIST = TypedGroupList.createUngrouped(INVALID_LIST);
 	}
 
 	public static final Function<Set<Integer>, Integer> toSingleOrInvalid = new Function<Set<Integer>, Integer>() {

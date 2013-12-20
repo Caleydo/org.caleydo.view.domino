@@ -13,7 +13,7 @@ import org.caleydo.view.domino.api.model.typed.ITypedComparator;
  *
  */
 public interface ISortableNode extends INode {
-	String SORTING_PRIORITY = "sortingPriority";
+	String PROP_SORTING_PRIORITY = "sortingPriority";
 
 	int NO_SORTING = Integer.MAX_VALUE;
 

@@ -10,7 +10,6 @@ import java.util.Collection;
 import org.caleydo.core.data.collection.EDimension;
 import org.caleydo.view.domino.internal.ui.prototype.INode;
 import org.caleydo.view.domino.internal.ui.prototype.ISortableNode;
-import org.caleydo.view.domino.internal.ui.prototype.IStratisfyingableNode;
 
 /**
  * @author Samuel Gratzl
@@ -21,7 +20,5 @@ public interface IDominoGraphListener {
 
 	void vertexRemoved(INode vertex, Collection<IEdge> edges);
 
-	void vertexSortingChanged(ISortableNode vertex, EDimension dim);
-
-	void vertexStratificationChanged(IStratisfyingableNode vertex, EDimension dim);
+	void vertexSortingChanged(ISortableNode vertex, EDimension dim, boolean stratisfied);
 }

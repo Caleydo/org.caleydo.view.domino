@@ -24,7 +24,7 @@ import org.caleydo.core.view.opengl.layout2.layout.IGLLayoutElement;
 import org.caleydo.core.view.opengl.layout2.renderer.GLRenderers;
 import org.caleydo.core.view.opengl.picking.IPickingListener;
 import org.caleydo.core.view.opengl.picking.Pick;
-import org.caleydo.view.domino.api.model.typed.TypedList;
+import org.caleydo.view.domino.api.model.typed.TypedGroupList;
 import org.caleydo.view.domino.internal.ui.model.DominoGraph;
 import org.caleydo.view.domino.internal.ui.model.NodeUIState;
 import org.caleydo.view.domino.internal.ui.prototype.INode;
@@ -233,7 +233,7 @@ public abstract class ANodeElement extends GLElementContainer implements IHasMin
 	}
 
 	@Override
-	public boolean setData(EDimension dim, TypedList data) {
+	public boolean setData(EDimension dim, TypedGroupList data) {
 		return nodeUI.setData(dim, data);
 	}
 

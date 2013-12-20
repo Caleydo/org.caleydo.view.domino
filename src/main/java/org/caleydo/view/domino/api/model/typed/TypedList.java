@@ -27,7 +27,8 @@ public class TypedList extends AbstractList<Integer> implements ITypedCollection
 	private final IDType idType;
 
 	public TypedList(List<Integer> wrappee, IDType idType) {
-		this.wrappee = Preconditions.checkNotNull(wrappee);
+		this.wrappee = wrappee instanceof TypedList ? ((TypedList) wrappee).wrappee : Preconditions
+				.checkNotNull(wrappee);
 		this.idType = Preconditions.checkNotNull(idType);
 	}
 
@@ -36,55 +37,67 @@ public class TypedList extends AbstractList<Integer> implements ITypedCollection
 	}
 
 	@Override
-	public TypedList asList() {
+	public final TypedList asList() {
 		return this;
+	}
+
+	@Override
+	public TypedList subList(int fromIndex, int toIndex) {
+		return new TypedList(super.subList(fromIndex, toIndex), idType);
+	}
+
+	/**
+	 * @return the wrappee, see {@link #wrappee}
+	 */
+	final List<Integer> getWrappee() {
+		return wrappee;
 	}
 
 	/**
 	 * @return the idType, see {@link #idType}
 	 */
 	@Override
-	public IDType getIdType() {
+	public final IDType getIdType() {
 		return idType;
 	}
 
 	@Override
-	public Integer get(int index) {
+	public final Integer get(int index) {
 		return wrappee.get(index);
 	}
 
 	@Override
-	public int size() {
+	public final int size() {
 		return wrappee.size();
 	}
 
 	@Override
-	public boolean isEmpty() {
+	public final boolean isEmpty() {
 		return wrappee.isEmpty();
 	}
 
 	@Override
-	public boolean contains(Object o) {
+	public final boolean contains(Object o) {
 		return wrappee.contains(o);
 	}
 
 	@Override
-	public Iterator<Integer> iterator() {
+	public final Iterator<Integer> iterator() {
 		return Iterators.unmodifiableIterator(wrappee.iterator());
 	}
 
 	@Override
-	public Object[] toArray() {
+	public final Object[] toArray() {
 		return wrappee.toArray();
 	}
 
 	@Override
-	public <T> T[] toArray(T[] a) {
+	public final <T> T[] toArray(T[] a) {
 		return wrappee.toArray(a);
 	}
 
 	@Override
-	public boolean containsAll(Collection<?> c) {
+	public final boolean containsAll(Collection<?> c) {
 		return wrappee.containsAll(c);
 	}
 }

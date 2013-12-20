@@ -11,8 +11,13 @@ import org.caleydo.core.data.datadomain.ATableBasedDataDomain;
 import org.caleydo.core.data.perspective.table.TablePerspective;
 import org.caleydo.core.data.perspective.variable.Perspective;
 import org.caleydo.core.data.perspective.variable.PerspectiveInitializationData;
+import org.caleydo.core.data.virtualarray.VirtualArray;
+import org.caleydo.core.data.virtualarray.group.Group;
+import org.caleydo.core.data.virtualarray.group.GroupList;
 import org.caleydo.core.id.IDType;
 import org.caleydo.core.util.color.Color;
+import org.caleydo.view.domino.api.model.typed.TypedGroup;
+import org.caleydo.view.domino.api.model.typed.TypedGroupList;
 import org.caleydo.view.domino.api.model.typed.TypedList;
 
 /**
@@ -85,9 +90,37 @@ public class DataDomainDataProvider {
 		return t;
 	}
 
+	public TablePerspective asTablePerspective(TypedGroupList dim, TypedGroupList rec) {
+		Perspective d = asPerspective(dim);
+		Perspective r = asPerspective(rec);
+		TablePerspective t = new TablePerspective(this.d, r, d);
+		return t;
+	}
+
 	private Perspective asPerspective(TypedList data) {
 		PerspectiveInitializationData init = new PerspectiveInitializationData();
 		init.setData(data);
+		Perspective d = new Perspective(this.d, data.getIdType());
+		d.init(init);
+		return d;
+	}
+
+	private Perspective asPerspective(TypedGroupList data) {
+		if (data.getGroups().size() <= 1)
+			return asPerspective((TypedList) data);
+
+		PerspectiveInitializationData init = new PerspectiveInitializationData();
+		VirtualArray va = new VirtualArray(data.getIdType(), data);
+		GroupList groupList = new GroupList();
+		for(TypedGroup g : data.getGroups()) {
+			Group group = new Group(g.size(),0);
+			group.setLabel(g.getLabel());
+			groupList.append(group);
+		}
+		va.setGroupList(groupList);
+
+		init.setData(va);
+
 		Perspective d = new Perspective(this.d, data.getIdType());
 		d.init(init);
 		return d;

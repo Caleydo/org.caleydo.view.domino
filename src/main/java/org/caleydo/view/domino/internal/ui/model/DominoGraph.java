@@ -544,6 +544,10 @@ public class DominoGraph implements Function<Integer, INode> {
 	 * @param eDimension
 	 */
 	public void sortBy(ISortableNode node, final EDimension dim) {
+		sortByImpl(node, dim, false);
+	}
+
+	private void sortByImpl(ISortableNode node, final EDimension dim, boolean stratify) {
 		// find all sorting nodes
 		Comparator<ISortableNode> bySortingPriority = new Comparator<ISortableNode>() {
 			@Override
@@ -554,22 +558,30 @@ public class DominoGraph implements Function<Integer, INode> {
 		// find relevant
 		List<INode> sortingRelevant = walkAlong(dim.opposite(), node,
 				Predicates.not(Predicates.instanceOf(ISortBarrier.class)));
-		// remove invalid
-		Iterable<ISortableNode> sortingReallyRelevant = Iterables.filter(sortingRelevant, ISortableNode.class);
-
 		// sort
 		SortedSet<ISortableNode> sorting = ImmutableSortedSet.orderedBy(bySortingPriority)
-				.addAll(sortingReallyRelevant).build();
+				.addAll(Iterables.filter(sortingRelevant, ISortableNode.class)).build();
 
 		int priority = node.getSortingPriority(dim);
-		if (priority == ISortableNode.TOP_PRIORITY) { // deselect
+		if (priority == ISortableNode.TOP_PRIORITY && !stratify) { // deselect
 			node.setSortingPriority(dim, ISortableNode.NO_SORTING);
 			for (ISortableNode n : sorting) {
 				if (n != node && n != null && n.getSortingPriority(dim) != ISortableNode.NO_SORTING)
 					n.setSortingPriority(dim, n.getSortingPriority(dim) - 1);
+				if (n != node && n instanceof IStratisfyingableNode)
+					((IStratisfyingableNode) n).setStratisfied(dim, false);
+			}
+		} else if (priority == ISortableNode.TOP_PRIORITY && stratify && node instanceof IStratisfyingableNode) { // toggle
+																													// stratify
+			((IStratisfyingableNode) node).setStratisfied(dim, true);
+			for (ISortableNode n : sorting) {
+				if (n != node && n instanceof IStratisfyingableNode)
+					((IStratisfyingableNode) n).setStratisfied(dim, false);
 			}
 		} else if (priority == ISortableNode.NO_SORTING) {
 			node.setSortingPriority(dim, ISortableNode.TOP_PRIORITY);
+			if (stratify && node instanceof IStratisfyingableNode)
+				((IStratisfyingableNode) node).setStratisfied(dim, true);
 			for (ISortableNode n : sorting) {
 				final int npriority = n.getSortingPriority(dim);
 				if (n != node && npriority != ISortableNode.NO_SORTING) {
@@ -577,18 +589,24 @@ public class DominoGraph implements Function<Integer, INode> {
 					if (npriority > ISortableNode.MINIMUM_PRIORITY)
 						n.setSortingPriority(dim, ISortableNode.NO_SORTING);
 				}
+				if (n != node && n instanceof IStratisfyingableNode)
+					((IStratisfyingableNode) n).setStratisfied(dim, false);
 			}
 		} else { // increase sorting
 			node.setSortingPriority(dim, ISortableNode.TOP_PRIORITY);
+			if (stratify && node instanceof IStratisfyingableNode)
+				((IStratisfyingableNode) node).setStratisfied(dim, true);
 			for (ISortableNode n : sorting) {
 				final int npriority = n.getSortingPriority(dim);
 				if (n != node && npriority < priority) {
 					n.setSortingPriority(dim, nextPriority(npriority));
 				}
+				if (n != node && n instanceof IStratisfyingableNode)
+					((IStratisfyingableNode) n).setStratisfied(dim, false);
 			}
 		}
 		for (IDominoGraphListener l : listeners)
-			l.vertexSortingChanged(node, dim);
+			l.vertexSortingChanged(node, dim, stratify);
 	}
 
 	/**
@@ -596,9 +614,7 @@ public class DominoGraph implements Function<Integer, INode> {
 	 * @param dimension
 	 */
 	public void stratifyBy(IStratisfyingableNode node, EDimension dim) {
-		sortBy(node, dim);
-		// for (IDominoGraphListener l : listeners)
-		// l.vertexStratificationChanged(node, dim);
+		sortByImpl(node, dim, true);
 	}
 
 	/**
