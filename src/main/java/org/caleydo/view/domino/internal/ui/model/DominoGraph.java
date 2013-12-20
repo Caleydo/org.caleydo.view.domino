@@ -110,7 +110,6 @@ public class DominoGraph implements Function<Integer, INode> {
 	}
 
 	private void band(INode a, EDimension dirA, INode b, EDimension dirB) {
-		System.out.println("add band: " + a + " " + b);
 		addEdge(a, b, new BandEdge(dirA, dirB));
 	}
 

@@ -95,7 +95,6 @@ public class DominoBandLayer extends DominoBackgroundLayer implements
 
 	public void update() {
 		routes.clear();
-		System.out.println("update routes");
 
 		for (BandEdge edge : Iterables.filter(graph.edgeSet(), BandEdge.class)) {
 			INode s = edge.getSource();

@@ -334,7 +334,6 @@ public class DominoNodeLayer extends GLElementContainer implements IDominoGraphL
 			int deltaTimeMs) {
 		if (changes.isEmpty())
 			return false;
-		System.out.println("update nodes");
 		Deque<IChange> change = new ArrayDeque<>(changes);
 		Map<GLElement, ? extends IGLLayoutElement> lookup = Maps.uniqueIndex(children, AGLLayoutElement.TO_GL_ELEMENT);
 		Map<INode, ? extends IGLLayoutElement> lookup2 = Maps.uniqueIndex(children,
