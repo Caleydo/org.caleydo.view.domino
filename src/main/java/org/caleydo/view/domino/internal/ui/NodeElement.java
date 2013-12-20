@@ -132,6 +132,7 @@ public class NodeElement extends ANodeElement implements ISelectionMixinCallback
 	public void onSelectionUpdate(SelectionManager manager) {
 		SelectionType s = manager.getHighestSelectionType(node.getID());
 		border.setColor(s == null ? Color.BLACK : s.getColor());
+		border.setWidth(s == null ? 2 : 3);
 		get(1).repaint();
 	}
 

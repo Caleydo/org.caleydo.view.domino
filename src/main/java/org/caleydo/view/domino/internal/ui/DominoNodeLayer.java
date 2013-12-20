@@ -339,6 +339,7 @@ public class DominoNodeLayer extends GLElementContainer implements IDominoGraphL
 		Map<INode, ? extends IGLLayoutElement> lookup2 = Maps.uniqueIndex(children,
 				GLLayoutDatas.toLayoutData(INode.class, null));
 		changes.clear();
+		final int offset = 4;
 		while (!change.isEmpty()) {
 			IChange next = change.pollFirst();
 			if (next instanceof Resized) {
@@ -381,26 +382,6 @@ public class DominoNodeLayer extends GLElementContainer implements IDominoGraphL
 				node.setLocation(loc.x() - dim.select(shift, 0), loc.y() - dim.select(0, shift));
 				// change.addAll(resizeAll(node, v_new, dim, children, shift));
 			}
-			if (next instanceof Resized2) {
-				Resized2 s = (Resized2) next;
-				IGLLayoutElement node = lookup.get(s.node);
-				if (node == null)
-					continue;
-				final INode nnode = s.node.node;
-				final EDimension dim = s.dim;
-				float v = dim.select(node.getWidth(), node.getHeight());
-				float v_new = s.new_;
-				float v_delta = v_new - v;
-				if (v_delta == 0)
-					continue;
-				move(node, v_delta, dim, children);
-
-				node.setSize(dim.select(v_new, node.getWidth()), dim.select(node.getHeight(), v_new));
-
-				final Vec2f loc = node.getLocation();
-				float shift = s.shift;
-				node.setLocation(loc.x() - dim.select(shift, 0), loc.y() - dim.select(0, shift));
-			}
 			if (next instanceof Added) {
 				Added r = (Added) next;
 				IGLLayoutElement node = lookup.get(r.node);
@@ -427,20 +408,20 @@ public class DominoNodeLayer extends GLElementContainer implements IDominoGraphL
 
 				if (leftN != null) {
 					Rect left = lookup2.get(leftN).getRectBounds();
-					node.setLocation(left.x2(), left.y());
+					node.setLocation(left.x2() + offset, left.y());
 				} else if (rightN != null) {
 					Rect right = lookup2.get(rightN).getRectBounds();
-					node.setLocation(right.x() - size.x(), right.y());
+					node.setLocation(right.x() - size.x() - offset, right.y());
 				} else if (nnode instanceof ISortableNode) {
 					((ISortableNode) nnode).setSortingPriority(EDimension.DIMENSION, ISortableNode.TOP_PRIORITY);
 				}
 
 				if (aboveN != null) {
 					Rect left = lookup2.get(aboveN).getRectBounds();
-					node.setLocation(left.x(), left.y2());
+					node.setLocation(left.x(), left.y2() + offset);
 				} else if (belowN != null) {
 					Rect right = lookup2.get(belowN).getRectBounds();
-					node.setLocation(right.x(), right.y() - size.y());
+					node.setLocation(right.x(), right.y() - size.y() - offset);
 				} else if (nnode instanceof ISortableNode) {
 					((ISortableNode) nnode).setSortingPriority(EDimension.RECORD, ISortableNode.TOP_PRIORITY);
 				}
@@ -453,31 +434,6 @@ public class DominoNodeLayer extends GLElementContainer implements IDominoGraphL
 			}
 		}
 		return false;
-	}
-
-	/**
-	 * @param node
-	 * @param v_new
-	 * @param dim
-	 * @param children
-	 * @param shift
-	 * @return
-	 */
-	private Collection<IChange> resizeAll(IGLLayoutElement node, float v_new, EDimension dim,
-			List<? extends IGLLayoutElement> children, float shift) {
-		EDirection prim = EDirection.getPrimary(dim.opposite());
-		Collection<? extends IGLLayoutElement> leftOf = allReachable(node, prim, children, false);
-		Collection<? extends IGLLayoutElement> rightOf = allReachable(node, prim.opposite(), children, false);
-		List<IChange> r = new ArrayList<>();
-		for (IGLLayoutElement elem : Iterables.concat(leftOf, rightOf)) {
-			if (elem == node)
-				continue;
-			float c = dim.select(elem.getSetSize());
-			if (c == v_new)
-				continue;
-			r.add(new Resized2((ANodeElement) elem.asElement(), dim, v_new, shift));
-		}
-		return r;
 	}
 
 	private void move(IGLLayoutElement node, float v_delta,
@@ -597,21 +553,6 @@ public class DominoNodeLayer extends GLElementContainer implements IDominoGraphL
 			this.node = node;
 			this.dim = dim;
 			this.new_ = new_;
-		}
-
-	}
-
-	private class Resized2 implements IChange {
-		public final ANodeElement node;
-		public final EDimension dim;
-		public final float new_;
-		private float shift;
-
-		public Resized2(ANodeElement node, EDimension dim, float new_, float shift) {
-			this.node = node;
-			this.dim = dim;
-			this.new_ = new_;
-			this.shift = shift;
 		}
 
 	}
