@@ -7,6 +7,7 @@ package org.caleydo.view.domino.internal.ui;
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.util.Objects;
 
 import org.caleydo.core.data.collection.EDimension;
 import org.caleydo.core.view.opengl.canvas.EDetailLevel;
@@ -40,7 +41,7 @@ public abstract class ANodeUI<T extends INode> extends GLElementDecorator implem
 
 	private TypedList dimData;
 	private TypedList recData;
-	private boolean rebuild = true;
+	private boolean rebuild = false;
 
 	public ANodeUI(T node) {
 		this.node = node;
@@ -74,6 +75,7 @@ public abstract class ANodeUI<T extends INode> extends GLElementDecorator implem
 	}
 
 	private void build() {
+		System.out.println("build " + node.getLabel());
 		Builder b = GLElementFactoryContext.builder();
 		fill(b, dimData, recData);
 		b.put(EDetailLevel.class, EDetailLevel.HIGH);
@@ -111,7 +113,10 @@ public abstract class ANodeUI<T extends INode> extends GLElementDecorator implem
 
 	@Override
 	public boolean setData(EDimension dim, TypedList data) {
-		int old = dim.select(dimData, recData).size();
+		final TypedList oldList = dim.select(dimData, recData);
+		if (Objects.equals(oldList, data))
+			return false;
+		int old = oldList.size();
 		if (dim.isHorizontal())
 			dimData = data;
 		else
@@ -135,7 +140,6 @@ public abstract class ANodeUI<T extends INode> extends GLElementDecorator implem
 
 	@Override
 	protected void init(IGLElementContext context) {
-		rebuild();
 		node.addPropertyChangeListener(INode.PROP_TRANSPOSE, this);
 		node.getUIState().addPropertyChangeListener(NodeUIState.PROP_PROXIMITY_MODE, this);
 		super.init(context);

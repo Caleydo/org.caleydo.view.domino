@@ -7,10 +7,16 @@ package org.caleydo.view.domino.internal.ui;
 
 import java.util.List;
 
+import org.caleydo.core.event.EventPublisher;
 import org.caleydo.core.view.opengl.layout2.GLElementContainer;
 import org.caleydo.core.view.opengl.layout2.GLSandBox;
+import org.caleydo.core.view.opengl.layout2.layout.GLLayouts;
 import org.caleydo.core.view.opengl.layout2.layout.IGLLayout2;
 import org.caleydo.core.view.opengl.layout2.layout.IGLLayoutElement;
+import org.caleydo.core.view.opengl.picking.IPickingListener;
+import org.caleydo.core.view.opengl.picking.Pick;
+import org.caleydo.core.view.opengl.picking.PickingMode;
+import org.caleydo.view.domino.internal.event.HidePlaceHoldersEvent;
 import org.caleydo.view.domino.internal.ui.model.DominoGraph;
 
 /**
@@ -38,8 +44,20 @@ public class GraphElement extends GLElementContainer implements IGLLayout2 {
 		this.add(this.topToolBar);
 		this.leftToolBar = new LeftToolBar(nodes, graph);
 		this.add(this.leftToolBar);
-		this.add(nodes);
-		this.add(new DominoBandLayer(graph, nodes));
+		GLElementContainer content = new GLElementContainer(GLLayouts.LAYERS);
+		content.setVisibility(EVisibility.PICKABLE);
+		// global clearer of place holders in case of when the dragged element moves away
+		content.onPick(new IPickingListener() {
+			@Override
+			public void pick(Pick pick) {
+				if (pick.getPickingMode() == PickingMode.MOUSE_OUT) {
+					EventPublisher.trigger(new HidePlaceHoldersEvent().to(nodes));
+				}
+			}
+		});
+		this.add(content);
+		content.add(nodes.setzDelta(0.2f));
+		content.add(new DominoBandLayer(graph, nodes));
 	}
 
 	@Override

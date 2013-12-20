@@ -38,7 +38,6 @@ public class DominoBackgroundLayer extends PickableGLElement implements IDropGLT
 	public DominoBackgroundLayer(DominoNodeLayer nodes, DominoGraph graph) {
 		this.nodes = nodes;
 		this.graph = graph;
-		setzDelta(-0.1f);
 	}
 
 	@Override
