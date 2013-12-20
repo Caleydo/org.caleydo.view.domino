@@ -44,6 +44,7 @@ import org.caleydo.view.domino.internal.ui.model.IEdge;
 import org.caleydo.view.domino.internal.ui.model.NodeUIState;
 import org.caleydo.view.domino.internal.ui.prototype.INode;
 import org.caleydo.view.domino.internal.ui.prototype.ISortableNode;
+import org.caleydo.view.domino.internal.ui.prototype.IStratisfyingableNode;
 import org.caleydo.view.domino.spi.model.IBandRenderer;
 import org.caleydo.view.domino.spi.model.IBandRenderer.IBandHost;
 import org.caleydo.view.domino.spi.model.IBandRenderer.SourceTarget;
@@ -89,6 +90,12 @@ public class DominoBandLayer extends DominoBackgroundLayer implements
 
 	@Override
 	public void vertexSortingChanged(ISortableNode vertex, EDimension dim) {
+		// check if any visible bands if so we have to update them
+		relayout();
+	}
+
+	@Override
+	public void vertexStratificationChanged(IStratisfyingableNode vertex, EDimension dim) {
 		// check if any visible bands if so we have to update them
 		relayout();
 	}

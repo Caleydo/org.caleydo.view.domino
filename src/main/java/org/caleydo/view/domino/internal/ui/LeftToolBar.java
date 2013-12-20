@@ -79,14 +79,15 @@ public class LeftToolBar extends GLElementContainer implements ISelectionCallbac
 	private void addButton(String label, URL icon) {
 		GLButton b = new GLButton();
 		final IGLRenderer r = GLRenderers.fillImage(icon);
-		b.setRenderer(new IGLRenderer() {
+		final IGLRenderer s = new IGLRenderer() {
 			@Override
 			public void render(GLGraphics g, float w, float h, GLElement parent) {
 				r.render(g, w, h, parent);
 				g.color(0, 0, 0, .25f).fillRoundedRect(0, 0, w, h, Math.min(w, h) * 0.25f);
 			}
-		});
-		b.setSelectedRenderer(r);
+		};
+		b.setRenderer(r);
+		b.setSelectedRenderer(s);
 		b.setTooltip(label);
 		controller.add(b);
 		this.add(b);

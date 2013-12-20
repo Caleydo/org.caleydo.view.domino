@@ -28,6 +28,7 @@ import org.caleydo.view.domino.internal.ui.prototype.EDirection;
 import org.caleydo.view.domino.internal.ui.prototype.GraphViews;
 import org.caleydo.view.domino.internal.ui.prototype.INode;
 import org.caleydo.view.domino.internal.ui.prototype.ISortableNode;
+import org.caleydo.view.domino.internal.ui.prototype.IStratisfyingableNode;
 import org.jgrapht.ListenableGraph;
 import org.jgrapht.UndirectedGraph;
 import org.jgrapht.alg.ConnectivityInspector;
@@ -588,6 +589,16 @@ public class DominoGraph implements Function<Integer, INode> {
 		}
 		for (IDominoGraphListener l : listeners)
 			l.vertexSortingChanged(node, dim);
+	}
+
+	/**
+	 * @param node
+	 * @param dimension
+	 */
+	public void stratifyBy(IStratisfyingableNode node, EDimension dim) {
+		sortBy(node, dim);
+		// for (IDominoGraphListener l : listeners)
+		// l.vertexStratificationChanged(node, dim);
 	}
 
 	/**

@@ -108,7 +108,7 @@ public abstract class AData1DNode extends ANode implements ISortableNode, ITyped
 		return isRightDimension(dim) ? this.ids : TypedCollections.INVALID_SET;
 	}
 
-	private boolean isRightDimension(EDimension dim) {
+	protected final boolean isRightDimension(EDimension dim) {
 		return dim == getDimension();
 	}
 

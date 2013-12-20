@@ -37,10 +37,13 @@ public class Resources {
 		return resourceLocator;
 	}
 
+	public static final URL ICON = icon("icon.png");
+
 	public static final URL ICON_SORT_DIM = icon("sort_columns_dim.png");
 	public static final URL ICON_SORT_REC = icon("sort_columns.png");
+	public static final URL ICON_STRATIFY_DIM = icon("category_dim.png");
+	public static final URL ICON_STRATIFY_REC = icon("category.png");
 	public static final URL ICON_DELETE = icon("cross.png");
-	public static final URL ICON = icon("icon.png");
 
 	public static final URL ICON_STATE_MOVE = icon("transform_move.png");
 	public static final URL ICON_STATE_SELECT = icon("select.png");

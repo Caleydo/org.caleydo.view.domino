@@ -12,6 +12,7 @@ import org.caleydo.core.data.collection.column.container.CategoryProperty;
 import org.caleydo.core.data.datadomain.DataSupportDefinitions;
 import org.caleydo.core.data.perspective.table.TablePerspective;
 import org.caleydo.core.view.opengl.layout2.manage.GLElementFactoryContext.Builder;
+import org.caleydo.view.domino.api.model.typed.TypedGroup;
 import org.caleydo.view.domino.api.model.typed.TypedList;
 import org.caleydo.view.domino.internal.ui.ANodeUI;
 import org.caleydo.view.domino.internal.ui.INodeUI;
@@ -23,10 +24,10 @@ import com.google.common.collect.ImmutableList;
  * @author Samuel Gratzl
  *
  */
-public final class CategoricalData1DNode extends AData1DNode {
+public final class CategoricalData1DNode extends AData1DNode implements IStratisfyingableNode {
 
-	private final List<CategoryProperty<?>> properties;
 	private final List<?> categories;
+	private List<TypedGroup> groups;
 
 	/**
 	 * @param data
@@ -34,14 +35,17 @@ public final class CategoricalData1DNode extends AData1DNode {
 	public CategoricalData1DNode(TablePerspective data, EDimension main) {
 		super(data, main);
 		assert DataSupportDefinitions.categoricalColumns.apply(data);
-		this.properties = Utils.resolveCategories(getSingleID().getId(), data.getDataDomain(), main.opposite());
+		List<CategoryProperty<?>> properties = Utils.resolveCategories(getSingleID().getId(), data.getDataDomain(),
+				main.opposite());
 		this.categories = toCategories(properties);
+		this.groups = Utils.extractGroups(main.select(data.getDimensionPerspective(), data.getRecordPerspective()),
+				getSingleID().getId(), main.opposite());
 	}
 
 	public CategoricalData1DNode(CategoricalData1DNode clone) {
 		super(clone);
-		this.properties = clone.properties;
 		this.categories = clone.categories;
+		this.groups = clone.groups;
 	}
 
 	@Override
@@ -49,18 +53,14 @@ public final class CategoricalData1DNode extends AData1DNode {
 		return new CategoricalData1DNode(this);
 	}
 
-	/**
-	 * @return the categories, see {@link #categories}
-	 */
-	public List<?> getCategories() {
-		return categories;
+	@Override
+	public boolean isStratisfyable(EDimension dim) {
+		return isRightDimension(dim);
 	}
 
-	/**
-	 * @return the properties, see {@link #properties}
-	 */
-	public List<CategoryProperty<?>> getProperties() {
-		return properties;
+	@Override
+	public List<TypedGroup> getGroups(EDimension dim) {
+		return groups;
 	}
 
 	/**

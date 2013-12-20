@@ -5,19 +5,12 @@
  *******************************************************************************/
 package org.caleydo.view.domino.internal.ui.prototype;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import org.caleydo.core.data.collection.EDimension;
-import org.caleydo.core.data.collection.column.container.CategoryProperty;
-import org.caleydo.core.data.datadomain.ATableBasedDataDomain;
 import org.caleydo.core.data.perspective.variable.Perspective;
-import org.caleydo.core.data.virtualarray.VirtualArray;
-import org.caleydo.core.data.virtualarray.group.Group;
-import org.caleydo.core.data.virtualarray.group.GroupList;
 import org.caleydo.core.id.IDType;
 import org.caleydo.core.util.color.Color;
-import org.caleydo.core.util.color.ColorBrewer;
 import org.caleydo.core.util.function.Function2;
 import org.caleydo.core.view.opengl.layout2.manage.GLElementFactoryContext.Builder;
 import org.caleydo.view.domino.api.model.typed.ITypedComparator;
@@ -30,13 +23,12 @@ import org.caleydo.view.domino.internal.ui.INodeUI;
 import org.caleydo.view.domino.internal.ui.model.ANode;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSet;
 
 /**
  * @author Samuel Gratzl
  *
  */
-public class StratificationNode extends ANode implements ISortableNode, ITypedComparator,
+public class StratificationNode extends ANode implements IStratisfyingableNode, ITypedComparator,
 		Function2<Integer, Integer, Color> {
 	private final List<TypedGroup> groups;
 	private final TypedSet ids;
@@ -51,7 +43,7 @@ public class StratificationNode extends ANode implements ISortableNode, ITypedCo
 	public StratificationNode(Perspective data, EDimension dim, Integer referenceId) {
 		super(data.getLabel());
 		this.ids = TypedSet.of(data.getVirtualArray());
-		this.groups = extractGroups(data, referenceId, dim);
+		this.groups = Utils.extractGroups(data, referenceId, dim);
 		this.dim = this.mainDim = dim;
 	}
 
@@ -62,52 +54,6 @@ public class StratificationNode extends ANode implements ISortableNode, ITypedCo
 		this.ids = clone.ids;
 		this.dim = clone.dim;
 		this.sortingPriority = NO_SORTING;
-	}
-
-	/**
-	 * @param referenceId
-	 * @param virtualArray
-	 * @return
-	 */
-	private static List<TypedGroup> extractGroups(Perspective p, Integer referenceId, EDimension mainDim) {
-		VirtualArray va = p.getVirtualArray();
-		GroupList groups = va.getGroupList();
-		List<Color> colors = getGroupColors(referenceId, (ATableBasedDataDomain)p.getDataDomain(), groups, mainDim);
-		List<TypedGroup> r = new ArrayList<>();
-		for (int i = 0; i < groups.size(); ++i) {
-			r.add(new TypedGroup(ImmutableSet.copyOf(va.getIDsOfGroup(i)), va.getIdType(), colors.get(i), groups.get(i)
-					.getLabel()));
-		}
-		return ImmutableList.copyOf(r);
-	}
-
-	private static List<Color> getGroupColors(Integer referenceId, ATableBasedDataDomain dataDomain, GroupList groups,
-			EDimension mainDim) {
-		if (referenceId == null) {
-			return ColorBrewer.Set2.getColors(groups.size());
-		}
-		// lookup the colors from the properties
-		List<CategoryProperty<?>> categories = Utils.resolveCategories(referenceId, dataDomain,
-				mainDim.opposite());
-		List<Color> colors = new ArrayList<>(groups.size());
-		for (Group group : groups) {
-			String label = group.getLabel();
-			CategoryProperty<?> prop = findProp(label, categories);
-			colors.add(prop == null ? Color.NEUTRAL_GREY : prop.getColor());
-		}
-		return colors;
-	}
-
-	/**
-	 * @param label
-	 * @return
-	 */
-	private static CategoryProperty<?> findProp(String label, List<CategoryProperty<?>> categories) {
-		for (CategoryProperty<?> prop : categories) {
-			if (prop.getCategoryName().equals(label))
-				return prop;
-		}
-		return null;
 	}
 
 	/**
@@ -152,6 +98,16 @@ public class StratificationNode extends ANode implements ISortableNode, ITypedCo
 	@Override
 	public boolean isSortable(EDimension dim) {
 		return isRightDimension(dim);
+	}
+
+	@Override
+	public boolean isStratisfyable(EDimension dim) {
+		return isRightDimension(dim);
+	}
+
+	@Override
+	public List<TypedGroup> getGroups(EDimension dim) {
+		return groups;
 	}
 
 	@Override

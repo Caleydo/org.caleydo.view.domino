@@ -51,7 +51,6 @@ public class NodeElement extends ANodeElement implements ISelectionMixinCallback
 		@Override
 		public IDragInfo startSWTDrag(IDragEvent event) {
 			// EventPublisher.trigger(new ShowPlaceHoldersEvent(node).to(findParent(DominoNodeLayer.class)));
-
 			return new NodeDragInfo(node, event.getMousePos());
 		}
 

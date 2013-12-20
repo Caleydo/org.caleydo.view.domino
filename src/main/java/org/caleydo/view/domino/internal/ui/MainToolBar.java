@@ -34,6 +34,7 @@ import org.caleydo.view.domino.internal.ui.model.IEdge;
 import org.caleydo.view.domino.internal.ui.model.NodeUIState;
 import org.caleydo.view.domino.internal.ui.prototype.INode;
 import org.caleydo.view.domino.internal.ui.prototype.ISortableNode;
+import org.caleydo.view.domino.internal.ui.prototype.IStratisfyingableNode;
 
 /**
  * @author Samuel Gratzl
@@ -68,6 +69,11 @@ public class MainToolBar extends GLElementContainer implements PropertyChangeLis
 
 	@Override
 	public void vertexSortingChanged(ISortableNode vertex, EDimension dim) {
+
+	}
+
+	@Override
+	public void vertexStratificationChanged(IStratisfyingableNode vertex, EDimension dim) {
 
 	}
 
@@ -125,6 +131,14 @@ public class MainToolBar extends GLElementContainer implements PropertyChangeLis
 					addButton("Sort Rec", Resources.ICON_SORT_REC);
 				}
 			}
+			if (node instanceof IStratisfyingableNode) {
+				IStratisfyingableNode snode = (IStratisfyingableNode) node;
+				if (snode.isStratisfyable(EDimension.DIMENSION))
+					addButton("Stratify Dim", Resources.ICON_STRATIFY_DIM);
+				if (snode.isStratisfyable(EDimension.RECORD)) {
+					addButton("Stratify Rec", Resources.ICON_STRATIFY_REC);
+				}
+			}
 			addButton("Remove", Resources.ICON_DELETE);
 		}
 
@@ -147,6 +161,12 @@ public class MainToolBar extends GLElementContainer implements PropertyChangeLis
 				break;
 			case "Sort Rec":
 				graph.sortBy((ISortableNode) node, EDimension.RECORD);
+				break;
+			case "Stratify Dim":
+				graph.stratifyBy((IStratisfyingableNode) node, EDimension.DIMENSION);
+				break;
+			case "Stratify Rec":
+				graph.stratifyBy((IStratisfyingableNode) node, EDimension.RECORD);
 				break;
 			case "Remove":
 				graph.remove(node);

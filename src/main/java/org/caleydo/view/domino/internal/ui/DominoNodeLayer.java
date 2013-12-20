@@ -49,6 +49,7 @@ import org.caleydo.view.domino.internal.ui.model.Placeholder;
 import org.caleydo.view.domino.internal.ui.prototype.EDirection;
 import org.caleydo.view.domino.internal.ui.prototype.INode;
 import org.caleydo.view.domino.internal.ui.prototype.ISortableNode;
+import org.caleydo.view.domino.internal.ui.prototype.IStratisfyingableNode;
 
 import com.google.common.base.Function;
 import com.google.common.base.Predicate;
@@ -314,6 +315,17 @@ public class DominoNodeLayer extends GLElementContainer implements IDominoGraphL
 			block.resort();
 			block.apply();
 		}
+	}
+
+	@Override
+	public void vertexStratificationChanged(IStratisfyingableNode vertex, EDimension dim) {
+		// FIXME
+		// NodeData data = getMetaData(apply(vertex));
+		// LinearBlock block = data.getBlock(dim.opposite()); // since we sort vertically but have a horizontal block
+		// if (block != null) {
+		// block.resort();
+		// block.apply();
+		// }
 	}
 
 	private Pair<ANodeElement, ANodeElement> extract(Collection<IEdge> edges, INode vertex, EDimension dim) {
