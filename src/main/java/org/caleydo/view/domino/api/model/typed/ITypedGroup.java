@@ -12,8 +12,6 @@ import org.caleydo.core.util.color.Color;
  * @author Samuel Gratzl
  *
  */
-public interface ITypedGroup extends ILabeled {
+public interface ITypedGroup extends ILabeled, ITypedCollection {
 	Color getColor();
-
-	int size();
 }

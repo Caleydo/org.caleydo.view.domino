@@ -33,12 +33,17 @@ public class TypedList extends AbstractList<Integer> implements ITypedCollection
 		this.idType = Preconditions.checkNotNull(idType);
 	}
 
+	public TypedList(TypedList clone) {
+		this.wrappee = clone.wrappee;
+		this.idType = clone.idType;
+	}
+
 	public static TypedList of(VirtualArray per) {
 		return new TypedList(per.getIDs(), per.getIdType());
 	}
 
 	@Override
-	public final TypedList asList() {
+	public TypedList asList() {
 		return this;
 	}
 

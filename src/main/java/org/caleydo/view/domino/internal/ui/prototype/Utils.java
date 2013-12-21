@@ -21,7 +21,7 @@ import org.caleydo.core.data.virtualarray.group.GroupList;
 import org.caleydo.core.util.color.Color;
 import org.caleydo.core.util.color.ColorBrewer;
 import org.caleydo.core.view.opengl.layout2.GLGraphics;
-import org.caleydo.view.domino.api.model.typed.TypedGroup;
+import org.caleydo.view.domino.api.model.typed.TypedListGroup;
 
 import com.google.common.collect.ImmutableList;
 
@@ -72,15 +72,15 @@ public class Utils {
 	 * @param virtualArray
 	 * @return
 	 */
-	public static List<TypedGroup> extractGroups(Perspective p, Integer referenceId, EDimension mainDim) {
+	public static List<TypedListGroup> extractGroups(Perspective p, Integer referenceId, EDimension mainDim) {
 		VirtualArray va = p.getVirtualArray();
 		GroupList groups = va.getGroupList();
 		List<Color> colors = getGroupColors(referenceId, (ATableBasedDataDomain) p.getDataDomain(), groups, mainDim);
-		List<TypedGroup> r = new ArrayList<>();
+		List<TypedListGroup> r = new ArrayList<>();
 		for (int i = 0; i < groups.size(); ++i) {
-			r.add(new TypedGroup(ImmutableList.copyOf(va.getIDsOfGroup(i)), va.getIdType(), colors.get(i), groups
+			r.add(new TypedListGroup(ImmutableList.copyOf(va.getIDsOfGroup(i)), va.getIdType(), groups
 					.get(i)
-					.getLabel()));
+					.getLabel(), colors.get(i)));
 		}
 		return ImmutableList.copyOf(r);
 	}

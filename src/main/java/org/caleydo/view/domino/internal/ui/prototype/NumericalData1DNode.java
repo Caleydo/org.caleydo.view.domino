@@ -11,7 +11,6 @@ import org.caleydo.core.data.collection.EDimension;
 import org.caleydo.core.data.datadomain.DataSupportDefinitions;
 import org.caleydo.core.data.perspective.table.TablePerspective;
 import org.caleydo.core.view.opengl.layout2.manage.GLElementFactoryContext.Builder;
-import org.caleydo.view.domino.api.model.typed.TypedGroupList;
 import org.caleydo.view.domino.api.model.typed.TypedList;
 import org.caleydo.view.domino.internal.ui.ANodeUI;
 import org.caleydo.view.domino.internal.ui.INodeUI;
@@ -56,7 +55,7 @@ public class NumericalData1DNode extends AData1DNode {
 		}
 
 		@Override
-		protected void fill(Builder b, TypedGroupList dim, TypedGroupList rec) {
+		protected void fill(Builder b, TypedList dim, TypedList rec) {
 			b.put(EDimension.class, node.getDimension());
 			final TypedList data = node.getDimension().select(dim, rec);
 			TablePerspective t = node.asTablePerspective(data);

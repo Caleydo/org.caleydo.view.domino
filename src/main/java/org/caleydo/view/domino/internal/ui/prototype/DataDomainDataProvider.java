@@ -16,9 +16,9 @@ import org.caleydo.core.data.virtualarray.group.Group;
 import org.caleydo.core.data.virtualarray.group.GroupList;
 import org.caleydo.core.id.IDType;
 import org.caleydo.core.util.color.Color;
-import org.caleydo.view.domino.api.model.typed.TypedGroup;
 import org.caleydo.view.domino.api.model.typed.TypedGroupList;
 import org.caleydo.view.domino.api.model.typed.TypedList;
+import org.caleydo.view.domino.api.model.typed.TypedListGroup;
 
 /**
  * @author Samuel Gratzl
@@ -112,7 +112,7 @@ public class DataDomainDataProvider {
 		PerspectiveInitializationData init = new PerspectiveInitializationData();
 		VirtualArray va = new VirtualArray(data.getIdType(), data);
 		GroupList groupList = new GroupList();
-		for(TypedGroup g : data.getGroups()) {
+		for (TypedListGroup g : data.getGroups()) {
 			Group group = new Group(g.size(),0);
 			group.setLabel(g.getLabel());
 			groupList.append(group);

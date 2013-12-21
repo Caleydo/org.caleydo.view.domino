@@ -19,7 +19,7 @@ import org.caleydo.view.domino.api.model.typed.ITypedComparator;
 import org.caleydo.view.domino.api.model.typed.ITypedGroup;
 import org.caleydo.view.domino.api.model.typed.MultiTypedList;
 import org.caleydo.view.domino.api.model.typed.MultiTypedSet;
-import org.caleydo.view.domino.api.model.typed.TypedGroup;
+import org.caleydo.view.domino.api.model.typed.TypedCollections;
 import org.caleydo.view.domino.api.model.typed.TypedGroupList;
 import org.caleydo.view.domino.api.model.typed.TypedList;
 import org.caleydo.view.domino.api.model.typed.TypedSet;
@@ -40,7 +40,7 @@ import com.google.common.collect.Iterators;
  */
 public class LinearBlock implements Iterable<INodeUI> {
 	private final EDimension dim;
-	private List<TypedGroup> groups;
+	private List<? extends ITypedGroup> groups;
 	private MultiTypedList data;
 	private final List<? extends INodeUI> nodes;
 
@@ -138,14 +138,18 @@ public class LinearBlock implements Iterable<INodeUI> {
 
 	private List<ITypedGroup> asGroupList(final int size) {
 		if (groups == null)
-			return Collections.singletonList(TypedGroupList.createUngrouped(size));
+			return Collections.singletonList(ungrouped(size));
 		int sum = 0;
-		for(TypedGroup group : groups)
+		for (ITypedGroup group : groups)
 			sum += group.size();
 		List<ITypedGroup> g = new ArrayList<>(groups.size()+1);
 		g.addAll(groups);
 		if (sum < size)
-			g.add(TypedGroupList.createUngrouped(size - sum));
+			g.add(ungrouped(size - sum));
 		return g;
+	}
+
+	private static ITypedGroup ungrouped(int size) {
+		return TypedGroupList.createUngrouped(TypedCollections.INVALID_IDTYPE, size);
 	}
 }

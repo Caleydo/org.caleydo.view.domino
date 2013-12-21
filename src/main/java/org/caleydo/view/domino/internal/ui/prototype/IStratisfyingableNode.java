@@ -8,7 +8,7 @@ package org.caleydo.view.domino.internal.ui.prototype;
 import java.util.List;
 
 import org.caleydo.core.data.collection.EDimension;
-import org.caleydo.view.domino.api.model.typed.TypedGroup;
+import org.caleydo.view.domino.api.model.typed.ITypedGroup;
 
 /**
  * @author Samuel Gratzl
@@ -17,7 +17,7 @@ import org.caleydo.view.domino.api.model.typed.TypedGroup;
 public interface IStratisfyingableNode extends ISortableNode {
 	String PROP_IS_STRATISFIED = "isStratisfied";
 
-	List<TypedGroup> getGroups(EDimension dim);
+	List<? extends ITypedGroup> getGroups(EDimension dim);
 
 	boolean isStratisfyable(EDimension dim);
 

@@ -15,9 +15,8 @@ import org.caleydo.core.util.function.Function2;
 import org.caleydo.core.view.opengl.layout2.manage.GLElementFactoryContext.Builder;
 import org.caleydo.view.domino.api.model.typed.ITypedComparator;
 import org.caleydo.view.domino.api.model.typed.TypedCollections;
-import org.caleydo.view.domino.api.model.typed.TypedGroup;
-import org.caleydo.view.domino.api.model.typed.TypedGroupList;
 import org.caleydo.view.domino.api.model.typed.TypedList;
+import org.caleydo.view.domino.api.model.typed.TypedListGroup;
 import org.caleydo.view.domino.api.model.typed.TypedSet;
 import org.caleydo.view.domino.internal.ui.ANodeUI;
 import org.caleydo.view.domino.internal.ui.INodeUI;
@@ -31,7 +30,7 @@ import com.google.common.collect.ImmutableList;
  */
 public class StratificationNode extends ANode implements IStratisfyingableNode, ITypedComparator,
 		Function2<Integer, Integer, Color> {
-	private final List<TypedGroup> groups;
+	private final List<TypedListGroup> groups;
 	private final TypedSet ids;
 	private final EDimension mainDim;
 	private EDimension dim;
@@ -120,7 +119,7 @@ public class StratificationNode extends ANode implements IStratisfyingableNode, 
 	}
 
 	@Override
-	public List<TypedGroup> getGroups(EDimension dim) {
+	public List<TypedListGroup> getGroups(EDimension dim) {
 		return groups;
 	}
 
@@ -164,7 +163,7 @@ public class StratificationNode extends ANode implements IStratisfyingableNode, 
 		if (!ids.contains(id))
 			return -1;
 		int i = 0;
-		for (TypedGroup g : groups) {
+		for (TypedListGroup g : groups) {
 			if (g.contains(id))
 				return i;
 			i++;
@@ -193,7 +192,7 @@ public class StratificationNode extends ANode implements IStratisfyingableNode, 
 		}
 
 		@Override
-		protected void fill(Builder b, TypedGroupList dim, TypedGroupList rec) {
+		protected void fill(Builder b, TypedList dim, TypedList rec) {
 			final EDimension dimension = node.getDimension();
 			b.put(EDimension.class, dimension);
 			final TypedList data = dimension.select(dim, rec);

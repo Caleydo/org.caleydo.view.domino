@@ -40,6 +40,11 @@ public class TypedSet extends AbstractSet<Integer> implements ITypedCollection {
 		this.idType = Preconditions.checkNotNull(idType);
 	}
 
+	public TypedSet(TypedSet data) {
+		this.wrappee = data.wrappee;
+		this.idType = data.idType;
+	}
+
 	public static TypedSet of(VirtualArray per) {
 		return new TypedSet(ImmutableSet.copyOf(per), per.getIdType());
 	}

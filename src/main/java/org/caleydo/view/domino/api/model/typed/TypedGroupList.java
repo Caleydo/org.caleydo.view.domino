@@ -12,6 +12,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
 
+import org.caleydo.core.id.IDType;
 import org.caleydo.core.util.color.Color;
 
 import com.google.common.collect.ImmutableList;
@@ -23,14 +24,14 @@ import com.google.common.collect.Iterables;
  */
 public class TypedGroupList extends TypedList implements ITypedCollection {
 
-	private final List<TypedGroup> groups;
+	private final List<TypedListGroup> groups;
 
-	public TypedGroupList(List<TypedGroup> groups) {
+	public TypedGroupList(List<TypedListGroup> groups) {
 		super(new ConcatedList(groups), groups.get(0).getIdType());
 		this.groups = groups;
 	}
 
-	private TypedGroupList(TypedList list, List<ITypedGroup> groups) {
+	private TypedGroupList(TypedList list, List<? extends ITypedGroup> groups) {
 		super(list, list.getIdType());
 		this.groups = toGroups(list, groups);
 	}
@@ -40,32 +41,33 @@ public class TypedGroupList extends TypedList implements ITypedCollection {
 	 * @param groups2
 	 * @return
 	 */
-	private static List<TypedGroup> toGroups(TypedList list, List<ITypedGroup> groups) {
-		List<TypedGroup> r = new ArrayList<>(groups.size());
+	private static List<TypedListGroup> toGroups(TypedList list, List<? extends ITypedGroup> groups) {
+		List<TypedListGroup> r = new ArrayList<>(groups.size());
 		int i = 0;
 		for(ITypedGroup g : groups) {
-			r.add(new TypedGroup(list.subList(i, i+g.size()), g.getColor(),g.getLabel()));
+			r.add(new TypedListGroup(list.subList(i, i + g.size()), g.getLabel(), g.getColor()));
 			i+=g.size();
 		}
 		return ImmutableList.copyOf(r);
 	}
 
 	public static TypedGroupList createUngrouped(TypedList list) {
-		return create(list, Collections.singletonList(createUngrouped(list.size())));
+		return create(list, Collections.singletonList(new TypedListGroup(list, "Ungrouped", Color.NEUTRAL_GREY)));
 	}
 
-	public static ITypedGroup createUngrouped(int size) {
-		return new GroupDesc("Ungrouped", Color.NEUTRAL_GREY, size);
+	public static TypedListGroup createUngrouped(IDType idType, int size) {
+		return new TypedListGroup(new TypedList(new RepeatingList<>(TypedCollections.INVALID_ID, size), idType),
+				"Ungrouped", Color.NEUTRAL_GREY);
 	}
 
-	public static TypedGroupList create(TypedList list, List<ITypedGroup> groups) {
+	public static TypedGroupList create(TypedList list, List<? extends ITypedGroup> groups) {
 		return new TypedGroupList(list, groups);
 	}
 
 	/**
 	 * @return the groups, see {@link #groups}
 	 */
-	public List<TypedGroup> getGroups() {
+	public List<TypedListGroup> getGroups() {
 		return groups;
 	}
 
@@ -95,30 +97,29 @@ public class TypedGroupList extends TypedList implements ITypedCollection {
 	 */
 	private static final class ConcatedList extends AbstractList<Integer> {
 		private final int[] ends;
-		private final TypedList[] data;
+		private final List<TypedListGroup> groups;
 
-		public ConcatedList(List<TypedGroup> groups) {
+		public ConcatedList(List<TypedListGroup> groups) {
 			ends = new int[groups.size()];
-			data = new TypedList[ends.length];
+			this.groups = groups;
 			int c = 0;
 			for (int i = 0; i < ends.length; ++i) {
-				final TypedGroup group = groups.get(i);
+				final TypedListGroup group = groups.get(i);
 				c += group.size();
 				ends[i] = c;
-				data[i] = group.asList();
 			}
 		}
 
 		@Override
 		public Iterator<Integer> iterator() {
-			return Iterables.concat(data).iterator();
+			return Iterables.concat(groups).iterator();
 		}
 
 		@Override
 		public Integer get(int index) {
 			for(int i = 0; i < ends.length; ++i) {
 				if (index < ends[i]) {
-					final TypedList l = data[i];
+					final TypedList l = groups.get(i);
 					return l.get(index - ends[i] - l.size());
 				}
 			}
@@ -129,40 +130,5 @@ public class TypedGroupList extends TypedList implements ITypedCollection {
 		public int size() {
 			return ends[ends.length - 1];
 		}
-	}
-
-	public static final class GroupDesc implements ITypedGroup {
-
-		private final String label;
-		private final Color color;
-		private final int size;
-
-		public GroupDesc(String label, Color color, int size) {
-			this.label = label;
-			this.color = color;
-			this.size = size;
-		}
-
-		/**
-		 * @return the color, see {@link #color}
-		 */
-		@Override
-		public Color getColor() {
-			return color;
-		}
-
-		/**
-		 * @return the label, see {@link #label}
-		 */
-		@Override
-		public String getLabel() {
-			return label;
-		}
-
-		@Override
-		public int size() {
-			return size;
-		}
-
 	}
 }

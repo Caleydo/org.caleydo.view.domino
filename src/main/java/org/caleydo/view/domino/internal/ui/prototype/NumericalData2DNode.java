@@ -9,7 +9,7 @@ import org.caleydo.core.data.datadomain.ATableBasedDataDomain;
 import org.caleydo.core.data.datadomain.DataSupportDefinitions;
 import org.caleydo.core.data.perspective.table.TablePerspective;
 import org.caleydo.core.view.opengl.layout2.manage.GLElementFactoryContext.Builder;
-import org.caleydo.view.domino.api.model.typed.TypedGroupList;
+import org.caleydo.view.domino.api.model.typed.TypedList;
 import org.caleydo.view.domino.internal.ui.ANodeUI;
 import org.caleydo.view.domino.internal.ui.INodeUI;
 
@@ -53,7 +53,7 @@ public class NumericalData2DNode extends AData2DNode {
 		}
 
 		@Override
-		protected void fill(Builder b, TypedGroupList dim, TypedGroupList rec) {
+		protected void fill(Builder b, TypedList dim, TypedList rec) {
 			TablePerspective t = node.asTablePerspective(dim, rec);
 			b.withData(t);
 		}
