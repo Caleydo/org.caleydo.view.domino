@@ -383,6 +383,20 @@ public class DominoGraph implements Function<Integer, INode> {
 				createBandEdges(n, dim);
 		}
 		Collection<IEdge> edges = edgesOf(n);
+
+		boolean hasNeighbors = Iterables.tryFind(edges, Edges.SAME_STRATIFICATION).isPresent();
+
+		if (n instanceof ISortableNode) {
+			((ISortableNode) n).setSortingPriority(EDimension.DIMENSION, hasNeighbors ? ISortableNode.NO_SORTING
+					: ISortableNode.TOP_PRIORITY);
+			((ISortableNode) n).setSortingPriority(EDimension.RECORD, hasNeighbors ? ISortableNode.NO_SORTING
+					: ISortableNode.TOP_PRIORITY);
+		}
+		if (n instanceof IStratisfyingableNode) {
+			((IStratisfyingableNode) n).setStratisfied(EDimension.DIMENSION, !hasNeighbors);
+			((IStratisfyingableNode) n).setStratisfied(EDimension.RECORD, !hasNeighbors);
+		}
+
 		for (IDominoGraphListener l : listeners)
 			l.vertexAdded(n, edges);
 	}

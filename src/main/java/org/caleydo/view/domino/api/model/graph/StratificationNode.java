@@ -65,7 +65,8 @@ public class StratificationNode extends ANode implements IStratisfyingableNode, 
 		this.groups = Utils.subGroups(ids, parent.groups);
 		this.ids = ids;
 		this.dim = parent.dim;
-		this.sortingPriority = NO_SORTING;
+		this.sortingPriority = parent.sortingPriority;
+		this.isStratified = parent.isStratified;
 	}
 
 	/**

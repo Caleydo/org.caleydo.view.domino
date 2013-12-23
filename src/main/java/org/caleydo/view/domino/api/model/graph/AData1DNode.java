@@ -56,7 +56,7 @@ public abstract class AData1DNode extends ANode implements ISortableNode, ITyped
 		this.ids = ids;
 		this.id = parent.id;
 		this.transposed = parent.transposed;
-		this.sortingPriority = NO_SORTING;
+		this.sortingPriority = parent.sortingPriority;
 
 	}
 	/**

@@ -113,7 +113,7 @@ public class MainToolBar extends GLElementContainer implements PropertyChangeLis
 			}
 			if (items.size() > 1) {
 				addSeparator();
-				addButton("Remove All Nodes", Resources.ICON_DELETE_ALL);
+				addButton("Remove All Groups", Resources.ICON_DELETE_ALL);
 			}
 		}
 	}
@@ -121,9 +121,10 @@ public class MainToolBar extends GLElementContainer implements PropertyChangeLis
 	@Override
 	public void onSelectionChanged(GLButton button, boolean selected) {
 		switch (button.getTooltip()) {
-		case "Remove All Nodes":
+		case "Remove All Groups":
 			for (NodeGroupToolBar t : Iterables.filter(this, NodeGroupToolBar.class)) {
-				graph.remove(t.node);
+				if (t.elem.canBeRemoved())
+					t.elem.removeGroup();
 			}
 			break;
 		}

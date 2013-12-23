@@ -51,6 +51,7 @@ public final class CategoricalData1DNode extends AData1DNode implements IStratis
 		super(parent, label, ids);
 		this.categories = parent.categories;
 		this.groups = Utils.subGroups(ids, parent.groups);
+		this.isStratified = parent.isStratified;
 	}
 
 	public CategoricalData1DNode(CategoricalData1DNode clone) {
