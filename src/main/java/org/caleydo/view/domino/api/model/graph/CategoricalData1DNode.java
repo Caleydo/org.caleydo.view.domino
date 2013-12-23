@@ -5,6 +5,7 @@
  *******************************************************************************/
 package org.caleydo.view.domino.api.model.graph;
 
+import java.util.Collections;
 import java.util.List;
 
 import org.caleydo.core.data.collection.EDimension;
@@ -28,11 +29,10 @@ import com.google.common.collect.ImmutableList;
  * @author Samuel Gratzl
  *
  */
-public final class CategoricalData1DNode extends AData1DNode implements IStratisfyingableNode {
+public final class CategoricalData1DNode extends AData1DNode {
 
+	private final List<? extends ITypedGroup> groups;
 	private final List<?> categories;
-	private List<? extends ITypedGroup> groups;
-	private boolean isStratified;
 
 	/**
 	 * @param data
@@ -51,7 +51,6 @@ public final class CategoricalData1DNode extends AData1DNode implements IStratis
 		super(parent, label, ids);
 		this.categories = parent.categories;
 		this.groups = Utils.subGroups(ids, parent.groups);
-		this.isStratified = parent.isStratified;
 	}
 
 	public CategoricalData1DNode(CategoricalData1DNode clone) {
@@ -71,25 +70,8 @@ public final class CategoricalData1DNode extends AData1DNode implements IStratis
 	}
 
 	@Override
-	public boolean isStratisfyable(EDimension dim) {
-		return isRightDimension(dim);
-	}
-
-	@Override
-	public boolean isStratisfied(EDimension dim) {
-		return isRightDimension(dim) && isStratified;
-	}
-
-	@Override
-	public void setStratisfied(EDimension dim, boolean isStratified) {
-		if (!isRightDimension(dim))
-			return;
-		propertySupport.firePropertyChange(PROP_IS_STRATISFIED, this.isStratified, this.isStratified = isStratified);
-	}
-
-	@Override
 	public List<? extends ITypedGroup> getGroups(EDimension dim) {
-		return groups;
+		return isRightDimension(dim) ? groups : Collections.<ITypedGroup> emptyList();
 	}
 
 	/**

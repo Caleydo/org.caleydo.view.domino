@@ -64,6 +64,14 @@ public class TypedGroupList extends TypedList implements ITypedCollection {
 				UNGROUPED, Color.NEUTRAL_GREY);
 	}
 
+	public static TypedListGroup createUngroupedGroup(TypedList list) {
+		return new TypedListGroup(list, UNGROUPED, Color.NEUTRAL_GREY);
+	}
+
+	public static TypedSetGroup createUngroupedGroup(TypedSet set) {
+		return new TypedSetGroup(set, UNGROUPED, Color.NEUTRAL_GREY);
+	}
+
 	public static boolean isUngrouped(ITypedGroup group) {
 		return group.getLabel() == UNGROUPED;
 	}

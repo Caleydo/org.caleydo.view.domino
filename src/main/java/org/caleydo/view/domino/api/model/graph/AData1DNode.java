@@ -21,7 +21,7 @@ import org.caleydo.view.domino.api.model.typed.TypedSet;
  * @author Samuel Gratzl
  *
  */
-public abstract class AData1DNode extends ANode implements ISortableNode, ITypedComparator {
+public abstract class AData1DNode extends ANode implements IStratisfyingableNode, ITypedComparator {
 	protected final EDimension main;
 	protected final DataDomainDataProvider data;
 	protected final TypedSet ids;
@@ -29,13 +29,8 @@ public abstract class AData1DNode extends ANode implements ISortableNode, ITyped
 	private boolean transposed = false;
 	private int sortingPriority = NO_SORTING;
 
-	public AData1DNode(String label, DataDomainDataProvider data, TypedSet ids, TypedID id, EDimension main) {
-		super(label);
-		this.data = data;
-		this.ids = ids;
-		this.id = id;
-		this.main = main;
-	}
+	private boolean isStratified;
+
 
 	public AData1DNode(TablePerspective data, EDimension main) {
 		super(data.getLabel());
@@ -57,6 +52,7 @@ public abstract class AData1DNode extends ANode implements ISortableNode, ITyped
 		this.id = parent.id;
 		this.transposed = parent.transposed;
 		this.sortingPriority = parent.sortingPriority;
+		this.isStratified = parent.isStratified;
 
 	}
 	/**
@@ -70,6 +66,23 @@ public abstract class AData1DNode extends ANode implements ISortableNode, ITyped
 		this.id = clone.id;
 		this.transposed = clone.transposed;
 		this.sortingPriority = NO_SORTING;
+	}
+
+	@Override
+	public boolean isStratisfyable(EDimension dim) {
+		return isRightDimension(dim) && getGroups(dim).size() > 1;
+	}
+
+	@Override
+	public boolean isStratisfied(EDimension dim) {
+		return isRightDimension(dim) && isStratified;
+	}
+
+	@Override
+	public void setStratisfied(EDimension dim, boolean isStratified) {
+		if (!isRightDimension(dim))
+			return;
+		propertySupport.firePropertyChange(PROP_IS_STRATISFIED, this.isStratified, this.isStratified = isStratified);
 	}
 
 	public final TypedID getSingleID() {
