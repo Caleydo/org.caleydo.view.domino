@@ -61,7 +61,7 @@ public class LeftToolBar extends GLElementContainer implements ISelectionCallbac
 		switch (button.getTooltip()) {
 		case "Move":
 			for (NodeElement elem : Iterables.filter(nodes, NodeElement.class)) {
-				elem.setState(ENodeUIState.MOVE);
+				elem.setState(NodeGroupElement.ENodeUIState.MOVE);
 			}
 			break;
 		case "Select":

@@ -229,27 +229,27 @@ public class DominoBandLayer extends DominoBackgroundLayer implements
 	@Override
 	protected void renderImpl(GLGraphics g, float w, float h) {
 		super.renderImpl(g, w, h);
-		for (IBandRenderer edge : routes) {
-			edge.render(g, w, h, this);
-		}
+		// for (IBandRenderer edge : routes) {
+		// edge.render(g, w, h, this);
+		// }
 	}
 
 	@Override
 	protected void renderPickImpl(GLGraphics g, float w, float h) {
 		g.color(Color.BLUE);
 		super.renderPickImpl(g, w, h);
-		g.color(Color.BLACK);
-		if (getVisibility() == EVisibility.PICKABLE) {
-			g.incZ(0.05f);
-			g.color(Color.RED);
-			for (int i = 0; i < routes.size(); i++) {
-				g.pushName(pickingPool.get(i));
-				routes.get(i).renderPick(g, w, h, this);
-				g.popName();
-			}
-			g.incZ(-0.05f);
-			g.color(Color.BLACK);
-		}
+		// g.color(Color.BLACK);
+		// if (getVisibility() == EVisibility.PICKABLE) {
+		// g.incZ(0.05f);
+		// g.color(Color.RED);
+		// for (int i = 0; i < routes.size(); i++) {
+		// g.pushName(pickingPool.get(i));
+		// routes.get(i).renderPick(g, w, h, this);
+		// g.popName();
+		// }
+		// g.incZ(-0.05f);
+		// g.color(Color.BLACK);
+		// }
 	}
 
 	@Override

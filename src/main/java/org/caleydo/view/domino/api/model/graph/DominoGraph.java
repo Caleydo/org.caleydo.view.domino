@@ -387,6 +387,7 @@ public class DominoGraph implements Function<Integer, INode> {
 			l.vertexAdded(n, edges);
 	}
 
+
 	/**
 	 * @param n
 	 */
@@ -643,34 +644,32 @@ public class DominoGraph implements Function<Integer, INode> {
 		addVertex(node);
 		return true;
 	}
+
 	/**
-	 * @param node
-	 * @param node2
+	 * @param with
+	 * @param extracted
 	 */
-	public boolean move(INode node, PlaceholderNode to) {
-		if (!contains(to))
+	public boolean replace(INode from, INode with) {
+		if (!contains(from))
 			return false;
-		if (!match(node, to, true))
+		if (!match(with, from, true))
 			return false;
-		remove(node);
+		remove(with);
 
-		if (needTranspose(node, to))
-			node.transpose();
+		if (needTranspose(with, from))
+			with.transpose();
 
-		Collection<IEdge> edges = ImmutableSet.copyOf(edgesOf(to));
-		remove(to);
-		graph.addVertex(node);
+		Collection<IEdge> edges = ImmutableSet.copyOf(edgesOf(from));
+		remove(from);
+		graph.addVertex(with);
 
 		for (IEdge edge : edges) {
-			edgeLike(edge, to, node);
+			edgeLike(edge, from, with);
 		}
 
-		vertexAdded(node);
+		vertexAdded(with);
 		return true;
 	}
-
-
-
 
 
 	/**

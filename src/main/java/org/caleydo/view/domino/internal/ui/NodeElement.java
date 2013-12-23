@@ -9,6 +9,7 @@ import gleem.linalg.Vec2f;
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
@@ -26,6 +27,8 @@ import org.caleydo.view.domino.api.model.graph.DominoGraph;
 import org.caleydo.view.domino.api.model.graph.ISortableNode;
 import org.caleydo.view.domino.api.model.graph.IStratisfyingableNode;
 import org.caleydo.view.domino.api.model.graph.NodeUIState;
+import org.caleydo.view.domino.api.model.typed.ConcatedList;
+import org.caleydo.view.domino.api.model.typed.ITypedCollection;
 import org.caleydo.view.domino.api.model.typed.TypedGroupList;
 import org.caleydo.view.domino.api.model.typed.TypedList;
 import org.caleydo.view.domino.api.model.typed.TypedListGroup;
@@ -115,6 +118,9 @@ public class NodeElement extends GLElementContainer implements IGLLayout2, IPick
 		}
 		if (i < size())
 			this.asList().subList(i, size()).clear();
+		// update default state
+		((NodeGroupElement) get(0)).setDefault(dimData.getGroups().size() == 1 && recData.getGroups().size() == 1);
+
 		relayout();
 	}
 
@@ -275,5 +281,34 @@ public class NodeElement extends GLElementContainer implements IGLLayout2, IPick
 		for (NodeGroupElement elem : Iterables.filter(this, NodeGroupElement.class)) {
 			elem.setState(move);
 		}
+	}
+
+	public void removeGroup(TypedListGroup dimData, TypedListGroup recData) {
+		final int dims = getNumGroups(EDimension.DIMENSION);
+		final int recs = getNumGroups(EDimension.RECORD);
+
+		if (dims == 1 && recs == 1)
+			return; // last group
+
+		if (dims > 1 && recs > 1) // can't remove only a cross just slices
+			return;
+		final EDimension toRemove = EDimension.get(dims > 1);
+		ITypedCollection remaining = remove(getData(toRemove), toRemove.select(dimData, recData));
+
+		final INode extracted = node.extract(node.getLabel(), toRemove.select(remaining, this.dimData),
+				toRemove.select(this.recData, remaining));
+		extracted.setLayoutData(getLocation());
+		findGraph().replace(node, extracted);
+	}
+
+	/**
+	 * @param data
+	 * @param select
+	 * @return
+	 */
+	private ITypedCollection remove(TypedGroupList data, TypedListGroup select) {
+		List<TypedListGroup> groups = new ArrayList<>(data.getGroups());
+		groups.remove(select);
+		return new TypedList(new ConcatedList<>(groups), data.getIdType());
 	}
 }

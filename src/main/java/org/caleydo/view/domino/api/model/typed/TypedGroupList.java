@@ -5,10 +5,8 @@
  *******************************************************************************/
 package org.caleydo.view.domino.api.model.typed;
 
-import java.util.AbstractList;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
 
@@ -16,7 +14,6 @@ import org.caleydo.core.id.IDType;
 import org.caleydo.core.util.color.Color;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Iterables;
 
 /**
  * @author Samuel Gratzl
@@ -29,7 +26,7 @@ public class TypedGroupList extends TypedList implements ITypedCollection {
 	private final List<TypedListGroup> groups;
 
 	public TypedGroupList(List<TypedListGroup> groups) {
-		super(new ConcatedList(groups), groups.get(0).getIdType());
+		super(new ConcatedList<>(groups), groups.get(0).getIdType());
 		this.groups = groups;
 	}
 
@@ -106,44 +103,5 @@ public class TypedGroupList extends TypedList implements ITypedCollection {
 		return Objects.equals(groups, other.groups);
 	}
 
-	/**
-	 * @author Samuel Gratzl
-	 *
-	 */
-	private static final class ConcatedList extends AbstractList<Integer> {
-		private final int[] ends;
-		private final List<TypedListGroup> groups;
 
-		public ConcatedList(List<TypedListGroup> groups) {
-			ends = new int[groups.size()];
-			this.groups = groups;
-			int c = 0;
-			for (int i = 0; i < ends.length; ++i) {
-				final TypedListGroup group = groups.get(i);
-				c += group.size();
-				ends[i] = c;
-			}
-		}
-
-		@Override
-		public Iterator<Integer> iterator() {
-			return Iterables.concat(groups).iterator();
-		}
-
-		@Override
-		public Integer get(int index) {
-			for(int i = 0; i < ends.length; ++i) {
-				if (index < ends[i]) {
-					final TypedList l = groups.get(i);
-					return l.get(index - ends[i] - l.size());
-				}
-			}
-			throw new IndexOutOfBoundsException();
-		}
-
-		@Override
-		public int size() {
-			return ends[ends.length - 1];
-		}
-	}
 }

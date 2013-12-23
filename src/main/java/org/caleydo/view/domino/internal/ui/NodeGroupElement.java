@@ -21,6 +21,7 @@ import org.caleydo.core.view.opengl.layout.Column.VAlign;
 import org.caleydo.core.view.opengl.layout2.GLElement;
 import org.caleydo.core.view.opengl.layout2.GLElementDecorator;
 import org.caleydo.core.view.opengl.layout2.GLGraphics;
+import org.caleydo.core.view.opengl.layout2.dnd.EDnDType;
 import org.caleydo.core.view.opengl.layout2.dnd.IDnDItem;
 import org.caleydo.core.view.opengl.layout2.dnd.IDragGLSource;
 import org.caleydo.core.view.opengl.layout2.dnd.IDragInfo;
@@ -53,6 +54,8 @@ public class NodeGroupElement extends GLElementDecorator implements IDragGLSourc
 
 	private final IBorderGLRenderer border;
 
+	private boolean isDefault = false;
+
 	@DeepScan
 	private final MultiSelectionManagerMixin selections = new MultiSelectionManagerMixin(this);
 
@@ -82,12 +85,27 @@ public class NodeGroupElement extends GLElementDecorator implements IDragGLSourc
 		return new SubNodeDragInfo(nodeUI.asNode(), getLabel(), dimData, recData, event.getMousePos());
 	}
 
-	private boolean isDefault() {
-		return TypedGroupList.isUngrouped(dimData) && TypedGroupList.isUngrouped(recData);
+	/**
+	 * @param isDefault
+	 *            setter, see {@link isDefault}
+	 */
+	public void setDefault(boolean isDefault) {
+		this.isDefault = isDefault;
+	}
+
+	/**
+	 * @return the isDefault, see {@link #isDefault}
+	 */
+	public boolean isDefault() {
+		return isDefault;
 	}
 
 	@Override
 	public void onDropped(IDnDItem info) {
+		if (!isDefault() && info.getType() == EDnDType.MOVE) {
+			NodeElement p = findParent(NodeElement.class);
+			p.removeGroup(dimData, recData);
+		}
 		EventPublisher.trigger(new HidePlaceHoldersEvent().to(findParent(DominoNodeLayer.class)));
 	}
 

@@ -121,7 +121,7 @@ public class PlaceholderNodeElement extends PickableGLElement implements IDropGL
 		INode n = Nodes.extract(item);
 		DominoGraph graph = findGraph();
 		final DominoNodeLayer nodes = findParent(DominoNodeLayer.class);
-		graph.move(n, this.node);
+		graph.replace(this.node, n);
 		EventPublisher.trigger(new HidePlaceHoldersEvent().to(nodes));
 	}
 
