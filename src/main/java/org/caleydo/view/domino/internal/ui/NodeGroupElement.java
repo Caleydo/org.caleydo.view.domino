@@ -14,7 +14,9 @@ import org.caleydo.core.data.selection.SelectionManager;
 import org.caleydo.core.data.selection.SelectionType;
 import org.caleydo.core.event.EventListenerManager.DeepScan;
 import org.caleydo.core.event.EventPublisher;
+import org.caleydo.core.id.IDCreator;
 import org.caleydo.core.util.base.ILabeled;
+import org.caleydo.core.util.base.IUniqueObject;
 import org.caleydo.core.util.color.Color;
 import org.caleydo.core.view.opengl.canvas.IGLMouseListener.IMouseEvent;
 import org.caleydo.core.view.opengl.layout.Column.VAlign;
@@ -43,16 +45,17 @@ import org.caleydo.view.domino.spi.model.graph.INode;
  *
  */
 public class NodeGroupElement extends GLElementDecorator implements IDragGLSource, ILabeled, ISelectionMixinCallback,
-		IPickingListener {
-	private TypedListGroup dimData;
-	private TypedListGroup recData;
+		IPickingListener, IUniqueObject {
 	protected static final int BORDER = 2;
 
+	private final int id = IDCreator.createVMUniqueID(NodeGroupElement.class);
+
 	private final PickingBarrier barrier;
-
 	private final INodeUI nodeUI;
-
 	private final IBorderGLRenderer border;
+
+	private TypedListGroup dimData;
+	private TypedListGroup recData;
 
 	private boolean isDefault = false;
 
@@ -66,11 +69,21 @@ public class NodeGroupElement extends GLElementDecorator implements IDragGLSourc
 		setContent(this.barrier);
 		setVisibility(EVisibility.PICKABLE);
 		onPick(this);
+		selections.add(DominoNodeLayer.newNodeGroupSelectionManager());
 		selections.add(DominoGraph.newNodeSelectionManager());
+	}
+
+	@Override
+	public int getID() {
+		return id;
 	}
 
 	public INode asNode() {
 		return nodeUI.asNode();
+	}
+
+	public NodeElement getParentNode() {
+		return (NodeElement) super.getParent();
 	}
 
 	@Override
@@ -103,10 +116,17 @@ public class NodeGroupElement extends GLElementDecorator implements IDragGLSourc
 	@Override
 	public void onDropped(IDnDItem info) {
 		if (!isDefault() && info.getType() == EDnDType.MOVE) {
-			NodeElement p = findParent(NodeElement.class);
-			p.removeGroup(dimData, recData);
+			removeGroup();
 		}
 		EventPublisher.trigger(new HidePlaceHoldersEvent().to(findParent(DominoNodeLayer.class)));
+	}
+
+	/**
+	 *
+	 */
+	public void removeGroup() {
+		NodeElement p = findParent(NodeElement.class);
+		p.removeGroup(dimData, recData);
 	}
 
 	@Override
@@ -121,7 +141,12 @@ public class NodeGroupElement extends GLElementDecorator implements IDragGLSourc
 
 	@Override
 	public void onSelectionUpdate(SelectionManager manager) {
-		SelectionType s = manager.getHighestSelectionType(asNode().getID());
+		if (manager.getIDType() == DominoGraph.NODE_IDTYPE)
+			return;
+		SelectionType s = manager.getHighestSelectionType(id);
+		int target = s == null ? 2 : 3;
+		if (target == border.getWidth())
+			return;
 		border.setColor(s == null ? Color.BLACK : s.getColor());
 		border.setWidth(s == null ? 2 : 3);
 		repaint();
@@ -188,7 +213,7 @@ public class NodeGroupElement extends GLElementDecorator implements IDragGLSourc
 	}
 
 	public boolean isSelected(SelectionType type) {
-		return selections.get(0).checkStatus(type, asNode().getID());
+		return selections.get(0).checkStatus(type, id);
 	}
 
 	/**
@@ -196,15 +221,27 @@ public class NodeGroupElement extends GLElementDecorator implements IDragGLSourc
 	 * @param b
 	 */
 	private void select(SelectionType type, boolean enable, boolean clear) {
-		SelectionManager m = selections.get(0);
-		if (clear)
-			m.clearSelection(type);
-		if (enable)
-			m.addToType(type, asNode().getID());
-		else
-			m.removeFromType(type, asNode().getID());
-		selections.fireSelectionDelta(m);
-		onSelectionUpdate(m);
+		{
+			SelectionManager m = selections.get(0);
+			if (clear)
+				m.clearSelection(type);
+			if (enable)
+				m.addToType(type, id);
+			else
+				m.removeFromType(type, id);
+			selections.fireSelectionDelta(m);
+			onSelectionUpdate(m);
+		}
+		{
+			SelectionManager m = selections.get(1);
+			if (clear)
+				m.clearSelection(type);
+			if (enable)
+				m.addToType(type, asNode().getID());
+			else
+				m.removeFromType(type, asNode().getID());
+			selections.fireSelectionDelta(m);
+		}
 	}
 
 	@Override
@@ -248,6 +285,13 @@ public class NodeGroupElement extends GLElementDecorator implements IDragGLSourc
 		this.recData = recData;
 		this.nodeUI.setData(EDimension.DIMENSION, dimData);
 		this.nodeUI.setData(EDimension.RECORD, recData);
+	}
+
+	/**
+	 * @return
+	 */
+	public boolean canBeRemoved() {
+		return !isDefault && !getParentNode().has2DimGroups();
 	}
 
 	/**

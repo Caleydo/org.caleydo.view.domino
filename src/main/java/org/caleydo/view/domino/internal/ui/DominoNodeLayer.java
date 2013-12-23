@@ -21,6 +21,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.caleydo.core.data.collection.EDataType;
 import org.caleydo.core.data.collection.EDimension;
 import org.caleydo.core.data.selection.MultiSelectionManagerMixin;
 import org.caleydo.core.data.selection.MultiSelectionManagerMixin.ISelectionMixinCallback;
@@ -28,6 +29,8 @@ import org.caleydo.core.data.selection.SelectionManager;
 import org.caleydo.core.data.selection.SelectionType;
 import org.caleydo.core.event.EventListenerManager.DeepScan;
 import org.caleydo.core.event.EventListenerManager.ListenTo;
+import org.caleydo.core.id.IDCategory;
+import org.caleydo.core.id.IDType;
 import org.caleydo.core.util.collection.Pair;
 import org.caleydo.core.view.opengl.layout2.GLElement;
 import org.caleydo.core.view.opengl.layout2.GLElementContainer;
@@ -69,6 +72,11 @@ public class DominoNodeLayer extends GLElementContainer implements IDominoGraphL
 	private final Deque<IChange> changes = new ArrayDeque<>();
 	private final Map<INode, NodeData> metaData = new IdentityHashMap<>();
 
+	public final static IDCategory GRAPH_GROUP_CATEGORY = IDCategory.registerInternalCategory("dominoGroup");
+	public final static IDType NODE_GROUP_IDTYPE = IDType.registerInternalType("dominoGroupNode",
+ GRAPH_GROUP_CATEGORY,
+			EDataType.INTEGER);
+
 	@DeepScan
 	private final MultiSelectionManagerMixin selections = new MultiSelectionManagerMixin(this);
 
@@ -99,10 +107,28 @@ public class DominoNodeLayer extends GLElementContainer implements IDominoGraphL
 		// });
 
 		selections.add(DominoGraph.newNodeSelectionManager());
+		selections.add(newNodeGroupSelectionManager());
 	}
+
+	/**
+	 * @return
+	 */
+	public static SelectionManager newNodeGroupSelectionManager() {
+		return new SelectionManager(NODE_GROUP_IDTYPE);
+	}
+
 
 	public boolean isSelected(INode node, SelectionType type) {
 		return selections.get(0).checkStatus(type, node.getID());
+	}
+
+	public NodeGroupElement getGroupNodeById(int id) {
+		for (NodeElement elem : Iterables.filter(this, NodeElement.class)) {
+			NodeGroupElement g = elem.getByID(id);
+			if (g != null)
+				return g;
+		}
+		return null;
 	}
 
 	/**
@@ -279,7 +305,9 @@ public class DominoNodeLayer extends GLElementContainer implements IDominoGraphL
 		if (elem == null)
 			return;
 		this.remove((GLElement) elem);
+
 		select(node, SelectionType.SELECTION, false, false);
+
 		if (elem instanceof NodeElement)
 			removeListener(((NodeElement) elem));
 		Vec2f size = elem.getSize();

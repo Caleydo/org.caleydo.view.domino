@@ -55,6 +55,7 @@ public class MainToolBar extends GLElementContainer implements PropertyChangeLis
 		this.graph = graph;
 		setRenderer(GLRenderers.fillRect(new Color(0.95f)));
 		selections.add(DominoGraph.newNodeSelectionManager());
+		selections.add(DominoNodeLayer.newNodeGroupSelectionManager());
 	}
 
 	@Override
@@ -87,13 +88,25 @@ public class MainToolBar extends GLElementContainer implements PropertyChangeLis
 
 	@Override
 	public void onSelectionUpdate(SelectionManager manager) {
-		Set<Integer> items = manager.getElements(SelectionType.SELECTION);
-		this.clear();
-		for (Integer id : items) {
-			final INode node = graph.apply(id);
-			if (node != null) {
-				this.add(new GLElement(GLRenderers.drawText(node.getLabel())));
-				this.add(new NodeToolBar(node, graph));
+		if (manager.getIDType() == DominoGraph.NODE_IDTYPE) {
+			// Set<Integer> items = manager.getElements(SelectionType.SELECTION);
+			// this.clear();
+			// for (Integer id : items) {
+			// final INode node = graph.apply(id);
+			// if (node != null) {
+			// this.add(new GLElement(GLRenderers.drawText(node.getLabel())));
+			// this.add(new NodeToolBar(node, graph));
+			// }
+			// }
+		} else if (manager.getIDType() == DominoNodeLayer.NODE_GROUP_IDTYPE) {
+			Set<Integer> items = manager.getElements(SelectionType.SELECTION);
+			this.clear();
+			for (Integer id : items) {
+				NodeGroupElement group = nodes.getGroupNodeById(id);
+				if (group != null) {
+					this.add(new GLElement(GLRenderers.drawText(group.getLabel())));
+					this.add(new NodeGroupToolBar(group, graph));
+				}
 			}
 		}
 	}
@@ -111,14 +124,16 @@ public class MainToolBar extends GLElementContainer implements PropertyChangeLis
 		}
 	}
 
-	private static class NodeToolBar extends GLElementContainer implements GLButton.ISelectionCallback, IGLLayout2 {
+	private static class NodeGroupToolBar extends GLElementContainer implements GLButton.ISelectionCallback, IGLLayout2 {
 		private final INode node;
 		private final DominoGraph graph;
+		private final NodeGroupElement elem;
 
-		public NodeToolBar(INode node, DominoGraph graph) {
+		public NodeGroupToolBar(NodeGroupElement elem, DominoGraph graph) {
 			this.graph = graph;
+			this.node = elem.asNode();
+			this.elem = elem;
 			setLayout(this);
-			this.node = node;
 			if (node instanceof ISortableNode) {
 				ISortableNode snode = (ISortableNode) node;
 				if (snode.isSortable(EDimension.DIMENSION))
@@ -135,7 +150,9 @@ public class MainToolBar extends GLElementContainer implements PropertyChangeLis
 					addButton("Stratify Rec", Resources.ICON_STRATIFY_REC);
 				}
 			}
-			addButton("Remove", Resources.ICON_DELETE);
+			addButton("Remove Node", Resources.ICON_DELETE);
+			if (elem.canBeRemoved())
+				addButton("Remove Group", Resources.ICON_DELETE);
 		}
 
 		@Override
@@ -164,8 +181,11 @@ public class MainToolBar extends GLElementContainer implements PropertyChangeLis
 			case "Stratify Rec":
 				graph.stratifyBy((IStratisfyingableNode) node, EDimension.RECORD);
 				break;
-			case "Remove":
+			case "Remove Node":
 				graph.remove(node);
+				break;
+			case "Remove Group":
+				elem.removeGroup();
 			}
 		}
 

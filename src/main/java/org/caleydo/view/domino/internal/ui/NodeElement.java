@@ -69,6 +69,14 @@ public class NodeElement extends GLElementContainer implements IGLLayout2, IPick
 		setSize((float) getSize(EDimension.DIMENSION), (float) getSize(EDimension.RECORD));
 	}
 
+	public NodeGroupElement getByID(int id) {
+		for (NodeGroupElement elem : Iterables.filter(this, NodeGroupElement.class)) {
+			if (elem.getID() == id)
+				return elem;
+		}
+		return null;
+	}
+
 	@Override
 	public INode asNode() {
 		return node;
@@ -310,5 +318,12 @@ public class NodeElement extends GLElementContainer implements IGLLayout2, IPick
 		List<TypedListGroup> groups = new ArrayList<>(data.getGroups());
 		groups.remove(select);
 		return new TypedList(new ConcatedList<>(groups), data.getIdType());
+	}
+
+	/**
+	 * @return
+	 */
+	public boolean has2DimGroups() {
+		return getNumGroups(EDimension.DIMENSION) > 1 && getNumGroups(EDimension.RECORD) > 1;
 	}
 }
