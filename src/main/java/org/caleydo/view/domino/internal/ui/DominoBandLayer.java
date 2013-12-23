@@ -132,6 +132,9 @@ public class DominoBandLayer extends DominoBackgroundLayer implements
 		TypedSet tData = t.getData(tDim.opposite());
 		MultiTypedSet shared = TypedSets.intersect(sData, tData);
 
+		if (shared.isEmpty())
+			return;
+
 		final float sTotal = dim.opposite().select(sourceB.width(), sourceB.height());
 		final float tTotal = dim.opposite().select(targetB.width(), targetB.height());
 		routes.add(new BandRoute(new Route(curve), color, shared, sData, tData, sTotal * 0.5f, tTotal * 0.5f));
@@ -229,27 +232,27 @@ public class DominoBandLayer extends DominoBackgroundLayer implements
 	@Override
 	protected void renderImpl(GLGraphics g, float w, float h) {
 		super.renderImpl(g, w, h);
-		// for (IBandRenderer edge : routes) {
-		// edge.render(g, w, h, this);
-		// }
+		for (IBandRenderer edge : routes) {
+			edge.render(g, w, h, this);
+		}
 	}
 
 	@Override
 	protected void renderPickImpl(GLGraphics g, float w, float h) {
 		g.color(Color.BLUE);
 		super.renderPickImpl(g, w, h);
-		// g.color(Color.BLACK);
-		// if (getVisibility() == EVisibility.PICKABLE) {
-		// g.incZ(0.05f);
-		// g.color(Color.RED);
-		// for (int i = 0; i < routes.size(); i++) {
-		// g.pushName(pickingPool.get(i));
-		// routes.get(i).renderPick(g, w, h, this);
-		// g.popName();
-		// }
-		// g.incZ(-0.05f);
-		// g.color(Color.BLACK);
-		// }
+		g.color(Color.BLACK);
+		if (getVisibility() == EVisibility.PICKABLE) {
+			g.incZ(0.05f);
+			g.color(Color.RED);
+			for (int i = 0; i < routes.size(); i++) {
+				g.pushName(pickingPool.get(i));
+				routes.get(i).renderPick(g, w, h, this);
+				g.popName();
+			}
+			g.incZ(-0.05f);
+			g.color(Color.BLACK);
+		}
 	}
 
 	@Override
@@ -309,7 +312,7 @@ public class DominoBandLayer extends DominoBackgroundLayer implements
 		if (sv.y() == tv.y())
 			return Arrays.asList(sv, tv);
 
-		Vec2f shift = new Vec2f(100, 0);
+		Vec2f shift = new Vec2f(20, 0);
 		Vec2f s2 = sv.plus(shift);
 		Vec2f t2 = tv.minus(shift);
 
