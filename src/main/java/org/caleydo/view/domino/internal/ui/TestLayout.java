@@ -39,7 +39,7 @@ import org.caleydo.core.view.opengl.layout2.layout.IGLLayoutElement;
 import org.caleydo.core.view.opengl.layout2.layout.IHasGLLayoutData;
 import org.caleydo.core.view.opengl.picking.IPickingListener;
 import org.caleydo.core.view.opengl.picking.Pick;
-import org.caleydo.view.domino.internal.ui.prototype.EDirection;
+import org.caleydo.view.domino.api.model.graph.EDirection;
 
 import com.google.common.base.Suppliers;
 import com.google.common.collect.ImmutableSortedMap;

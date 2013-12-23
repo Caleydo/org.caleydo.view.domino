@@ -16,8 +16,8 @@ import org.caleydo.core.view.opengl.layout2.layout.IGLLayoutElement;
 import org.caleydo.core.view.opengl.picking.IPickingListener;
 import org.caleydo.core.view.opengl.picking.Pick;
 import org.caleydo.core.view.opengl.picking.PickingMode;
+import org.caleydo.view.domino.api.model.graph.DominoGraph;
 import org.caleydo.view.domino.internal.event.HidePlaceHoldersEvent;
-import org.caleydo.view.domino.internal.ui.model.DominoGraph;
 
 /**
  * @author Samuel Gratzl

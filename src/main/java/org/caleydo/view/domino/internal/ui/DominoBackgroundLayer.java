@@ -15,12 +15,12 @@ import org.caleydo.core.view.opengl.layout2.dnd.EDnDType;
 import org.caleydo.core.view.opengl.layout2.dnd.IDnDItem;
 import org.caleydo.core.view.opengl.layout2.dnd.IDropGLTarget;
 import org.caleydo.core.view.opengl.picking.Pick;
+import org.caleydo.view.domino.api.model.graph.DominoGraph;
+import org.caleydo.view.domino.api.model.graph.Nodes;
 import org.caleydo.view.domino.internal.dnd.NodeDragInfo;
 import org.caleydo.view.domino.internal.event.HidePlaceHoldersEvent;
 import org.caleydo.view.domino.internal.event.ShowPlaceHoldersEvent;
-import org.caleydo.view.domino.internal.ui.model.DominoGraph;
-import org.caleydo.view.domino.internal.ui.prototype.INode;
-import org.caleydo.view.domino.internal.ui.prototype.Nodes;
+import org.caleydo.view.domino.spi.model.graph.INode;
 
 /**
  * @author Samuel Gratzl

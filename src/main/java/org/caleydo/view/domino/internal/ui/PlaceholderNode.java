@@ -11,12 +11,12 @@ import org.caleydo.core.data.collection.EDimension;
 import org.caleydo.core.util.color.Color;
 import org.caleydo.core.view.opengl.layout2.GLElement;
 import org.caleydo.core.view.opengl.layout2.GLGraphics;
+import org.caleydo.view.domino.api.model.graph.ADataNode;
+import org.caleydo.view.domino.api.model.graph.ANode;
 import org.caleydo.view.domino.api.model.typed.TypedCollections;
 import org.caleydo.view.domino.api.model.typed.TypedGroupList;
 import org.caleydo.view.domino.api.model.typed.TypedList;
-import org.caleydo.view.domino.internal.ui.model.ANode;
-import org.caleydo.view.domino.internal.ui.prototype.ADataNode;
-import org.caleydo.view.domino.internal.ui.prototype.INode;
+import org.caleydo.view.domino.spi.model.graph.INode;
 
 /**
  * @author Samuel Gratzl

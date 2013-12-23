@@ -3,25 +3,23 @@
  * Copyright (c) The Caleydo Team. All rights reserved.
  * Licensed under the new BSD license, available at http://caleydo.org/license
  *******************************************************************************/
-package org.caleydo.view.domino.internal.ui;
+package org.caleydo.view.domino.api.model.graph;
 
-import gleem.linalg.Vec2f;
 
-import org.caleydo.view.domino.spi.model.graph.INode;
 
 /**
  * @author Samuel Gratzl
  *
  */
-public class DndNodeElement extends ANodeElement {
-	public DndNodeElement(INode node) {
-		super(node);
+public class MagneticEdge extends ALinearEdge {
+	private static final long serialVersionUID = 6390171538909672405L;
+
+	public MagneticEdge(EDirection direction) {
+		super(direction);
 	}
 
 	@Override
-	public Vec2f getMinSize() {
-		Vec2f s = getNodeSize();
-		s.add(new Vec2f(BORDER * 2, BORDER * 2));
-		return s;
+	public EProximityMode asMode() {
+		return EProximityMode.ATTACHED;
 	}
 }

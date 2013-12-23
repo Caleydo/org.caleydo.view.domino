@@ -24,10 +24,10 @@ import org.caleydo.core.view.opengl.layout2.dnd.IDragInfo;
 import org.caleydo.core.view.opengl.layout2.renderer.Borders;
 import org.caleydo.core.view.opengl.layout2.renderer.Borders.IBorderGLRenderer;
 import org.caleydo.core.view.opengl.picking.Pick;
+import org.caleydo.view.domino.api.model.graph.DominoGraph;
 import org.caleydo.view.domino.internal.dnd.NodeDragInfo;
 import org.caleydo.view.domino.internal.event.HidePlaceHoldersEvent;
-import org.caleydo.view.domino.internal.ui.model.DominoGraph;
-import org.caleydo.view.domino.internal.ui.prototype.INode;
+import org.caleydo.view.domino.spi.model.graph.INode;
 
 /**
  * @author Samuel Gratzl

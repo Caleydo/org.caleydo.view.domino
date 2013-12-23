@@ -27,14 +27,14 @@ import org.caleydo.core.view.opengl.layout2.layout.GLLayouts;
 import org.caleydo.core.view.opengl.layout2.layout.IGLLayout2;
 import org.caleydo.core.view.opengl.layout2.layout.IGLLayoutElement;
 import org.caleydo.core.view.opengl.layout2.renderer.GLRenderers;
+import org.caleydo.view.domino.api.model.graph.DominoGraph;
+import org.caleydo.view.domino.api.model.graph.ISortableNode;
+import org.caleydo.view.domino.api.model.graph.IStratisfyingableNode;
+import org.caleydo.view.domino.api.model.graph.NodeUIState;
 import org.caleydo.view.domino.internal.Resources;
-import org.caleydo.view.domino.internal.ui.model.DominoGraph;
-import org.caleydo.view.domino.internal.ui.model.IDominoGraphListener;
-import org.caleydo.view.domino.internal.ui.model.IEdge;
-import org.caleydo.view.domino.internal.ui.model.NodeUIState;
-import org.caleydo.view.domino.internal.ui.prototype.INode;
-import org.caleydo.view.domino.internal.ui.prototype.ISortableNode;
-import org.caleydo.view.domino.internal.ui.prototype.IStratisfyingableNode;
+import org.caleydo.view.domino.spi.model.graph.IDominoGraphListener;
+import org.caleydo.view.domino.spi.model.graph.IEdge;
+import org.caleydo.view.domino.spi.model.graph.INode;
 
 /**
  * @author Samuel Gratzl

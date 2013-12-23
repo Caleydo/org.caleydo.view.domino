@@ -25,13 +25,13 @@ import org.caleydo.core.view.opengl.layout2.manage.GLElementFactoryContext;
 import org.caleydo.core.view.opengl.layout2.manage.GLElementFactoryContext.Builder;
 import org.caleydo.core.view.opengl.layout2.manage.GLElementFactorySwitcher;
 import org.caleydo.core.view.opengl.layout2.manage.GLElementFactorySwitcher.ELazyiness;
+import org.caleydo.view.domino.api.model.graph.ISortableNode;
+import org.caleydo.view.domino.api.model.graph.IStratisfyingableNode;
+import org.caleydo.view.domino.api.model.graph.NodeUIState;
 import org.caleydo.view.domino.api.model.typed.TypedGroupList;
 import org.caleydo.view.domino.api.model.typed.TypedList;
 import org.caleydo.view.domino.api.model.typed.TypedSets;
-import org.caleydo.view.domino.internal.ui.model.NodeUIState;
-import org.caleydo.view.domino.internal.ui.prototype.INode;
-import org.caleydo.view.domino.internal.ui.prototype.ISortableNode;
-import org.caleydo.view.domino.internal.ui.prototype.IStratisfyingableNode;
+import org.caleydo.view.domino.spi.model.graph.INode;
 
 import com.google.common.base.Function;
 import com.google.common.base.Predicate;

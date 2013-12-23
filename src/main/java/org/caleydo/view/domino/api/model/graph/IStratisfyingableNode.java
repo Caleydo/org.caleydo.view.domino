@@ -3,32 +3,30 @@
  * Copyright (c) The Caleydo Team. All rights reserved.
  * Licensed under the new BSD license, available at http://caleydo.org/license
  *******************************************************************************/
-package org.caleydo.view.domino.internal.ui;
+package org.caleydo.view.domino.api.model.graph;
+
+import java.util.List;
 
 import org.caleydo.core.data.collection.EDimension;
-import org.caleydo.core.view.opengl.layout2.GLElement;
-import org.caleydo.view.domino.api.model.typed.TypedGroupList;
-import org.caleydo.view.domino.spi.model.graph.INode;
+import org.caleydo.view.domino.api.model.typed.ITypedGroup;
 
 /**
  * @author Samuel Gratzl
  *
  */
-public interface INodeUI {
-	GLElement asGLElement();
+public interface IStratisfyingableNode extends ISortableNode {
+	String PROP_IS_STRATISFIED = "isStratisfied";
 
-	boolean setData(EDimension dim, TypedGroupList data);
+	List<? extends ITypedGroup> getGroups(EDimension dim);
 
-	/**
-	 * @return
-	 */
-	INode asNode();
+	boolean isStratisfyable(EDimension dim);
 
 	/**
-	 * @param dimension
+	 * @param dim
 	 * @return
 	 */
-	double getSize(EDimension dim);
 
-	GLElement getToolBar();
+	boolean isStratisfied(EDimension dim);
+
+	void setStratisfied(EDimension dim, boolean isStratified);
 }

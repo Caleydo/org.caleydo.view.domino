@@ -14,6 +14,8 @@ import java.util.Iterator;
 import java.util.List;
 
 import org.caleydo.core.data.collection.EDimension;
+import org.caleydo.view.domino.api.model.graph.ISortableNode;
+import org.caleydo.view.domino.api.model.graph.IStratisfyingableNode;
 import org.caleydo.view.domino.api.model.typed.IMultiTypedCollection;
 import org.caleydo.view.domino.api.model.typed.ITypedComparator;
 import org.caleydo.view.domino.api.model.typed.ITypedGroup;
@@ -24,9 +26,7 @@ import org.caleydo.view.domino.api.model.typed.TypedGroupList;
 import org.caleydo.view.domino.api.model.typed.TypedList;
 import org.caleydo.view.domino.api.model.typed.TypedSet;
 import org.caleydo.view.domino.api.model.typed.TypedSets;
-import org.caleydo.view.domino.internal.ui.prototype.INode;
-import org.caleydo.view.domino.internal.ui.prototype.ISortableNode;
-import org.caleydo.view.domino.internal.ui.prototype.IStratisfyingableNode;
+import org.caleydo.view.domino.spi.model.graph.INode;
 
 import com.google.common.base.Function;
 import com.google.common.collect.Collections2;

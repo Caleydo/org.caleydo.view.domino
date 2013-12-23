@@ -3,32 +3,31 @@
  * Copyright (c) The Caleydo Team. All rights reserved.
  * Licensed under the new BSD license, available at http://caleydo.org/license
  *******************************************************************************/
-package org.caleydo.view.domino.internal.ui;
+package org.caleydo.view.domino.api.model.graph;
 
 import org.caleydo.core.data.collection.EDimension;
-import org.caleydo.core.view.opengl.layout2.GLElement;
-import org.caleydo.view.domino.api.model.typed.TypedGroupList;
+import org.caleydo.view.domino.api.model.typed.ITypedComparator;
 import org.caleydo.view.domino.spi.model.graph.INode;
 
 /**
  * @author Samuel Gratzl
  *
  */
-public interface INodeUI {
-	GLElement asGLElement();
+public interface ISortableNode extends INode {
+	String PROP_SORTING_PRIORITY = "sortingPriority";
 
-	boolean setData(EDimension dim, TypedGroupList data);
+	int NO_SORTING = Integer.MAX_VALUE;
 
-	/**
-	 * @return
-	 */
-	INode asNode();
+	int TOP_PRIORITY = 0;
 
-	/**
-	 * @param dimension
-	 * @return
-	 */
-	double getSize(EDimension dim);
+	int MINIMUM_PRIORITY = 2;
 
-	GLElement getToolBar();
+	boolean isSortable(EDimension dim);
+
+	int getSortingPriority(EDimension dim);
+
+	void setSortingPriority(EDimension dim, int sortingPriority);
+
+
+	ITypedComparator getComparator(EDimension dim);
 }

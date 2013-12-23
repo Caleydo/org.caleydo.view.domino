@@ -6,7 +6,7 @@
 package org.caleydo.view.domino.internal.event;
 
 import org.caleydo.core.event.ADirectedEvent;
-import org.caleydo.view.domino.internal.ui.prototype.INode;
+import org.caleydo.view.domino.spi.model.graph.INode;
 
 /**
  * @author Samuel Gratzl

@@ -9,7 +9,7 @@ import gleem.linalg.Vec2f;
 
 import org.caleydo.core.view.opengl.layout2.GLElement;
 import org.caleydo.core.view.opengl.layout2.dnd.IUIDragInfo;
-import org.caleydo.view.domino.internal.ui.prototype.INode;
+import org.caleydo.view.domino.spi.model.graph.INode;
 
 /**
  * @author Samuel Gratzl
