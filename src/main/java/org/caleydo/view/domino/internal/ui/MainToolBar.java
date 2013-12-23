@@ -23,6 +23,7 @@ import org.caleydo.core.view.opengl.layout2.GLElement;
 import org.caleydo.core.view.opengl.layout2.GLElementContainer;
 import org.caleydo.core.view.opengl.layout2.GLGraphics;
 import org.caleydo.core.view.opengl.layout2.basic.GLButton;
+import org.caleydo.core.view.opengl.layout2.basic.GLButton.ISelectionCallback;
 import org.caleydo.core.view.opengl.layout2.layout.GLLayouts;
 import org.caleydo.core.view.opengl.layout2.layout.IGLLayout2;
 import org.caleydo.core.view.opengl.layout2.layout.IGLLayoutElement;
@@ -36,12 +37,14 @@ import org.caleydo.view.domino.spi.model.graph.IDominoGraphListener;
 import org.caleydo.view.domino.spi.model.graph.IEdge;
 import org.caleydo.view.domino.spi.model.graph.INode;
 
+import com.google.common.collect.Iterables;
+
 /**
  * @author Samuel Gratzl
  *
  */
 public class MainToolBar extends GLElementContainer implements PropertyChangeListener, IDominoGraphListener,
-		ISelectionMixinCallback {
+		ISelectionMixinCallback, ISelectionCallback {
 
 	private final DominoGraph graph;
 	private final DominoNodeLayer nodes;
@@ -108,6 +111,21 @@ public class MainToolBar extends GLElementContainer implements PropertyChangeLis
 					this.add(new NodeGroupToolBar(group, graph));
 				}
 			}
+			if (items.size() > 1) {
+				addSeparator();
+				addButton("Remove All Nodes", Resources.ICON_DELETE_ALL);
+			}
+		}
+	}
+
+	@Override
+	public void onSelectionChanged(GLButton button, boolean selected) {
+		switch (button.getTooltip()) {
+		case "Remove All Nodes":
+			for (NodeGroupToolBar t : Iterables.filter(this, NodeGroupToolBar.class)) {
+				graph.remove(t.node);
+			}
+			break;
 		}
 	}
 
@@ -122,6 +140,19 @@ public class MainToolBar extends GLElementContainer implements PropertyChangeLis
 			g.drawLine(w * 0.5f, 0, w * 0.5f, h);
 			super.renderImpl(g, w, h);
 		}
+	}
+
+	/**
+	 * @param string
+	 * @param iconSortDim
+	 */
+	private void addButton(String string, URL iconSortDim) {
+		GLButton b = new GLButton();
+		b.setCallback(this);
+		b.setRenderer(GLRenderers.fillImage(iconSortDim));
+		b.setTooltip(string);
+		b.setSize(24, -1);
+		this.add(b);
 	}
 
 	private static class NodeGroupToolBar extends GLElementContainer implements GLButton.ISelectionCallback, IGLLayout2 {

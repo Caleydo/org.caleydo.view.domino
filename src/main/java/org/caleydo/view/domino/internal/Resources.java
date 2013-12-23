@@ -44,9 +44,11 @@ public class Resources {
 	public static final URL ICON_STRATIFY_DIM = icon("category_dim.png");
 	public static final URL ICON_STRATIFY_REC = icon("category.png");
 	public static final URL ICON_DELETE = icon("cross.png");
+	public static final URL ICON_DELETE_ALL = icon("cross_all.png");
 
 	public static final URL ICON_STATE_MOVE = icon("transform_move.png");
 	public static final URL ICON_STATE_SELECT = icon("select.png");
+
 
 	/**
 	 * @param string

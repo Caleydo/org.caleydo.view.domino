@@ -261,6 +261,7 @@ public class NodeGroupElement extends GLElementDecorator implements IDragGLSourc
 	@Override
 	protected void takeDown() {
 		context.getMouseLayer().removeDragSource(this);
+		select(SelectionType.SELECTION, false, false);
 		super.takeDown();
 	}
 
