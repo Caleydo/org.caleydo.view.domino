@@ -290,9 +290,29 @@ public class DominoGraph implements Function<Integer, INode> {
 				updateProximity(edge.getOpposite(node), null);
 			}
 		}
+		updateSorting(node);
 		graph.removeVertex(node);
 		for (IDominoGraphListener l : listeners)
 			l.vertexRemoved(node, edges);
+	}
+
+	/**
+	 * @param node
+	 */
+	private void updateSorting(INode node) {
+		if (!(node instanceof ISortableNode))
+			return;
+		ISortableNode snode = (ISortableNode) node;
+		for (EDimension dim : EDimension.values()) {
+			int p = snode.getSortingPriority(dim);
+			if (p >= ISortableNode.MINIMUM_PRIORITY) // don't care if we remove it
+				continue;
+			for (ISortableNode ni : Iterables.filter(walkAlong(dim, snode, Edges.SAME_SORTING), ISortableNode.class)) {
+				final int pi = ni.getSortingPriority(dim);
+				if (pi > p)
+					ni.setSortingPriority(dim, nextPriority(pi));
+			}
+		}
 	}
 
 	public enum EPlaceHolderFlag {
