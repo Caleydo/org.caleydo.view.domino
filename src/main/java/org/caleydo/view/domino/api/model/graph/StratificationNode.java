@@ -13,14 +13,16 @@ import org.caleydo.core.id.IDType;
 import org.caleydo.core.util.color.Color;
 import org.caleydo.core.util.function.Function2;
 import org.caleydo.core.view.opengl.layout2.manage.GLElementFactoryContext.Builder;
+import org.caleydo.view.domino.api.model.typed.ITypedCollection;
 import org.caleydo.view.domino.api.model.typed.ITypedComparator;
+import org.caleydo.view.domino.api.model.typed.ITypedGroup;
 import org.caleydo.view.domino.api.model.typed.TypedCollections;
 import org.caleydo.view.domino.api.model.typed.TypedList;
-import org.caleydo.view.domino.api.model.typed.TypedListGroup;
 import org.caleydo.view.domino.api.model.typed.TypedSet;
 import org.caleydo.view.domino.internal.ui.ANodeUI;
 import org.caleydo.view.domino.internal.ui.INodeUI;
 import org.caleydo.view.domino.internal.util.Utils;
+import org.caleydo.view.domino.spi.model.graph.INode;
 
 import com.google.common.collect.ImmutableList;
 
@@ -30,7 +32,7 @@ import com.google.common.collect.ImmutableList;
  */
 public class StratificationNode extends ANode implements IStratisfyingableNode, ITypedComparator,
 		Function2<Integer, Integer, Color> {
-	private final List<TypedListGroup> groups;
+	private final List<? extends ITypedGroup> groups;
 	private final TypedSet ids;
 	private final EDimension mainDim;
 	private EDimension dim;
@@ -57,6 +59,15 @@ public class StratificationNode extends ANode implements IStratisfyingableNode, 
 		this.sortingPriority = NO_SORTING;
 	}
 
+	public StratificationNode(StratificationNode parent, String label, TypedSet ids) {
+		super(parent, label);
+		this.mainDim = parent.mainDim;
+		this.groups = Utils.subGroups(ids, parent.groups);
+		this.ids = ids;
+		this.dim = parent.dim;
+		this.sortingPriority = NO_SORTING;
+	}
+
 	/**
 	 * @return the dim, see {@link #dim}
 	 */
@@ -67,6 +78,11 @@ public class StratificationNode extends ANode implements IStratisfyingableNode, 
 	@Override
 	public StratificationNode clone() {
 		return new StratificationNode(this);
+	}
+
+	@Override
+	public INode extract(String label, ITypedCollection dim, ITypedCollection rec) {
+		return new StratificationNode(this, label, (isRightDimension(EDimension.DIMENSION) ? dim : rec).asSet());
 	}
 
 	@Override
@@ -119,7 +135,7 @@ public class StratificationNode extends ANode implements IStratisfyingableNode, 
 	}
 
 	@Override
-	public List<TypedListGroup> getGroups(EDimension dim) {
+	public List<? extends ITypedGroup> getGroups(EDimension dim) {
 		return groups;
 	}
 
@@ -163,7 +179,7 @@ public class StratificationNode extends ANode implements IStratisfyingableNode, 
 		if (!ids.contains(id))
 			return -1;
 		int i = 0;
-		for (TypedListGroup g : groups) {
+		for (ITypedGroup g : groups) {
 			if (g.contains(id))
 				return i;
 			i++;

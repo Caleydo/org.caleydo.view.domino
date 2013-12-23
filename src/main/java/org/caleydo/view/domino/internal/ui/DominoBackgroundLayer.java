@@ -42,7 +42,7 @@ public class DominoBackgroundLayer extends PickableGLElement implements IDropGLT
 
 	@Override
 	protected void onMouseWheel(Pick pick) {
-		for (ANodeElement elem : nodes.getNodes())
+		for (INodeElement elem : nodes.getNodes())
 			elem.pick(pick);
 	}
 

@@ -38,12 +38,12 @@ import org.caleydo.core.view.opengl.layout2.layout.IGLLayout2;
 import org.caleydo.core.view.opengl.layout2.layout.IGLLayoutElement;
 import org.caleydo.core.view.opengl.layout2.layout.IHasGLLayoutData;
 import org.caleydo.view.domino.api.model.graph.DominoGraph;
+import org.caleydo.view.domino.api.model.graph.DominoGraph.EPlaceHolderFlag;
 import org.caleydo.view.domino.api.model.graph.EDirection;
 import org.caleydo.view.domino.api.model.graph.Edges;
 import org.caleydo.view.domino.api.model.graph.ISortableNode;
 import org.caleydo.view.domino.api.model.graph.NodeUIState;
 import org.caleydo.view.domino.api.model.graph.Placeholder;
-import org.caleydo.view.domino.api.model.graph.DominoGraph.EPlaceHolderFlag;
 import org.caleydo.view.domino.internal.event.HidePlaceHoldersEvent;
 import org.caleydo.view.domino.internal.event.ShowPlaceHoldersEvent;
 import org.caleydo.view.domino.spi.model.graph.IDominoGraphListener;
@@ -63,7 +63,7 @@ import com.google.common.collect.Maps;
  *
  */
 public class DominoNodeLayer extends GLElementContainer implements IDominoGraphListener, IGLLayout2,
-		Function<INode, ANodeElement>, ISelectionMixinCallback {
+		Function<INode, INodeElement>, ISelectionMixinCallback {
 
 	private final DominoGraph graph;
 	private final Deque<IChange> changes = new ArrayDeque<>();
@@ -131,28 +131,28 @@ public class DominoNodeLayer extends GLElementContainer implements IDominoGraphL
 
 	@Override
 	public void vertexAdded(INode node, Collection<IEdge> edges) {
-		ANodeElement new_;
+		INodeElement new_;
 		if (node instanceof PlaceholderNode) {
 			new_ = new PlaceholderNodeElement((PlaceholderNode) node);
-			this.add(new_);
+			this.add((GLElement) new_);
 			this.changes.add(new Added(new_));
 		} else {
 			new_ = new NodeElement(node);
-			initListeners(new_);
+			initListeners((NodeElement) new_);
 
-			this.add(new_);
-			Collection<IChange> changes = updateData(node, new_);
+			this.add((GLElement) new_);
+			Collection<IChange> changes = updateData(node, (NodeElement) new_);
 			this.changes.add(new Added(new_));
 			this.changes.addAll(changes);
 		}
 	}
 
 	private class NodeData implements PropertyChangeListener {
-		private final ANodeElement node;
+		private final INodeElement node;
 		private LinearBlock blockDim;
 		private LinearBlock blockRec;
 
-		public NodeData(ANodeElement node) {
+		public NodeData(INodeElement node) {
 			this.node = node;
 		}
 
@@ -173,10 +173,9 @@ public class DominoNodeLayer extends GLElementContainer implements IDominoGraphL
 			case NodeUIState.PROP_ZOOM:
 				Vec2f old = (Vec2f) evt.getOldValue();
 				Vec2f new_ = (Vec2f) evt.getNewValue();
-				Vec2f size = node.getPreferredSize();
 				for (EDimension dim : EDimension.values()) {
 					if (dim.select(old) != dim.select(new_)) {
-						resize(node, dim, dim.select(size));
+						resize(node, dim, (float) node.getSize(dim));
 					}
 				}
 				relayout();
@@ -184,10 +183,10 @@ public class DominoNodeLayer extends GLElementContainer implements IDominoGraphL
 		}
 	}
 
-	void resize(ANodeElement r, EDimension dim, float value) {
+	void resize(INodeElement r, EDimension dim, float value) {
 		List<INode> neighbors = graph.walkAlong(dim.opposite(), r.asNode(), Edges.SAME_SORTING);
 		for (INode node : neighbors) {
-			ANodeElement rn = apply(node);
+			INodeElement rn = apply(node);
 			if (rn == null)
 				continue;
 			changes.add(new Resized(rn, dim, value));
@@ -198,9 +197,9 @@ public class DominoNodeLayer extends GLElementContainer implements IDominoGraphL
 	/**
 	 * @param new_
 	 */
-	private void initListeners(final ANodeElement node) {
+	private void initListeners(final NodeElement node) {
 		NodeData data = getMetaData(node);
-		NodeUIState state = node.getUIState();
+		NodeUIState state = node.asNode().getUIState();
 		state.addPropertyChangeListener(data);
 	}
 
@@ -208,7 +207,7 @@ public class DominoNodeLayer extends GLElementContainer implements IDominoGraphL
 	 * @param asNode
 	 * @return
 	 */
-	private NodeData getMetaData(ANodeElement node) {
+	private NodeData getMetaData(INodeElement node) {
 		INode n = node.asNode();
 		if (!metaData.containsKey(n)) {
 			metaData.put(n, new NodeData(node));
@@ -219,15 +218,13 @@ public class DominoNodeLayer extends GLElementContainer implements IDominoGraphL
 	/**
 	 * @param elem
 	 */
-	private void removeListener(ANodeElement node) {
+	private void removeListener(NodeElement node) {
 		NodeData data = getMetaData(node);
-		NodeUIState state = node.getUIState();
+		NodeUIState state = node.asNode().getUIState();
 		state.removePropertyChangeListener(data);
 	}
 
-	private Collection<IChange> updateData(INode node, ANodeElement new_) {
-		if (node instanceof PlaceholderNode)
-			return Collections.emptyList();
+	private Collection<IChange> updateData(INode node, NodeElement new_) {
 		// check data changes
 		List<IChange> r = new ArrayList<>(2);
 		for (EDimension dim : EDimension.values()) {
@@ -253,21 +250,21 @@ public class DominoNodeLayer extends GLElementContainer implements IDominoGraphL
 		return walkAlong.subList(i, j);
 	}
 
-	private IChange updateDataImpl(EDimension dim, INode node, ANodeElement new_, Collection<INode> nodes) {
-		ImmutableList<ANodeElement> anodes = ImmutableList.copyOf(Collections2.transform(nodes, this));
+	private IChange updateDataImpl(EDimension dim, INode node, INodeElement new_, Collection<INode> nodes) {
+		ImmutableList<INodeElement> anodes = ImmutableList.copyOf(Collections2.transform(nodes, this));
 		// we have to adapt the values
 		EDimension toAdapt = dim.opposite();
 		Resized return_ = null;
 		LinearBlock b = new LinearBlock(toAdapt, anodes);
-		for (ANodeElement elem : anodes) {
+		for (INodeElement elem : anodes) {
 			getMetaData(elem).setBlock(dim, b);
 		}
 		b.update();
 		BitSet changes = b.apply();
 
 		for (int i = changes.nextSetBit(0); i != -1; i = changes.nextSetBit(i + 1)) {
-			final ANodeElement nodei = anodes.get(i);
-			final Resized r = new Resized(nodei, toAdapt, toAdapt.select(nodei.getPreferredSize()));
+			final INodeElement nodei = anodes.get(i);
+			final Resized r = new Resized(nodei, toAdapt, (float) nodei.getSize(toAdapt));
 			if (new_ == nodei)
 				return_ = r;
 			else
@@ -278,18 +275,19 @@ public class DominoNodeLayer extends GLElementContainer implements IDominoGraphL
 
 	@Override
 	public void vertexRemoved(INode node, Collection<IEdge> edges) {
-		ANodeElement elem = apply(node);
+		INodeElement elem = apply(node);
 		if (elem == null)
 			return;
-		this.remove(elem);
+		this.remove((GLElement) elem);
 		select(node, SelectionType.SELECTION, false, false);
-		removeListener(elem);
+		if (elem instanceof NodeElement)
+			removeListener(((NodeElement) elem));
 		Vec2f size = elem.getSize();
 		edges = Collections2.filter(edges, Edges.SAME_SORTING);
 		for(EDimension dim : EDimension.values()) {
-			Pair<ANodeElement, ANodeElement> leftRight = extract(edges, node, dim);
-			ANodeElement l = leftRight.getFirst();
-			ANodeElement r = leftRight.getSecond();
+			Pair<INodeElement, INodeElement> leftRight = extract(edges, node, dim);
+			INodeElement l = leftRight.getFirst();
+			INodeElement r = leftRight.getSecond();
 			if (l == null && r == null)
 				continue;
 			this.changes.add(new Removed(dim, dim.select(size), l, r));
@@ -316,7 +314,7 @@ public class DominoNodeLayer extends GLElementContainer implements IDominoGraphL
 		}
 	}
 
-	private Pair<ANodeElement, ANodeElement> extract(Collection<IEdge> edges, INode vertex, EDimension dim) {
+	private Pair<INodeElement, INodeElement> extract(Collection<IEdge> edges, INode vertex, EDimension dim) {
 		EDirection primaryDir = EDirection.getPrimary(dim);
 		INode l = null;
 		INode r = null;
@@ -347,7 +345,7 @@ public class DominoNodeLayer extends GLElementContainer implements IDominoGraphL
 				IGLLayoutElement node = lookup.get(s.node);
 				if (node == null)
 					continue;
-				final INode nnode = s.node.node;
+				final INode nnode = s.node.asNode();
 				final EDimension dim = s.dim;
 				float v = dim.select(node.getWidth(), node.getHeight());
 				float v_new = s.new_;
@@ -388,7 +386,7 @@ public class DominoNodeLayer extends GLElementContainer implements IDominoGraphL
 				if (node == null)
 					continue;
 				Vec2f size = node.getSetSize();
-				final INode nnode = r.node.node;
+				final INode nnode = r.node.asNode();
 				INode leftN = graph.getNeighbor(EDirection.LEFT_OF, nnode, Edges.SAME_SORTING);
 				INode rightN = graph.getNeighbor(EDirection.RIGHT_OF, nnode, Edges.SAME_SORTING);
 				INode aboveN = graph.getNeighbor(EDirection.ABOVE, nnode, Edges.SAME_SORTING);
@@ -505,7 +503,7 @@ public class DominoNodeLayer extends GLElementContainer implements IDominoGraphL
 	public Rect getBounds(Iterable<INode> nodes) {
 		Rectangle2D r = null;
 		for (INode n : nodes) {
-			ANodeElement elem = apply(n);
+			INodeElement elem = apply(n);
 			if (elem == null)
 				continue;
 			if (r == null) {
@@ -522,8 +520,8 @@ public class DominoNodeLayer extends GLElementContainer implements IDominoGraphL
 	/**
 	 * @return
 	 */
-	public Iterable<ANodeElement> getNodes() {
-		return Iterables.filter(this, ANodeElement.class);
+	public Iterable<INodeElement> getNodes() {
+		return Iterables.filter(this, INodeElement.class);
 	}
 
 	/**
@@ -531,10 +529,10 @@ public class DominoNodeLayer extends GLElementContainer implements IDominoGraphL
 	 * @return
 	 */
 	@Override
-	public ANodeElement apply(INode n) {
+	public INodeElement apply(INode n) {
 		if (n == null)
 			return null;
-		for (ANodeElement elem : getNodes())
+		for (INodeElement elem : getNodes())
 			if (elem.asNode() == n)
 				return elem;
 		return null;
@@ -545,11 +543,11 @@ public class DominoNodeLayer extends GLElementContainer implements IDominoGraphL
 	}
 
 	private class Resized implements IChange {
-		public final ANodeElement node;
+		public final INodeElement node;
 		public final EDimension dim;
 		public final float new_;
 
-		public Resized(ANodeElement node, EDimension dim, float new_) {
+		public Resized(INodeElement node, EDimension dim, float new_) {
 			this.node = node;
 			this.dim = dim;
 			this.new_ = new_;
@@ -558,9 +556,9 @@ public class DominoNodeLayer extends GLElementContainer implements IDominoGraphL
 	}
 
 	private class Added implements IChange {
-		public final ANodeElement node;
+		public final INodeElement node;
 
-		public Added(ANodeElement node) {
+		public Added(INodeElement node) {
 			this.node = node;
 		}
 
@@ -569,9 +567,9 @@ public class DominoNodeLayer extends GLElementContainer implements IDominoGraphL
 	private class Removed implements IChange {
 		public final EDimension dim;
 		public final float size;
-		public final ANodeElement left, right;
+		public final INodeElement left, right;
 
-		public Removed(EDimension dim, float size, ANodeElement left, ANodeElement right) {
+		public Removed(EDimension dim, float size, INodeElement left, INodeElement right) {
 			this.dim = dim;
 			this.size = size;
 			this.left = left;

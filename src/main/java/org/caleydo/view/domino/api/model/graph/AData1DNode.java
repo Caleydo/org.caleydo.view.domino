@@ -50,7 +50,7 @@ public abstract class AData1DNode extends ANode implements ISortableNode, ITyped
 	}
 
 	public AData1DNode(AData1DNode parent, String label, TypedSet ids) {
-		super(label);
+		super(parent, label);
 		this.main = parent.main;
 		this.data = parent.data;
 		this.ids = ids;

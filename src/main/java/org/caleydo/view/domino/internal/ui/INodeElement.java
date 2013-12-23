@@ -7,21 +7,34 @@ package org.caleydo.view.domino.internal.ui;
 
 import gleem.linalg.Vec2f;
 
+import java.awt.geom.Rectangle2D;
+
+import org.caleydo.core.data.collection.EDimension;
+import org.caleydo.core.view.opengl.picking.IPickingListener;
+import org.caleydo.view.domino.api.model.typed.TypedGroupList;
 import org.caleydo.view.domino.spi.model.graph.INode;
 
 /**
  * @author Samuel Gratzl
  *
  */
-public class DndNodeElement extends ANodeElement {
-	public DndNodeElement(INode node) {
-		super(node);
-	}
+public interface INodeElement extends IPickingListener {
+	boolean setData(EDimension dim, TypedGroupList data);
 
-	@Override
-	public Vec2f getMinSize() {
-		Vec2f s = getNodeSize();
-		s.add(new Vec2f(BORDER * 2, BORDER * 2));
-		return s;
-	}
+	INode asNode();
+
+	/**
+	 * @return
+	 */
+	Rectangle2D getRectangleBounds();
+
+	/**
+	 * @return
+	 */
+	Vec2f getSize();
+
+	/**
+	 * @return
+	 */
+	double getSize(EDimension dim);
 }

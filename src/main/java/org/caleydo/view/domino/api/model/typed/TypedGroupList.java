@@ -23,6 +23,8 @@ import com.google.common.collect.Iterables;
  *
  */
 public class TypedGroupList extends TypedList implements ITypedCollection {
+	private static final String UNMAPPED = "Unmapped";
+	private static final String UNGROUPED = "Ungrouped";
 
 	private final List<TypedListGroup> groups;
 
@@ -52,12 +54,25 @@ public class TypedGroupList extends TypedList implements ITypedCollection {
 	}
 
 	public static TypedGroupList createUngrouped(TypedList list) {
-		return create(list, Collections.singletonList(new TypedListGroup(list, "Ungrouped", Color.NEUTRAL_GREY)));
+		return create(list, Collections.singletonList(new TypedListGroup(list, UNGROUPED, Color.NEUTRAL_GREY)));
 	}
 
-	public static TypedListGroup createUngrouped(IDType idType, int size) {
+	public static TypedListGroup createUnmappedGroup(IDType idType, int size) {
 		return new TypedListGroup(new TypedList(new RepeatingList<>(TypedCollections.INVALID_ID, size), idType),
-				"Ungrouped", Color.NEUTRAL_GREY);
+				UNMAPPED, Color.NEUTRAL_GREY);
+	}
+
+	public static TypedListGroup createUngroupedGroup(IDType idType, int size) {
+		return new TypedListGroup(new TypedList(new RepeatingList<>(TypedCollections.INVALID_ID, size), idType),
+				UNGROUPED, Color.NEUTRAL_GREY);
+	}
+
+	public static boolean isUngrouped(ITypedGroup group) {
+		return group.getLabel() == UNGROUPED;
+	}
+
+	public static boolean isUnmapped(ITypedGroup group) {
+		return group.getLabel() == UNMAPPED;
 	}
 
 	public static TypedGroupList create(TypedList list, List<? extends ITypedGroup> groups) {

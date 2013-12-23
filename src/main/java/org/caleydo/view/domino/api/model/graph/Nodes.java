@@ -9,7 +9,6 @@ import org.caleydo.core.data.collection.EDimension;
 import org.caleydo.core.data.datadomain.ATableBasedDataDomain;
 import org.caleydo.core.data.datadomain.DataSupportDefinitions;
 import org.caleydo.core.data.perspective.table.TablePerspective;
-import org.caleydo.core.view.opengl.layout2.dnd.EDnDType;
 import org.caleydo.core.view.opengl.layout2.dnd.IDnDItem;
 import org.caleydo.core.view.opengl.layout2.dnd.IDragInfo;
 import org.caleydo.view.domino.internal.dnd.NodeDragInfo;
@@ -44,8 +43,7 @@ public class Nodes {
 		IDragInfo info = item.getInfo();
 		if (info instanceof NodeDragInfo) {
 			NodeDragInfo ni = (NodeDragInfo) info;
-			INode n = ni.getNode();
-			return (item.getType() == EDnDType.COPY) ? n.clone() : n;
+			return ni.apply(item.getType());
 		} else if (info instanceof TablePerspectiveDragInfo) {
 			INode node = Nodes.create(((TablePerspectiveDragInfo) info).getTablePerspective());
 			return node;

@@ -28,6 +28,12 @@ public class NodeUIState {
 	private EProximityMode proximityMode = EProximityMode.FREE;
 
 	/**
+	 * @param clone
+	 */
+	public void init(NodeUIState clone) {
+		this.zoom.set(clone.zoom);
+	}
+	/**
 	 * @return the proximityMode, see {@link #proximityMode}
 	 */
 	public EProximityMode getProximityMode() {

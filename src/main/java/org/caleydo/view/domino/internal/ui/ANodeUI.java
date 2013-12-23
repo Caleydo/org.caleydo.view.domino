@@ -7,17 +7,13 @@ package org.caleydo.view.domino.internal.ui;
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
-import java.util.List;
 import java.util.Objects;
 
 import org.caleydo.core.data.collection.EDimension;
 import org.caleydo.core.view.opengl.canvas.EDetailLevel;
 import org.caleydo.core.view.opengl.layout2.GLElement;
-import org.caleydo.core.view.opengl.layout2.GLElementContainer;
+import org.caleydo.core.view.opengl.layout2.GLElementDecorator;
 import org.caleydo.core.view.opengl.layout2.IGLElementContext;
-import org.caleydo.core.view.opengl.layout2.layout.GLLayouts;
-import org.caleydo.core.view.opengl.layout2.layout.IGLLayout2;
-import org.caleydo.core.view.opengl.layout2.layout.IGLLayoutElement;
 import org.caleydo.core.view.opengl.layout2.manage.GLElementDimensionDesc;
 import org.caleydo.core.view.opengl.layout2.manage.GLElementFactories;
 import org.caleydo.core.view.opengl.layout2.manage.GLElementFactories.GLElementSupplier;
@@ -41,16 +37,15 @@ import com.google.common.collect.ImmutableList;
  * @author Samuel Gratzl
  *
  */
-public abstract class ANodeUI<T extends INode> extends GLElementContainer implements PropertyChangeListener, INodeUI,
-		Predicate<String>, IGLLayout2 {
+public abstract class ANodeUI<T extends INode> extends GLElementDecorator implements PropertyChangeListener, INodeUI,
+		Predicate<String> {
 	protected final T node;
 
-	private TypedGroupList dimData;
-	private TypedGroupList recData;
+	private TypedList dimData;
+	private TypedList recData;
 	private boolean rebuild = false;
 
 	public ANodeUI(T node) {
-		setLayout(this);
 		this.node = node;
 		this.dimData = toData(EDimension.DIMENSION, node);
 		this.recData = toData(EDimension.RECORD, node);
@@ -87,62 +82,15 @@ public abstract class ANodeUI<T extends INode> extends GLElementContainer implem
 		super.layout(deltaTimeMs);
 	}
 
-	@Override
-	public boolean doLayout(List<? extends IGLLayoutElement> children, float w, float h, IGLLayoutElement parent,
-			int deltaTimeMs) {
-		// children are organized row based
-		final int cols = getNumGroups(EDimension.DIMENSION);
-		final int rows = getNumGroups(EDimension.RECORD);
-
-		// simple case
-		if (cols == 1 && rows == 1) {
-			return GLLayouts.LAYERS.doLayout(children, w, h, parent, deltaTimeMs);
-		}
-
-		double[] colSizes = getSizes(EDimension.DIMENSION);
-		double[] rowSizes = getSizes(EDimension.RECORD);
-
-		float x = 0;
-		for (int c = 0; c < cols; ++c) {
-			double wc = colSizes[c];
-
-			float y = 0;
-			for (int r = 0; r < rows; ++r) {
-				double hr = rowSizes[r];
-
-				IGLLayoutElement elem = children.get(r * cols + c);
-				double wi = getSize(EDimension.DIMENSION, r, c);
-				double hi = getSize(EDimension.RECORD, r, c);
-				double xshift = (wc - wi) * 0.5;
-				double yshift = (hr - hi) * 0.5;
-				elem.setBounds(x + (float) xshift, y + (float) yshift, (float) wi, (float) hi);
-				y += hr + 2;
-			}
-			x += wc + 2;
-		}
-
-		return false;
-	}
-
 	private void build() {
 		System.out.println("build " + node.getLabel());
-		this.clear();
-		for (TypedList dim : dimData.getGroups()) {
-			for (TypedList rec : recData.getGroups()) {
-				GLElementFactorySwitcher s = build(dim, rec);
-				this.add(s);
-			}
-		}
-	}
-
-	private GLElementFactorySwitcher build(TypedList dim, TypedList rec) {
 		Builder b = GLElementFactoryContext.builder();
-		fill(b, dim, rec);
+		fill(b, dimData, recData);
 		b.put(EDetailLevel.class, EDetailLevel.HIGH);
 		ImmutableList<GLElementSupplier> extensions = GLElementFactories.getExtensions(b.build(), "domino."
 				+ getExtensionID(), node.getUIState().getProximityMode());
 		GLElementFactorySwitcher s = new GLElementFactorySwitcher(extensions, ELazyiness.DESTROY);
-		return s;
+		setContent(s);
 	}
 
 	@Override
@@ -154,12 +102,8 @@ public abstract class ANodeUI<T extends INode> extends GLElementContainer implem
 	}
 
 	private GLElementFactorySwitcher getSwitcher() {
-		GLElementFactorySwitcher s = (GLElementFactorySwitcher) get(0);
+		GLElementFactorySwitcher s = (GLElementFactorySwitcher) getContent();
 		return s;
-	}
-
-	private TypedGroupList getData(EDimension dim) {
-		return dim.select(dimData, recData);
 	}
 
 
@@ -176,8 +120,8 @@ public abstract class ANodeUI<T extends INode> extends GLElementContainer implem
 	}
 
 	@Override
-	public boolean setData(EDimension dim, TypedGroupList data) {
-		final TypedGroupList oldList = getData(dim);
+	public boolean setData(EDimension dim, TypedList data) {
+		final TypedList oldList = dim.select(dimData, recData);
 		if (Objects.equals(oldList, data))
 			return false;
 		int old = oldList.size();
@@ -189,50 +133,17 @@ public abstract class ANodeUI<T extends INode> extends GLElementContainer implem
 		return old != data.size();
 	}
 
-	private double[] getSizes(EDimension dim) {
-		final int cols = getNumGroups(EDimension.DIMENSION);
-		final int rows = getNumGroups(EDimension.RECORD);
-		// complex case
-		double[] maxCol = new double[dim.select(cols, rows)];
-		for (int c = 0; c < cols; ++c) {
-			for (int r = 0; r < rows; ++r) {
-				int b = dim.select(c, r);
-				double wi = getSize(dim, r, c);
-				maxCol[b] = Math.max(maxCol[b], wi);
-			}
-		}
-		return maxCol;
-	}
-
 	@Override
 	public double getSize(EDimension dim) {
-		double[] sizes = getSizes(dim);
-		int sum = (sizes.length - 1) * 2;
-		for (double size : sizes)
-			sum += size;
-		return sum;
+		GLElementDimensionDesc desc = getSwitcher().getActiveDesc(dim);
+		return desc.getSize(getDataSafe(dim));
 	}
 
-	private double getSize(EDimension dim, int row, int col) {
-		GLElementDimensionDesc desc = getSwitcher(row, col).getActiveDesc(dim);
-		return desc.getSize(getDataSafe(row, col, dim));
-	}
-
-	private int getNumGroups(EDimension dim) {
-		return getData(dim).getGroups().size();
-	}
-
-	private GLElementFactorySwitcher getSwitcher(int row, int col) {
-		int cols = getNumGroups(EDimension.DIMENSION);
-		int index = row * cols + col;
-		return (GLElementFactorySwitcher) get(index);
-	}
-
-	private int getDataSafe(int row, int col, EDimension dim) {
+	private int getDataSafe(EDimension dim) {
 		TypedList l = dim.select(dimData, recData);
 		if (!l.isEmpty())
 			return l.size();
-		return node.getSize(dim);
+		return Math.max(node.getSize(dim), 1);
 	}
 
 	@Override

@@ -28,6 +28,13 @@ public abstract class ADataNode extends ANode {
 		this.transposed = transposed;
 	}
 
+	public ADataNode(ADataNode parent, String label, TypedSet dim, TypedSet rec) {
+		super(parent, label);
+		this.rec = rec;
+		this.dim = dim;
+		this.transposed = parent.transposed;
+	}
+
 	/**
 	 * @param clone
 	 */

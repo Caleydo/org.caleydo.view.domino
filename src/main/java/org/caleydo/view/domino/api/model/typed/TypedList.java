@@ -15,6 +15,7 @@ import org.caleydo.core.data.virtualarray.VirtualArray;
 import org.caleydo.core.id.IDType;
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterators;
 
 /**
@@ -45,6 +46,11 @@ public class TypedList extends AbstractList<Integer> implements ITypedCollection
 	@Override
 	public TypedList asList() {
 		return this;
+	}
+
+	@Override
+	public TypedSet asSet() {
+		return new TypedSet(ImmutableSet.copyOf(wrappee), idType);
 	}
 
 	@Override

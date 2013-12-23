@@ -21,7 +21,7 @@ import org.caleydo.core.view.opengl.layout2.renderer.GLRenderers;
 import org.caleydo.core.view.opengl.layout2.renderer.IGLRenderer;
 import org.caleydo.view.domino.api.model.graph.DominoGraph;
 import org.caleydo.view.domino.internal.Resources;
-import org.caleydo.view.domino.internal.ui.NodeElement.ENodeUIState;
+import org.caleydo.view.domino.internal.ui.NodeGroupElement.ENodeUIState;
 
 import com.google.common.collect.Iterables;
 

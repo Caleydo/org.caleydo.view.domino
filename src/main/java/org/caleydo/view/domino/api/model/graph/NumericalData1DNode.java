@@ -11,10 +11,12 @@ import org.caleydo.core.data.collection.EDimension;
 import org.caleydo.core.data.datadomain.DataSupportDefinitions;
 import org.caleydo.core.data.perspective.table.TablePerspective;
 import org.caleydo.core.view.opengl.layout2.manage.GLElementFactoryContext.Builder;
+import org.caleydo.view.domino.api.model.typed.ITypedCollection;
 import org.caleydo.view.domino.api.model.typed.TypedList;
 import org.caleydo.view.domino.api.model.typed.TypedSet;
 import org.caleydo.view.domino.internal.ui.ANodeUI;
 import org.caleydo.view.domino.internal.ui.INodeUI;
+import org.caleydo.view.domino.spi.model.graph.INode;
 
 /**
  * @author Samuel Gratzl
@@ -41,6 +43,11 @@ public class NumericalData1DNode extends AData1DNode {
 	@Override
 	public NumericalData1DNode clone() {
 		return new NumericalData1DNode(this);
+	}
+
+	@Override
+	public INode extract(String label, ITypedCollection dim, ITypedCollection rec) {
+		return new NumericalData1DNode(this, label, (isRightDimension(EDimension.DIMENSION) ? dim : rec).asSet());
 	}
 
 	@Override

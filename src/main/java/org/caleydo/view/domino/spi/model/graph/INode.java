@@ -14,6 +14,7 @@ import org.caleydo.core.util.base.ILabeled;
 import org.caleydo.core.util.base.IUniqueObject;
 import org.caleydo.core.view.opengl.layout2.layout.IHasGLLayoutData;
 import org.caleydo.view.domino.api.model.graph.NodeUIState;
+import org.caleydo.view.domino.api.model.typed.ITypedCollection;
 import org.caleydo.view.domino.api.model.typed.TypedSet;
 import org.caleydo.view.domino.internal.ui.INodeUI;
 
@@ -47,6 +48,8 @@ public interface INode extends ILabeled, Cloneable, IHasGLLayoutData, IUniqueObj
 	INodeUI createUI();
 
 	INode clone();
+
+	INode extract(String label, ITypedCollection dim, ITypedCollection rec);
 
 	void addPropertyChangeListener(PropertyChangeListener listener);
 

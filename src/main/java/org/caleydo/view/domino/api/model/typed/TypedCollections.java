@@ -76,4 +76,5 @@ public class TypedCollections {
 	public static TypedList singletonList(TypedID singleID) {
 		return new TypedList(Collections.singletonList(singleID.getId()), singleID.getIdType());
 	}
+
 }

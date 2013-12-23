@@ -14,10 +14,12 @@ import org.caleydo.core.data.datadomain.ATableBasedDataDomain;
 import org.caleydo.core.data.datadomain.DataSupportDefinitions;
 import org.caleydo.core.data.perspective.table.TablePerspective;
 import org.caleydo.core.view.opengl.layout2.manage.GLElementFactoryContext.Builder;
+import org.caleydo.view.domino.api.model.typed.ITypedCollection;
 import org.caleydo.view.domino.api.model.typed.TypedList;
 import org.caleydo.view.domino.api.model.typed.TypedSet;
 import org.caleydo.view.domino.internal.ui.ANodeUI;
 import org.caleydo.view.domino.internal.ui.INodeUI;
+import org.caleydo.view.domino.spi.model.graph.INode;
 
 /**
  * @author Samuel Gratzl
@@ -36,8 +38,8 @@ public class CategoricalData2DNode extends AData2DNode {
 		this.categories = getCategories(data);
 	}
 
-	public CategoricalData2DNode(CategoricalData2DNode parent, TypedSet dim, TypedSet rec, String label) {
-		super(parent, dim, rec, label);
+	public CategoricalData2DNode(CategoricalData2DNode parent, String label, TypedSet dim, TypedSet rec) {
+		super(parent, label, dim, rec);
 		this.categories = parent.categories;
 	}
 
@@ -49,6 +51,11 @@ public class CategoricalData2DNode extends AData2DNode {
 	@Override
 	public CategoricalData2DNode clone() {
 		return new CategoricalData2DNode(this);
+	}
+
+	@Override
+	public INode extract(String label, ITypedCollection dim, ITypedCollection rec) {
+		return new CategoricalData2DNode(this, label, dim.asSet(), rec.asSet());
 	}
 
 	@Override

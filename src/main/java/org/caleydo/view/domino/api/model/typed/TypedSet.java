@@ -54,6 +54,11 @@ public class TypedSet extends AbstractSet<Integer> implements ITypedCollection {
 		return new TypedList(ImmutableList.copyOf(wrappee), idType);
 	}
 
+	@Override
+	public TypedSet asSet() {
+		return this;
+	}
+
 	/**
 	 * @return the idType, see {@link #idType}
 	 */

@@ -48,6 +48,13 @@ public abstract class ANode implements INode {
 
 	public ANode(ANode clone) {
 		this(clone.label);
+		this.uiState.init(clone.getUIState());
+	}
+
+	public ANode(ANode parent, String label) {
+		this.label = label;
+		this.uiState.init(parent.getUIState());
+
 	}
 
 	/**

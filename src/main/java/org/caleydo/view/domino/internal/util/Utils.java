@@ -6,8 +6,11 @@
 package org.caleydo.view.domino.internal.util;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.caleydo.core.data.collection.EDimension;
 import org.caleydo.core.data.collection.column.container.CategoricalClassDescription;
@@ -21,9 +24,13 @@ import org.caleydo.core.data.virtualarray.group.GroupList;
 import org.caleydo.core.util.color.Color;
 import org.caleydo.core.util.color.ColorBrewer;
 import org.caleydo.core.view.opengl.layout2.GLGraphics;
+import org.caleydo.view.domino.api.model.typed.ITypedGroup;
 import org.caleydo.view.domino.api.model.typed.TypedListGroup;
+import org.caleydo.view.domino.api.model.typed.TypedSet;
+import org.caleydo.view.domino.api.model.typed.TypedSetGroup;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 
 /**
  * @author Samuel Gratzl
@@ -111,6 +118,28 @@ public class Utils {
 				return prop;
 		}
 		return null;
+	}
+
+	/**
+	 * @param ids
+	 * @param groups
+	 * @return
+	 */
+	public static List<? extends ITypedGroup> subGroups(TypedSet ids, Collection<? extends ITypedGroup> groups) {
+		List<TypedSetGroup> r = new ArrayList<>(groups.size());
+
+		Set<Integer> tmp = new HashSet<>(ids);
+		for (ITypedGroup group : groups) {
+			Set<Integer> b = new HashSet<>(tmp);
+			b.retainAll(group);
+			if (b.isEmpty())
+				continue;
+			r.add(new TypedSetGroup(ImmutableSet.copyOf(b), group.getIdType(), group.getLabel(), group.getColor()));
+			tmp.removeAll(b);
+			if (tmp.isEmpty())
+				break;
+		}
+		return r;
 	}
 
 }

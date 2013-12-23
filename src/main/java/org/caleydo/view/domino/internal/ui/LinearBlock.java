@@ -42,9 +42,9 @@ public class LinearBlock implements Iterable<INodeUI> {
 	private final EDimension dim;
 	private List<? extends ITypedGroup> groups;
 	private MultiTypedList data;
-	private final List<? extends ANodeElement> nodes;
+	private final List<? extends INodeElement> nodes;
 
-	public LinearBlock(EDimension dim, List<? extends ANodeElement> nodes) {
+	public LinearBlock(EDimension dim, List<? extends INodeElement> nodes) {
 		this.dim = dim;
 		this.nodes = nodes;
 	}
@@ -73,7 +73,12 @@ public class LinearBlock implements Iterable<INodeUI> {
 	 * @param data2
 	 */
 	private void resortImpl(IMultiTypedCollection data) {
-		List<ISortableNode> s = orderBy(Iterables.transform(nodes, ANodeUI.TO_NODE), dim);
+		List<ISortableNode> s = orderBy(Iterables.transform(nodes, new Function<INodeElement, INode>() {
+			@Override
+			public INode apply(INodeElement input) {
+				return input.asNode();
+			}
+		}), dim);
 		List<ITypedComparator> c = asComparators(dim, s);
 		this.data = TypedSets.sort(data, c.toArray(new ITypedComparator[0]));
 		IStratisfyingableNode groupBy = (!s.isEmpty() && s.get(0) instanceof IStratisfyingableNode) ? (IStratisfyingableNode) s
@@ -87,9 +92,9 @@ public class LinearBlock implements Iterable<INodeUI> {
 	public void update() {
 		if (nodes.isEmpty())
 			return;
-		Collection<TypedSet> sets = Collections2.transform(nodes, new Function<ANodeElement, TypedSet>() {
+		Collection<TypedSet> sets = Collections2.transform(nodes, new Function<INodeElement, TypedSet>() {
 			@Override
-			public TypedSet apply(ANodeElement input) {
+			public TypedSet apply(INodeElement input) {
 				return input.asNode().getData(dim);
 			}
 		});
@@ -129,7 +134,7 @@ public class LinearBlock implements Iterable<INodeUI> {
 		int i = 0;
 		List<ITypedGroup> g = asGroupList(data.size());
 
-		for (ANodeElement node : nodes) {
+		for (INodeElement node : nodes) {
 			final TypedList slice = data.slice(node.asNode().getIDType(dim));
 			b.set(i++, node.setData(dim, TypedGroupList.create(slice, g)));
 		}
@@ -145,11 +150,15 @@ public class LinearBlock implements Iterable<INodeUI> {
 		List<ITypedGroup> g = new ArrayList<>(groups.size()+1);
 		g.addAll(groups);
 		if (sum < size)
-			g.add(ungrouped(size - sum));
+			g.add(unmapped(size - sum));
 		return g;
 	}
 
 	private static ITypedGroup ungrouped(int size) {
-		return TypedGroupList.createUngrouped(TypedCollections.INVALID_IDTYPE, size);
+		return TypedGroupList.createUngroupedGroup(TypedCollections.INVALID_IDTYPE, size);
+	}
+
+	private static ITypedGroup unmapped(int size) {
+		return TypedGroupList.createUnmappedGroup(TypedCollections.INVALID_IDTYPE, size);
 	}
 }

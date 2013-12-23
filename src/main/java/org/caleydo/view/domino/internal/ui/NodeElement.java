@@ -7,198 +7,273 @@ package org.caleydo.view.domino.internal.ui;
 
 import gleem.linalg.Vec2f;
 
-import org.caleydo.core.data.selection.MultiSelectionManagerMixin;
-import org.caleydo.core.data.selection.MultiSelectionManagerMixin.ISelectionMixinCallback;
-import org.caleydo.core.data.selection.SelectionManager;
-import org.caleydo.core.data.selection.SelectionType;
-import org.caleydo.core.event.EventListenerManager.DeepScan;
-import org.caleydo.core.event.EventPublisher;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
+import java.util.List;
+import java.util.Objects;
+
+import org.caleydo.core.data.collection.EDimension;
 import org.caleydo.core.util.color.Color;
 import org.caleydo.core.view.opengl.canvas.IGLMouseListener.IMouseEvent;
-import org.caleydo.core.view.opengl.layout.Column.VAlign;
-import org.caleydo.core.view.opengl.layout2.GLElement;
-import org.caleydo.core.view.opengl.layout2.GLGraphics;
-import org.caleydo.core.view.opengl.layout2.dnd.IDnDItem;
-import org.caleydo.core.view.opengl.layout2.dnd.IDragGLSource;
-import org.caleydo.core.view.opengl.layout2.dnd.IDragInfo;
-import org.caleydo.core.view.opengl.layout2.renderer.Borders;
-import org.caleydo.core.view.opengl.layout2.renderer.Borders.IBorderGLRenderer;
+import org.caleydo.core.view.opengl.layout2.GLElementContainer;
+import org.caleydo.core.view.opengl.layout2.layout.GLLayouts;
+import org.caleydo.core.view.opengl.layout2.layout.IGLLayout2;
+import org.caleydo.core.view.opengl.layout2.layout.IGLLayoutElement;
+import org.caleydo.core.view.opengl.layout2.renderer.GLRenderers;
+import org.caleydo.core.view.opengl.picking.IPickingListener;
 import org.caleydo.core.view.opengl.picking.Pick;
 import org.caleydo.view.domino.api.model.graph.DominoGraph;
-import org.caleydo.view.domino.internal.dnd.NodeDragInfo;
-import org.caleydo.view.domino.internal.event.HidePlaceHoldersEvent;
+import org.caleydo.view.domino.api.model.graph.ISortableNode;
+import org.caleydo.view.domino.api.model.graph.IStratisfyingableNode;
+import org.caleydo.view.domino.api.model.graph.NodeUIState;
+import org.caleydo.view.domino.api.model.typed.TypedGroupList;
+import org.caleydo.view.domino.api.model.typed.TypedList;
+import org.caleydo.view.domino.api.model.typed.TypedListGroup;
+import org.caleydo.view.domino.api.model.typed.TypedSets;
+import org.caleydo.view.domino.internal.ui.NodeGroupElement.ENodeUIState;
 import org.caleydo.view.domino.spi.model.graph.INode;
+
+import com.google.common.base.Supplier;
+import com.google.common.collect.Iterables;
 
 /**
  * @author Samuel Gratzl
  *
  */
-public class NodeElement extends ANodeElement implements ISelectionMixinCallback {
-	private final IBorderGLRenderer border;
-
-	@DeepScan
-	private final MultiSelectionManagerMixin selections = new MultiSelectionManagerMixin(this);
+public class NodeElement extends GLElementContainer implements IGLLayout2, IPickingListener, PropertyChangeListener,
+		INodeElement {
+	protected final INode node;
+	private TypedGroupList dimData;
+	private TypedGroupList recData;
 
 	public NodeElement(INode node) {
-		super(node);
-		this.border = Borders.createBorder(Color.BLACK);
-		this.add(new GLElement(border));
-		selections.add(DominoGraph.newNodeSelectionManager());
+		setLayout(this);
+		this.node = node;
+		this.node.addPropertyChangeListener(INode.PROP_TRANSPOSE, this);
+		this.dimData = toData(EDimension.DIMENSION, node);
+		this.recData = toData(EDimension.RECORD, node);
+
+		Vec2f pos = node.getLayoutDataAs(Vec2f.class, null);
+		if (pos != null)
+			setLocation(pos.x(), pos.y());
+		setPicker(GLRenderers.fillRect(Color.LIGHT_RED));
+
+		setVisibility(EVisibility.PICKABLE);
+		onPick(this);
+		guessZoomSettings();
+		rebuild();
+
+		setSize((float) getSize(EDimension.DIMENSION), (float) getSize(EDimension.RECORD));
 	}
-
-	private final IDragGLSource source = new IDragGLSource() {
-
-		@Override
-		public IDragInfo startSWTDrag(IDragEvent event) {
-			// EventPublisher.trigger(new ShowPlaceHoldersEvent(node).to(findParent(DominoNodeLayer.class)));
-			return new NodeDragInfo(node, event.getMousePos());
-		}
-
-		@Override
-		public void onDropped(IDnDItem info) {
-			EventPublisher.trigger(new HidePlaceHoldersEvent().to(findParent(DominoNodeLayer.class)));
-		}
-
-		@Override
-		public GLElement createUI(IDragInfo info) {
-			NodeDragInfo d = ((NodeDragInfo) info);
-			Vec2f mousePos = d.getMousePos();
-			Vec2f loc = getAbsoluteLocation();
-			Vec2f offset = mousePos.minus(loc);
-			d.setOffset(offset);
-			return d.createUI();
-		}
-	};
 
 	@Override
-	protected void takeDown() {
-		context.getMouseLayer().removeDragSource(source);
-		super.takeDown();
+	public INode asNode() {
+		return node;
 	}
 
-	protected boolean isSelectState() {
-		return content.getVisibility() == EVisibility.PICKABLE;
+	private static TypedList toList(EDimension dim, INode node) {
+		if (node.hasDimension(dim) && node instanceof ISortableNode && ((ISortableNode) node).isSortable(dim))
+			return TypedSets.sort(node.getData(dim), ((ISortableNode) node).getComparator(dim));
+		else
+			return node.getData(dim).asList();
 	}
 
-	public ENodeUIState getState() {
-		return isSelectState() ? ENodeUIState.SELECT : ENodeUIState.MOVE;
+	private static TypedGroupList toData(EDimension dim, INode node) {
+		if (node instanceof IStratisfyingableNode && ((IStratisfyingableNode) node).isStratisfyable(dim))
+			return TypedGroupList.create(toList(dim, node), ((IStratisfyingableNode) node).getGroups(dim));
+		return TypedGroupList.createUngrouped(toList(dim, node));
+	}
+
+	/**
+	 *
+	 */
+	private void guessZoomSettings() {
+
+	}
+
+	@Override
+	public boolean setData(EDimension dim, TypedGroupList data) {
+		final TypedGroupList oldList = getData(dim);
+		if (Objects.equals(oldList, data))
+			return false;
+		int old = oldList.size();
+		if (dim.isHorizontal())
+			dimData = data;
+		else
+			recData = data;
+		rebuild();
+		return old != data.size();
+	}
+
+	private void rebuild() {
+		int i = 0;
+		for (TypedListGroup dimGroup : dimData.getGroups()) {
+			for (TypedListGroup recGroup : recData.getGroups()) {
+				NodeGroupElement elem = getOrCreate(i++);
+				elem.setData(dimGroup, recGroup);
+			}
+		}
+		if (i < size())
+			this.asList().subList(i, size()).clear();
+		relayout();
+	}
+
+	private NodeGroupElement getOrCreate(int i) {
+		if (i == size()) {
+			this.add(new NodeGroupElement(node));
+		}
+		return (NodeGroupElement) get(i);
+	}
+
+	private TypedGroupList getData(EDimension dim) {
+		return dim.select(dimData, recData);
+	}
+
+	private double[] getSizes(EDimension dim) {
+		final int cols = getNumGroups(EDimension.DIMENSION);
+		final int rows = getNumGroups(EDimension.RECORD);
+		// complex case
+		double[] maxCol = new double[dim.select(cols, rows)];
+		for (int c = 0; c < cols; ++c) {
+			for (int r = 0; r < rows; ++r) {
+				int b = dim.select(c, r);
+				double wi = getSize(dim, r, c);
+				maxCol[b] = Math.max(maxCol[b], wi);
+			}
+		}
+		return maxCol;
+	}
+
+	@Override
+	public double getSize(EDimension dim) {
+		double[] sizes = getSizes(dim);
+		int sum = (sizes.length - 1) * 2;
+		for (double size : sizes)
+			sum += size;
+		sum = sum <= 0 ? 20 : sum;
+		sum *= dim.select(node.getUIState().getZoom());
+		return sum;
+	}
+
+	private double getSize(EDimension dim, int row, int col) {
+		return getNodeElement(row, col).getSize(dim);
+	}
+
+	private int getNumGroups(EDimension dim) {
+		return getData(dim).getGroups().size();
+	}
+
+	private NodeGroupElement getNodeElement(int row, int col) {
+		int cols = getNumGroups(EDimension.DIMENSION);
+		int index = row * cols + col;
+		return (NodeGroupElement) get(index);
+	}
+
+	@Override
+	public boolean doLayout(List<? extends IGLLayoutElement> children, float w, float h, IGLLayoutElement parent,
+			int deltaTimeMs) {
+		// children are organized row based
+		final int cols = getNumGroups(EDimension.DIMENSION);
+		final int rows = getNumGroups(EDimension.RECORD);
+
+		// simple case
+		if (cols == 1 && rows == 1) {
+			return GLLayouts.LAYERS.doLayout(children, w, h, parent, deltaTimeMs);
+		}
+
+		double[] colSizes = scale(getSizes(EDimension.DIMENSION), w, EDimension.DIMENSION);
+		double[] rowSizes = scale(getSizes(EDimension.RECORD), h, EDimension.RECORD);
+
+		float x = 0;
+		for (int c = 0; c < cols; ++c) {
+			double wc = colSizes[c];
+
+			float y = 0;
+			for (int r = 0; r < rows; ++r) {
+				double hr = rowSizes[r];
+
+				IGLLayoutElement elem = children.get(r * cols + c);
+				double xshift = 0;
+				double yshift = 0;
+				elem.setBounds(x + (float) xshift, y + (float) yshift, (float) wc, (float) hr);
+				y += hr + 2;
+			}
+			x += wc + 2;
+		}
+
+		return false;
+	}
+
+	/**
+	 * @param sizes
+	 * @param groups
+	 * @param w
+	 * @return
+	 */
+	private double[] scale(double[] sizes, float total, EDimension dim) {
+		final List<TypedListGroup> groups = getData(dim).getGroups();
+		final float scale = dim.select(node.getUIState().getZoom());
+		int elems = 0;
+		double rem = total - sizes.length+1;
+		for(int i = 0; i < sizes.length; ++i) {
+			sizes[i] *= scale;
+			rem -= sizes[i];
+			elems += groups.get(i).size();
+		}
+		if(rem <= 0)
+			return sizes;
+		if (elems == 0 && sizes.length == 1) {
+			sizes[0] += rem;
+			return sizes;
+		}
+		double shift = rem / elems;
+		for(int i = 0; i < sizes.length; ++i)
+			sizes[i] += shift * groups.get(i).size();
+		return sizes;
+	}
+
+	@Override
+	public void pick(Pick pick) {
+		IMouseEvent event = ((IMouseEvent) pick);
+		switch (pick.getPickingMode()) {
+		case MOUSE_WHEEL:
+			node.getUIState().zoom(event);
+			break;
+		default:
+			break;
+		}
+	}
+
+	@Override
+	public void propertyChange(PropertyChangeEvent evt) {
+		switch (evt.getPropertyName()) {
+		case INode.PROP_TRANSPOSE:
+			NodeUIState s = node.getUIState();
+			Vec2f z = s.getZoom();
+			s.setZoom(z.y(), z.x());
+			break;
+		default:
+			repaint();
+		}
+	}
+
+	protected final DominoGraph findGraph() {
+		return findParent(GraphElement.class).getGraph();
+	}
+
+	@Override
+	public <T> T getLayoutDataAs(Class<T> clazz, Supplier<? extends T> default_) {
+		if (clazz.isInstance(node))
+			return clazz.cast(node);
+		return super.getLayoutDataAs(clazz, default_);
 	}
 
 	/**
 	 * @param move
 	 */
-	public void setState(ENodeUIState state) {
-		if (state == ENodeUIState.MOVE) {
-			content.setVisibility(EVisibility.VISIBLE);
-		} else
-			content.setVisibility(EVisibility.PICKABLE);
-	}
-
-
-	@Override
-	protected void onMainPick(Pick pick) {
-		switch (pick.getPickingMode()) {
-		case MOUSE_OVER:
-			if (!isSelectState())
-				context.getMouseLayer().addDragSource(source);
-			break;
-		case MOUSE_OUT:
-			context.getMouseLayer().removeDragSource(source);
-			break;
-		case MOUSE_RELEASED:
-			select(SelectionType.SELECTION, !isSelected(SelectionType.SELECTION), !((IMouseEvent) pick).isCtrlDown());
-			break;
-		case RIGHT_CLICKED:
-			findGraph().remove(node);
-			break;
-		case DOUBLE_CLICKED:
-			// graph.remove(node);
-			setState(getState().opposite());
-			if (isSelectState()) {
-				border.setColor(Color.RED);
-				context.getMouseLayer().removeDragSource(source);
-			} else {
-				border.setColor(Color.BLUE);
-				context.getMouseLayer().addDragSource(source);
-			}
-			break;
-		default:
-			break;
-		}
-	}
-
-	@Override
-	public void onSelectionUpdate(SelectionManager manager) {
-		SelectionType s = manager.getHighestSelectionType(node.getID());
-		border.setColor(s == null ? Color.BLACK : s.getColor());
-		border.setWidth(s == null ? 2 : 3);
-		get(1).repaint();
-	}
-
-	@Override
-	public void pick(Pick pick) {
-		super.pick(pick);
-		switch (pick.getPickingMode()) {
-		case MOUSE_OVER:
-			select(SelectionType.MOUSE_OVER, true, true);
-			break;
-		case MOUSE_OUT:
-			select(SelectionType.MOUSE_OVER, false, true);
-			break;
-		default:
-			break;
-		}
-	}
-
-	public boolean isSelected(SelectionType type) {
-		return selections.get(0).checkStatus(type, node.getID());
-	}
-
-	/**
-	 * @param mouseOver
-	 * @param b
-	 */
-	private void select(SelectionType type, boolean enable, boolean clear) {
-		SelectionManager m = selections.get(0);
-		if (clear)
-			m.clearSelection(type);
-		if (enable)
-			m.addToType(type, node.getID());
-		else
-			m.removeFromType(type, node.getID());
-		selections.fireSelectionDelta(m);
-		onSelectionUpdate(m);
-	}
-
-	@Override
-	protected void renderImpl(GLGraphics g, float w, float h) {
-		// g.color(Color.BLACK).drawRect(0, 0, w, h);
-		super.renderImpl(g, w, h);
-		g.incZ();
-		g.incZ();
-		float wi = Math.max(100, w);
-		float x = (w - wi) * 0.5f;
-		g.drawText(node.getLabel(), x, (h - 10) * .5f, wi, 10, VAlign.CENTER);
-		g.decZ();
-		g.decZ();
-	}
-
-
-	@Override
-	public Vec2f getMinSize() {
-		Vec2f s = getNodeSize();
-		s.add(new Vec2f(BORDER * 2, BORDER * 2));
-		return s;
-	}
-
-	public static enum ENodeUIState {
-		MOVE, SELECT;
-
-		/**
-		 * @return
-		 */
-		public ENodeUIState opposite() {
-			return this == MOVE ? SELECT : MOVE;
+	public void setState(ENodeUIState move) {
+		for (NodeGroupElement elem : Iterables.filter(this, NodeGroupElement.class)) {
+			elem.setState(move);
 		}
 	}
 }

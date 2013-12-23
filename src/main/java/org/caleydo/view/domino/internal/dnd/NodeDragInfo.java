@@ -8,6 +8,7 @@ package org.caleydo.view.domino.internal.dnd;
 import gleem.linalg.Vec2f;
 
 import org.caleydo.core.view.opengl.layout2.GLElement;
+import org.caleydo.core.view.opengl.layout2.dnd.EDnDType;
 import org.caleydo.core.view.opengl.layout2.dnd.IUIDragInfo;
 import org.caleydo.view.domino.spi.model.graph.INode;
 
@@ -16,13 +17,18 @@ import org.caleydo.view.domino.spi.model.graph.INode;
  *
  */
 public class NodeDragInfo implements IUIDragInfo {
-	private final INode node;
+	protected final INode node;
+
 	private final Vec2f mousePos;
 	private Vec2f offset = new Vec2f(0, 0);
 
 	public NodeDragInfo(INode node, Vec2f mousePos) {
 		this.node = node;
 		this.mousePos = mousePos;
+	}
+
+	public INode apply(EDnDType type) {
+		return (type == EDnDType.COPY) ? node.clone() : node;
 	}
 
 	/**

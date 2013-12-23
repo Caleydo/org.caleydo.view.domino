@@ -7,7 +7,7 @@ package org.caleydo.view.domino.internal.ui;
 
 import org.caleydo.core.data.collection.EDimension;
 import org.caleydo.core.view.opengl.layout2.GLElement;
-import org.caleydo.view.domino.api.model.typed.TypedGroupList;
+import org.caleydo.view.domino.api.model.typed.TypedList;
 import org.caleydo.view.domino.spi.model.graph.INode;
 
 /**
@@ -17,7 +17,7 @@ import org.caleydo.view.domino.spi.model.graph.INode;
 public interface INodeUI {
 	GLElement asGLElement();
 
-	boolean setData(EDimension dim, TypedGroupList data);
+	boolean setData(EDimension dim, TypedList data);
 
 	/**
 	 * @return
