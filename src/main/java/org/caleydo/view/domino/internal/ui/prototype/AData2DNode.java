@@ -35,6 +35,14 @@ public abstract class AData2DNode extends ADataNode {
 	/**
 	 * @param clone
 	 */
+	public AData2DNode(AData2DNode parent, TypedSet dim, TypedSet rec, String label) {
+		super(label, dim, rec, parent.transposed);
+		this.data = parent.data;
+	}
+
+	/**
+	 * @param clone
+	 */
 	public AData2DNode(AData2DNode clone) {
 		super(clone);
 		this.data = clone.data;

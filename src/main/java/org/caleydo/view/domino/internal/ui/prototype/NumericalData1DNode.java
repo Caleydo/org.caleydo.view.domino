@@ -12,6 +12,7 @@ import org.caleydo.core.data.datadomain.DataSupportDefinitions;
 import org.caleydo.core.data.perspective.table.TablePerspective;
 import org.caleydo.core.view.opengl.layout2.manage.GLElementFactoryContext.Builder;
 import org.caleydo.view.domino.api.model.typed.TypedList;
+import org.caleydo.view.domino.api.model.typed.TypedSet;
 import org.caleydo.view.domino.internal.ui.ANodeUI;
 import org.caleydo.view.domino.internal.ui.INodeUI;
 
@@ -27,6 +28,10 @@ public class NumericalData1DNode extends AData1DNode {
 	public NumericalData1DNode(TablePerspective data, EDimension main) {
 		super(data, main);
 		assert DataSupportDefinitions.dataClass(EDataClass.REAL_NUMBER, EDataClass.NATURAL_NUMBER).apply(data);
+	}
+
+	public NumericalData1DNode(NumericalData1DNode parent, String label, TypedSet ids) {
+		super(parent, label, ids);
 	}
 
 	public NumericalData1DNode(NumericalData1DNode clone) {

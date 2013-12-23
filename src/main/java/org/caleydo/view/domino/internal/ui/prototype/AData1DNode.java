@@ -49,6 +49,17 @@ public abstract class AData1DNode extends ANode implements ISortableNode, ITyped
 		this.id = new TypedID(o.getVirtualArray().get(0),o.getIdType());
 		this.main = main;
 	}
+
+	public AData1DNode(AData1DNode parent, String label, TypedSet ids) {
+		super(label);
+		this.main = parent.main;
+		this.data = parent.data;
+		this.ids = ids;
+		this.id = parent.id;
+		this.transposed = parent.transposed;
+		this.sortingPriority = NO_SORTING;
+
+	}
 	/**
 	 * @param clone
 	 */

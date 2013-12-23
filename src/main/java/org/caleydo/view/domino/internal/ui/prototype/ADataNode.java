@@ -19,9 +19,14 @@ public abstract class ADataNode extends ANode {
 	protected boolean transposed = false;
 
 	public ADataNode(String label, TypedSet dim, TypedSet rec) {
+		this(label, dim, rec, false);
+	}
+
+	public ADataNode(String label, TypedSet dim, TypedSet rec, boolean transposed) {
 		super(label);
 		this.rec = rec;
 		this.dim = dim;
+		this.transposed = transposed;
 	}
 
 	/**

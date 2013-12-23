@@ -12,8 +12,9 @@ import org.caleydo.core.data.collection.column.container.CategoryProperty;
 import org.caleydo.core.data.datadomain.DataSupportDefinitions;
 import org.caleydo.core.data.perspective.table.TablePerspective;
 import org.caleydo.core.view.opengl.layout2.manage.GLElementFactoryContext.Builder;
+import org.caleydo.view.domino.api.model.typed.ITypedGroup;
 import org.caleydo.view.domino.api.model.typed.TypedList;
-import org.caleydo.view.domino.api.model.typed.TypedListGroup;
+import org.caleydo.view.domino.api.model.typed.TypedSet;
 import org.caleydo.view.domino.internal.ui.ANodeUI;
 import org.caleydo.view.domino.internal.ui.INodeUI;
 
@@ -27,7 +28,7 @@ import com.google.common.collect.ImmutableList;
 public final class CategoricalData1DNode extends AData1DNode implements IStratisfyingableNode {
 
 	private final List<?> categories;
-	private List<TypedListGroup> groups;
+	private List<? extends ITypedGroup> groups;
 	private boolean isStratified;
 
 	/**
@@ -41,6 +42,12 @@ public final class CategoricalData1DNode extends AData1DNode implements IStratis
 		this.categories = toCategories(properties);
 		this.groups = Utils.extractGroups(main.select(data.getDimensionPerspective(), data.getRecordPerspective()),
 				getSingleID().getId(), main.opposite());
+	}
+
+	public CategoricalData1DNode(CategoricalData1DNode parent, String label, TypedSet ids) {
+		super(parent, label, ids);
+		this.categories = parent.categories;
+		this.groups = parent.groups; // FIXME
 	}
 
 	public CategoricalData1DNode(CategoricalData1DNode clone) {
@@ -72,7 +79,7 @@ public final class CategoricalData1DNode extends AData1DNode implements IStratis
 	}
 
 	@Override
-	public List<TypedListGroup> getGroups(EDimension dim) {
+	public List<? extends ITypedGroup> getGroups(EDimension dim) {
 		return groups;
 	}
 

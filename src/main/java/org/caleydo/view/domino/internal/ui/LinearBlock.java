@@ -42,9 +42,9 @@ public class LinearBlock implements Iterable<INodeUI> {
 	private final EDimension dim;
 	private List<? extends ITypedGroup> groups;
 	private MultiTypedList data;
-	private final List<? extends INodeUI> nodes;
+	private final List<? extends ANodeElement> nodes;
 
-	public LinearBlock(EDimension dim, List<? extends INodeUI> nodes) {
+	public LinearBlock(EDimension dim, List<? extends ANodeElement> nodes) {
 		this.dim = dim;
 		this.nodes = nodes;
 	}
@@ -87,9 +87,9 @@ public class LinearBlock implements Iterable<INodeUI> {
 	public void update() {
 		if (nodes.isEmpty())
 			return;
-		Collection<TypedSet> sets = Collections2.transform(nodes, new Function<INodeUI, TypedSet>() {
+		Collection<TypedSet> sets = Collections2.transform(nodes, new Function<ANodeElement, TypedSet>() {
 			@Override
-			public TypedSet apply(INodeUI input) {
+			public TypedSet apply(ANodeElement input) {
 				return input.asNode().getData(dim);
 			}
 		});
@@ -129,7 +129,7 @@ public class LinearBlock implements Iterable<INodeUI> {
 		int i = 0;
 		List<ITypedGroup> g = asGroupList(data.size());
 
-		for (INodeUI node : nodes) {
+		for (ANodeElement node : nodes) {
 			final TypedList slice = data.slice(node.asNode().getIDType(dim));
 			b.set(i++, node.setData(dim, TypedGroupList.create(slice, g)));
 		}

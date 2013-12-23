@@ -15,6 +15,7 @@ import org.caleydo.core.data.datadomain.DataSupportDefinitions;
 import org.caleydo.core.data.perspective.table.TablePerspective;
 import org.caleydo.core.view.opengl.layout2.manage.GLElementFactoryContext.Builder;
 import org.caleydo.view.domino.api.model.typed.TypedList;
+import org.caleydo.view.domino.api.model.typed.TypedSet;
 import org.caleydo.view.domino.internal.ui.ANodeUI;
 import org.caleydo.view.domino.internal.ui.INodeUI;
 
@@ -33,6 +34,11 @@ public class CategoricalData2DNode extends AData2DNode {
 		super(data);
 		assert DataSupportDefinitions.categoricalTables.apply(data);
 		this.categories = getCategories(data);
+	}
+
+	public CategoricalData2DNode(CategoricalData2DNode parent, TypedSet dim, TypedSet rec, String label) {
+		super(parent, dim, rec, label);
+		this.categories = parent.categories;
 	}
 
 	public CategoricalData2DNode(CategoricalData2DNode clone) {
