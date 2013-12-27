@@ -78,13 +78,13 @@ public class DominoBandLayer extends DominoBackgroundLayer implements
 	@Override
 	public void vertexAdded(INode vertex, Collection<IEdge> edges) {
 		relayout();
-		vertex.getUIState().addPropertyChangeListener(NodeUIState.PROP_ZOOM, relayout);
+		vertex.getUIState().addPropertyChangeListener(NodeUIState.PROP_SIZE_CHANGE, relayout);
 	}
 
 	@Override
 	public void vertexRemoved(INode vertex, Collection<IEdge> edges) {
 		relayout();
-		vertex.getUIState().removePropertyChangeListener(NodeUIState.PROP_ZOOM, relayout);
+		vertex.getUIState().removePropertyChangeListener(NodeUIState.PROP_SIZE_CHANGE, relayout);
 	}
 
 	@Override

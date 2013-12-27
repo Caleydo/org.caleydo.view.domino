@@ -164,8 +164,8 @@ public class NodeElement extends GLElementContainer implements IGLLayout2, IPick
 		int sum = (sizes.length - 1) * 2;
 		for (double size : sizes)
 			sum += size;
-		sum = sum <= 0 ? 20 : sum;
-		sum *= dim.select(node.getUIState().getZoom());
+		// sum = sum <= 0 ? 20 : sum;
+		sum += dim.select(node.getUIState().getSizeChange());
 		return sum;
 	}
 
@@ -226,11 +226,10 @@ public class NodeElement extends GLElementContainer implements IGLLayout2, IPick
 	 */
 	private double[] scale(double[] sizes, float total, EDimension dim) {
 		final List<TypedListGroup> groups = getData(dim).getGroups();
-		final float scale = dim.select(node.getUIState().getZoom());
+		final float shift = dim.select(node.getUIState().getSizeChange());
 		int elems = 0;
-		double rem = total - sizes.length+1;
+		double rem = total - sizes.length + 1;
 		for(int i = 0; i < sizes.length; ++i) {
-			sizes[i] *= scale;
 			rem -= sizes[i];
 			elems += groups.get(i).size();
 		}
@@ -240,9 +239,9 @@ public class NodeElement extends GLElementContainer implements IGLLayout2, IPick
 			sizes[0] += rem;
 			return sizes;
 		}
-		double shift = rem / elems;
+		double s = rem / elems;
 		for(int i = 0; i < sizes.length; ++i)
-			sizes[i] += shift * groups.get(i).size();
+			sizes[i] += s * groups.get(i).size();
 		return sizes;
 	}
 
@@ -263,8 +262,8 @@ public class NodeElement extends GLElementContainer implements IGLLayout2, IPick
 		switch (evt.getPropertyName()) {
 		case INode.PROP_TRANSPOSE:
 			NodeUIState s = node.getUIState();
-			Vec2f z = s.getZoom();
-			s.setZoom(z.y(), z.x());
+			Vec2f z = s.getSizeChange();
+			s.setSizeChange(z.y(), z.x());
 			break;
 		default:
 			repaint();

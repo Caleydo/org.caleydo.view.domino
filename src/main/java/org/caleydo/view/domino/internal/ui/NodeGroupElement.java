@@ -308,9 +308,9 @@ public class NodeGroupElement extends GLElementDecorator implements IDragGLSourc
 	 */
 	public Vec2f getPreferredSize() {
 		Vec2f s = getNodeSize().copy();
-		Vec2f z = asNode().getUIState().getZoom();
-		s.setX(s.x() * z.x());
-		s.setY(s.y() * z.y());
+		Vec2f z = asNode().getUIState().getSizeChange();
+		s.setX(s.x() + z.x());
+		s.setY(s.y() + z.y());
 		s.add(new Vec2f(BORDER * 4, BORDER * 4));
 		return s;
 	}

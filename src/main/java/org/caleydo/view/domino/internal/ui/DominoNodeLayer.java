@@ -195,7 +195,7 @@ public class DominoNodeLayer extends GLElementContainer implements IDominoGraphL
 		@Override
 		public void propertyChange(PropertyChangeEvent evt) {
 			switch (evt.getPropertyName()) {
-			case NodeUIState.PROP_ZOOM:
+			case NodeUIState.PROP_SIZE_CHANGE:
 				Vec2f old = (Vec2f) evt.getOldValue();
 				Vec2f new_ = (Vec2f) evt.getNewValue();
 				for (EDimension dim : EDimension.values()) {

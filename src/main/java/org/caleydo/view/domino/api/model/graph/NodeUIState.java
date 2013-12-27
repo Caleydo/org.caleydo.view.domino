@@ -20,10 +20,10 @@ import org.caleydo.core.view.opengl.canvas.IGLMouseListener.IMouseEvent;
 public class NodeUIState {
 	protected final PropertyChangeSupport propertySupport = new PropertyChangeSupport(this);
 
-	public static final String PROP_ZOOM = "zoom";
+	public static final String PROP_SIZE_CHANGE = "sizeChange";
 	public static final String PROP_PROXIMITY_MODE = "proximityMode";
 
-	private final Vec2f zoom = new Vec2f(1, 1);
+	private final Vec2f sizeChange = new Vec2f(0, 0);
 
 	private EProximityMode proximityMode = EProximityMode.FREE;
 
@@ -31,7 +31,7 @@ public class NodeUIState {
 	 * @param clone
 	 */
 	public void init(NodeUIState clone) {
-		this.zoom.set(clone.zoom);
+		this.sizeChange.set(clone.sizeChange);
 	}
 	/**
 	 * @return the proximityMode, see {@link #proximityMode}
@@ -48,12 +48,12 @@ public class NodeUIState {
 		propertySupport.firePropertyChange(PROP_PROXIMITY_MODE, this.proximityMode, this.proximityMode = proximityMode);
 	}
 
-	public boolean setZoom(float zoomFactorX, float zoomFactorY) {
-		if (this.zoom.x() == zoomFactorX && this.zoom.y() == zoomFactorY)
+	public boolean setSizeChange(float sizeX, float sizeY) {
+		if (this.sizeChange.x() == sizeX && this.sizeChange.y() == sizeY)
 			return false;
-		final Vec2f old = zoom.copy();
-		zoom.set(zoomFactorX, zoomFactorY);
-		propertySupport.firePropertyChange(PROP_ZOOM, old, zoom);
+		final Vec2f old = sizeChange.copy();
+		sizeChange.set(sizeX, sizeY);
+		propertySupport.firePropertyChange(PROP_SIZE_CHANGE, old, sizeChange);
 		return true;
 	}
 
@@ -72,33 +72,12 @@ public class NodeUIState {
 	public final void removePropertyChangeListener(String propertyName, PropertyChangeListener listener) {
 		propertySupport.removePropertyChangeListener(propertyName, listener);
 	}
-	/**
-	 * @return the zoom, see {@link #zoom}
-	 */
-	public Vec2f getZoom() {
-		return zoom.copy();
-	}
-
-	public boolean zoom(float factor) {
-		return zoom(factor, factor);
-	}
 
 	/**
-	 * @param factor
-	 * @param factorY
+	 * @return the size, see {@link #sizeChange}
 	 */
-	public boolean zoom(float factorX, float factorY) {
-		if (isInvalid(factorX) || isInvalid(factorY))
-			return false;
-		return setZoom(zoom.x() * factorX, zoom.y() * factorY);
-	}
-
-	/**
-	 * @param factorY
-	 * @return
-	 */
-	private static boolean isInvalid(float factor) {
-		return Double.isNaN(factor) || Double.isInfinite(factor) || factor <= 0;
+	public Vec2f getSizeChange() {
+		return sizeChange;
 	}
 
 	/**
@@ -112,13 +91,9 @@ public class NodeUIState {
 		int dim = toDirection(event, EDimension.DIMENSION);
 		int rec = toDirection(event, EDimension.RECORD);
 
-		float factor = (float) Math.pow(1.2, event.getWheelRotation());
-		float factorX = dim == 0 ? 1 : factor;
-		float factorY = rec == 0 ? 1 : factor;
-		zoom(factorX, factorY);
-		// float shiftX = dim == 0 ? 0 : event.getWheelRotation() * 5;
-		// float shiftY = rec == 0 ? 0 : event.getWheelRotation() * 5;
-		// setZoom(zoom.x() + shiftX, zoom.y() + shiftY);
+		float shiftX = dim == 0 ? 0 : event.getWheelRotation() * 5;
+		float shiftY = rec == 0 ? 0 : event.getWheelRotation() * 5;
+		setSizeChange(sizeChange.x() + shiftX, sizeChange.y() + shiftY);
 	}
 
 	/**
