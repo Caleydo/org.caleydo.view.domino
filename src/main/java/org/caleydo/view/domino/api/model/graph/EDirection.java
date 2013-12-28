@@ -7,6 +7,7 @@ package org.caleydo.view.domino.api.model.graph;
 
 import org.caleydo.core.data.collection.EDimension;
 
+import com.google.common.base.Function;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 
@@ -85,4 +86,11 @@ public enum EDirection {
 		else
 			return EDirection.ABOVE;
 	}
+
+	public static Function<EDirection,EDirection> TO_OPPOSITE = new Function<EDirection,EDirection>() {
+		@Override
+		public EDirection apply(EDirection input) {
+			return input.opposite();
+		}
+	};
 }

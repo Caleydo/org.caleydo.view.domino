@@ -118,7 +118,7 @@ public class PlaceholderNodeElement extends PickableGLElement implements IDropGL
 
 	@Override
 	public void onDrop(IDnDItem item) {
-		INode n = Nodes.extract(item);
+		INode n = Nodes.extractPrimary(item);
 		DominoGraph graph = findGraph();
 		final DominoNodeLayer nodes = findParent(DominoNodeLayer.class);
 		graph.replace(this.node, n);

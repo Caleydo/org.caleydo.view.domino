@@ -5,38 +5,16 @@
  *******************************************************************************/
 package org.caleydo.view.domino.internal.dnd;
 
-import gleem.linalg.Vec2f;
-
+import org.caleydo.core.util.base.ILabeled;
 import org.caleydo.core.view.opengl.layout2.dnd.EDnDType;
 import org.caleydo.view.domino.spi.model.graph.INode;
+
+import com.google.common.base.Function;
 
 /**
  * @author Samuel Gratzl
  *
  */
-public class NodeDragInfo extends ANodeDragInfo implements INodeCreator {
-	protected final INode node;
-
-	public NodeDragInfo(INode node, Vec2f mousePos) {
-		super(mousePos);
-		this.node = node;
-	}
-
-	@Override
-	public INode apply(EDnDType type) {
-		return (type == EDnDType.COPY) ? node.clone() : node;
-	}
-
-	@Override
-	public String getLabel() {
-		return node.getLabel();
-	}
-
-	/**
-	 * @return the node, see {@link #node}
-	 */
-	public INode getNode() {
-		return node;
-	}
+public interface INodeCreator extends Function<EDnDType, INode>, ILabeled {
 
 }

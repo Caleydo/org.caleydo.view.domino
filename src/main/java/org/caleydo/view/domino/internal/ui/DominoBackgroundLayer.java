@@ -17,7 +17,8 @@ import org.caleydo.core.view.opengl.layout2.dnd.IDropGLTarget;
 import org.caleydo.core.view.opengl.picking.Pick;
 import org.caleydo.view.domino.api.model.graph.DominoGraph;
 import org.caleydo.view.domino.api.model.graph.Nodes;
-import org.caleydo.view.domino.internal.dnd.NodeDragInfo;
+import org.caleydo.view.domino.internal.dnd.ANodeDragInfo;
+import org.caleydo.view.domino.internal.dnd.GraphDragInfo;
 import org.caleydo.view.domino.internal.event.HidePlaceHoldersEvent;
 import org.caleydo.view.domino.internal.event.ShowPlaceHoldersEvent;
 import org.caleydo.view.domino.spi.model.graph.INode;
@@ -70,16 +71,18 @@ public class DominoBackgroundLayer extends PickableGLElement implements IDropGLT
 	@Override
 	public void onDrop(IDnDItem item) {
 		Vec2f pos = toRelative(item.getMousePos());
-		INode n = Nodes.extract(item);
-		if (item.getInfo() instanceof NodeDragInfo) {
-			pos.sub(((NodeDragInfo) item.getInfo()).getOffset());
+		INode n = Nodes.extractPrimary(item);
+		if (item.getInfo() instanceof ANodeDragInfo) {
+			pos.sub(((ANodeDragInfo) item.getInfo()).getOffset());
 		}
+		n.setLayoutData(pos);
 		if (!graph.contains(n)) {
-			n.setLayoutData(pos);
 			graph.addVertex(n);
 		} else {
-			n.setLayoutData(pos);
 			graph.moveToAlone(n);
+		}
+		if (item.getInfo() instanceof GraphDragInfo) {
+			((GraphDragInfo) item.getInfo()).dragGraph(graph, n, item.getType());
 		}
 		EventPublisher.trigger(new HidePlaceHoldersEvent().to(nodes));
 	}
@@ -93,7 +96,7 @@ public class DominoBackgroundLayer extends PickableGLElement implements IDropGLT
 	public boolean canSWTDrop(IDnDItem item) {
 		boolean r = Nodes.canExtract(item);
 		if (r)
-			EventPublisher.trigger(new ShowPlaceHoldersEvent(Nodes.extract(item)).to(this));
+			EventPublisher.trigger(new ShowPlaceHoldersEvent(item).to(this));
 		return r;
 	}
 
@@ -101,6 +104,6 @@ public class DominoBackgroundLayer extends PickableGLElement implements IDropGLT
 	private void onShowPlaceHoldersEvent(ShowPlaceHoldersEvent event) {
 		if (graph.hasPlaceholders()) // already there
 			return;
-		EventPublisher.trigger(new ShowPlaceHoldersEvent(event.getNode()).to(nodes));
+		EventPublisher.trigger(new ShowPlaceHoldersEvent(event).to(nodes));
 	}
 }

@@ -5,7 +5,14 @@
  *******************************************************************************/
 package org.caleydo.view.domino.internal.event;
 
+import java.util.EnumSet;
+import java.util.Set;
+
 import org.caleydo.core.event.ADirectedEvent;
+import org.caleydo.core.view.opengl.layout2.dnd.IDnDItem;
+import org.caleydo.view.domino.api.model.graph.EDirection;
+import org.caleydo.view.domino.api.model.graph.Nodes;
+import org.caleydo.view.domino.internal.dnd.GraphDragInfo;
 import org.caleydo.view.domino.spi.model.graph.INode;
 
 /**
@@ -15,13 +22,25 @@ import org.caleydo.view.domino.spi.model.graph.INode;
 public class ShowPlaceHoldersEvent extends ADirectedEvent {
 
 	private final INode node;
+	private final Set<EDirection> directions;
 
 	/**
-	 * @param node
+	 * @param item
 	 */
-	public ShowPlaceHoldersEvent(INode node) {
-		this.node = node;
+	public ShowPlaceHoldersEvent(IDnDItem item) {
+		this.node = Nodes.extractPrimary(item);
+		if (item.getInfo() instanceof GraphDragInfo) {
+			this.directions = ((GraphDragInfo)item.getInfo()).getFreePrimaryDirections();
+		} else
+			this.directions = EnumSet.allOf(EDirection.class);
+	}
 
+	/**
+	 * @param event
+	 */
+	public ShowPlaceHoldersEvent(ShowPlaceHoldersEvent clone) {
+		this.node = clone.node;
+		this.directions = clone.directions;
 	}
 
 	/**
@@ -29,6 +48,13 @@ public class ShowPlaceHoldersEvent extends ADirectedEvent {
 	 */
 	public INode getNode() {
 		return node;
+	}
+
+	/**
+	 * @return the directions, see {@link #directions}
+	 */
+	public Set<EDirection> getDirections() {
+		return directions;
 	}
 
 }

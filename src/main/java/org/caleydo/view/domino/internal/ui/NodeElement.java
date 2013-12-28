@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.Objects;
 
 import org.caleydo.core.data.collection.EDimension;
+import org.caleydo.core.data.selection.SelectionType;
 import org.caleydo.core.util.color.Color;
 import org.caleydo.core.view.opengl.canvas.IGLMouseListener.IMouseEvent;
 import org.caleydo.core.view.opengl.layout2.GLElementContainer;
@@ -118,16 +119,23 @@ public class NodeElement extends GLElementContainer implements IGLLayout2, IPick
 
 	private void rebuild() {
 		int i = 0;
-		for (TypedListGroup dimGroup : dimData.getGroups()) {
-			for (TypedListGroup recGroup : recData.getGroups()) {
+		final List<TypedListGroup> dimGroups = dimData.getGroups();
+		final List<TypedListGroup> recGroups = recData.getGroups();
+
+		final int dimSize = dimGroups.size();
+		final int recSize = recGroups.size();
+
+		for (int d = 0; d < dimSize; ++d) {
+			TypedListGroup dimGroup = dimGroups.get(d);
+			for (int r = 0; r < recSize; ++r) {
+				TypedListGroup recGroup = recGroups.get(r);
 				NodeGroupElement elem = getOrCreate(i++);
-				elem.setData(dimGroup, recGroup);
+				elem.setData(dimGroup, d, recGroup, r);
+				elem.setDefault(dimSize, recSize);
 			}
 		}
 		if (i < size())
 			this.asList().subList(i, size()).clear();
-		// update default state
-		((NodeGroupElement) get(0)).setDefault(dimData.getGroups().size() == 1 && recData.getGroups().size() == 1);
 
 		relayout();
 	}
@@ -173,7 +181,7 @@ public class NodeElement extends GLElementContainer implements IGLLayout2, IPick
 		return getNodeElement(row, col).getSize(dim);
 	}
 
-	private int getNumGroups(EDimension dim) {
+	public int getNumGroups(EDimension dim) {
 		return getData(dim).getGroups().size();
 	}
 
@@ -226,7 +234,7 @@ public class NodeElement extends GLElementContainer implements IGLLayout2, IPick
 	 */
 	private double[] scale(double[] sizes, float total, EDimension dim) {
 		final List<TypedListGroup> groups = getData(dim).getGroups();
-		final float shift = dim.select(node.getUIState().getSizeChange());
+		// final float shift = dim.select(node.getUIState().getSizeChange());
 		int elems = 0;
 		double rem = total - sizes.length + 1;
 		for(int i = 0; i < sizes.length; ++i) {
@@ -324,5 +332,18 @@ public class NodeElement extends GLElementContainer implements IGLLayout2, IPick
 	 */
 	public boolean has2DimGroups() {
 		return getNumGroups(EDimension.DIMENSION) > 1 && getNumGroups(EDimension.RECORD) > 1;
+	}
+
+	/**
+	 * @param selection
+	 * @param b
+	 * @param c
+	 */
+	public void selectAll(SelectionType type, boolean enable, boolean clear) {
+		for (NodeGroupElement elem : Iterables.filter(this, NodeGroupElement.class)) {
+			elem.select(type, enable, clear);
+			clear = false;
+		}
+
 	}
 }

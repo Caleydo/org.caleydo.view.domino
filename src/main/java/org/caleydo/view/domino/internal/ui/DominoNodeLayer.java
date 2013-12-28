@@ -16,6 +16,7 @@ import java.util.BitSet;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Deque;
+import java.util.HashSet;
 import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
@@ -47,6 +48,7 @@ import org.caleydo.view.domino.api.model.graph.Edges;
 import org.caleydo.view.domino.api.model.graph.ISortableNode;
 import org.caleydo.view.domino.api.model.graph.NodeUIState;
 import org.caleydo.view.domino.api.model.graph.Placeholder;
+import org.caleydo.view.domino.internal.dnd.INodeCreator;
 import org.caleydo.view.domino.internal.event.HidePlaceHoldersEvent;
 import org.caleydo.view.domino.internal.event.ShowPlaceHoldersEvent;
 import org.caleydo.view.domino.spi.model.graph.IDominoGraphListener;
@@ -56,10 +58,12 @@ import org.caleydo.view.domino.spi.model.graph.INode;
 import com.google.common.base.Function;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Collections2;
+import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Table;
 
 /**
  * @author Samuel Gratzl
@@ -119,7 +123,67 @@ public class DominoNodeLayer extends GLElementContainer implements IDominoGraphL
 
 
 	public boolean isSelected(INode node, SelectionType type) {
-		return selections.get(0).checkStatus(type, node.getID());
+		return getManager().checkStatus(type, node.getID());
+	}
+
+	private SelectionManager getManager() {
+		return selections.get(0);
+	}
+
+	private SelectionManager getGroupManager() {
+		return selections.get(1);
+	}
+
+	public int getSelected(SelectionType type) {
+		return getManager().getNumberOfElements(type);
+	}
+
+	public Table<INodeCreator, INodeCreator, EDirection> getConnectedSelection(SelectionType type,
+			NodeGroupElement start) {
+		final Set<Integer> elements = getGroupManager().getElements(type);
+		if (elements.isEmpty() || (elements.size() == 1 && elements.iterator().next().equals(start.getID())))
+			return null;
+		final Set<NodeGroupElement> elems = new HashSet<>(Collections2.transform(elements,
+				new Function<Integer, NodeGroupElement>() {
+					@Override
+					public NodeGroupElement apply(Integer input) {
+						return input == null ? null : getGroupNodeById(input);
+					}
+				}));
+		Table<INodeCreator, INodeCreator, EDirection> graph = HashBasedTable.create();
+		assert elems.contains(start);
+		connectedSelectionImpl(start, elems, null, graph);
+		return graph;
+ 	}
+
+	private void connectedSelectionImpl(NodeGroupElement start, Set<NodeGroupElement> elems, EDirection commingFrom,
+			Table<INodeCreator, INodeCreator, EDirection> r) {
+		elems.remove(start);
+		if (elems.isEmpty())
+			return;
+		for (EDirection dir : EDirection.values()) {
+			if (dir == commingFrom)
+				continue;
+			// FIXME multiple groups
+			// int index = start.getGroupIndex(dir.asDim());
+			// if (index >= 0) {
+			// for(NodeGroupElement rest: elems) {
+			// if (rest.asNode() != start.asNode())
+			// continue;
+			//
+			// }
+			// }
+			List<INode> edges = graph.walkAlong(dir, start.asNode(), Edges.SAME_SORTING);
+			outer: for (INode n : edges) {
+				for (NodeGroupElement elem : elems) {
+					if (elem.asNode() == n) {
+						r.put(start, elem, dir);
+						connectedSelectionImpl(elem, elems, dir, r);
+						break outer;
+					}
+				}
+			}
+		}
 	}
 
 	public NodeGroupElement getGroupNodeById(int id) {
@@ -136,7 +200,7 @@ public class DominoNodeLayer extends GLElementContainer implements IDominoGraphL
 	 * @param b
 	 */
 	public void select(INode node, SelectionType type, boolean enable, boolean clear) {
-		SelectionManager m = selections.get(0);
+		SelectionManager m = getManager();
 		if (clear)
 			m.clearSelection(type);
 		if (node != null) {
@@ -548,8 +612,8 @@ public class DominoNodeLayer extends GLElementContainer implements IDominoGraphL
 
 	@ListenTo(sendToMe = true)
 	private void onShowPlaceHoldersEvent(ShowPlaceHoldersEvent event) {
-		Set<Placeholder> placeholders = graph.findPlaceholders(event.getNode(), EPlaceHolderFlag.INCLUDE_BETWEEN_BAND,
-				EPlaceHolderFlag.INCLUDE_TRANSPOSE);
+		Set<Placeholder> placeholders = graph.findPlaceholders(event.getNode(), event.getDirections(),
+				EPlaceHolderFlag.INCLUDE_BETWEEN_BAND, EPlaceHolderFlag.INCLUDE_TRANSPOSE);
 		graph.insertPlaceholders(placeholders, event.getNode());
 	}
 

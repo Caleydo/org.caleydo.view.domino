@@ -23,15 +23,13 @@ import org.caleydo.core.data.collection.EDimension;
 import org.caleydo.core.data.selection.SelectionManager;
 import org.caleydo.core.id.IDCategory;
 import org.caleydo.core.id.IDType;
+import org.caleydo.view.domino.api.model.graph.IListenableUndirectedGraph.ListenableUndirectedMultigraph;
 import org.caleydo.view.domino.internal.ui.PlaceholderNode;
 import org.caleydo.view.domino.spi.model.graph.IDominoGraphListener;
 import org.caleydo.view.domino.spi.model.graph.IEdge;
 import org.caleydo.view.domino.spi.model.graph.INode;
-import org.jgrapht.ListenableGraph;
 import org.jgrapht.UndirectedGraph;
 import org.jgrapht.alg.ConnectivityInspector;
-import org.jgrapht.graph.DefaultListenableGraph;
-import org.jgrapht.graph.Pseudograph;
 import org.jgrapht.traverse.DepthFirstIterator;
 
 import com.google.common.base.Function;
@@ -52,7 +50,7 @@ import com.google.common.collect.Maps;
  */
 public class DominoGraph implements Function<Integer, INode> {
 	private final List<IDominoGraphListener> listeners = new ArrayList<>(2);
-	private final ListenableUndirectedGraph<INode, IEdge> graph = new ListenableUndirectedMultigraph<>(IEdge.class);
+	private final IListenableUndirectedGraph<INode, IEdge> graph = new ListenableUndirectedMultigraph<>(IEdge.class);
 	private final ConnectivityInspector<INode, IEdge> connectivity;
 
 	public final static IDCategory GRAPH_CATEGORY = IDCategory.registerInternalCategory("domino");
@@ -96,7 +94,7 @@ public class DominoGraph implements Function<Integer, INode> {
 		vertexAdded(n);
 	}
 
-	private void magnetic(INode a, EDirection dir, INode b) {
+	public void magnetic(INode a, EDirection dir, INode b) {
 		addEdge(a, b, new MagneticEdge(dir));
 	}
 
@@ -324,7 +322,7 @@ public class DominoGraph implements Function<Integer, INode> {
 	 * @param node
 	 * @return
 	 */
-	public Set<Placeholder> findPlaceholders(INode node, EPlaceHolderFlag... flags) {
+	public Set<Placeholder> findPlaceholders(INode node, Set<EDirection> directions, EPlaceHolderFlag... flags) {
 		final Set<EPlaceHolderFlag> flagsS = asSet(flags);
 		final boolean includeTranspose = flagsS.contains(EPlaceHolderFlag.INCLUDE_TRANSPOSE);
 
@@ -334,22 +332,35 @@ public class DominoGraph implements Function<Integer, INode> {
 			if (v == node) // not myself
 				continue;
 			for (EDimension dim : dims) {
-				addPlaceHolders(node, places, v, dim, dim, flagsS);
+				addPlaceHolders(node, places, v, dim, dim, flagsS, directions);
 				if (includeTranspose)
-					addPlaceHolders(node, places, v, dim, dim.opposite(), flagsS);
+					addPlaceHolders(node, places, v, dim, dim.opposite(), flagsS, rot90(directions));
 			}
 		}
 		return ImmutableSet.copyOf(places);
 	}
 
+	/**
+	 * @param directions
+	 * @return
+	 */
+	private Set<EDirection> rot90(Set<EDirection> directions) {
+		Set<EDirection> r = EnumSet.noneOf(EDirection.class);
+		for (EDirection d : directions)
+			r.add(d.rot90());
+		return r;
+	}
+
 	private void addPlaceHolders(INode node, Set<Placeholder> places, INode v, EDimension dim, EDimension vdim,
-			Set<EPlaceHolderFlag> flags) {
+			Set<EPlaceHolderFlag> flags, Set<EDirection> directions) {
 		// for all possible dimensions
 		if (!isCompatible(v.getIDType(vdim), node.getIDType(dim))) // check the dimension types are
 			return; // compatible
 		boolean transposed = dim != vdim;
 		Collection<IEdge> edges = edgesOf(v);
 		for (EDirection dir : EDirection.get(vdim.opposite())) {
+			if (!directions.contains(dir))
+				continue;
 			IEdge edge = hasEdge(v, dir, edges);
 			if (edge == null) {
 				places.add(new Placeholder(v, dir, transposed));
@@ -658,19 +669,6 @@ public class DominoGraph implements Function<Integer, INode> {
 		if (p >= ISortableNode.MINIMUM_PRIORITY)
 			return ISortableNode.NO_SORTING;
 		return p + 1;
-	}
-
-	public interface ListenableUndirectedGraph<V, E> extends ListenableGraph<V, E>, UndirectedGraph<V, E> {
-
-	}
-
-	private static class ListenableUndirectedMultigraph<V, E> extends DefaultListenableGraph<V, E> implements
-			ListenableUndirectedGraph<V, E> {
-		private static final long serialVersionUID = 1L;
-
-		ListenableUndirectedMultigraph(Class<E> edgeClass) {
-			super(new Pseudograph<V, E>(edgeClass));
-		}
 	}
 
 	public boolean moveToAlone(INode node) {
