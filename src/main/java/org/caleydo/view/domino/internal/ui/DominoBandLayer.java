@@ -5,11 +5,8 @@
  *******************************************************************************/
 package org.caleydo.view.domino.internal.ui;
 
-import gleem.linalg.Vec2f;
-
 import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -25,22 +22,17 @@ import org.caleydo.core.util.color.Color;
 import org.caleydo.core.view.opengl.canvas.IGLMouseListener.IMouseEvent;
 import org.caleydo.core.view.opengl.layout2.GLGraphics;
 import org.caleydo.core.view.opengl.layout2.IGLElementContext;
-import org.caleydo.core.view.opengl.layout2.geom.Rect;
 import org.caleydo.core.view.opengl.layout2.util.PickingPool;
 import org.caleydo.core.view.opengl.picking.IPickingLabelProvider;
 import org.caleydo.core.view.opengl.picking.IPickingListener;
 import org.caleydo.core.view.opengl.picking.Pick;
 import org.caleydo.core.view.opengl.picking.PickingListenerComposite;
-import org.caleydo.view.domino.api.model.BandRoute;
 import org.caleydo.view.domino.api.model.graph.BandEdge;
 import org.caleydo.view.domino.api.model.graph.DominoGraph;
-import org.caleydo.view.domino.api.model.graph.Edges;
 import org.caleydo.view.domino.api.model.graph.ISortableNode;
 import org.caleydo.view.domino.api.model.graph.NodeUIState;
-import org.caleydo.view.domino.api.model.typed.MultiTypedSet;
 import org.caleydo.view.domino.api.model.typed.TypedSet;
-import org.caleydo.view.domino.api.model.typed.TypedSets;
-import org.caleydo.view.domino.api.ui.band.Route;
+import org.caleydo.view.domino.internal.ui.BandRoute.BandBlock;
 import org.caleydo.view.domino.spi.model.IBandRenderer;
 import org.caleydo.view.domino.spi.model.IBandRenderer.IBandHost;
 import org.caleydo.view.domino.spi.model.IBandRenderer.SourceTarget;
@@ -49,7 +41,9 @@ import org.caleydo.view.domino.spi.model.graph.IEdge;
 import org.caleydo.view.domino.spi.model.graph.INode;
 import org.caleydo.vis.lineup.ui.GLPropertyChangeListeners;
 
+import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Iterables;
+import com.google.common.collect.Multimap;
 
 /**
  * a dedicated layer for the bands for better caching behavior
@@ -96,48 +90,30 @@ public class DominoBandLayer extends DominoBackgroundLayer implements
 	public void update() {
 		routes.clear();
 
+		Multimap<LinearBlock, LinearBlock> edges = ArrayListMultimap.create();
+
 		for (BandEdge edge : Iterables.filter(graph.edgeSet(), BandEdge.class)) {
 			INode s = edge.getSource();
 			INode t = edge.getTarget();
 
-			Rect sourceB = nodes.getBounds(graph.walkAlong(edge.getDimension(s), s, Edges.SAME_STRATIFICATION));
-			Rect targetB = nodes.getBounds(graph.walkAlong(edge.getDimension(t), t, Edges.SAME_STRATIFICATION));
+			EDimension sdim = edge.getDimension(s);
+			EDimension tdim = edge.getDimension(t);
 
-			if (sourceB.x() < targetB.x())
-				createBand(edge, s, sourceB, t, targetB);
-			else
-				createBand(edge, t, targetB, s, sourceB);
+			LinearBlock sb = nodes.getBlock(s, sdim);
+			LinearBlock tb = nodes.getBlock(t, tdim);
+
+			if (sb == null || tb == null)
+				continue;
+			BandBlock sblock = new BandBlock(sdim, sb);
+			BandBlock tblock = new BandBlock(tdim, tb);
+
+			// edges.put
+			// if (sb.getFirst().getLocation())
+
+			BandRoute r = BandRoute.create(sblock, tblock);
+			if (r != null)
+				this.routes.add(r);
 		}
-	}
-
-	private void createBand(BandEdge edge, INode s, Rect sourceB, INode t, Rect targetB) {
-		final EDimension sDim = edge.getDimension(s);
-		final EDimension tDim = edge.getDimension(t);
-
-		final EDimension dim = sDim; // FIXME cross stuff
-
-		List<Vec2f> curve;
-		if (dim == EDimension.RECORD) {
-			curve = rot90(createCurve(rot90(sourceB), rot90(targetB), dim.opposite()));
-		} else
-			curve = createCurve(sourceB, targetB, dim);
-		if (curve.isEmpty())
-			return;
-
-		Color color = new Color(180, 212, 231, 32);
-		// if (curve.size() > 2)
-		// curve = TesselatedPolygons.spline(curve, 5);
-
-		TypedSet sData = s.getData(sDim.opposite());
-		TypedSet tData = t.getData(tDim.opposite());
-		MultiTypedSet shared = TypedSets.intersect(sData, tData);
-
-		if (shared.isEmpty())
-			return;
-
-		final float sTotal = dim.opposite().select(sourceB.width(), sourceB.height());
-		final float tTotal = dim.opposite().select(targetB.width(), targetB.height());
-		routes.add(new BandRoute(new Route(curve), color, shared, sData, tData, sTotal * 0.5f, tTotal * 0.5f));
 	}
 
 	@Override
@@ -295,46 +271,4 @@ public class DominoBandLayer extends DominoBackgroundLayer implements
 	}
 
 
-
-	/**
-	 * @param sourceB
-	 * @param targetB
-	 * @param dim
-	 * @return
-	 */
-	private List<Vec2f> createCurve(Rect s, Rect t, EDimension dim) {
-		assert dim == EDimension.DIMENSION;
-		if (Math.abs(s.x2() - t.x()) < 4)
-			return Collections.emptyList();
-
-		Vec2f sv = new Vec2f(s.x2(), s.y() + s.height() * 0.5f);
-		Vec2f tv = new Vec2f(t.x(), t.y() + t.height() * 0.5f);
-		if (sv.y() == tv.y())
-			return Arrays.asList(sv, tv);
-
-		Vec2f shift = new Vec2f(20, 0);
-		Vec2f s2 = sv.plus(shift);
-		Vec2f t2 = tv.minus(shift);
-
-		return Arrays.asList(sv, s2, t2, tv);
-	}
-
-	/**
-	 * @param curve
-	 * @return
-	 */
-	private static List<Vec2f> rot90(List<Vec2f> curve) {
-		List<Vec2f> r = new ArrayList<>(curve.size());
-		for (Vec2f in : curve)
-			r.add(new Vec2f(in.y(), in.x()));
-		return r;
-	}
-
-	/**
-	 * @param sourceB
-	 * @return
-	 */
-	private static Rect rot90(Rect a) {
-		return new Rect(a.y(), a.x(), a.height(), a.width());
-	}
 }

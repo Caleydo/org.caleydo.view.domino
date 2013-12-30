@@ -117,6 +117,11 @@ public class NodeElement extends GLElementContainer implements IGLLayout2, IPick
 		return old != data.size();
 	}
 
+	@Override
+	public TypedGroupList getData(EDimension dim) {
+		return dim.select(dimData, recData);
+	}
+
 	private void rebuild() {
 		int i = 0;
 		final List<TypedListGroup> dimGroups = dimData.getGroups();
@@ -147,10 +152,6 @@ public class NodeElement extends GLElementContainer implements IGLLayout2, IPick
 		return (NodeGroupElement) get(i);
 	}
 
-	private TypedGroupList getData(EDimension dim) {
-		return dim.select(dimData, recData);
-	}
-
 	private double[] getSizes(EDimension dim) {
 		final int cols = getNumGroups(EDimension.DIMENSION);
 		final int rows = getNumGroups(EDimension.RECORD);
@@ -174,6 +175,7 @@ public class NodeElement extends GLElementContainer implements IGLLayout2, IPick
 			sum += size;
 		// sum = sum <= 0 ? 20 : sum;
 		sum += dim.select(node.getUIState().getSizeChange());
+		sum = sum <= 10 ? 10 : sum;
 		return sum;
 	}
 

@@ -93,6 +93,11 @@ public class PlaceholderNodeElement extends PickableGLElement implements IDropGL
 	}
 
 	@Override
+	public TypedGroupList getData(EDimension dim) {
+		return null;
+	}
+
+	@Override
 	protected void renderImpl(GLGraphics g, float w, float h) {
 		g.color(Color.DARK_BLUE).fillRect(0, 0, w, h);
 		g.gl.glEnable(GL2.GL_LINE_STIPPLE);

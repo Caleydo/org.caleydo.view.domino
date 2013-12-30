@@ -21,6 +21,8 @@ import org.caleydo.view.domino.spi.model.graph.INode;
 public interface INodeElement extends IPickingListener {
 	boolean setData(EDimension dim, TypedGroupList data);
 
+	TypedGroupList getData(EDimension dim);
+
 	INode asNode();
 
 	/**
@@ -37,4 +39,9 @@ public interface INodeElement extends IPickingListener {
 	 * @return
 	 */
 	double getSize(EDimension dim);
+
+	/**
+	 * @return
+	 */
+	Vec2f getLocation();
 }

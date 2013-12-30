@@ -304,6 +304,12 @@ public class DominoNodeLayer extends GLElementContainer implements IDominoGraphL
 		return metaData.get(n);
 	}
 
+	public LinearBlock getBlock(INode node, EDimension dim) {
+		NodeData m = getMetaData(apply(node));
+		assert m != null;
+		return m.getBlock(dim);
+	}
+
 	/**
 	 * @param elem
 	 */
@@ -318,8 +324,6 @@ public class DominoNodeLayer extends GLElementContainer implements IDominoGraphL
 		List<IChange> r = new ArrayList<>(2);
 		for (EDimension dim : EDimension.values()) {
 			List<INode> nodes = filterPlaceholder(graph.walkAlong(dim, new_.asNode(), Edges.SAME_SORTING));
-			if (nodes.size() <= 1)
-				continue;
 			IChange cr = updateDataImpl(changes, dim, new_, nodes);
 			if (cr != null)
 				r.add(cr);
@@ -452,8 +456,6 @@ public class DominoNodeLayer extends GLElementContainer implements IDominoGraphL
 				r.left == null ? null : r.left.asNode(), Edges.SAME_SORTING));
 		List<INode> rs = filterPlaceholder(graph.walkAlong(EDirection.getPrimary(r.dim).opposite(),
 				r.right == null ? null : r.right.asNode(), Edges.SAME_SORTING));
-		if ((ls.size() + rs.size()) < 1)
-			return;
 		updateDataImpl(changes, r.dim, r.elem, ImmutableList.<INode> builder().addAll(ls).addAll(rs).build());
 	}
 

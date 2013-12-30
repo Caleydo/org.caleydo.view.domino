@@ -5,6 +5,7 @@
  *******************************************************************************/
 package org.caleydo.view.domino.internal.ui;
 
+import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.Collection;
@@ -14,6 +15,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import org.caleydo.core.data.collection.EDimension;
+import org.caleydo.core.view.opengl.layout2.geom.Rect;
 import org.caleydo.view.domino.api.model.graph.ISortableNode;
 import org.caleydo.view.domino.api.model.graph.IStratisfyingableNode;
 import org.caleydo.view.domino.api.model.typed.IMultiTypedCollection;
@@ -21,37 +23,73 @@ import org.caleydo.view.domino.api.model.typed.ITypedComparator;
 import org.caleydo.view.domino.api.model.typed.ITypedGroup;
 import org.caleydo.view.domino.api.model.typed.MultiTypedList;
 import org.caleydo.view.domino.api.model.typed.MultiTypedSet;
+import org.caleydo.view.domino.api.model.typed.RepeatingList;
 import org.caleydo.view.domino.api.model.typed.TypedCollections;
 import org.caleydo.view.domino.api.model.typed.TypedGroupList;
 import org.caleydo.view.domino.api.model.typed.TypedList;
+import org.caleydo.view.domino.api.model.typed.TypedListGroup;
 import org.caleydo.view.domino.api.model.typed.TypedSet;
 import org.caleydo.view.domino.api.model.typed.TypedSets;
 import org.caleydo.view.domino.spi.model.graph.INode;
 
 import com.google.common.base.Function;
+import com.google.common.base.Predicate;
 import com.google.common.collect.Collections2;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Iterators;
+import com.google.common.collect.Lists;
 
 /**
  * @author Samuel Gratzl
  *
  */
-public class LinearBlock implements Iterable<INodeUI> {
+public class LinearBlock implements Iterable<INodeElement> {
 	private final EDimension dim;
+	private final List<? extends INodeElement> nodes;
+
 	private List<? extends ITypedGroup> groups;
 	private MultiTypedList data;
-	private final List<? extends INodeElement> nodes;
 
 	public LinearBlock(EDimension dim, List<? extends INodeElement> nodes) {
 		this.dim = dim;
 		this.nodes = nodes;
 	}
 
+	public INodeElement getFirst(Predicate<? super INodeElement> filter) {
+		for (INodeElement elem : nodes)
+			if (filter.apply(elem))
+				return elem;
+		return null;
+	}
+
+	public INodeElement getLast(Predicate<? super INodeElement> filter) {
+		for (INodeElement elem : Lists.reverse(nodes))
+			if (filter.apply(elem))
+				return elem;
+		return null;
+	}
+
+	public Rect getBounds() {
+		Rectangle2D r = null;
+		for (INodeElement elem : nodes) {
+			if (r == null) {
+				r = elem.getRectangleBounds();
+			} else
+				Rectangle2D.union(r, elem.getRectangleBounds(), r);
+		}
+		if (r == null)
+			return null;
+		return new Rect((float) r.getX(), (float) r.getY(), (float) r.getWidth(), (float) r.getHeight());
+	}
+
+	public boolean isStratisfied() {
+		return groups != null && groups.size() > 1;
+	}
+
 	@Override
-	public Iterator<INodeUI> iterator() {
-		return Iterators.filter(nodes.iterator(), INodeUI.class);
+	public Iterator<INodeElement> iterator() {
+		return Iterators.filter(nodes.iterator(), INodeElement.class);
 	}
 
 	/**
@@ -132,7 +170,7 @@ public class LinearBlock implements Iterable<INodeUI> {
 	public BitSet apply() {
 		BitSet b = new BitSet();
 		int i = 0;
-		List<ITypedGroup> g = asGroupList(data.size());
+		List<ITypedGroup> g = asGroupList();
 
 		for (INodeElement node : nodes) {
 			final TypedList slice = data.slice(node.asNode().getIDType(dim));
@@ -141,16 +179,26 @@ public class LinearBlock implements Iterable<INodeUI> {
 		return b;
 	}
 
-	private List<ITypedGroup> asGroupList(final int size) {
+	private List<ITypedGroup> asGroupList() {
 		if (groups == null)
-			return Collections.singletonList(ungrouped(size));
+			return Collections.singletonList(ungrouped(data.size()));
+		List<ITypedGroup> g = new ArrayList<>(groups.size() + 1);
 		int sum = 0;
-		for (ITypedGroup group : groups)
+		TypedList gdata = data.slice(groups.get(0).getIdType());
+		for (ITypedGroup group : groups) {
+			int bak = sum;
 			sum += group.size();
-		List<ITypedGroup> g = new ArrayList<>(groups.size()+1);
-		g.addAll(groups);
-		if (sum < size)
-			g.add(unmapped(size - sum));
+			while (sum < gdata.size() && group.contains(gdata.get(sum)))
+				sum++;
+			if ((bak + groups.size()) == sum) { // no extra elems
+				g.add(group);
+			} else { // have repeating elements
+				g.add(new TypedListGroup(new RepeatingList<>(TypedCollections.INVALID_ID, sum - bak),
+						group.getIdType(), group.getLabel(), group.getColor()));
+			}
+		}
+		if (sum < data.size())
+			g.add(unmapped(data.size() - sum));
 		return g;
 	}
 
