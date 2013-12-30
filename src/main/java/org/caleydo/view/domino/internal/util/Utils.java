@@ -92,6 +92,18 @@ public class Utils {
 		return ImmutableList.copyOf(r);
 	}
 
+	public static List<TypedSetGroup> extractSetGroups(Perspective p, Integer referenceId, EDimension mainDim) {
+		VirtualArray va = p.getVirtualArray();
+		GroupList groups = va.getGroupList();
+		List<Color> colors = getGroupColors(referenceId, (ATableBasedDataDomain) p.getDataDomain(), groups, mainDim);
+		List<TypedSetGroup> r = new ArrayList<>();
+		for (int i = 0; i < groups.size(); ++i) {
+			r.add(new TypedSetGroup(ImmutableSet.copyOf(va.getIDsOfGroup(i)), va.getIdType(), groups.get(i)
+					.getLabel(), colors.get(i)));
+		}
+		return ImmutableList.copyOf(r);
+	}
+
 	private static List<Color> getGroupColors(Integer referenceId, ATableBasedDataDomain dataDomain, GroupList groups,
 			EDimension mainDim) {
 		if (referenceId == null) {

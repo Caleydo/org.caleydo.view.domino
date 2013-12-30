@@ -298,7 +298,7 @@ public class TypedSet extends AbstractSet<Integer> implements ITypedCollection {
 	 * @param same
 	 * @return
 	 */
-	public static TypedSet union(Iterable<TypedSet> same) {
+	public static TypedSet union(Iterable<? extends TypedSet> same) {
 		Builder<Integer> b = ImmutableSet.builder();
 		for (TypedSet s : same)
 			b.addAll(s.wrappee);
@@ -310,7 +310,7 @@ public class TypedSet extends AbstractSet<Integer> implements ITypedCollection {
 	 * @param same
 	 * @return
 	 */
-	public static TypedSet intersection(Iterable<TypedSet> same) {
+	public static TypedSet intersection(Iterable<? extends TypedSet> same) {
 		Set<Integer> r = new HashSet<>(same.iterator().next());
 		for (TypedSet s : same)
 			r.retainAll(s);

@@ -33,6 +33,11 @@ public class TypedSetGroup extends TypedSet implements ITypedGroup {
 	public TypedListGroup asList() {
 		return new TypedListGroup(super.asList(), label, color);
 	}
+
+	@Override
+	public TypedSetGroup asSet() {
+		return this;
+	}
 	/**
 	 * @return the label, see {@link #label}
 	 */

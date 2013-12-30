@@ -13,13 +13,15 @@ import java.util.Objects;
 import org.caleydo.core.id.IDType;
 import org.caleydo.core.util.color.Color;
 
+import com.google.common.base.Function;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
 
 /**
  * @author Samuel Gratzl
  *
  */
-public class TypedGroupList extends TypedList implements ITypedCollection {
+public class TypedGroupList extends TypedList {
 	private static final String UNMAPPED = "Unmapped";
 	private static final String UNGROUPED = "Ungrouped";
 
@@ -35,6 +37,22 @@ public class TypedGroupList extends TypedList implements ITypedCollection {
 		this.groups = toGroups(list, groups);
 	}
 
+	@Override
+	public TypedGroupList asList() {
+		return this;
+	}
+
+	@Override
+	public TypedGroupSet asSet() {
+		return new TypedGroupSet(ImmutableList.copyOf(Lists.transform(groups,
+				new Function<TypedListGroup, TypedSetGroup>() {
+					@Override
+					public TypedSetGroup apply(TypedListGroup input) {
+						return input.asSet();
+					}
+				})));
+	}
+
 	/**
 	 * @param list
 	 * @param groups2
@@ -43,9 +61,9 @@ public class TypedGroupList extends TypedList implements ITypedCollection {
 	private static List<TypedListGroup> toGroups(TypedList list, List<? extends ITypedGroup> groups) {
 		List<TypedListGroup> r = new ArrayList<>(groups.size());
 		int i = 0;
-		for(ITypedGroup g : groups) {
+		for (ITypedGroup g : groups) {
 			r.add(new TypedListGroup(list.subList(i, i + g.size()), g.getLabel(), g.getColor()));
-			i+=g.size();
+			i += g.size();
 		}
 		return ImmutableList.copyOf(r);
 	}
@@ -110,6 +128,5 @@ public class TypedGroupList extends TypedList implements ITypedCollection {
 		TypedGroupList other = (TypedGroupList) obj;
 		return Objects.equals(groups, other.groups);
 	}
-
 
 }
