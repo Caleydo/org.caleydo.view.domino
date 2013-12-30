@@ -32,7 +32,7 @@ public class Numerical2DDataDomainValues extends ADataDomainDataValues {
 	 * @param t
 	 */
 	public Numerical2DDataDomainValues(TablePerspective t) {
-		super(t);
+		super(t.getDataDomain().getLabel(), t);
 		Pair<TypedGroupSet, TypedGroupSet> r = extractGroups(t);
 		this.recGroups = r.getSecond();
 		this.dimGroups = r.getFirst();

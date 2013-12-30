@@ -34,7 +34,7 @@ public class Block extends GLElementContainer implements IGLLayout2 {
 		setLayout(this);
 		this.add(node);
 		for (EDimension dim : EDimension.values()) {
-			if (!node.has(dim))
+			if (!node.has(dim.opposite()))
 				continue;
 			linearBlocks.add(new LinearBlock(dim, node));
 		}
@@ -44,7 +44,7 @@ public class Block extends GLElementContainer implements IGLLayout2 {
 	public Collection<Placeholder> addPlaceholdersFor(Node node) {
 		List<Placeholder> r = new ArrayList<>();
 		for (LinearBlock block : linearBlocks) {
-			if (!node.has(block.getDim()))
+			if (!node.has(block.getDim().opposite()))
 				continue;
 			block.addPlaceholdersFor(node, r);
 		}
@@ -56,7 +56,7 @@ public class Block extends GLElementContainer implements IGLLayout2 {
 		LinearBlock block = getBlock(neighbor, dir.asDim());
 		block.add(neighbor, dir, node);
 		EDimension other = dir.asDim().opposite();
-		if (node.has(other))
+		if (node.has(other.opposite()))
 			linearBlocks.add(new LinearBlock(other, node));
 
 		updateSize();
@@ -80,7 +80,7 @@ public class Block extends GLElementContainer implements IGLLayout2 {
 
 	public boolean removeNode(Node node) {
 		for (EDimension dim : EDimension.values()) {
-			if (!node.has(dim))
+			if (!node.has(dim.opposite()))
 				continue;
 			LinearBlock block = getBlock(node, dim);
 			if (block.size() == 1)

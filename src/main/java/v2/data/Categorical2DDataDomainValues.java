@@ -40,7 +40,7 @@ public class Categorical2DDataDomainValues extends ADataDomainDataValues {
 	 * @param t
 	 */
 	public Categorical2DDataDomainValues(TablePerspective t) {
-		super(t);
+		super(t.getDataDomain().getLabel(), t);
 		Pair<TypedGroupSet, TypedGroupSet> r = extractGroups(t);
 		this.recGroups = r.getSecond();
 		this.dimGroups = r.getFirst();

@@ -20,6 +20,7 @@ import org.caleydo.core.view.opengl.layout2.dnd.IDragInfo;
 import org.caleydo.core.view.opengl.layout2.dnd.IDropGLTarget;
 import org.caleydo.core.view.opengl.picking.IPickingListener;
 import org.caleydo.core.view.opengl.picking.Pick;
+import org.caleydo.core.view.opengl.picking.PickingMode;
 import org.caleydo.view.domino.api.model.graph.EDirection;
 
 import com.google.common.collect.Iterables;
@@ -43,7 +44,15 @@ public class Domino extends GLElementContainer implements IDropGLTarget, IPickin
 		//
 		// node = new Node(new Categorical2DDataDomainValues(d2.getDefaultTablePerspective()));
 		// this.add(new Block(node).setLocation(500, 500));
-		setPicker(null);
+		setVisibility(EVisibility.PICKABLE);
+		onPick(new IPickingListener() {
+
+			@Override
+			public void pick(Pick pick) {
+				if (pick.getPickingMode() == PickingMode.MOUSE_OUT)
+					removePlaceholder();
+			}
+		});
 	}
 
 
@@ -61,6 +70,11 @@ public class Domino extends GLElementContainer implements IDropGLTarget, IPickin
 	protected void takeDown() {
 		context.unregisterPickingListener(backgroundPickingId);
 		super.takeDown();
+	}
+
+	@Override
+	protected boolean hasPickAbles() {
+		return true;
 	}
 
 	@Override
@@ -94,8 +108,7 @@ public class Domino extends GLElementContainer implements IDropGLTarget, IPickin
 		if (info instanceof NodeGroupDragInfo) {
 			NodeGroupDragInfo g = (NodeGroupDragInfo) info;
 			dropNode(item, g.getGroup().toNode());
-		}
-		if (info instanceof NodeDragInfo) {
+		} else if (info instanceof NodeDragInfo) {
 			NodeDragInfo g = (NodeDragInfo) info;
 			dropNode(item, item.getType() == EDnDType.COPY ? new Node(g.getNode()) : g.getNode());
 		} else {
@@ -148,8 +161,15 @@ public class Domino extends GLElementContainer implements IDropGLTarget, IPickin
 
 	@Override
 	public void onItemChanged(IDnDItem item) {
-		if (placeholders == null)
-			addPlaceholdersFor(((ADragInfo) item.getInfo()).getBaseNode());
+		if (placeholders == null) {
+			if (item.getInfo() instanceof ADragInfo)
+				addPlaceholdersFor(((ADragInfo) item.getInfo()).getBaseNode());
+			else {
+				Node node = Nodes.extract(item);
+				addPlaceholdersFor(node);
+			}
+		}
+
 	}
 
 	@Override

@@ -126,6 +126,8 @@ public class LinearBlock extends AbstractCollection<Node> {
 	public void remove(Node node) {
 		int index = nodes.indexOf(node);
 		this.nodes.remove(index);
+		if (nodes.isEmpty())
+			return;
 		Vec2f shift;
 		if (dim.isHorizontal()) {
 			shift = new Vec2f(-node.getSize().x(), 0);
@@ -133,9 +135,8 @@ public class LinearBlock extends AbstractCollection<Node> {
 			shift = new Vec2f(0, -node.getSize().y());
 		}
 		shift(index, nodes.size(), shift);
-
 		sortCriteria.remove(node);
-		if (sortCriteria.isEmpty())
+		if (sortCriteria.isEmpty() && !nodes.isEmpty())
 			sortCriteria.add(nodes.get(0));
 		resort();
 		apply();
@@ -224,7 +225,7 @@ public class LinearBlock extends AbstractCollection<Node> {
 	 * @param data2
 	 */
 	private void resortImpl(IMultiTypedCollection data) {
-		List<ITypedComparator> c = asComparators(dim);
+		List<ITypedComparator> c = asComparators(dim.opposite());
 		this.data = TypedSets.sort(data, c.toArray(new ITypedComparator[0]));
 	}
 
@@ -234,7 +235,7 @@ public class LinearBlock extends AbstractCollection<Node> {
 		Collection<TypedSet> sets = Collections2.transform(nodes, new Function<Node, TypedSet>() {
 			@Override
 			public TypedSet apply(Node input) {
-				return input.getGroups(dim);
+				return input.getGroups(dim.opposite());
 			}
 		});
 		MultiTypedSet union = TypedSets.unionDeep(sets.toArray(new TypedSet[0]));
@@ -262,7 +263,7 @@ public class LinearBlock extends AbstractCollection<Node> {
 	private List<ITypedGroup> asGroupList() {
 		if (!isStratisfied())
 			return Collections.singletonList(ungrouped(data.size()));
-		List<TypedSetGroup> groups = sortCriteria.get(0).getGroups(dim).getGroups();
+		List<TypedSetGroup> groups = sortCriteria.get(0).getGroups(dim.opposite()).getGroups();
 		List<ITypedGroup> g = new ArrayList<>(groups.size() + 1);
 		int sum = 0;
 		TypedList gdata = data.slice(groups.get(0).getIdType());

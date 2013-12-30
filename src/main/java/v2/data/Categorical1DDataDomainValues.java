@@ -24,7 +24,7 @@ public class Categorical1DDataDomainValues extends A1DDataDomainValues {
 	public Categorical1DDataDomainValues(TablePerspective data, EDimension main) {
 		super(data, main);
 		Perspective p = main.select(data.getDimensionPerspective(), data.getRecordPerspective());
-		this.groups = new TypedGroupSet(Utils.extractSetGroups(p, id.getId(), main.opposite()));
+		this.groups = new TypedGroupSet(Utils.extractSetGroups(p, id.getId(), main));
 	}
 
 	@Override

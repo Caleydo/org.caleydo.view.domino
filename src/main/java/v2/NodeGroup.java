@@ -74,7 +74,6 @@ public class NodeGroup extends GLElementContainer implements ILabeled, IDragGLSo
 		this.recData = recData;
 		for (int i = 0; i < 4; ++i)
 			neighbors[i] = null;
-		setSize(dimData.size(), recData.size());
 	}
 
 	@Override
@@ -98,7 +97,7 @@ public class NodeGroup extends GLElementContainer implements ILabeled, IDragGLSo
 		Color c = recData.getColor();
 		g.color(hovered ? c.darker() : c).fillRect(0, 0, w, h);
 		g.color(Color.BLACK).drawRect(0, 0, w, h);
-		g.drawText(getLabel(), 0, h * 0.5f - 5, w, 10, VAlign.CENTER);
+		g.drawText(getLabel(), -100, h * 0.5f - 5, w + 200, 10, VAlign.CENTER);
 		super.renderImpl(g, w, h);
 	}
 

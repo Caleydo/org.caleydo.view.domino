@@ -30,7 +30,7 @@ public abstract class A1DDataDomainValues extends ADataDomainDataValues {
 	 * @param t
 	 */
 	public A1DDataDomainValues(TablePerspective data, EDimension main) {
-		super(data);
+		super(data.getLabel(), data);
 		Perspective o = main.opposite().select(data.getDimensionPerspective(), data.getRecordPerspective());
 		assert o.getVirtualArray().size() == 1;
 		this.id = new TypedID(o.getVirtualArray().get(0), o.getIdType());

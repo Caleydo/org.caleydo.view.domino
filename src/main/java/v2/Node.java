@@ -120,7 +120,8 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled {
 			}
 		}
 		this.asList().subList(n, size()).clear(); // clear rest
-		setSize(dimData.size(), recData.size());
+
+		setSize(Math.max(20, Math.min(dimData.size(), 200)), Math.max(20, Math.min(recData.size(), 200)));
 	}
 
 	public void removeGroup(NodeGroup group) {
@@ -217,13 +218,17 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled {
 		final int dGroups = dimData.getGroups().size();
 		final int rGroups = recData.getGroups().size();
 
-		float wi = w / dGroups;
-		float hi = h / rGroups;
-		for (int d = 0; d < dGroups; ++d) {
-			for (int r = 0; r < rGroups; ++r) {
+		float wi = w / dimData.size();
+		float hi = h / recData.size();
+		float x = 0;
+		for (TypedListGroup dim : dimData.getGroups()) {
+			float y = 0;
+			for (TypedListGroup rec : recData.getGroups()) {
 				IGLLayoutElement child = children.get(i++);
-				child.setBounds(d * wi, r * hi, wi, hi);
+				child.setBounds(x * wi, y * hi, wi * dim.size(), hi * rec.size());
+				y += rec.size();
 			}
+			x += dim.size();
 		}
 		return false;
 	}

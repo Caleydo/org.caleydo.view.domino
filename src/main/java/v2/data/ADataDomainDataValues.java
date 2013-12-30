@@ -29,21 +29,23 @@ import com.google.common.primitives.Floats;
  */
 public abstract class ADataDomainDataValues implements IDataValues {
 	protected final ATableBasedDataDomain d;
+	private final String label;
 
-	public ADataDomainDataValues(TablePerspective t) {
-		this(t.getDataDomain());
+	public ADataDomainDataValues(String label, TablePerspective t) {
+		this(label, t.getDataDomain());
 	}
 
 	/**
 	 * @param dataDomain
 	 */
-	public ADataDomainDataValues(ATableBasedDataDomain dataDomain) {
+	public ADataDomainDataValues(String label, ATableBasedDataDomain dataDomain) {
 		this.d = dataDomain;
+		this.label = label;
 	}
 
 	@Override
 	public String getLabel() {
-		return d.getLabel();
+		return label;
 	}
 
 	private Table getTable() {
