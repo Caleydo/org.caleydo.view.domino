@@ -123,6 +123,7 @@ public class NodeGroup extends GLElementContainer implements ILabeled, IDragGLSo
 
 	@Override
 	public GLElement createUI(IDragInfo info) {
+		findParent(Domino.class).addPlaceholdersFor(parent);
 		return null;
 	}
 

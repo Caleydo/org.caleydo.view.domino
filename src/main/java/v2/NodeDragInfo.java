@@ -30,4 +30,9 @@ public class NodeDragInfo extends ADragInfo {
 	public Node getNode() {
 		return node;
 	}
+
+	@Override
+	public Node getBaseNode() {
+		return node;
+	}
 }

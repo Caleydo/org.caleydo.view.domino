@@ -7,6 +7,9 @@ package v2;
 
 import gleem.linalg.Vec2f;
 
+import java.util.List;
+
+import org.caleydo.core.view.opengl.layout2.GLElement;
 import org.caleydo.core.view.opengl.layout2.GLElementContainer;
 import org.caleydo.core.view.opengl.layout2.GLGraphics;
 import org.caleydo.core.view.opengl.layout2.GLSandBox;
@@ -18,6 +21,7 @@ import org.caleydo.core.view.opengl.layout2.dnd.IDropGLTarget;
 import org.caleydo.core.view.opengl.picking.IPickingListener;
 import org.caleydo.core.view.opengl.picking.Pick;
 import org.caleydo.datadomain.mock.MockDataDomain;
+import org.caleydo.view.domino.api.model.graph.EDirection;
 
 import v2.data.Categorical2DDataDomainValues;
 
@@ -29,15 +33,20 @@ import com.google.common.collect.Iterables;
  */
 public class Domino extends GLElementContainer implements IDropGLTarget, IPickingListener {
 	private int backgroundPickingId;
+
+	private GLElementContainer placeholders;
 	/**
 	 *
 	 */
 	public Domino() {
 		MockDataDomain d = MockDataDomain.createCategorical(200, 200, MockDataDomain.RANDOM, "a", "b");
+		MockDataDomain d2 = MockDataDomain.createCategorical(200, 200, MockDataDomain.RANDOM, "c", "d");
 		Node node = new Node(new Categorical2DDataDomainValues(d.getDefaultTablePerspective()));
-		Block b = new Block(node);
+		this.add(new Block(node));
+
+		node = new Node(new Categorical2DDataDomainValues(d2.getDefaultTablePerspective()));
+		this.add(new Block(node).setLocation(500, 500));
 		setPicker(null);
-		this.add(b);
 	}
 
 
@@ -91,22 +100,26 @@ public class Domino extends GLElementContainer implements IDropGLTarget, IPickin
 		}
 		if (info instanceof NodeDragInfo) {
 			NodeDragInfo g = (NodeDragInfo) info;
-			dropNode(item, g.getNode(), g);
+			dropNode(item, item.getType() == EDnDType.COPY ? new Node(g.getNode()) : g.getNode(), g);
 		}
 	}
 
 	private void dropNode(IDnDItem item, Node node, ADragInfo g) {
-		if (item.getType() == EDnDType.COPY)
-			node = new Node(node);
-		else {
-			Block block = getBlock(node);
-			if (block != null && block.removeNode(node))
-				this.remove(block);
-		}
+		removeNode(node);
 		Block b = new Block(node);
 		Vec2f pos = toRelative(item.getMousePos());
 		b.setLocation(pos.x(), pos.y());
 		this.add(b);
+		removePlaceholder();
+	}
+
+	/**
+	 * @param node
+	 */
+	public void removeNode(Node node) {
+		Block block = getBlock(node);
+		if (block != null && block.removeNode(node))
+			this.remove(block);
 	}
 
 	/**
@@ -119,13 +132,45 @@ public class Domino extends GLElementContainer implements IDropGLTarget, IPickin
 		return null;
 	}
 
+	public void addPlaceholdersFor(Node node) {
+		if (placeholders != null)
+			return;
+
+		placeholders = new GLElementContainer();
+		placeholders.setSize(getSize().x(), getSize().y());
+		this.add(placeholders);
+
+		final List<GLElement> l = placeholders.asList();
+		for(Block block : Iterables.filter(this, Block.class)) {
+			l.addAll(block.addPlaceholdersFor(node));
+		}
+	}
+
 	@Override
 	public void onItemChanged(IDnDItem item) {
-
+		if (placeholders == null)
+			addPlaceholdersFor(((ADragInfo) item.getInfo()).getBaseNode());
 	}
 
 	@Override
 	public EDnDType defaultSWTDnDType(IDnDItem item) {
 		return EDnDType.MOVE;
+	}
+
+	/**
+	 * @param neighbor
+	 * @param dir
+	 * @param node
+	 */
+	public void placeAt(Node neighbor, EDirection dir, Node node) {
+		removeNode(node);
+		Block block = getBlock(neighbor);
+		block.addNode(neighbor, dir, node);
+		removePlaceholder();
+	}
+
+	private void removePlaceholder() {
+		this.remove(placeholders);
+		placeholders = null;
 	}
 }

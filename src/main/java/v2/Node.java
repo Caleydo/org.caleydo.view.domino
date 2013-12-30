@@ -5,7 +5,6 @@
  *******************************************************************************/
 package v2;
 
-import java.nio.channels.IllegalSelectorException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -141,6 +140,9 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled {
 	}
 
 	public void setNeighbor(EDirection dir, Node neighbor) {
+		Node bak = this.neighbors[dir.ordinal()];
+		if (bak == neighbor)
+			return;
 		this.neighbors[dir.ordinal()] = neighbor;
 
 		List<NodeGroup> myGroups = getGroupNeighbors(dir);
@@ -201,7 +203,7 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled {
 		for (int i = 0; i < size; ++i) {
 			r.add((NodeGroup) get(offset + i * shift));
 		}
-		throw new IllegalSelectorException();
+		return r;
 	}
 
 	@Override
@@ -228,6 +230,14 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled {
 
 	public TypedSet get(EDimension dim) {
 		return dim.select(this.dimGroups, this.recGroups);
+	}
+
+	/**
+	 * @param opposite
+	 * @return
+	 */
+	public IDType getIdType(EDimension dim) {
+		return get(dim).getIdType();
 	}
 
 	public TypedGroupSet getGroups(EDimension dim) {

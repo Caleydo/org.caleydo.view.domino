@@ -15,6 +15,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.caleydo.core.data.collection.EDimension;
+import org.caleydo.core.id.IDType;
 import org.caleydo.core.view.opengl.layout2.GLElement;
 import org.caleydo.core.view.opengl.layout2.geom.Rect;
 import org.caleydo.core.view.opengl.layout2.layout.IGLLayoutElement;
@@ -43,6 +44,30 @@ public class LinearBlock extends AbstractCollection<Node> {
 				Rectangle2D.union(r, elem.getRectangleBounds(), r);
 		}
 		return r;
+	}
+
+	public IDType getIdType() {
+		return nodes.get(0).getIdType(dim.opposite());
+	}
+
+	/**
+	 * @param node
+	 * @param r
+	 */
+	public void addPlaceholdersFor(Node node, List<Placeholder> r) {
+		IDType idtype = node.getIdType(dim.opposite());
+		if (!isCompatible(idtype, getIdType()))
+			return;
+		Node n = nodes.get(0);
+		if (n != node)
+			r.add(new Placeholder(n, EDirection.getPrimary(dim)));
+		n = nodes.get(nodes.size()-1);
+		if (n != node)
+			r.add(new Placeholder(n, EDirection.getPrimary(dim).opposite()));
+	}
+
+	private static boolean isCompatible(IDType a, IDType b) {
+		return a.getIDCategory().isOfCategory(b);
 	}
 	/**
 	 * @return the dim, see {@link #dim}
@@ -79,7 +104,7 @@ public class LinearBlock extends AbstractCollection<Node> {
 		} else {
 			shift = new Vec2f(0, -node.getSize().y());
 		}
-		shift(index, shift);
+		shift(index, nodes.size(), shift);
 	}
 
 
@@ -98,19 +123,30 @@ public class LinearBlock extends AbstractCollection<Node> {
 
 		Rect bounds = neighbor.getRectBounds();
 		Vec2f shift;
-		if (dim.isHorizontal()) {
-			node.setLocation(bounds.x2(), bounds.y());
-			shift = new Vec2f(node.getSize().x(), 0);
+		if (dir.isPrimaryDirection()) {
+			if (dim.isHorizontal()) {
+				node.setLocation(bounds.x() - node.getSize().x(), bounds.y());
+				shift = new Vec2f(-node.getSize().x(), 0);
+			} else {
+				node.setLocation(bounds.x(), bounds.y() - node.getSize().x());
+				shift = new Vec2f(0, -node.getSize().y());
+			}
+			shift(0, index, shift);
 		} else {
-			node.setLocation(bounds.x(), bounds.y2());
-			shift = new Vec2f(0, node.getSize().y());
+			if (dim.isHorizontal()) {
+				node.setLocation(bounds.x2(), bounds.y());
+				shift = new Vec2f(node.getSize().x(), 0);
+			} else {
+				node.setLocation(bounds.x(), bounds.y2());
+				shift = new Vec2f(0, node.getSize().y());
+			}
+			shift(index + 1, nodes.size(), shift);
 		}
-		shift(index + 1, shift);
 		this.nodes.add(index + 1, node);
 	}
 
-	private void shift(int index, Vec2f shift) {
-		for (int i = index; i < nodes.size(); ++i) {
+	private void shift(int from, int to, Vec2f shift) {
+		for (int i = from; i < to; ++i) {
 			final Node nnode = nodes.get(i);
 			Vec2f loc = nnode.getLocation();
 			nnode.setLocation(loc.x() + shift.x(), loc.y() + shift.y());

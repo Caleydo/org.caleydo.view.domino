@@ -7,6 +7,7 @@ package v2;
 
 import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -38,6 +39,16 @@ public class Block extends GLElementContainer implements IGLLayout2 {
 			linearBlocks.add(new LinearBlock(dim, node));
 		}
 		updateSize();
+	}
+
+	public Collection<Placeholder> addPlaceholdersFor(Node node) {
+		List<Placeholder> r = new ArrayList<>();
+		for (LinearBlock block : linearBlocks) {
+			if (!node.has(block.getDim()))
+				continue;
+			block.addPlaceholdersFor(node, r);
+		}
+		return r;
 	}
 
 	public void addNode(Node neighbor, EDirection dir, Node node) {
@@ -106,4 +117,6 @@ public class Block extends GLElementContainer implements IGLLayout2 {
 	public boolean containsNode(Node node) {
 		return this.asList().contains(node);
 	}
+
+
 }

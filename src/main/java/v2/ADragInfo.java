@@ -42,4 +42,6 @@ public abstract class ADragInfo implements IDragInfo {
 	public Vec2f getMousePos() {
 		return mousePos;
 	}
+
+	public abstract Node getBaseNode();
 }

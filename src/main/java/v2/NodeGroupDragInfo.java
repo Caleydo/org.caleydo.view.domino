@@ -30,4 +30,9 @@ public class NodeGroupDragInfo extends ADragInfo {
 	public NodeGroup getGroup() {
 		return group;
 	}
+
+	@Override
+	public Node getBaseNode() {
+		return group.getNode();
+	}
 }
