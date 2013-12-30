@@ -20,10 +20,7 @@ import org.caleydo.core.view.opengl.layout2.dnd.IDragInfo;
 import org.caleydo.core.view.opengl.layout2.dnd.IDropGLTarget;
 import org.caleydo.core.view.opengl.picking.IPickingListener;
 import org.caleydo.core.view.opengl.picking.Pick;
-import org.caleydo.datadomain.mock.MockDataDomain;
 import org.caleydo.view.domino.api.model.graph.EDirection;
-
-import v2.data.Categorical2DDataDomainValues;
 
 import com.google.common.collect.Iterables;
 
@@ -39,13 +36,13 @@ public class Domino extends GLElementContainer implements IDropGLTarget, IPickin
 	 *
 	 */
 	public Domino() {
-		MockDataDomain d = MockDataDomain.createCategorical(200, 200, MockDataDomain.RANDOM, "a", "b");
-		MockDataDomain d2 = MockDataDomain.createCategorical(200, 200, MockDataDomain.RANDOM, "c", "d");
-		Node node = new Node(new Categorical2DDataDomainValues(d.getDefaultTablePerspective()));
-		this.add(new Block(node));
-
-		node = new Node(new Categorical2DDataDomainValues(d2.getDefaultTablePerspective()));
-		this.add(new Block(node).setLocation(500, 500));
+		// MockDataDomain d = MockDataDomain.createCategorical(200, 200, MockDataDomain.RANDOM, "a", "b");
+		// MockDataDomain d2 = MockDataDomain.createCategorical(200, 200, MockDataDomain.RANDOM, "c", "d");
+		// Node node = new Node(new Categorical2DDataDomainValues(d.getDefaultTablePerspective()));
+		// this.add(new Block(node));
+		//
+		// node = new Node(new Categorical2DDataDomainValues(d2.getDefaultTablePerspective()));
+		// this.add(new Block(node).setLocation(500, 500));
 		setPicker(null);
 	}
 
@@ -88,7 +85,7 @@ public class Domino extends GLElementContainer implements IDropGLTarget, IPickin
 
 	@Override
 	public boolean canSWTDrop(IDnDItem item) {
-		return item.getInfo() instanceof ADragInfo;
+		return item.getInfo() instanceof ADragInfo || Nodes.canExtract(item);
 	}
 
 	@Override
@@ -96,15 +93,18 @@ public class Domino extends GLElementContainer implements IDropGLTarget, IPickin
 		IDragInfo info = item.getInfo();
 		if (info instanceof NodeGroupDragInfo) {
 			NodeGroupDragInfo g = (NodeGroupDragInfo) info;
-			dropNode(item, g.getGroup().toNode(), g);
+			dropNode(item, g.getGroup().toNode());
 		}
 		if (info instanceof NodeDragInfo) {
 			NodeDragInfo g = (NodeDragInfo) info;
-			dropNode(item, item.getType() == EDnDType.COPY ? new Node(g.getNode()) : g.getNode(), g);
+			dropNode(item, item.getType() == EDnDType.COPY ? new Node(g.getNode()) : g.getNode());
+		} else {
+			Node node = Nodes.extract(item);
+			dropNode(item, node);
 		}
 	}
 
-	private void dropNode(IDnDItem item, Node node, ADragInfo g) {
+	private void dropNode(IDnDItem item, Node node) {
 		removeNode(node);
 		Block b = new Block(node);
 		Vec2f pos = toRelative(item.getMousePos());

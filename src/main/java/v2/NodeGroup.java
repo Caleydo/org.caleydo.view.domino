@@ -95,7 +95,8 @@ public class NodeGroup extends GLElementContainer implements ILabeled, IDragGLSo
 
 	@Override
 	protected void renderImpl(GLGraphics g, float w, float h) {
-		g.color(hovered ? Color.RED : Color.LIGHT_RED).fillRect(0, 0, w, h);
+		Color c = recData.getColor();
+		g.color(hovered ? c.darker() : c).fillRect(0, 0, w, h);
 		g.color(Color.BLACK).drawRect(0, 0, w, h);
 		g.drawText(getLabel(), 0, h * 0.5f - 5, w, 10, VAlign.CENTER);
 		super.renderImpl(g, w, h);

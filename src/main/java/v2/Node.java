@@ -73,6 +73,10 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled {
 		return label;
 	}
 
+	public void setData(EDimension dim, TypedGroupList data) {
+		setData(dim.select(data, dimData), dim.select(recData, data));
+	}
+
 	public void setData(TypedGroupList dimData, TypedGroupList recData) {
 		this.dimData = dimData;
 		this.recData = recData;
@@ -291,4 +295,5 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled {
 				return i;
 		return -1;
 	}
+
 }

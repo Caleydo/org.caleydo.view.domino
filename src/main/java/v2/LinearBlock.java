@@ -10,6 +10,8 @@ import gleem.linalg.Vec2f;
 import java.awt.geom.Rectangle2D;
 import java.util.AbstractCollection;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -20,6 +22,24 @@ import org.caleydo.core.view.opengl.layout2.GLElement;
 import org.caleydo.core.view.opengl.layout2.geom.Rect;
 import org.caleydo.core.view.opengl.layout2.layout.IGLLayoutElement;
 import org.caleydo.view.domino.api.model.graph.EDirection;
+import org.caleydo.view.domino.api.model.typed.IMultiTypedCollection;
+import org.caleydo.view.domino.api.model.typed.ITypedComparator;
+import org.caleydo.view.domino.api.model.typed.ITypedGroup;
+import org.caleydo.view.domino.api.model.typed.MultiTypedList;
+import org.caleydo.view.domino.api.model.typed.MultiTypedSet;
+import org.caleydo.view.domino.api.model.typed.RepeatingList;
+import org.caleydo.view.domino.api.model.typed.TypedCollections;
+import org.caleydo.view.domino.api.model.typed.TypedGroupList;
+import org.caleydo.view.domino.api.model.typed.TypedList;
+import org.caleydo.view.domino.api.model.typed.TypedListGroup;
+import org.caleydo.view.domino.api.model.typed.TypedSet;
+import org.caleydo.view.domino.api.model.typed.TypedSetGroup;
+import org.caleydo.view.domino.api.model.typed.TypedSets;
+
+import com.google.common.base.Function;
+import com.google.common.collect.Collections2;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Iterables;
 
 /**
  * @author Samuel Gratzl
@@ -29,11 +49,19 @@ public class LinearBlock extends AbstractCollection<Node> {
 	private final EDimension dim;
 	private final List<Node> nodes = new ArrayList<>();
 
+	private List<Node> sortCriteria = new ArrayList<>();
+	private boolean stratified = true;
+	private MultiTypedList data;
+
 	public LinearBlock(EDimension dim, Node node) {
 		this.dim = dim;
 		this.nodes.add(node);
+		this.sortCriteria.add(node);
 	}
 
+	public boolean isStratisfied() {
+		return stratified;
+	}
 
 	public Rectangle2D getBounds() {
 		Rectangle2D r = null;
@@ -105,6 +133,12 @@ public class LinearBlock extends AbstractCollection<Node> {
 			shift = new Vec2f(0, -node.getSize().y());
 		}
 		shift(index, nodes.size(), shift);
+
+		sortCriteria.remove(node);
+		if (sortCriteria.isEmpty())
+			sortCriteria.add(nodes.get(0));
+		resort();
+		apply();
 	}
 
 
@@ -143,6 +177,10 @@ public class LinearBlock extends AbstractCollection<Node> {
 			shift(index + 1, nodes.size(), shift);
 		}
 		this.nodes.add(index + 1, node);
+
+		sortCriteria.add(node);
+		resort();
+		apply();
 	}
 
 	private void shift(int from, int to, Vec2f shift) {
@@ -173,6 +211,84 @@ public class LinearBlock extends AbstractCollection<Node> {
 	 */
 	public boolean contains(Node node) {
 		return nodes.contains(node);
+	}
+
+	public void resort() {
+		if (this.data == null)
+			update();
+		else
+			resortImpl(this.data);
+	}
+
+	/**
+	 * @param data2
+	 */
+	private void resortImpl(IMultiTypedCollection data) {
+		List<ITypedComparator> c = asComparators(dim);
+		this.data = TypedSets.sort(data, c.toArray(new ITypedComparator[0]));
+	}
+
+	public void update() {
+		if (nodes.isEmpty())
+			return;
+		Collection<TypedSet> sets = Collections2.transform(nodes, new Function<Node, TypedSet>() {
+			@Override
+			public TypedSet apply(Node input) {
+				return input.getGroups(dim);
+			}
+		});
+		MultiTypedSet union = TypedSets.unionDeep(sets.toArray(new TypedSet[0]));
+		resortImpl(union);
+	}
+
+	private List<ITypedComparator> asComparators(final EDimension dim) {
+		return ImmutableList.copyOf(Iterables.transform(sortCriteria, new Function<Node, ITypedComparator>() {
+			@Override
+			public ITypedComparator apply(Node input) {
+				return input.getComparator(dim);
+			}
+		}));
+	}
+
+	public void apply() {
+		List<ITypedGroup> g = asGroupList();
+
+		for (Node node : nodes) {
+			final TypedList slice = data.slice(node.getIdType(dim.opposite()));
+			node.setData(dim.opposite(), TypedGroupList.create(slice, g));
+		}
+	}
+
+	private List<ITypedGroup> asGroupList() {
+		if (!isStratisfied())
+			return Collections.singletonList(ungrouped(data.size()));
+		List<TypedSetGroup> groups = sortCriteria.get(0).getGroups(dim).getGroups();
+		List<ITypedGroup> g = new ArrayList<>(groups.size() + 1);
+		int sum = 0;
+		TypedList gdata = data.slice(groups.get(0).getIdType());
+		for (ITypedGroup group : groups) {
+			int bak = sum;
+			sum += group.size();
+			while (sum < gdata.size() && group.contains(gdata.get(sum)))
+				sum++;
+			if ((bak + groups.size()) == sum) { // no extra elems
+				g.add(group);
+			} else { // have repeating elements
+				g.add(new TypedListGroup(new RepeatingList<>(TypedCollections.INVALID_ID, sum - bak),
+						group.getIdType(), group.getLabel(), group.getColor()));
+			}
+		}
+		if (sum < data.size())
+			g.add(unmapped(data.size() - sum));
+		return g;
+	}
+
+	private static ITypedGroup ungrouped(int size) {
+		return TypedGroupList.createUngroupedGroup(TypedCollections.INVALID_IDTYPE, size);
+	}
+
+	private static ITypedGroup unmapped(int size) {
+		return TypedGroupList.createUnmappedGroup(TypedCollections.INVALID_IDTYPE, size);
 	}
 
 }

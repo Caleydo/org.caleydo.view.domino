@@ -61,7 +61,7 @@ public class Placeholder extends PickableGLElement implements IDropGLTarget {
 	@Override
 	public boolean canSWTDrop(IDnDItem item) {
 		IDragInfo info = item.getInfo();
-		return info instanceof ADragInfo;
+		return info instanceof ADragInfo || Nodes.canExtract(item);
 	}
 
 	@Override
@@ -69,15 +69,17 @@ public class Placeholder extends PickableGLElement implements IDropGLTarget {
 		IDragInfo info = item.getInfo();
 		if (info instanceof NodeGroupDragInfo) {
 			NodeGroupDragInfo g = (NodeGroupDragInfo) info;
-			dropNode(item, g.getGroup().toNode(), g);
-		}
-		if (info instanceof NodeDragInfo) {
+			dropNode(g.getGroup().toNode());
+		} else if (info instanceof NodeDragInfo) {
 			NodeDragInfo g = (NodeDragInfo) info;
-			dropNode(item, item.getType() == EDnDType.COPY ? new Node(g.getNode()) : g.getNode(), g);
+			dropNode(item.getType() == EDnDType.COPY ? new Node(g.getNode()) : g.getNode());
+		} else {
+			Node node = Nodes.extract(item);
+			dropNode(node);
 		}
 	}
 
-	private void dropNode(IDnDItem item, Node node, ADragInfo g) {
+	private void dropNode(Node node) {
 		Domino domino = findParent(Domino.class);
 		domino.placeAt(neighbor, dir, node);
 	}

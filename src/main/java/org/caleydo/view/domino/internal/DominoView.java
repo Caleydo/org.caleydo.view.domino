@@ -18,7 +18,8 @@ import org.caleydo.core.view.opengl.layout2.basic.ScrollingDecorator;
 import org.caleydo.core.view.opengl.layout2.view.AMultiTablePerspectiveElementView;
 import org.caleydo.view.domino.internal.event.ToggleHeaderAlwaysEvent;
 import org.caleydo.view.domino.internal.serial.SerializedDominoView;
-import org.caleydo.view.domino.internal.ui.GraphElement;
+
+import v2.Domino;
 
 /**
  * basic view based on {@link GLElement} with a {@link AMultiTablePerspectiveElementView}
@@ -30,11 +31,11 @@ public class DominoView extends AMultiTablePerspectiveElementView {
 	public static final String VIEW_TYPE = "org.caleydo.view.domino";
 	public static final String VIEW_NAME = "Domino";
 
-	private final GraphElement domino;
+	private final Domino domino;
 
 	public DominoView(IGLCanvas glCanvas) {
 		super(glCanvas, VIEW_TYPE, VIEW_NAME);
-		domino = new GraphElement();
+		domino = new Domino();
 	}
 
 	@Override
