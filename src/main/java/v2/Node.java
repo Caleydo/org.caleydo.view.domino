@@ -322,7 +322,11 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 	}
 
 	private void triggerResort(EDimension dim) {
-		findParent(Block.class).resort(this, dim);
+		findBlock().resort(this, dim);
+	}
+
+	private Block findBlock() {
+		return findParent(Block.class);
 	}
 
 	/**
@@ -476,6 +480,10 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 				return Node.this.compare(dim, o1, o2);
 			}
 		};
+	}
+
+	public void sortByMe(EDimension dim) {
+		findBlock().sortByMe(this, dim);
 	}
 
 	/**

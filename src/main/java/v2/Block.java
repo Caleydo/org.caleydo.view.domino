@@ -128,4 +128,13 @@ public class Block extends GLElementContainer implements IGLLayout2 {
 		block.apply();
 	}
 
+	/**
+	 * @param node
+	 * @param dim
+	 */
+	public void sortByMe(Node node, EDimension dim) {
+		LinearBlock block = getBlock(node, dim.opposite());
+		block.sortBy(node);
+	}
+
 }

@@ -292,4 +292,36 @@ public class LinearBlock extends AbstractCollection<Node> {
 		return TypedGroupList.createUnmappedGroup(TypedCollections.INVALID_IDTYPE, size);
 	}
 
+	/**
+	 * @param node
+	 */
+	public boolean sortBy(Node node) {
+		if (nodes.size() == 1) {
+			this.stratified = !this.stratified;
+			update();
+			apply();
+			return true;
+		}
+		int index = sortCriteria.indexOf(node);
+		if (index == 0 && stratified) {
+			stratified = false;
+		} else if (index == 0)
+			sortCriteria.remove(index);
+		if (index != 0) {
+			sortCriteria.add(0, node);
+			this.stratified = true;
+		} else if (sortCriteria.isEmpty()) {
+			for (Node n : nodes)
+				if (n != node) {
+					sortCriteria.add(n);
+					stratified = true;
+					break;
+				}
+		}
+
+		update();
+		apply();
+		return true;
+	}
+
 }
