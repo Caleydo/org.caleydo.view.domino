@@ -9,6 +9,8 @@ import gleem.linalg.Vec2f;
 
 import java.util.List;
 
+import org.caleydo.core.data.collection.EDimension;
+import org.caleydo.core.data.perspective.table.TablePerspective;
 import org.caleydo.core.view.opengl.layout2.GLElement;
 import org.caleydo.core.view.opengl.layout2.GLElementContainer;
 import org.caleydo.core.view.opengl.layout2.GLGraphics;
@@ -21,7 +23,11 @@ import org.caleydo.core.view.opengl.layout2.dnd.IDropGLTarget;
 import org.caleydo.core.view.opengl.picking.IPickingListener;
 import org.caleydo.core.view.opengl.picking.Pick;
 import org.caleydo.core.view.opengl.picking.PickingMode;
+import org.caleydo.datadomain.mock.MockDataDomain;
 import org.caleydo.view.domino.api.model.graph.EDirection;
+
+import v2.data.Categorical2DDataDomainValues;
+import v2.data.StratificationDataValue;
 
 import com.google.common.collect.Iterables;
 
@@ -37,13 +43,6 @@ public class Domino extends GLElementContainer implements IDropGLTarget, IPickin
 	 *
 	 */
 	public Domino() {
-		// MockDataDomain d = MockDataDomain.createCategorical(200, 200, MockDataDomain.RANDOM, "a", "b");
-		// MockDataDomain d2 = MockDataDomain.createCategorical(200, 200, MockDataDomain.RANDOM, "c", "d");
-		// Node node = new Node(new Categorical2DDataDomainValues(d.getDefaultTablePerspective()));
-		// this.add(new Block(node));
-		//
-		// node = new Node(new Categorical2DDataDomainValues(d2.getDefaultTablePerspective()));
-		// this.add(new Block(node).setLocation(500, 500));
 		setVisibility(EVisibility.PICKABLE);
 		onPick(new IPickingListener() {
 
@@ -53,6 +52,18 @@ public class Domino extends GLElementContainer implements IDropGLTarget, IPickin
 					removePlaceholder();
 			}
 		});
+
+		MockDataDomain d = MockDataDomain.createCategorical(200, 200, MockDataDomain.RANDOM, "a", "b");
+		Node node = new Node(new Categorical2DDataDomainValues(d.getDefaultTablePerspective()));
+		this.add(new Block(node));
+
+		MockDataDomain d2 = MockDataDomain.createCategorical(200, 200, MockDataDomain.RANDOM, "c", "d", "e");
+		node = new Node(new Categorical2DDataDomainValues(d2.getDefaultTablePerspective()));
+		this.add(new Block(node).setLocation(250, 250));
+
+		TablePerspective grouping = MockDataDomain.addRecGrouping(d2, 100, 50);
+		node = new Node(new StratificationDataValue(grouping.getRecordPerspective(), EDimension.RECORD, null));
+		this.add(new Block(node).setLocation(20, 250));
 	}
 
 

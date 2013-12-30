@@ -118,5 +118,14 @@ public class Block extends GLElementContainer implements IGLLayout2 {
 		return this.asList().contains(node);
 	}
 
+	/**
+	 * @param node
+	 * @param dim
+	 */
+	public void resort(Node node, EDimension dim) {
+		LinearBlock block = getBlock(node, dim.opposite());
+		block.update();
+		block.apply();
+	}
 
 }

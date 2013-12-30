@@ -5,6 +5,7 @@
  *******************************************************************************/
 package v2;
 
+import org.caleydo.core.data.collection.EDimension;
 import org.caleydo.core.util.base.ILabeled;
 import org.caleydo.core.util.color.Color;
 import org.caleydo.core.view.opengl.layout.Column.VAlign;
@@ -76,6 +77,14 @@ public class NodeGroup extends GLElementContainer implements ILabeled, IDragGLSo
 			neighbors[i] = null;
 	}
 
+	/**
+	 * @param dimension
+	 * @return
+	 */
+	public TypedListGroup getData(EDimension dim) {
+		return dim.select(dimData, recData);
+	}
+
 	@Override
 	public String getLabel() {
 		StringBuilder b = new StringBuilder();
@@ -140,4 +149,5 @@ public class NodeGroup extends GLElementContainer implements ILabeled, IDragGLSo
 	public Node toNode() {
 		return new Node(data, getLabel(), new TypedGroupSet(dimData.asSet()), new TypedGroupSet(recData.asSet()));
 	}
+
 }

@@ -9,14 +9,25 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import org.apache.commons.lang.StringUtils;
 import org.caleydo.core.data.collection.EDimension;
 import org.caleydo.core.id.IDType;
+import org.caleydo.core.id.IIDTypeMapper;
 import org.caleydo.core.util.base.ILabeled;
+import org.caleydo.core.util.base.Labels;
+import org.caleydo.core.util.color.Color;
 import org.caleydo.core.view.opengl.layout2.GLElementContainer;
+import org.caleydo.core.view.opengl.layout2.dnd.EDnDType;
+import org.caleydo.core.view.opengl.layout2.dnd.IDnDItem;
+import org.caleydo.core.view.opengl.layout2.dnd.IDragInfo;
+import org.caleydo.core.view.opengl.layout2.dnd.IDropGLTarget;
 import org.caleydo.core.view.opengl.layout2.layout.IGLLayout2;
 import org.caleydo.core.view.opengl.layout2.layout.IGLLayoutElement;
+import org.caleydo.core.view.opengl.picking.IPickingListener;
+import org.caleydo.core.view.opengl.picking.Pick;
 import org.caleydo.view.domino.api.model.graph.EDirection;
 import org.caleydo.view.domino.api.model.typed.ITypedComparator;
+import org.caleydo.view.domino.api.model.typed.MappingCaches;
 import org.caleydo.view.domino.api.model.typed.TypedCollections;
 import org.caleydo.view.domino.api.model.typed.TypedGroupList;
 import org.caleydo.view.domino.api.model.typed.TypedGroupSet;
@@ -26,11 +37,13 @@ import org.caleydo.view.domino.api.model.typed.TypedSetGroup;
 
 import v2.data.IDataValues;
 
+import com.google.common.collect.Collections2;
+
 /**
  * @author Samuel Gratzl
  *
  */
-public class Node extends GLElementContainer implements IGLLayout2, ILabeled {
+public class Node extends GLElementContainer implements IGLLayout2, ILabeled, IDropGLTarget, IPickingListener {
 	private Node[] neighbors = new Node[4];
 
 	private final String label;
@@ -50,21 +63,103 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled {
 	public Node(Node clone) {
 		this.data = clone.data;
 		this.label = clone.label;
-		setLayout(this);
 		this.dimGroups = clone.dimGroups;
 		this.recGroups = clone.recGroups;
 		setData(clone.dimData, clone.recData);
+		init();
 	}
 
 	public Node(IDataValues data, String label, TypedGroupSet dimGroups, TypedGroupSet recGroups) {
 		this.data = data;
 		this.label = label;
-		setLayout(this);
 		this.dimGroups = dimGroups;
 		this.recGroups = recGroups;
 		setData(dimGroups.asList(), recGroups.asList());
+		init();
 	}
 
+	/**
+	 *
+	 */
+	private void init() {
+		setLayout(this);
+		setVisibility(EVisibility.PICKABLE);
+		onPick(this);
+	}
+
+	@Override
+	public void pick(Pick pick) {
+		switch (pick.getPickingMode()) {
+		case MOUSE_OVER:
+			context.getMouseLayer().addDropTarget(this);
+			break;
+		case MOUSE_OUT:
+			context.getMouseLayer().removeDropTarget(this);
+			break;
+		default:
+			break;
+		}
+	}
+
+	@Override
+	public boolean canSWTDrop(IDnDItem item) {
+		if (!(item.getInfo() instanceof ADragInfo))
+			return false;
+		ADragInfo d = (ADragInfo) item.getInfo();
+		final Node b = d.getBaseNode();
+		if (b == this)
+			return false;
+		if (has(EDimension.DIMENSION) && has(EDimension.RECORD))
+			return false;
+		for (EDimension dim : EDimension.values())
+			if (!getIdType(dim).getIDCategory().isOfCategory(b.getIdType(dim)))
+				return false;
+		return true;
+	}
+
+	@Override
+	public EDnDType defaultSWTDnDType(IDnDItem item) {
+		return EDnDType.MOVE;
+	}
+
+	@Override
+	public void onDrop(IDnDItem item) {
+		IDragInfo info = item.getInfo();
+		if (info instanceof NodeGroupDragInfo) {
+			NodeGroupDragInfo g = (NodeGroupDragInfo) info;
+			dropNode(g.getGroup().toNode());
+		} else if (info instanceof NodeDragInfo) {
+			NodeDragInfo g = (NodeDragInfo) info;
+			dropNode(item.getType() == EDnDType.COPY ? new Node(g.getNode()) : g.getNode());
+		} else {
+			Node node = Nodes.extract(item);
+			dropNode(node);
+		}
+	}
+
+
+
+	/**
+	 * @param node
+	 */
+	private void dropNode(Node node) {
+		Domino domino = findParent(Domino.class);
+		domino.removeNode(node);
+		EDimension dim = getSingleGroupingDimension();
+		TypedGroupList m = node.getData(dim);
+		integrate(m);
+	}
+
+	@Override
+	public void onItemChanged(IDnDItem item) {
+
+	}
+
+	@Override
+	protected void takeDown() {
+		context.getMouseLayer().removeDropTarget(this);
+		super.takeDown();
+	}
 	/**
 	 * @return the label, see {@link #label}
 	 */
@@ -75,6 +170,10 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled {
 
 	public void setData(EDimension dim, TypedGroupList data) {
 		setData(dim.select(data, dimData), dim.select(recData, data));
+	}
+
+	public TypedGroupList getData(EDimension dim) {
+		return dim.select(dimData, recData);
 	}
 
 	public void setData(TypedGroupList dimData, TypedGroupList recData) {
@@ -124,12 +223,106 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled {
 		setSize(Math.max(20, Math.min(dimData.size(), 200)), Math.max(20, Math.min(recData.size(), 200)));
 	}
 
-	public void removeGroup(NodeGroup group) {
+	public void integrate(TypedGroupList group) {
+		EDimension dim = getSingleGroupingDimension();
+		if (dim == null)
+			return;
+		IIDTypeMapper<Integer, Integer> mapper = MappingCaches.findMapper(group.getIdType(), getIdType(dim));
+		if (mapper == null)
+			return;
+
+		List<TypedListGroup> d = new ArrayList<>(getData(dim).getGroups());
+		for (TypedListGroup g : group.getGroups()) {
+			final TypedListGroup group2 = new TypedSetGroup(mapper.apply(group), mapper.getTarget(), g.getLabel(),
+					g.getColor()).asList();
+			d.add(group2);
+		}
+
+		TypedGroupList l = new TypedGroupList(d);
+		setGroups(dim, l.asSet());
+		triggerResort(dim);
+	}
+
+	public void merge(NodeGroup... groups) {
+		if (groups.length < 2)
+			return;
+		EDimension dim = getSingleGroupingDimension();
+		if (dim == null)
+			return;
+		List<TypedListGroup> d = new ArrayList<>(dim.select(dimData, recData).getGroups());
+		List<TypedSetGroup> r = new ArrayList<>();
+		List<Integer> indices = new ArrayList<>();
+
+		for (NodeGroup g : groups) {
+			final TypedListGroup gd = g.getData(dim);
+			r.add(gd.asSet());
+			int index = d.indexOf(gd);
+			indices.add(index);
+			d.remove(index);
+		}
+		TypedSetGroup mg = new TypedSetGroup(TypedSet.union(r), StringUtils.join(
+				Collections2.transform(r, Labels.TO_LABEL), ", "), mixColors(r));
+		d.add(mg.asList());
+		TypedGroupList l = new TypedGroupList(d);
+		setGroups(dim, l.asSet());
+		triggerResort(dim);
+	}
+
+	/**
+	 * @param r
+	 * @return
+	 */
+	private static Color mixColors(List<TypedSetGroup> data) {
+		float r = 0;
+		float g = 0;
+		float b = 0;
+		float a = 0;
+		for (TypedSetGroup group : data) {
+			Color c = group.getColor();
+			r += c.r;
+			g += c.g;
+			b += c.b;
+			a += c.a;
+		}
+		float f = 1.f / data.size();
+		return new Color(r * f, g * f, b * f, a * f);
+	}
+
+	public EDimension getSingleGroupingDimension() {
 		final List<TypedListGroup> dimGroups = dimData.getGroups();
 		final List<TypedListGroup> recGroups = recData.getGroups();
 		if (dimGroups.size() > 1 && recGroups.size() > 1)
-			return; // can't remove 2d groupings
-		// FIXME
+			return null;
+		if (dimGroups.size() > 1)
+			return EDimension.DIMENSION;
+		return EDimension.RECORD;
+	}
+
+	public void removeGroup(NodeGroup group) {
+		EDimension dim = getSingleGroupingDimension();
+		if (dim == null)
+			return; // no single grouping
+		List<TypedListGroup> d = new ArrayList<>(dim.select(dimData, recData).getGroups());
+		d.remove(group.getData(dim));
+		TypedGroupList l = new TypedGroupList(d);
+		setGroups(dim, l.asSet());
+		triggerResort(dim);
+	}
+
+	/**
+	 * @param dim
+	 * @param l
+	 */
+	private void setGroups(EDimension dim, TypedGroupSet data) {
+		if (dim.isDimension())
+			dimGroups = data;
+		else
+			recGroups = data;
+
+	}
+
+	private void triggerResort(EDimension dim) {
+		findParent(Block.class).resort(this, dim);
 	}
 
 	/**
@@ -215,9 +408,6 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled {
 	public boolean doLayout(List<? extends IGLLayoutElement> children, float w, float h, IGLLayoutElement parent,
 			int deltaTimeMs) {
 		int i = 0;
-		final int dGroups = dimData.getGroups().size();
-		final int rGroups = recData.getGroups().size();
-
 		float wi = w / dimData.size();
 		float hi = h / recData.size();
 		float x = 0;

@@ -5,6 +5,7 @@
  *******************************************************************************/
 package v2;
 
+import org.caleydo.core.view.opengl.layout2.dnd.IDnDItem;
 import org.caleydo.core.view.opengl.layout2.dnd.IDragInfo;
 
 import v2.data.IDataValues;
@@ -28,6 +29,11 @@ public class SingleNodeGroup extends NodeGroup {
 	@Override
 	public String getLabel() {
 		return getNode().getLabel();
+	}
+
+	@Override
+	public void onDropped(IDnDItem info) {
+		// nothing
 	}
 
 }
