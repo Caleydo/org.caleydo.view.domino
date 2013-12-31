@@ -18,6 +18,7 @@ import org.caleydo.core.view.opengl.layout2.dnd.EDnDType;
 import org.caleydo.core.view.opengl.layout2.dnd.IDnDItem;
 import org.caleydo.core.view.opengl.layout2.dnd.IDragInfo;
 import org.caleydo.core.view.opengl.layout2.dnd.IDropGLTarget;
+import org.caleydo.core.view.opengl.layout2.layout.GLLayouts;
 import org.caleydo.core.view.opengl.picking.IPickingListener;
 import org.caleydo.core.view.opengl.picking.Pick;
 import org.caleydo.core.view.opengl.picking.PickingMode;
@@ -37,10 +38,12 @@ import com.google.common.collect.Iterables;
 public class Domino extends GLElementContainer implements IDropGLTarget, IPickingListener {
 	private GLElementContainer placeholders;
 	private final Bands bands;
+	private final GLElementContainer nodes;
 	/**
 	 *
 	 */
 	public Domino() {
+		super(GLLayouts.LAYERS);
 		setVisibility(EVisibility.PICKABLE);
 		onPick(new IPickingListener() {
 
@@ -51,22 +54,31 @@ public class Domino extends GLElementContainer implements IDropGLTarget, IPickin
 			}
 		});
 
-		MockDataDomain d = MockDataDomain.createCategorical(200, 200, MockDataDomain.RANDOM, "a", "b");
-		Node node = new Node(new Categorical2DDataDomainValues(d.getDefaultTablePerspective()));
-		this.add(new Block(node));
-
-		MockDataDomain d2 = MockDataDomain.createCategorical(200, 200, MockDataDomain.RANDOM, "c", "d", "e");
-		node = new Node(new Categorical2DDataDomainValues(d2.getDefaultTablePerspective()));
-		this.add(new Block(node).setLocation(250, 250));
-
-		TablePerspective grouping = MockDataDomain.addRecGrouping(d2, 100, 50);
-		node = new Node(new StratificationDataValue(grouping.getRecordPerspective(), EDimension.RECORD, null));
-		this.add(new Block(node).setLocation(20, 250));
+		// fakeData();
+		this.nodes = new GLElementContainer();
+		nodes.setzDelta(0.1f);
+		this.add(nodes);
 
 		this.bands = new Bands();
 		this.bands.setVisibility(EVisibility.PICKABLE);
+		this.bands.setzDelta(0.01f);
 		this.bands.onPick(this);
 		this.add(this.bands);
+	}
+
+
+	private void fakeData() {
+		MockDataDomain d = MockDataDomain.createCategorical(200, 200, MockDataDomain.RANDOM, "a", "b");
+		Node node = new Node(new Categorical2DDataDomainValues(d.getDefaultTablePerspective()));
+		nodes.add(new Block(node));
+
+		MockDataDomain d2 = MockDataDomain.createCategorical(200, 200, MockDataDomain.RANDOM, "c", "d", "e");
+		node = new Node(new Categorical2DDataDomainValues(d2.getDefaultTablePerspective()));
+		nodes.add(new Block(node).setLocation(250, 250));
+
+		TablePerspective grouping = MockDataDomain.addRecGrouping(d2, 100, 50);
+		node = new Node(new StratificationDataValue(grouping.getRecordPerspective(), EDimension.RECORD, null));
+		nodes.add(new Block(node).setLocation(20, 250));
 	}
 
 
@@ -118,7 +130,7 @@ public class Domino extends GLElementContainer implements IDropGLTarget, IPickin
 		Block b = new Block(node);
 		Vec2f pos = toRelative(item.getMousePos());
 		b.setLocation(pos.x(), pos.y());
-		this.add(0, b);
+		nodes.add(b);
 		removePlaceholder();
 		bands.relayout();
 	}
@@ -129,7 +141,7 @@ public class Domino extends GLElementContainer implements IDropGLTarget, IPickin
 	public void removeNode(Node node) {
 		Block block = getBlock(node);
 		if (block != null && block.removeNode(node)) {
-			this.remove(block);
+			nodes.remove(block);
 			bands.relayout();
 		}
 	}
@@ -138,7 +150,7 @@ public class Domino extends GLElementContainer implements IDropGLTarget, IPickin
 	 * @param node
 	 */
 	private Block getBlock(Node node) {
-		for (Block block : Iterables.filter(this, Block.class))
+		for (Block block : Iterables.filter(nodes, Block.class))
 			if (block.containsNode(node))
 				return block;
 		return null;
@@ -149,11 +161,10 @@ public class Domino extends GLElementContainer implements IDropGLTarget, IPickin
 			return;
 
 		placeholders = new GLElementContainer();
-		placeholders.setSize(getSize().x(), getSize().y());
 		this.add(placeholders);
 
 		final List<GLElement> l = placeholders.asList();
-		for(Block block : Iterables.filter(this, Block.class)) {
+		for (Block block : Iterables.filter(nodes, Block.class)) {
 			l.addAll(block.addPlaceholdersFor(node));
 		}
 	}
@@ -198,6 +209,6 @@ public class Domino extends GLElementContainer implements IDropGLTarget, IPickin
 	 * @return
 	 */
 	public List<Block> getBlocks() {
-		return ImmutableList.copyOf(Iterables.filter(this, Block.class));
+		return ImmutableList.copyOf(Iterables.filter(nodes, Block.class));
 	}
 }

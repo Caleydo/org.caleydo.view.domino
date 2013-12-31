@@ -41,7 +41,6 @@ public class Block extends GLElementContainer implements IGLLayout2 {
 
 	public Block(Node node) {
 		setLayout(this);
-		setzDelta(0.2f);
 		this.add(node);
 		for (EDimension dim : EDimension.values()) {
 			if (!node.has(dim.opposite()))

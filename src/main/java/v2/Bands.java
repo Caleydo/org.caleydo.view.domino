@@ -57,8 +57,9 @@ public class Bands extends GLElement implements
 		routes.clear();
 		Domino domino = findParent(Domino.class);
 		List<Block> blocks = domino.getBlocks();
-		for (int i = 0; i < blocks.size(); ++i) {
-			blocks.get(i).createBandsTo(blocks.subList(i + 1, blocks.size()), routes);
+		final int length = blocks.size();
+		for (int i = 0; i < length; ++i) {
+			blocks.get(i).createBandsTo(blocks.subList(i + 1, length), routes);
 		}
 	}
 
