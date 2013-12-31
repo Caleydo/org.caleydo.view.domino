@@ -29,10 +29,10 @@ public class BandLineFactory {
 		// FIXME more
 		if (aDim == EDimension.RECORD) {
 			Pair<List<Vec2f>, List<Vec2f>> p = createHorizontal(rot90(a), rot90(b));
-			return new BandLine(rot90(p.getFirst()), rot90(p.getSecond()));
+			return new BandLine(rot90(p.getFirst()), rot90(p.getSecond()), 2);
 		} else {
 			Pair<List<Vec2f>, List<Vec2f>> p = createHorizontal(a, b);
-			return new BandLine(p.getFirst(), p.getSecond());
+			return new BandLine(p.getFirst(), p.getSecond(), 2);
 		}
 	}
 

@@ -16,13 +16,17 @@ public class PolyLine extends AbstractList<Vec2f> {
 	private final float[] percentages;
 	private final float distance;
 
-	public PolyLine(List<Vec2f> points) {
+	public PolyLine(List<Vec2f> points, int fixFirstLastN) {
 		this.points = points;
 		this.percentages = distances(points);
 		this.distance = percentages[percentages.length - 1];
 		// normalize
 		for (int i = 0; i < percentages.length; ++i)
 			percentages[i] /= this.distance;
+		for (int i = 0; i < Math.min(fixFirstLastN, percentages.length / 2); ++i) {
+			percentages[i] = 0;
+			percentages[percentages.length - 1 - i] = 1;
+		}
 	}
 
 	float getPercentage(int p) {

@@ -5,6 +5,7 @@
  *******************************************************************************/
 package v2.band;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -14,7 +15,9 @@ import org.caleydo.core.util.color.Color;
 import org.caleydo.core.view.opengl.layout2.GLGraphics;
 import org.caleydo.view.domino.api.model.typed.MultiTypedSet;
 import org.caleydo.view.domino.api.model.typed.TypedGroupList;
+import org.caleydo.view.domino.api.model.typed.TypedListGroup;
 import org.caleydo.view.domino.api.model.typed.TypedSet;
+import org.caleydo.view.domino.api.model.typed.TypedSets;
 import org.caleydo.view.domino.spi.model.IBandRenderer;
 
 /**
@@ -34,7 +37,7 @@ public class Band implements IBandRenderer {
 	private final TypedGroupList sData;
 	private final TypedGroupList tData;
 
-	private EBandMode mode = EBandMode.OVERVIEW;
+	private EBandMode mode = EBandMode.GROUPS;
 
 	private final DataRoute overviewRoute;
 	private List<DataRoute> groupRoutes;
@@ -50,7 +53,7 @@ public class Band implements IBandRenderer {
 			TypedSet tShared = shared.slice(tData.getIdType());
 			float sr = ((float) sShared.size()) / sData.size();
 			float tr = ((float) tShared.size()) / tData.size();
-			this.overviewRoute = new DataRoute(sr, tr, sShared, tShared);
+			this.overviewRoute = new DataRoute(0, sr, 0, tr, sShared, tShared);
 		}
 	}
 
@@ -65,29 +68,33 @@ public class Band implements IBandRenderer {
 	}
 
 	private final class DataRoute {
-		private final float sr, tr;
+		private final float s1, s2, t1, t2;
 		private final PolyArea base;
 		final TypedSet sShared, tShared;
 
-		public DataRoute(float sr, float tr, TypedSet sShared, TypedSet tShared) {
-			this.sr = sr;
-			this.tr = tr;
+		public DataRoute(float s1, float s2, float t1, float t2, TypedSet sShared, TypedSet tShared) {
+			this.s1 = s1;
+			this.t1 = t1;
+			this.s2 = s2;
+			this.t2 = t2;
 			this.sShared = sShared;
 			this.tShared = tShared;
-			this.base = band.computeArea(0, sr, 0, tr);
+			this.base = band.computeArea(s1, s2, t1, t2);
 		}
 
 		void renderRoute(GLGraphics g, IBandHost host) {
 			g.color(color.r, color.g, color.b, 0.5f);
 			g.fillPolygon(base);
-
+			if (g.isPickingPass())
+				return;
 			for (SelectionType type : selectionTypes()) {
 				int sS = host.getSelected(sShared, type).size();
 				int tS = host.getSelected(tShared, type).size();
 				if (sS > 0 && tS > 0) {
 					final Color c = type.getColor();
 					g.color(c.r, c.g, c.b, 0.5f);
-					g.fillPolygon(band.computeArea(0, sr * sS / sShared.size(), 0, tr * tS / tShared.size()));
+					g.fillPolygon(band.computeArea(s1, (s2 - s1) * sS / sShared.size(), t1,
+							(t2 - t1) * tS / tShared.size()));
 				}
 			}
 			g.color(color.darker());
@@ -123,21 +130,80 @@ public class Band implements IBandRenderer {
 
 	@Override
 	public void renderPick(GLGraphics g, float w, float h, IBandHost host) {
-		// TODO Auto-generated method stub
-
+		switch (mode) {
+		case OVERVIEW:
+			overviewRoute.renderRoute(g, host);
+			break;
+		case GROUPS:
+			for (DataRoute r : lazyGroupRoutes())
+				r.renderRoute(g, host);
+			break;
+		case DETAIL:
+			for (DataRoute r : lazyDetailRoutes())
+				r.renderRoute(g, host);
+			break;
+		}
 	}
 
 	private Iterable<DataRoute> lazyGroupRoutes() {
 		if (groupRoutes != null)
 			return groupRoutes;
-		// FIXME
-		// groupRoutes = new ArrayList<>();
-		// for(TypedListGroup sGroup : sData.getGroups()) {
-		// TypedSet s = overviewRoute.sShared.intersect(sGroup.asSet());
-		// if (s.isEmpty())
-		// continue;
-		// for(Typed)
-		// }
+		groupRoutes = new ArrayList<>();
+		List<TypedSet> sSets = new ArrayList<>();
+		List<TypedSet> tSets = new ArrayList<>();
+
+		// convert all to the subset of the shared set
+		final List<TypedListGroup> sgroups = sData.getGroups();
+		for (TypedListGroup sGroup : sgroups)
+			sSets.add(overviewRoute.sShared.intersect(sGroup.asSet()));
+		final List<TypedListGroup> tgroups = tData.getGroups();
+		for (TypedListGroup tGroup : tgroups)
+			tSets.add(overviewRoute.tShared.intersect(tGroup.asSet()));
+
+		int sacc = 0;
+		float stotal = sData.size();
+		float ttotal = tData.size();
+
+		// starting points for right side groups
+		float[] tinneracc = new float[tgroups.size()];
+		{
+			float tacc = 0;
+			for (int j = 0; j < tgroups.size(); ++j) {
+				TypedListGroup tgroup = tgroups.get(j);
+				tacc += tgroup.size();
+				tinneracc[j] = tacc;
+			}
+		}
+		// for each left groups check all right groups
+		for(int i = 0; i < sgroups.size(); ++i) {
+			TypedListGroup sgroup = sgroups.get(i);
+			sacc += sgroup.size();
+			TypedSet sset = sSets.get(i);
+			if (sset.isEmpty())
+				continue;
+			float sinneracc = sacc;
+			for(int j = 0; j < tgroups.size(); ++j) {
+				TypedListGroup tgroup = tgroups.get(j);
+				TypedSet tset = tSets.get(j);
+				if (tset.isEmpty())
+					continue;
+
+				MultiTypedSet shared = TypedSets.intersect(sset, tset);
+				if (shared.isEmpty()) // nothing shared
+					continue;
+
+				TypedSet sShared = shared.slice(sData.getIdType());
+				TypedSet tShared = shared.slice(tData.getIdType());
+				float s1 = (sinneracc-sgroup.size()) / stotal;
+				float s2 = s1 + (sShared.size() / stotal);
+				float t1 = (tinneracc[j] - tgroup.size()) / ttotal;
+				float t2 = t1 + (sShared.size() / ttotal);
+
+				groupRoutes.add(new DataRoute(s1, s2, t1, t2, sShared, tShared));
+				sinneracc += sShared.size();
+				tinneracc[j] += tShared.size();
+			}
+		}
 		return groupRoutes;
 	}
 

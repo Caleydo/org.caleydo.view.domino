@@ -15,8 +15,8 @@ public class BandLine {
 	private final PolyLine bottom;
 	private final Vec2f[] connectionLines;
 
-	public BandLine(List<Vec2f> top, List<Vec2f> bottom) {
-		this(new PolyLine(top), new PolyLine(bottom));
+	public BandLine(List<Vec2f> top, List<Vec2f> bottom, int fixFirstLastN) {
+		this(new PolyLine(top, fixFirstLastN), new PolyLine(bottom, fixFirstLastN));
 	}
 
 	public BandLine(PolyLine top, PolyLine bottom) {
