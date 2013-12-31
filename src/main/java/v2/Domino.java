@@ -7,6 +7,7 @@ package v2;
 
 import gleem.linalg.Vec2f;
 
+import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
@@ -160,6 +161,19 @@ public class Domino extends GLElementContainer implements IDropGLTarget, IPickin
 			nodes.remove(block);
 			bands.relayout();
 		}
+		for (SelectionType type : selections.keySet()) {
+			Set<NodeGroup> c = selections.get(type);
+			boolean changed = false;
+			for (Iterator<NodeGroup> it = c.iterator(); it.hasNext();) {
+				NodeGroup g = it.next();
+				if (g.getNode() == node) {
+					it.remove();
+					changed = true;
+				}
+			}
+			if (changed)
+				toolBar.update(type);
+		}
 	}
 
 	/**
@@ -246,10 +260,12 @@ public class Domino extends GLElementContainer implements IDropGLTarget, IPickin
 
 	public void clear(SelectionType type, NodeGroup group) {
 		Set<NodeGroup> c = selections.get(type);
+		boolean changed = !c.isEmpty();
 		if (group != null)
-			c.remove(group);
+			changed = c.remove(group);
 		else
 			c.clear();
-		toolBar.update(type);
+		if (changed)
+			toolBar.update(type);
 	}
 }

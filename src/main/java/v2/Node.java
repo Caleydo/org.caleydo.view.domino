@@ -6,6 +6,7 @@
 package v2;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
@@ -150,6 +151,11 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 		integrate(m);
 	}
 
+	public void removeMe() {
+		Domino domino = findParent(Domino.class);
+		domino.removeNode(this);
+	}
+
 	@Override
 	public void onItemChanged(IDnDItem item) {
 
@@ -243,8 +249,8 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 		triggerResort(dim);
 	}
 
-	public void merge(NodeGroup... groups) {
-		if (groups.length < 2)
+	public void merge(Collection<NodeGroup> groups) {
+		if (groups.size() < 2)
 			return;
 		EDimension dim = getSingleGroupingDimension();
 		if (dim == null)
@@ -259,6 +265,7 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 			int index = d.indexOf(gd);
 			indices.add(index);
 			d.remove(index);
+			g.prepareRemoveal();
 		}
 		TypedSetGroup mg = new TypedSetGroup(TypedSet.union(r), StringUtils.join(
 				Collections2.transform(r, Labels.TO_LABEL), ", "), mixColors(r));
@@ -266,6 +273,20 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 		TypedGroupList l = new TypedGroupList(d);
 		setGroups(dim, l.asSet());
 		triggerResort(dim);
+	}
+
+
+	/**
+	 * @param selection
+	 * @return
+	 */
+	public boolean canMerge(Collection<NodeGroup> groups) {
+		if (groups.size() < 2)
+			return false;
+		EDimension dim = getSingleGroupingDimension();
+		if (dim == null)
+			return false;
+		return true;
 	}
 
 	/**
@@ -304,9 +325,18 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 			return; // no single grouping
 		List<TypedListGroup> d = new ArrayList<>(dim.select(dimData, recData).getGroups());
 		d.remove(group.getData(dim));
+		if (d.isEmpty()) {
+			removeMe();
+			return;
+		}
 		TypedGroupList l = new TypedGroupList(d);
 		setGroups(dim, l.asSet());
 		triggerResort(dim);
+	}
+
+	public boolean canRemoveGroup(NodeGroup nodeGroup) {
+		EDimension dim = getSingleGroupingDimension();
+		return (dim != null);
 	}
 
 	/**

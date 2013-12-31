@@ -68,18 +68,12 @@ public class NodeGroup extends GLElementContainer implements ILabeled, IDragGLSo
 			repaint();
 			break;
 		case CLICKED:
-			armed = true;
-			break;
-		case MOUSE_RELEASED:
-			if (armed) {
-				IMouseEvent event = (IMouseEvent) pick;
-				boolean ctrl = event.isCtrlDown();
-				if (domino.isSelected(SelectionType.SELECTION, this))
-					domino.clear(SelectionType.SELECTION, ctrl ? this : null);
-				else
-					domino.select(SelectionType.SELECTION, this, ctrl);
-				armed = false;
-			}
+			IMouseEvent event = (IMouseEvent) pick;
+			boolean ctrl = event.isCtrlDown();
+			if (domino.isSelected(SelectionType.SELECTION, this))
+				domino.clear(SelectionType.SELECTION, ctrl ? this : null);
+			else
+				domino.select(SelectionType.SELECTION, this, ctrl);
 			break;
 		default:
 			break;
@@ -185,6 +179,31 @@ public class NodeGroup extends GLElementContainer implements ILabeled, IDragGLSo
 	 */
 	public Node toNode() {
 		return new Node(data, getLabel(), new TypedGroupSet(dimData.asSet()), new TypedGroupSet(recData.asSet()));
+	}
+
+	/**
+	 * @return
+	 */
+	public boolean canBeRemoved() {
+		return getNode().canRemoveGroup(this);
+	}
+
+	/**
+	 *
+	 */
+	public void removeMe() {
+		prepareRemoveal();
+		getNode().removeGroup(this);
+	}
+
+	/**
+	 *
+	 */
+	public void prepareRemoveal() {
+		Domino d = findDomino();
+		d.clear(SelectionType.MOUSE_OVER, null);
+		d.clear(SelectionType.SELECTION, this);
+
 	}
 
 }

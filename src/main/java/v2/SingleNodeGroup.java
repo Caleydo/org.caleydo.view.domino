@@ -36,4 +36,8 @@ public class SingleNodeGroup extends NodeGroup {
 		// nothing
 	}
 
+	@Override
+	public boolean canBeRemoved() {
+		return false;
+	}
 }
