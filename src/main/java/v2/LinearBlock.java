@@ -292,6 +292,15 @@ public class LinearBlock extends AbstractCollection<Node> {
 		return TypedGroupList.createUnmappedGroup(TypedCollections.INVALID_IDTYPE, size);
 	}
 
+
+	/**
+	 * @param b
+	 * @return
+	 */
+	public TypedGroupList getData(boolean first) {
+		return (first ? nodes.get(0) : nodes.get(nodes.size() - 1)).getData(dim.opposite());
+	}
+
 	/**
 	 * @param node
 	 */
@@ -323,5 +332,6 @@ public class LinearBlock extends AbstractCollection<Node> {
 		apply();
 		return true;
 	}
+
 
 }

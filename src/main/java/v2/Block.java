@@ -12,12 +12,21 @@ import java.util.List;
 import java.util.Map;
 
 import org.caleydo.core.data.collection.EDimension;
+import org.caleydo.core.id.IDType;
 import org.caleydo.core.view.opengl.layout2.GLElement;
 import org.caleydo.core.view.opengl.layout2.GLElementContainer;
+import org.caleydo.core.view.opengl.layout2.geom.Rect;
 import org.caleydo.core.view.opengl.layout2.layout.AGLLayoutElement;
 import org.caleydo.core.view.opengl.layout2.layout.IGLLayout2;
 import org.caleydo.core.view.opengl.layout2.layout.IGLLayoutElement;
 import org.caleydo.view.domino.api.model.graph.EDirection;
+import org.caleydo.view.domino.api.model.typed.MultiTypedSet;
+import org.caleydo.view.domino.api.model.typed.TypedGroupList;
+import org.caleydo.view.domino.api.model.typed.TypedSets;
+
+import v2.band.Band;
+import v2.band.BandLine;
+import v2.band.BandLineFactory;
 
 import com.google.common.collect.Maps;
 
@@ -32,6 +41,7 @@ public class Block extends GLElementContainer implements IGLLayout2 {
 
 	public Block(Node node) {
 		setLayout(this);
+		setzDelta(0.2f);
 		this.add(node);
 		for (EDimension dim : EDimension.values()) {
 			if (!node.has(dim.opposite()))
@@ -135,6 +145,55 @@ public class Block extends GLElementContainer implements IGLLayout2 {
 	public void sortByMe(Node node, EDimension dim) {
 		LinearBlock block = getBlock(node, dim.opposite());
 		block.sortBy(node);
+	}
+
+	/**
+	 * @param subList
+	 * @param routes
+	 */
+	public void createBandsTo(List<Block> blocks, List<Band> routes) {
+		for (LinearBlock lblock : linearBlocks) {
+			for (Block block : blocks) {
+				for (LinearBlock rblock : block.linearBlocks) {
+					if (isCompatible(lblock.getIdType(), rblock.getIdType()))
+						createRoute(this, lblock, block, rblock, routes);
+				}
+			}
+		}
+
+	}
+
+
+	private void createRoute(Block a, LinearBlock la, Block b, LinearBlock lb, List<Band> routes) {
+		TypedGroupList sData = la.getData(true);
+		TypedGroupList tData = lb.getData(false);
+		MultiTypedSet shared = TypedSets.intersect(sData.asSet(), tData.asSet());
+		if (shared.isEmpty())
+			return;
+
+		Rect ra = a.getAbsoluteBounds(la);
+		Rect rb = b.getAbsoluteBounds(lb);
+
+		BandLine line = BandLineFactory.create(ra, la.getDim(), rb, lb.getDim());
+		if (line == null)
+			return;
+
+		Band band = new Band(line, shared, sData, tData);
+		routes.add(band);
+	}
+
+	/**
+	 * @param la
+	 * @return
+	 */
+	private Rect getAbsoluteBounds(LinearBlock b) {
+		Rect r = new Rect(b.getBounds());
+		r.xy(toAbsolute(r.xy()));
+		return r;
+	}
+
+	private static boolean isCompatible(IDType a, IDType b) {
+		return a.getIDCategory().isOfCategory(b);
 	}
 
 }
