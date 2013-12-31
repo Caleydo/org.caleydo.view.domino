@@ -26,11 +26,13 @@ import org.caleydo.core.view.opengl.picking.IPickingListener;
 import org.caleydo.core.view.opengl.picking.Pick;
 import org.caleydo.core.view.opengl.picking.PickingListenerComposite;
 import org.caleydo.view.domino.api.model.typed.TypedSet;
-import org.caleydo.view.domino.spi.model.IBandRenderer;
 import org.caleydo.view.domino.spi.model.IBandRenderer.IBandHost;
 import org.caleydo.view.domino.spi.model.IBandRenderer.SourceTarget;
 
 import v2.band.Band;
+
+import com.jogamp.common.util.IntIntHashMap;
+import com.jogamp.common.util.IntIntHashMap.Entry;
 
 /**
  * a dedicated layer for the bands for better caching behavior
@@ -49,6 +51,7 @@ public class Bands extends GLElement implements
 	private final List<Band> routes = new ArrayList<>();
 
 	private PickingPool pickingPool;
+	private final IntIntHashMap pickingOffsets = new IntIntHashMap();
 
 	public Bands() {
 	}
@@ -85,7 +88,7 @@ public class Bands extends GLElement implements
 
 	@Override
 	public String getLabel(Pick pick) {
-		IBandRenderer route = getRoute(pick.getObjectID());
+		Band route = getRoute(pick.getObjectID());
 		if (route == null)
 			return "";
 		return route.getLabel();
@@ -93,15 +96,16 @@ public class Bands extends GLElement implements
 
 	@Override
 	public void pick(Pick pick) {
+		int[] split = split(pick.getObjectID());
 		switch (pick.getPickingMode()) {
 		case CLICKED:
-			select(getRoute(pick.getObjectID()), SelectionType.SELECTION, !((IMouseEvent) pick).isCtrlDown());
+			select(getRoute(split[0]), split[1], SelectionType.SELECTION, !((IMouseEvent) pick).isCtrlDown());
 			break;
 		case MOUSE_OVER:
-			select(getRoute(pick.getObjectID()), SelectionType.MOUSE_OVER, true);
+			select(getRoute(split[0]), split[1], SelectionType.MOUSE_OVER, true);
 			break;
 		case MOUSE_OUT:
-			clear(getRoute(pick.getObjectID()), SelectionType.MOUSE_OVER);
+			clear(getRoute(split[0]), split[1], SelectionType.MOUSE_OVER);
 			break;
 		default:
 			break;
@@ -109,14 +113,29 @@ public class Bands extends GLElement implements
 	}
 
 	/**
+	 * @param objectID
+	 * @return
+	 */
+	private int[] split(int objectID) {
+		Entry last = null;
+		for (Entry entry : pickingOffsets) {
+			if (entry.value > objectID)
+				break;
+			last = entry;
+		}
+		assert last != null;
+		return new int[] { last.key, objectID - last.value };
+	}
+
+	/**
 	 * @param route
 	 * @param type
 	 */
-	private void clear(IBandRenderer route, SelectionType type) {
+	private void clear(Band route, int subIndex, SelectionType type) {
 		if (route == null)
 			return;
 		for (SourceTarget st : SourceTarget.values()) {
-			SelectionManager manager = selections.getSelectionManager(route.getIds(st).getIdType());
+			SelectionManager manager = selections.getSelectionManager(route.getIds(st, subIndex).getIdType());
 			if (manager == null)
 				return;
 			manager.clearSelection(type);
@@ -126,18 +145,19 @@ public class Bands extends GLElement implements
 
 	/**
 	 * @param route
+	 * @param subIndex
 	 * @param selection
 	 * @param clear
 	 *            whether to clear before
 	 */
-	private void select(IBandRenderer route, SelectionType type, boolean clear) {
+	private void select(Band route, int subIndex, SelectionType type, boolean clear) {
 		if (route == null)
 			return;
 		for (SourceTarget st : SourceTarget.values()) {
-			SelectionManager manager = getOrCreate(route.getIdType(st));
+			SelectionManager manager = getOrCreate(route.getIdType(st, subIndex));
 			if (clear)
 				manager.clearSelection(type);
-			manager.addToType(type, route.getIds(st));
+			manager.addToType(type, route.getIds(st, subIndex));
 			selections.fireSelectionDelta(manager);
 		}
 	}
@@ -146,7 +166,7 @@ public class Bands extends GLElement implements
 	 * @param objectID
 	 * @return
 	 */
-	private IBandRenderer getRoute(int index) {
+	private Band getRoute(int index) {
 		if (index < 0 || index >= routes.size())
 			return null;
 		return routes.get(index);
@@ -155,7 +175,7 @@ public class Bands extends GLElement implements
 	@Override
 	protected void renderImpl(GLGraphics g, float w, float h) {
 		super.renderImpl(g, w, h);
-		for (IBandRenderer edge : routes) {
+		for (Band edge : routes) {
 			edge.render(g, w, h, this);
 		}
 	}
@@ -168,10 +188,11 @@ public class Bands extends GLElement implements
 		if (getVisibility() == EVisibility.PICKABLE) {
 			g.incZ(0.05f);
 			g.color(Color.RED);
+			int j = 0;
+			pickingOffsets.clear();
 			for (int i = 0; i < routes.size(); i++) {
-				g.pushName(pickingPool.get(i));
-				routes.get(i).renderPick(g, w, h, this);
-				g.popName();
+				pickingOffsets.put(i, j);
+				j = routes.get(i).renderPick(g, w, h, this, pickingPool, j);
 			}
 			g.incZ(-0.05f);
 			g.color(Color.BLACK);

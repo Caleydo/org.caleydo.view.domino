@@ -13,18 +13,20 @@ import org.caleydo.core.data.selection.SelectionType;
 import org.caleydo.core.id.IDType;
 import org.caleydo.core.util.color.Color;
 import org.caleydo.core.view.opengl.layout2.GLGraphics;
+import org.caleydo.core.view.opengl.layout2.util.PickingPool;
 import org.caleydo.view.domino.api.model.typed.MultiTypedSet;
 import org.caleydo.view.domino.api.model.typed.TypedGroupList;
 import org.caleydo.view.domino.api.model.typed.TypedListGroup;
 import org.caleydo.view.domino.api.model.typed.TypedSet;
 import org.caleydo.view.domino.api.model.typed.TypedSets;
-import org.caleydo.view.domino.spi.model.IBandRenderer;
+import org.caleydo.view.domino.spi.model.IBandRenderer.IBandHost;
+import org.caleydo.view.domino.spi.model.IBandRenderer.SourceTarget;
 
 /**
  * @author Samuel Gratzl
  *
  */
-public class Band implements IBandRenderer {
+public class Band {
 	public static enum EBandMode {
 		OVERVIEW, GROUPS, DETAIL
 	}
@@ -57,14 +59,25 @@ public class Band implements IBandRenderer {
 		}
 	}
 
-	@Override
-	public TypedSet getIds(SourceTarget type) {
-		return type.select(overviewRoute.sShared, overviewRoute.tShared);
+	public TypedSet getIds(SourceTarget type, int subIndex) {
+		DataRoute r = getRoute(subIndex);
+		return type.select(r.sShared, r.tShared);
 	}
 
-	@Override
-	public IDType getIdType(SourceTarget type) {
-		return getIds(type).getIdType();
+	private DataRoute getRoute(int subIndex) {
+		switch (mode) {
+		case OVERVIEW:
+			return overviewRoute;
+		case GROUPS:
+			return lazyGroupRoutes().get(subIndex);
+		case DETAIL:
+			return lazyDetailRoutes().get(subIndex);
+		}
+		throw new IllegalStateException();
+	}
+
+	public IDType getIdType(SourceTarget type, int subIndex) {
+		return getIds(type, subIndex).getIdType();
 	}
 
 	private final class DataRoute {
@@ -106,7 +119,6 @@ public class Band implements IBandRenderer {
 		}
 	}
 
-	@Override
 	public void render(GLGraphics g, float w, float h, IBandHost host) {
 		switch (mode) {
 		case OVERVIEW:
@@ -123,29 +135,36 @@ public class Band implements IBandRenderer {
 		}
 	}
 
-	@Override
 	public String getLabel() {
 		return "";
 	}
 
-	@Override
-	public void renderPick(GLGraphics g, float w, float h, IBandHost host) {
+	public int renderPick(GLGraphics g, float w, float h, IBandHost host, PickingPool pickingPool,int start) {
 		switch (mode) {
 		case OVERVIEW:
+			g.pushName(pickingPool.get(start++));
 			overviewRoute.renderRoute(g, host);
+			g.popName();
 			break;
 		case GROUPS:
-			for (DataRoute r : lazyGroupRoutes())
+			for (DataRoute r : lazyGroupRoutes()) {
+				g.pushName(pickingPool.get(start++));
 				r.renderRoute(g, host);
+				g.popName();
+			}
 			break;
 		case DETAIL:
-			for (DataRoute r : lazyDetailRoutes())
+			for (DataRoute r : lazyDetailRoutes()) {
+				g.pushName(pickingPool.get(start++));
 				r.renderRoute(g, host);
+				g.popName();
+			}
 			break;
 		}
+		return start;
 	}
 
-	private Iterable<DataRoute> lazyGroupRoutes() {
+	private List<DataRoute> lazyGroupRoutes() {
 		if (groupRoutes != null)
 			return groupRoutes;
 		groupRoutes = new ArrayList<>();
@@ -175,14 +194,14 @@ public class Band implements IBandRenderer {
 			}
 		}
 		// for each left groups check all right groups
-		for(int i = 0; i < sgroups.size(); ++i) {
+		for (int i = 0; i < sgroups.size(); ++i) {
 			TypedListGroup sgroup = sgroups.get(i);
 			sacc += sgroup.size();
 			TypedSet sset = sSets.get(i);
 			if (sset.isEmpty())
 				continue;
 			float sinneracc = sacc;
-			for(int j = 0; j < tgroups.size(); ++j) {
+			for (int j = 0; j < tgroups.size(); ++j) {
 				TypedListGroup tgroup = tgroups.get(j);
 				TypedSet tset = tSets.get(j);
 				if (tset.isEmpty())
@@ -194,7 +213,7 @@ public class Band implements IBandRenderer {
 
 				TypedSet sShared = shared.slice(sData.getIdType());
 				TypedSet tShared = shared.slice(tData.getIdType());
-				float s1 = (sinneracc-sgroup.size()) / stotal;
+				float s1 = (sinneracc - sgroup.size()) / stotal;
 				float s2 = s1 + (sShared.size() / stotal);
 				float t1 = (tinneracc[j] - tgroup.size()) / ttotal;
 				float t2 = t1 + (sShared.size() / ttotal);
@@ -210,7 +229,7 @@ public class Band implements IBandRenderer {
 	/**
 	 * @return
 	 */
-	private Iterable<DataRoute> lazyDetailRoutes() {
+	private List<DataRoute> lazyDetailRoutes() {
 		if (detailRoutes != null)
 			return detailRoutes;
 		// FIXME
