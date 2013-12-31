@@ -26,7 +26,7 @@ import org.caleydo.view.domino.api.model.typed.TypedSets;
 
 import v2.band.Band;
 import v2.band.BandLine;
-import v2.band.BandLineFactory;
+import v2.band.BandLines;
 
 import com.google.common.collect.Maps;
 
@@ -173,7 +173,7 @@ public class Block extends GLElementContainer implements IGLLayout2 {
 		Rect ra = a.getAbsoluteBounds(la);
 		Rect rb = b.getAbsoluteBounds(lb);
 
-		BandLine line = BandLineFactory.create(ra, la.getDim(), rb, lb.getDim());
+		BandLine line = BandLines.create(ra, la.getDim(), rb, lb.getDim());
 		if (line == null)
 			return;
 
