@@ -5,9 +5,13 @@
  *******************************************************************************/
 package v2;
 
+import java.util.Set;
+
 import org.caleydo.core.data.collection.EDimension;
+import org.caleydo.core.data.selection.SelectionType;
 import org.caleydo.core.util.base.ILabeled;
 import org.caleydo.core.util.color.Color;
+import org.caleydo.core.view.opengl.canvas.IGLMouseListener.IMouseEvent;
 import org.caleydo.core.view.opengl.layout.Column.VAlign;
 import org.caleydo.core.view.opengl.layout2.GLElement;
 import org.caleydo.core.view.opengl.layout2.GLElementContainer;
@@ -37,6 +41,7 @@ public class NodeGroup extends GLElementContainer implements ILabeled, IDragGLSo
 	private TypedListGroup dimData;
 	private TypedListGroup recData;
 	private boolean hovered;
+	private boolean armed;
 
 
 	public NodeGroup(Node parent, IDataValues data) {
@@ -48,16 +53,33 @@ public class NodeGroup extends GLElementContainer implements ILabeled, IDragGLSo
 
 	@Override
 	public void pick(Pick pick) {
+		final Domino domino = findDomino();
 		switch (pick.getPickingMode()) {
 		case MOUSE_OVER:
 			context.getMouseLayer().addDragSource(this);
 			hovered = true;
+			domino.select(SelectionType.MOUSE_OVER, this, false);
 			repaint();
 			break;
 		case MOUSE_OUT:
 			context.getMouseLayer().removeDragSource(this);
 			hovered = false;
+			domino.clear(SelectionType.MOUSE_OVER, null);
 			repaint();
+			break;
+		case CLICKED:
+			armed = true;
+			break;
+		case MOUSE_RELEASED:
+			if (armed) {
+				IMouseEvent event = (IMouseEvent) pick;
+				boolean ctrl = event.isCtrlDown();
+				if (domino.isSelected(SelectionType.SELECTION, this))
+					domino.clear(SelectionType.SELECTION, ctrl ? this : null);
+				else
+					domino.select(SelectionType.SELECTION, this, ctrl);
+				armed = false;
+			}
 			break;
 		default:
 			break;
@@ -104,8 +126,17 @@ public class NodeGroup extends GLElementContainer implements ILabeled, IDragGLSo
 	@Override
 	protected void renderImpl(GLGraphics g, float w, float h) {
 		Color c = recData.getColor();
-		g.color(hovered ? c.darker() : c).fillRect(0, 0, w, h);
-		g.color(Color.BLACK).drawRect(0, 0, w, h);
+		g.color(c).fillRect(0, 0, w, h);
+		final Domino domino = findDomino();
+		g.lineWidth(2);
+		if (domino.isSelected(SelectionType.SELECTION, this))
+			g.color(SelectionType.SELECTION.getColor());
+		else if (domino.isSelected(SelectionType.MOUSE_OVER, this))
+			g.color(SelectionType.MOUSE_OVER.getColor());
+		else
+			g.color(Color.BLACK).lineWidth(1);
+		g.drawRect(0, 0, w, h);
+		g.lineWidth(1);
 		g.drawText(getLabel(), -100, h * 0.5f - 5, w + 200, 10, VAlign.CENTER);
 		super.renderImpl(g, w, h);
 	}
@@ -120,7 +151,13 @@ public class NodeGroup extends GLElementContainer implements ILabeled, IDragGLSo
 
 	@Override
 	public IDragInfo startSWTDrag(IDragEvent event) {
+		Set<NodeGroup> selected = findDomino().getSelection(SelectionType.SELECTION);
+		// if (selected.contains(this))
 		return new NodeGroupDragInfo(event.getMousePos(), this);
+	}
+
+	private Domino findDomino() {
+		return findParent(Domino.class);
 	}
 
 	@Override
@@ -132,7 +169,7 @@ public class NodeGroup extends GLElementContainer implements ILabeled, IDragGLSo
 
 	@Override
 	public GLElement createUI(IDragInfo info) {
-		findParent(Domino.class).addPlaceholdersFor(parent);
+		findDomino().addPlaceholdersFor(parent);
 		return null;
 	}
 

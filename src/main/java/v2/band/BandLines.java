@@ -58,7 +58,7 @@ public class BandLines {
 	}
 
 	private static Pair<List<Vec2f>, List<Vec2f>> createParallel(Rect s, Rect t) {
-		if (s.x2() < t.x() - 100) {
+		if (s.x2() < t.x() - 50) {
 			return createHorizontal(s, t);
 		} else {
 			final float delta = Math.max(s.height(), t.height()) * 1.5f;
@@ -71,15 +71,14 @@ public class BandLines {
 
 	private static Pair<List<Vec2f>, List<Vec2f>> createRotated(Rect s, Rect t) {
 		// FIXME dimension -> record
-
-		return null;
+		return b(shifted(s.x2y(), t.x2y()), shifted(s.x2y2(), t.xy()));
 	}
 
 	private static Pair<List<Vec2f>, List<Vec2f>> createHorizontal(Rect s, Rect t) {
 		if (s.y() == t.y()) { // just two simple points
 			return b(c(s.x2y(), t.xy()), c(s.x2y2(), t.xy2()));
 		}
-		return b(spline(shifted(s.x2y(), t.xy())), spline(shifted(s.x2y2(), t.xy2())));
+		return b(shifted(s.x2y(), t.xy()), shifted(s.x2y2(), t.xy2()));
 	}
 
 	private static Pair<List<Vec2f>, List<Vec2f>> createQuestion(Rect s, Rect t) {
