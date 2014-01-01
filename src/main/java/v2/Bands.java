@@ -163,6 +163,7 @@ public class Bands extends GLElement implements
 			manager.addToType(type, route.getIds(st, subIndex));
 			selections.fireSelectionDelta(manager);
 		}
+		repaint();
 	}
 
 	/**
@@ -180,9 +181,12 @@ public class Bands extends GLElement implements
 		super.renderImpl(g, w, h);
 		Vec2f loc = getAbsoluteLocation();
 		g.save().move(-loc.x(), -loc.y());
+		float z = g.z();
 		for (Band edge : routes) {
+			g.incZ(0.002f);
 			edge.render(g, w, h, this);
 		}
+		g.incZ(z - g.z());
 		g.restore();
 	}
 

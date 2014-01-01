@@ -106,8 +106,13 @@ public class Band {
 				if (sS > 0 && tS > 0) {
 					final Color c = type.getColor();
 					g.color(c.r, c.g, c.b, 0.5f);
-					g.fillPolygon(band.computeArea(s1, (s2 - s1) * sS / sShared.size(), t1,
-							(t2 - t1) * tS / tShared.size()));
+					if (sS == sShared.size() && tS == tShared.size())
+						g.fillPolygon(base);
+					else {
+						final float s2_s = s1 + (s2 - s1) * sS / sShared.size();
+						final float t2_s = t1 + (t2 - t1) * tS / tShared.size();
+						g.fillPolygon(band.computeArea(s1, s2_s, t1, t2_s));
+					}
 				}
 			}
 			g.color(color.darker());
@@ -125,12 +130,20 @@ public class Band {
 			overviewRoute.renderRoute(g, host);
 			break;
 		case GROUPS:
-			for (DataRoute r : lazyGroupRoutes())
+			float z = g.z();
+			for (DataRoute r : lazyGroupRoutes()) {
+				g.incZ(0.0001f);
 				r.renderRoute(g, host);
+			}
+			g.incZ(z - g.z());
 			break;
 		case DETAIL:
-			for (DataRoute r : lazyDetailRoutes())
+			z = g.z();
+			for (DataRoute r : lazyDetailRoutes()) {
+				g.incZ(0.0001f);
 				r.renderRoute(g, host);
+			}
+			g.incZ(z - g.z());
 			break;
 		}
 	}
