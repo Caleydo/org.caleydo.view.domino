@@ -107,8 +107,10 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 		if (!(item.getInfo() instanceof ADragInfo))
 			return false;
 		ADragInfo d = (ADragInfo) item.getInfo();
+		if (d instanceof NodeGroupDragInfo)
+			return false;
 		final Node b = d.getBaseNode();
-		if (b == this)
+		if (b == this || b == null)
 			return false;
 		if (has(EDimension.DIMENSION) && has(EDimension.RECORD))
 			return false;
@@ -259,7 +261,7 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 		List<TypedSetGroup> r = new ArrayList<>();
 		List<Integer> indices = new ArrayList<>();
 
-		for (NodeGroup g : groups) {
+		for (NodeGroup g : new ArrayList<>(groups)) {
 			final TypedListGroup gd = g.getData(dim);
 			r.add(gd.asSet());
 			int index = d.indexOf(gd);

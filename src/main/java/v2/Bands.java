@@ -5,6 +5,8 @@
  *******************************************************************************/
 package v2;
 
+import gleem.linalg.Vec2f;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -71,6 +73,7 @@ public class Bands extends GLElement implements
 		super.layoutImpl(deltaTimeMs);
 		update();
 	}
+
 
 	@Override
 	protected void init(IGLElementContext context) {
@@ -175,9 +178,12 @@ public class Bands extends GLElement implements
 	@Override
 	protected void renderImpl(GLGraphics g, float w, float h) {
 		super.renderImpl(g, w, h);
+		Vec2f loc = getAbsoluteLocation();
+		g.save().move(-loc.x(), -loc.y());
 		for (Band edge : routes) {
 			edge.render(g, w, h, this);
 		}
+		g.restore();
 	}
 
 	@Override
@@ -188,12 +194,15 @@ public class Bands extends GLElement implements
 		if (getVisibility() == EVisibility.PICKABLE) {
 			g.incZ(0.05f);
 			g.color(Color.RED);
+			Vec2f loc = getAbsoluteLocation();
+			g.save().move(-loc.x(), -loc.y());
 			int j = 0;
 			pickingOffsets.clear();
 			for (int i = 0; i < routes.size(); i++) {
 				pickingOffsets.put(i, j);
 				j = routes.get(i).renderPick(g, w, h, this, pickingPool, j);
 			}
+			g.restore();
 			g.incZ(-0.05f);
 			g.color(Color.BLACK);
 		}

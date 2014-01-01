@@ -40,8 +40,6 @@ public class NodeGroup extends GLElementContainer implements ILabeled, IDragGLSo
 	private final NodeGroup[] neighbors = new NodeGroup[4];
 	private TypedListGroup dimData;
 	private TypedListGroup recData;
-	private boolean hovered;
-	private boolean armed;
 
 
 	public NodeGroup(Node parent, IDataValues data) {
@@ -57,13 +55,11 @@ public class NodeGroup extends GLElementContainer implements ILabeled, IDragGLSo
 		switch (pick.getPickingMode()) {
 		case MOUSE_OVER:
 			context.getMouseLayer().addDragSource(this);
-			hovered = true;
 			domino.select(SelectionType.MOUSE_OVER, this, false);
 			repaint();
 			break;
 		case MOUSE_OUT:
 			context.getMouseLayer().removeDragSource(this);
-			hovered = false;
 			domino.clear(SelectionType.MOUSE_OVER, null);
 			repaint();
 			break;
@@ -145,9 +141,22 @@ public class NodeGroup extends GLElementContainer implements ILabeled, IDragGLSo
 
 	@Override
 	public IDragInfo startSWTDrag(IDragEvent event) {
-		Set<NodeGroup> selected = findDomino().getSelection(SelectionType.SELECTION);
-		// if (selected.contains(this))
-		return new NodeGroupDragInfo(event.getMousePos(), this);
+		final Domino domino = findDomino();
+		Set<NodeGroup> selected = domino.getSelection(SelectionType.SELECTION);
+		Set<NodeGroup> s = compress(selected);
+		if (s.size() <= 1)
+			return new NodeGroupDragInfo(event.getMousePos(), this);
+		return new MultiNodeGroupDragInfo(event.getMousePos(), this, s);
+	}
+
+	/**
+	 * @param selected
+	 * @return
+	 */
+	private Set<NodeGroup> compress(Set<NodeGroup> selected) {
+		// FIXME Set<NodeGroup>
+		return selected;
+		// return Collections.emptySet();
 	}
 
 	private Domino findDomino() {
@@ -201,6 +210,8 @@ public class NodeGroup extends GLElementContainer implements ILabeled, IDragGLSo
 	 */
 	public void prepareRemoveal() {
 		Domino d = findDomino();
+		if (d == null)
+			return;
 		d.clear(SelectionType.MOUSE_OVER, null);
 		d.clear(SelectionType.SELECTION, this);
 

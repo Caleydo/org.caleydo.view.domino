@@ -7,6 +7,7 @@ package v2;
 
 import gleem.linalg.Vec2f;
 
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
@@ -136,6 +137,9 @@ public class Domino extends GLElementContainer implements IDropGLTarget, IPickin
 		} else if (info instanceof NodeDragInfo) {
 			NodeDragInfo g = (NodeDragInfo) info;
 			dropNode(item, item.getType() == EDnDType.COPY ? new Node(g.getNode()) : g.getNode());
+		} else if (info instanceof NodeGroupDragInfo) {
+			MultiNodeGroupDragInfo g = (MultiNodeGroupDragInfo) info;
+			dropNode(item, g.getPrimary().toNode(), g.getGroups());
 		} else {
 			Node node = Nodes.extract(item);
 			dropNode(item, node);
@@ -143,11 +147,18 @@ public class Domino extends GLElementContainer implements IDropGLTarget, IPickin
 	}
 
 	private void dropNode(IDnDItem item, Node node) {
+		dropNode(item, node, Collections.<NodeGroup> emptySet());
+	}
+
+	private void dropNode(IDnDItem item, Node node, Set<NodeGroup> others) {
 		removeNode(node);
 		Block b = new Block(node);
 		Vec2f pos = toRelative(item.getMousePos());
 		b.setLocation(pos.x(), pos.y());
 		nodes.add(b);
+		for (NodeGroup g : others) {
+
+		}
 		removePlaceholder();
 		bands.relayout();
 	}
@@ -190,7 +201,7 @@ public class Domino extends GLElementContainer implements IDropGLTarget, IPickin
 		if (placeholders != null)
 			return;
 
-		placeholders = new GLElementContainer();
+		placeholders = new GLElementContainer(new ToRelativeLayout());
 		content.add(placeholders);
 
 		final List<GLElement> l = placeholders.asList();
@@ -267,5 +278,12 @@ public class Domino extends GLElementContainer implements IDropGLTarget, IPickin
 			c.clear();
 		if (changed)
 			toolBar.update(type);
+	}
+
+	/**
+	 *
+	 */
+	public void updateBands() {
+		bands.relayout();
 	}
 }

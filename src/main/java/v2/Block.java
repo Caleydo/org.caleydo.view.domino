@@ -13,12 +13,14 @@ import java.util.Map;
 
 import org.caleydo.core.data.collection.EDimension;
 import org.caleydo.core.id.IDType;
+import org.caleydo.core.util.color.Color;
 import org.caleydo.core.view.opengl.layout2.GLElement;
 import org.caleydo.core.view.opengl.layout2.GLElementContainer;
 import org.caleydo.core.view.opengl.layout2.geom.Rect;
 import org.caleydo.core.view.opengl.layout2.layout.AGLLayoutElement;
 import org.caleydo.core.view.opengl.layout2.layout.IGLLayout2;
 import org.caleydo.core.view.opengl.layout2.layout.IGLLayoutElement;
+import org.caleydo.core.view.opengl.layout2.renderer.GLRenderers;
 import org.caleydo.view.domino.api.model.graph.EDirection;
 import org.caleydo.view.domino.api.model.typed.MultiTypedSet;
 import org.caleydo.view.domino.api.model.typed.TypedGroupList;
@@ -48,6 +50,7 @@ public class Block extends GLElementContainer implements IGLLayout2 {
 			linearBlocks.add(new LinearBlock(dim, node));
 		}
 		updateSize();
+		setRenderer(GLRenderers.drawRect(Color.BLUE));
 	}
 
 	public Collection<Placeholder> addPlaceholdersFor(Node node) {
@@ -135,6 +138,7 @@ public class Block extends GLElementContainer implements IGLLayout2 {
 		LinearBlock block = getBlock(node, dim.opposite());
 		block.update();
 		block.apply();
+		findParent(Domino.class).updateBands();
 	}
 
 	/**
