@@ -25,6 +25,7 @@ import org.caleydo.core.view.opengl.layout2.geom.Rect;
 import org.caleydo.core.view.opengl.layout2.layout.AGLLayoutElement;
 import org.caleydo.core.view.opengl.layout2.layout.IGLLayout2;
 import org.caleydo.core.view.opengl.layout2.layout.IGLLayoutElement;
+import org.caleydo.core.view.opengl.layout2.manage.GLLocation.ILocator;
 import org.caleydo.core.view.opengl.layout2.renderer.GLRenderers;
 import org.caleydo.view.domino.api.model.graph.EDirection;
 import org.caleydo.view.domino.api.model.typed.MultiTypedSet;
@@ -264,6 +265,9 @@ public class Block extends GLElementContainer implements IGLLayout2 {
 		if (shared.isEmpty())
 			return;
 
+		ILocator sLocator = la.getLocator(true);
+		ILocator tLocator = lb.getLocator(false);
+
 		Rect ra = a.getAbsoluteBounds(la);
 		Rect rb = b.getAbsoluteBounds(lb);
 
@@ -271,7 +275,10 @@ public class Block extends GLElementContainer implements IGLLayout2 {
 		if (line == null)
 			return;
 
-		Band band = new Band(line, shared, sData, tData);
+		String label = la.getNode(true).getLabel() + " & " + lb.getNode(false).getLabel();
+
+		Band band = new Band(label, line, shared, sData, tData, sLocator, tLocator, la.getDim().opposite(), lb.getDim()
+				.opposite());
 		routes.add(band);
 	}
 

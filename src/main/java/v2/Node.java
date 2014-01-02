@@ -16,6 +16,7 @@ import org.caleydo.core.id.IDType;
 import org.caleydo.core.id.IIDTypeMapper;
 import org.caleydo.core.util.base.ILabeled;
 import org.caleydo.core.util.base.Labels;
+import org.caleydo.core.util.collection.Pair;
 import org.caleydo.core.util.color.Color;
 import org.caleydo.core.view.opengl.canvas.IGLMouseListener.IMouseEvent;
 import org.caleydo.core.view.opengl.layout2.GLElementContainer;
@@ -25,6 +26,8 @@ import org.caleydo.core.view.opengl.layout2.dnd.IDragInfo;
 import org.caleydo.core.view.opengl.layout2.dnd.IDropGLTarget;
 import org.caleydo.core.view.opengl.layout2.layout.IGLLayout2;
 import org.caleydo.core.view.opengl.layout2.layout.IGLLayoutElement;
+import org.caleydo.core.view.opengl.layout2.manage.GLLocation;
+import org.caleydo.core.view.opengl.layout2.manage.GLLocation.ILocator;
 import org.caleydo.core.view.opengl.picking.IPickingListener;
 import org.caleydo.core.view.opengl.picking.Pick;
 import org.caleydo.view.domino.api.model.graph.EDirection;
@@ -48,6 +51,8 @@ import com.google.common.collect.Iterables;
  *
  */
 public class Node extends GLElementContainer implements IGLLayout2, ILabeled, IDropGLTarget, IPickingListener {
+	static final float BORDER = 2;
+
 	private Node[] neighbors = new Node[4];
 
 	private final String label;
@@ -236,7 +241,13 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 		}
 		this.asList().subList(n, size()).clear(); // clear rest
 
-		setSize(Math.max(20, Math.min(dimData.size(), 200)), Math.max(20, Math.min(recData.size(), 200)));
+		updateSize(dimData, recData);
+	}
+
+	private void updateSize(TypedGroupList dimData, TypedGroupList recData) {
+		final float w = Math.max(10, dimData.size()) + BORDER * 2;
+		final float h = Math.max(10, recData.size()) + BORDER * 2;
+		setSize(w, h);
 	}
 
 	public void integrate(TypedGroupList group) {
@@ -479,17 +490,23 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 	public boolean doLayout(List<? extends IGLLayoutElement> children, float w, float h, IGLLayoutElement parent,
 			int deltaTimeMs) {
 		int i = 0;
-		float wi = w / dimData.size();
-		float hi = h / recData.size();
+		final List<TypedListGroup> dimG = dimData.getGroups();
+		final List<TypedListGroup> recG = recData.getGroups();
+		float wi = (w - BORDER * 2 * dimG.size()) / dimData.size();
+		float hi = (h - BORDER * 2 * recG.size()) / recData.size();
 		float x = 0;
-		for (TypedListGroup dim : dimData.getGroups()) {
+		float xi = 0;
+		for (TypedListGroup dim : dimG) {
 			float y = 0;
-			for (TypedListGroup rec : recData.getGroups()) {
+			float yi = 0;
+			for (TypedListGroup rec : recG) {
 				IGLLayoutElement child = children.get(i++);
-				child.setBounds(x * wi, y * hi, wi * dim.size(), hi * rec.size());
+				child.setBounds(xi + x * wi, yi + y * hi, wi * dim.size() + BORDER * 2, hi * rec.size() + BORDER * 2);
 				y += rec.size();
+				yi += BORDER * 2;
 			}
 			x += dim.size();
+			xi += BORDER * 2;
 		}
 		return false;
 	}
@@ -588,6 +605,40 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 		for (NodeGroup g : groups()) {
 			g.setContentPickable(pickable);
 		}
+	}
+
+	static GLLocation shiftLocation(EDimension dim, GLLocation l, int group) {
+		return new GLLocation(l.getOffset() + BORDER * (2 * group + 1), l.getSize());
+	}
+
+	public ILocator getLocator(final EDimension dim) {
+		TypedGroupList data = getData(dim);
+		List<NodeGroup> groups = getGroupNeighbors(EDirection.getPrimary(dim.opposite()));
+		int offset = 0;
+		List<TypedListGroup> gropus2 = data.getGroups();
+		final List<Pair<Integer, ILocator>> locators = new ArrayList<>(gropus2.size());
+
+		for (int i = 0; i < gropus2.size(); ++i) {
+			int size = gropus2.get(i).size();
+			offset += size;
+			locators.add(Pair.make(offset, (ILocator) groups.get(i).getDesc(dim)));
+		}
+		return new GLLocation.ALocator() {
+			@Override
+			public GLLocation apply(int dataIndex) {
+				int offset = 0;
+				int locIndex = 0;
+				for (Pair<Integer, ILocator> loc : locators) {
+					if (loc.getFirst() > dataIndex) {
+						return shiftLocation(dim, loc.getSecond().apply(dataIndex - offset), locIndex);
+					}
+					offset = loc.getFirst();
+					locIndex++;
+				}
+				return GLLocation.UNKNOWN;
+			}
+		};
+
 	}
 
 }

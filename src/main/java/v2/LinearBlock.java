@@ -21,6 +21,7 @@ import org.caleydo.core.id.IDType;
 import org.caleydo.core.view.opengl.layout2.GLElement;
 import org.caleydo.core.view.opengl.layout2.geom.Rect;
 import org.caleydo.core.view.opengl.layout2.layout.IGLLayoutElement;
+import org.caleydo.core.view.opengl.layout2.manage.GLLocation.ILocator;
 import org.caleydo.view.domino.api.model.graph.EDirection;
 import org.caleydo.view.domino.api.model.typed.IMultiTypedCollection;
 import org.caleydo.view.domino.api.model.typed.ITypedComparator;
@@ -319,7 +320,19 @@ public class LinearBlock extends AbstractCollection<Node> {
 	 * @return
 	 */
 	public TypedGroupList getData(boolean first) {
-		return (first ? nodes.get(0) : nodes.get(nodes.size() - 1)).getData(dim.opposite());
+		return getNode(first).getData(dim.opposite());
+	}
+
+	Node getNode(boolean first) {
+		return first ? nodes.get(0) : nodes.get(nodes.size() - 1);
+	}
+
+	/**
+	 * @param b
+	 * @return
+	 */
+	public ILocator getLocator(boolean first) {
+		return getNode(first).getLocator(dim.opposite());
 	}
 
 	/**

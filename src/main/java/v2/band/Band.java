@@ -9,10 +9,13 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import org.caleydo.core.data.collection.EDimension;
 import org.caleydo.core.data.selection.SelectionType;
 import org.caleydo.core.id.IDType;
+import org.caleydo.core.util.base.ILabeled;
 import org.caleydo.core.util.color.Color;
 import org.caleydo.core.view.opengl.layout2.GLGraphics;
+import org.caleydo.core.view.opengl.layout2.manage.GLLocation.ILocator;
 import org.caleydo.core.view.opengl.layout2.util.PickingPool;
 import org.caleydo.view.domino.api.model.typed.MultiTypedSet;
 import org.caleydo.view.domino.api.model.typed.TypedGroupList;
@@ -26,7 +29,7 @@ import org.caleydo.view.domino.spi.model.IBandRenderer.SourceTarget;
  * @author Samuel Gratzl
  *
  */
-public class Band {
+public class Band implements ILabeled {
 	public static enum EBandMode {
 		OVERVIEW, GROUPS, DETAIL
 	}
@@ -45,23 +48,43 @@ public class Band {
 	private List<DataRoute> groupRoutes;
 	private List<DataRoute> detailRoutes;
 
-	public Band(BandLine band, MultiTypedSet shared, TypedGroupList sData, TypedGroupList tData) {
+	private final ILocator sLocator, tLocator;
+
+	private final EDimension sDim;
+	private final EDimension tDim;
+
+	public Band(String label, BandLine band, MultiTypedSet shared, TypedGroupList sData, TypedGroupList tData,
+			ILocator sLocator, ILocator tLocator, EDimension sDim, EDimension tDim) {
 		this.band = band;
 		this.shared = shared;
 		this.sData = sData;
 		this.tData = tData;
+		this.sLocator = sLocator;
+		this.tLocator = tLocator;
+		this.sDim = sDim;
+		this.tDim = tDim;
+
 		{
 			TypedSet sShared = shared.slice(sData.getIdType());
 			TypedSet tShared = shared.slice(tData.getIdType());
 			float sr = ((float) sShared.size()) / sData.size();
 			float tr = ((float) tShared.size()) / tData.size();
-			this.overviewRoute = new DataRoute(0, sr, 0, tr, sShared, tShared);
+			this.overviewRoute = new DataRoute(label, 0, sr, 0, tr, sShared, tShared);
 		}
 	}
 
 	public TypedSet getIds(SourceTarget type, int subIndex) {
 		DataRoute r = getRoute(subIndex);
 		return type.select(r.sShared, r.tShared);
+	}
+
+	public EDimension getDimension(SourceTarget type) {
+		return type.select(sDim, tDim);
+	}
+
+	public String getLabel(int subIndex) {
+		DataRoute r = getRoute(subIndex);
+		return r.getLabel();
 	}
 
 	private DataRoute getRoute(int subIndex) {
@@ -80,12 +103,14 @@ public class Band {
 		return getIds(type, subIndex).getIdType();
 	}
 
-	private final class DataRoute {
+	private final class DataRoute implements ILabeled {
+		private final String rlabel;
 		private final float s1, s2, t1, t2;
 		private final PolyArea base;
 		final TypedSet sShared, tShared;
 
-		public DataRoute(float s1, float s2, float t1, float t2, TypedSet sShared, TypedSet tShared) {
+		public DataRoute(String label, float s1, float s2, float t1, float t2, TypedSet sShared, TypedSet tShared) {
+			this.rlabel = label;
 			this.s1 = s1;
 			this.t1 = t1;
 			this.s2 = s2;
@@ -93,6 +118,14 @@ public class Band {
 			this.sShared = sShared;
 			this.tShared = tShared;
 			this.base = band.computeArea(s1, s2, t1, t2);
+		}
+
+		/**
+		 * @return the label, see {@link #rlabel}
+		 */
+		@Override
+		public String getLabel() {
+			return rlabel;
 		}
 
 		void renderRoute(GLGraphics g, IBandHost host) {
@@ -148,8 +181,9 @@ public class Band {
 		}
 	}
 
+	@Override
 	public String getLabel() {
-		return "";
+		return overviewRoute.getLabel();
 	}
 
 	public int renderPick(GLGraphics g, float w, float h, IBandHost host, PickingPool pickingPool,int start) {
@@ -230,8 +264,8 @@ public class Band {
 				float s2 = s1 + (sShared.size() / stotal);
 				float t1 = (tinneracc[j] - tgroup.size()) / ttotal;
 				float t2 = t1 + (sShared.size() / ttotal);
-
-				groupRoutes.add(new DataRoute(s1, s2, t1, t2, sShared, tShared));
+				String label = sgroup.getLabel() + " & " + tgroup.getLabel();
+				groupRoutes.add(new DataRoute(label, s1, s2, t1, t2, sShared, tShared));
 				sinneracc += sShared.size();
 				tinneracc[j] += tShared.size();
 			}

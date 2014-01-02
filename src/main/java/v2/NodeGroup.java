@@ -21,6 +21,8 @@ import org.caleydo.core.view.opengl.layout2.dnd.EDnDType;
 import org.caleydo.core.view.opengl.layout2.dnd.IDnDItem;
 import org.caleydo.core.view.opengl.layout2.dnd.IDragGLSource;
 import org.caleydo.core.view.opengl.layout2.dnd.IDragInfo;
+import org.caleydo.core.view.opengl.layout2.layout.IGLLayoutElement;
+import org.caleydo.core.view.opengl.layout2.manage.GLElementDimensionDesc;
 import org.caleydo.core.view.opengl.layout2.manage.GLElementFactories;
 import org.caleydo.core.view.opengl.layout2.manage.GLElementFactories.GLElementSupplier;
 import org.caleydo.core.view.opengl.layout2.manage.GLElementFactoryContext;
@@ -63,6 +65,11 @@ public class NodeGroup extends GLElementDecorator implements ILabeled, IDragGLSo
 		setContent(barrier);
 	}
 
+	@Override
+	protected void layoutContent(IGLLayoutElement content, float w, float h, int deltaTimeMs) {
+		content.setBounds(Node.BORDER, Node.BORDER, w - Node.BORDER * 2, h - Node.BORDER * 2);
+	}
+
 	public void build() {
 		Builder b = GLElementFactoryContext.builder();
 		data.fill(b, dimData, recData);
@@ -76,6 +83,14 @@ public class NodeGroup extends GLElementDecorator implements ILabeled, IDragGLSo
 	private GLElementFactorySwitcher getSwitcher() {
 		GLElementFactorySwitcher s = (GLElementFactorySwitcher) barrier.getContent();
 		return s;
+	}
+
+	public GLElementDimensionDesc getDesc(EDimension dim) {
+		return getSwitcher().getActiveDesc(dim);
+	}
+
+	public boolean hasLocator(EDimension dim) {
+		return getDesc(dim).hasLocation();
 	}
 
 	@Override
@@ -257,7 +272,6 @@ public class NodeGroup extends GLElementDecorator implements ILabeled, IDragGLSo
 			return;
 		d.clear(SelectionType.MOUSE_OVER, null);
 		d.clear(SelectionType.SELECTION, this);
-
 	}
 
 	public void select(EDirection dir) {

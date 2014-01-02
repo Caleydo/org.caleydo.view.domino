@@ -22,6 +22,9 @@ import org.caleydo.core.view.opengl.canvas.IGLMouseListener.IMouseEvent;
 import org.caleydo.core.view.opengl.layout2.GLElement;
 import org.caleydo.core.view.opengl.layout2.GLGraphics;
 import org.caleydo.core.view.opengl.layout2.IGLElementContext;
+import org.caleydo.core.view.opengl.layout2.dnd.IDnDItem;
+import org.caleydo.core.view.opengl.layout2.dnd.IDragGLSource;
+import org.caleydo.core.view.opengl.layout2.dnd.IDragInfo;
 import org.caleydo.core.view.opengl.layout2.util.PickingPool;
 import org.caleydo.core.view.opengl.picking.IPickingLabelProvider;
 import org.caleydo.core.view.opengl.picking.IPickingListener;
@@ -32,6 +35,8 @@ import org.caleydo.view.domino.spi.model.IBandRenderer.IBandHost;
 import org.caleydo.view.domino.spi.model.IBandRenderer.SourceTarget;
 
 import v2.band.Band;
+import v2.data.IDataValues;
+import v2.data.StratificationDataValue;
 
 import com.jogamp.common.util.IntIntHashMap;
 import com.jogamp.common.util.IntIntHashMap.Entry;
@@ -45,7 +50,7 @@ import com.jogamp.common.util.IntIntHashMap.Entry;
 public class Bands extends GLElement implements
 		MultiSelectionManagerMixin.ISelectionMixinCallback,
  IBandHost,
-		IPickingListener, IPickingLabelProvider {
+		IPickingListener, IPickingLabelProvider, IDragGLSource {
 	@DeepScan
 	private final MultiSelectionManagerMixin selections = new MultiSelectionManagerMixin(this);
 
@@ -54,6 +59,8 @@ public class Bands extends GLElement implements
 
 	private PickingPool pickingPool;
 	private final IntIntHashMap pickingOffsets = new IntIntHashMap();
+
+	private int currentDragPicking;
 
 	public Bands() {
 	}
@@ -91,10 +98,11 @@ public class Bands extends GLElement implements
 
 	@Override
 	public String getLabel(Pick pick) {
-		Band route = getRoute(pick.getObjectID());
+		int[] split = split(pick.getObjectID());
+		Band route = getRoute(split[0]);
 		if (route == null)
 			return "";
-		return route.getLabel();
+		return route.getLabel(split[1]);
 	}
 
 	@Override
@@ -105,14 +113,36 @@ public class Bands extends GLElement implements
 			select(getRoute(split[0]), split[1], SelectionType.SELECTION, !((IMouseEvent) pick).isCtrlDown());
 			break;
 		case MOUSE_OVER:
+			context.getMouseLayer().addDragSource(this);
+			this.currentDragPicking = pick.getObjectID();
 			select(getRoute(split[0]), split[1], SelectionType.MOUSE_OVER, true);
 			break;
 		case MOUSE_OUT:
+			context.getMouseLayer().removeDragSource(this);
 			clear(getRoute(split[0]), split[1], SelectionType.MOUSE_OVER);
 			break;
 		default:
 			break;
 		}
+	}
+
+	@Override
+	public GLElement createUI(IDragInfo info) {
+		return null;
+	}
+
+	@Override
+	public void onDropped(IDnDItem info) {
+		// nothing to do
+	}
+
+	@Override
+	public IDragInfo startSWTDrag(IDragEvent event) {
+		int[] split = split(currentDragPicking);
+		Band route = getRoute(split[0]);
+		TypedSet ids = route.getIds(SourceTarget.SOURCE, split[1]);
+		IDataValues v = new StratificationDataValue(route.getLabel(),ids,route.getDimension(SourceTarget.SOURCE));
+		return new NodeDragInfo(event.getMousePos(), new Node(v));
 	}
 
 	/**
