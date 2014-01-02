@@ -33,6 +33,11 @@ public class Numerical1DDataDomainValues extends A1DDataDomainValues {
 		this.groups = extractGroups(p);
 	}
 
+	@Override
+	public String getExtensionID() {
+		return "numerical.1d";
+	}
+
 	private TypedGroupSet extractGroups(Perspective p) {
 		Set<Integer> invalid = new BitSetSet();
 		TypedSet d = TypedSet.of(p.getVirtualArray());

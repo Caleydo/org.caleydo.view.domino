@@ -7,7 +7,9 @@ package v2.data;
 
 import org.caleydo.core.data.collection.EDimension;
 import org.caleydo.core.util.base.ILabeled;
+import org.caleydo.core.view.opengl.layout2.manage.GLElementFactoryContext.Builder;
 import org.caleydo.view.domino.api.model.typed.TypedGroupSet;
+import org.caleydo.view.domino.api.model.typed.TypedListGroup;
 import org.caleydo.view.domino.api.model.typed.TypedSet;
 
 /**
@@ -19,5 +21,17 @@ public interface IDataValues extends ILabeled {
 	TypedGroupSet getDefaultGroups(EDimension dim);
 
 	int compare(EDimension dim, int a, int b, TypedSet otherData);
+
+	/**
+	 * @return
+	 */
+	String getExtensionID();
+
+	/**
+	 * @param b
+	 * @param dimData
+	 * @param recData
+	 */
+	void fill(Builder b, TypedListGroup dimData, TypedListGroup recData);
 
 }

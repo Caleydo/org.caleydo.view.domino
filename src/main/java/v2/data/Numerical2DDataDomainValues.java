@@ -11,8 +11,10 @@ import org.caleydo.core.data.collection.EDimension;
 import org.caleydo.core.data.perspective.table.TablePerspective;
 import org.caleydo.core.util.collection.Pair;
 import org.caleydo.core.util.color.Color;
+import org.caleydo.core.view.opengl.layout2.manage.GLElementFactoryContext.Builder;
 import org.caleydo.view.domino.api.model.typed.TypedGroupList;
 import org.caleydo.view.domino.api.model.typed.TypedGroupSet;
+import org.caleydo.view.domino.api.model.typed.TypedListGroup;
 import org.caleydo.view.domino.api.model.typed.TypedSet;
 import org.caleydo.view.domino.api.model.typed.TypedSetGroup;
 import org.caleydo.view.domino.internal.util.BitSetSet;
@@ -36,6 +38,17 @@ public class Numerical2DDataDomainValues extends ADataDomainDataValues {
 		Pair<TypedGroupSet, TypedGroupSet> r = extractGroups(t);
 		this.recGroups = r.getSecond();
 		this.dimGroups = r.getFirst();
+	}
+
+	@Override
+	public String getExtensionID() {
+		return "numerical.2d";
+	}
+
+	@Override
+	public void fill(Builder b, TypedListGroup dimData, TypedListGroup recData) {
+		TablePerspective t = asTablePerspective(dimData, recData);
+		b.withData(t);
 	}
 
 	/**

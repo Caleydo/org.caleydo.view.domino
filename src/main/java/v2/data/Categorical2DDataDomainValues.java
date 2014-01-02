@@ -17,7 +17,9 @@ import org.caleydo.core.data.datadomain.ATableBasedDataDomain;
 import org.caleydo.core.data.perspective.table.TablePerspective;
 import org.caleydo.core.id.IDType;
 import org.caleydo.core.util.collection.Pair;
+import org.caleydo.core.view.opengl.layout2.manage.GLElementFactoryContext.Builder;
 import org.caleydo.view.domino.api.model.typed.TypedGroupSet;
+import org.caleydo.view.domino.api.model.typed.TypedListGroup;
 import org.caleydo.view.domino.api.model.typed.TypedSet;
 import org.caleydo.view.domino.api.model.typed.TypedSetGroup;
 
@@ -46,6 +48,16 @@ public class Categorical2DDataDomainValues extends ADataDomainDataValues {
 		this.dimGroups = r.getFirst();
 	}
 
+	@Override
+	public String getExtensionID() {
+		return "categorical.2d";
+	}
+
+	@Override
+	public void fill(Builder b, TypedListGroup dimData, TypedListGroup recData) {
+		TablePerspective t = asTablePerspective(dimData, recData);
+		b.withData(t);
+	}
 	/**
 	 * @param t2
 	 * @return

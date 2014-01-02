@@ -133,41 +133,13 @@ public class Domino extends GLElementContainer implements IDropGLTarget, IPickin
 	private void zoom(IMouseEvent event) {
 		if (event.getWheelRotation() == 0)
 			return;
-		int dim = toDirection(event, EDimension.DIMENSION);
-		int rec = toDirection(event, EDimension.RECORD);
-
-		float shiftX = dim == 0 ? 0 : event.getWheelRotation() * 5;
-		float shiftY = rec == 0 ? 0 : event.getWheelRotation() * 5;
-		incSizes(shiftX, shiftY);
+		for (Block block : blocks()) {
+			block.zoom(event);
+		}
 
 		bands.relayout();
 	}
 
-	/**
-	 * @param shiftX
-	 * @param shiftY
-	 */
-	private void incSizes(float x, float y) {
-		for (Block block : blocks()) {
-			block.incSizes(x, y);
-		}
-
-	}
-
-	/**
-	 * convert a {@link IMouseEvent} to a direction information
-	 *
-	 * @param event
-	 * @param dim
-	 * @return -1 smaller, +1 larger, and 0 nothing
-	 */
-	private static int toDirection(IMouseEvent event, EDimension dim) {
-		final int w = event.getWheelRotation();
-		if (w == 0)
-			return 0;
-		int factor = w > 0 ? 1 : -1;
-		return event.isCtrlDown() || dim.select(event.isAltDown(), event.isShiftDown()) ? factor : 0;
-	}
 
 	@Override
 	public boolean canSWTDrop(IDnDItem item) {

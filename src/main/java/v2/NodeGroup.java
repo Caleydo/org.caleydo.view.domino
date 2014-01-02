@@ -11,15 +11,22 @@ import org.caleydo.core.data.collection.EDimension;
 import org.caleydo.core.data.selection.SelectionType;
 import org.caleydo.core.util.base.ILabeled;
 import org.caleydo.core.util.color.Color;
+import org.caleydo.core.view.opengl.canvas.EDetailLevel;
 import org.caleydo.core.view.opengl.canvas.IGLMouseListener.IMouseEvent;
 import org.caleydo.core.view.opengl.layout.Column.VAlign;
 import org.caleydo.core.view.opengl.layout2.GLElement;
-import org.caleydo.core.view.opengl.layout2.GLElementContainer;
+import org.caleydo.core.view.opengl.layout2.GLElementDecorator;
 import org.caleydo.core.view.opengl.layout2.GLGraphics;
 import org.caleydo.core.view.opengl.layout2.dnd.EDnDType;
 import org.caleydo.core.view.opengl.layout2.dnd.IDnDItem;
 import org.caleydo.core.view.opengl.layout2.dnd.IDragGLSource;
 import org.caleydo.core.view.opengl.layout2.dnd.IDragInfo;
+import org.caleydo.core.view.opengl.layout2.manage.GLElementFactories;
+import org.caleydo.core.view.opengl.layout2.manage.GLElementFactories.GLElementSupplier;
+import org.caleydo.core.view.opengl.layout2.manage.GLElementFactoryContext;
+import org.caleydo.core.view.opengl.layout2.manage.GLElementFactoryContext.Builder;
+import org.caleydo.core.view.opengl.layout2.manage.GLElementFactorySwitcher;
+import org.caleydo.core.view.opengl.layout2.manage.GLElementFactorySwitcher.ELazyiness;
 import org.caleydo.core.view.opengl.picking.IPickingListener;
 import org.caleydo.core.view.opengl.picking.Pick;
 import org.caleydo.view.domino.api.model.graph.EDirection;
@@ -29,11 +36,13 @@ import org.caleydo.view.domino.api.model.typed.TypedListGroup;
 
 import v2.data.IDataValues;
 
+import com.google.common.collect.ImmutableList;
+
 /**
  * @author Samuel Gratzl
  *
  */
-public class NodeGroup extends GLElementContainer implements ILabeled, IDragGLSource, IPickingListener {
+public class NodeGroup extends GLElementDecorator implements ILabeled, IDragGLSource, IPickingListener {
 	private final Node parent;
 	private final IDataValues data;
 
@@ -47,6 +56,21 @@ public class NodeGroup extends GLElementContainer implements ILabeled, IDragGLSo
 		this.data = data;
 		setVisibility(EVisibility.PICKABLE);
 		onPick(this);
+	}
+
+	public void build() {
+		Builder b = GLElementFactoryContext.builder();
+		data.fill(b, dimData, recData);
+		b.put(EDetailLevel.class, EDetailLevel.HIGH);
+		ImmutableList<GLElementSupplier> extensions = GLElementFactories.getExtensions(b.build(), "domino."
+ + data.getExtensionID(), parent.getProximityMode());
+		GLElementFactorySwitcher s = new GLElementFactorySwitcher(extensions, ELazyiness.DESTROY);
+		setContent(s);
+	}
+
+	private GLElementFactorySwitcher getSwitcher() {
+		GLElementFactorySwitcher s = (GLElementFactorySwitcher) getContent();
+		return s;
 	}
 
 	@Override
@@ -95,6 +119,7 @@ public class NodeGroup extends GLElementContainer implements ILabeled, IDragGLSo
 		this.recData = recData;
 		for (int i = 0; i < 4; ++i)
 			neighbors[i] = null;
+		build();
 	}
 
 	/**
@@ -123,8 +148,8 @@ public class NodeGroup extends GLElementContainer implements ILabeled, IDragGLSo
 
 	@Override
 	protected void renderImpl(GLGraphics g, float w, float h) {
-		Color c = recData.getColor();
-		g.color(c).fillRect(0, 0, w, h);
+		// Color c = recData.getColor();
+		// g.color(c).fillRect(0, 0, w, h);
 		final Domino domino = findDomino();
 		g.lineWidth(2);
 		if (domino.isSelected(SelectionType.SELECTION, this))

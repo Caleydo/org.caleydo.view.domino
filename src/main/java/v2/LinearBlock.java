@@ -188,8 +188,11 @@ public class LinearBlock extends AbstractCollection<Node> {
 		apply();
 	}
 
-	public void shift(Node node, float x, float y) {
+	public void shift(Node node) {
 		int i = nodes.indexOf(node);
+		Vec2f change = node.getLayoutDataAs(Vec2f.class, null);
+		float x = change.x();
+		float y = change.y();
 		x = dim.select(x, 0);
 		y = dim.select(0, y);
 		shift(0, i, new Vec2f(-x, -y));

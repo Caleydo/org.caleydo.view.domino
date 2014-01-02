@@ -18,6 +18,7 @@ import java.util.Set;
 import org.caleydo.core.data.collection.EDimension;
 import org.caleydo.core.id.IDType;
 import org.caleydo.core.util.color.Color;
+import org.caleydo.core.view.opengl.canvas.IGLMouseListener.IMouseEvent;
 import org.caleydo.core.view.opengl.layout2.GLElement;
 import org.caleydo.core.view.opengl.layout2.GLElementContainer;
 import org.caleydo.core.view.opengl.layout2.geom.Rect;
@@ -108,7 +109,7 @@ public class Block extends GLElementContainer implements IGLLayout2 {
 		if (!b.isEmpty()) {
 			LinearBlock f = b.iterator().next();
 			Node n = f.get(0);
-			shiftBlocks(f, n, x, y, b);
+			shiftBlocks(f, n, b);
 
 			shiftToZero();
 		}
@@ -138,19 +139,21 @@ public class Block extends GLElementContainer implements IGLLayout2 {
 
 	private void shiftNode(Node n, float x, float y) {
 		Vec2f s = n.getSize().copy();
+		Vec2f b = s.copy();
 		s.setX(Math.max(s.x() + x, 10));
 		s.setY(Math.max(s.y() + y, 10));
 		n.setSize(s.x(), s.y());
+		n.setLayoutData(b.minus(s));
 		n.relayout();
 	}
 
-	private void shiftBlocks(LinearBlock block, Node start, float x, float y, Set<LinearBlock> b) {
+	private void shiftBlocks(LinearBlock block, Node start, Set<LinearBlock> b) {
 		b.remove(block);
-		block.shift(start, x, y);
+		block.shift(start);
 		for (Node node : block) {
 			for (LinearBlock bblock : new HashSet<>(b)) {
 				if (bblock.contains(node)) {
-					shiftBlocks(bblock, node, x, y, b);
+					shiftBlocks(bblock, node, b);
 				}
 			}
 		}
@@ -284,6 +287,34 @@ public class Block extends GLElementContainer implements IGLLayout2 {
 
 	private static boolean isCompatible(IDType a, IDType b) {
 		return a.getIDCategory().isOfCategory(b);
+	}
+
+	/**
+	 * @param event
+	 */
+	public void zoom(IMouseEvent event) {
+		int dim = toDirection(event, EDimension.DIMENSION);
+		int rec = toDirection(event, EDimension.RECORD);
+
+		float shiftX = dim == 0 ? 0 : event.getWheelRotation() * 5;
+		float shiftY = rec == 0 ? 0 : event.getWheelRotation() * 5;
+
+		incSizes(shiftX, shiftY);
+	}
+
+	/**
+	 * convert a {@link IMouseEvent} to a direction information
+	 *
+	 * @param event
+	 * @param dim
+	 * @return -1 smaller, +1 larger, and 0 nothing
+	 */
+	private static int toDirection(IMouseEvent event, EDimension dim) {
+		final int w = event.getWheelRotation();
+		if (w == 0)
+			return 0;
+		int factor = w > 0 ? 1 : -1;
+		return event.isCtrlDown() || dim.select(event.isAltDown(), event.isShiftDown()) ? factor : 0;
 	}
 
 }

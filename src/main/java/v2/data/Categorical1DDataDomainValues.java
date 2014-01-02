@@ -32,4 +32,11 @@ public class Categorical1DDataDomainValues extends A1DDataDomainValues {
 		return groups;
 	}
 
+	@Override
+	public String getExtensionID() {
+		return "categorical.1d";
+	}
+
+
+
 }

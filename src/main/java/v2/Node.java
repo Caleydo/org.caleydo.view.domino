@@ -17,6 +17,7 @@ import org.caleydo.core.id.IIDTypeMapper;
 import org.caleydo.core.util.base.ILabeled;
 import org.caleydo.core.util.base.Labels;
 import org.caleydo.core.util.color.Color;
+import org.caleydo.core.view.opengl.canvas.IGLMouseListener.IMouseEvent;
 import org.caleydo.core.view.opengl.layout2.GLElementContainer;
 import org.caleydo.core.view.opengl.layout2.dnd.EDnDType;
 import org.caleydo.core.view.opengl.layout2.dnd.IDnDItem;
@@ -27,6 +28,7 @@ import org.caleydo.core.view.opengl.layout2.layout.IGLLayoutElement;
 import org.caleydo.core.view.opengl.picking.IPickingListener;
 import org.caleydo.core.view.opengl.picking.Pick;
 import org.caleydo.view.domino.api.model.graph.EDirection;
+import org.caleydo.view.domino.api.model.graph.EProximityMode;
 import org.caleydo.view.domino.api.model.typed.ITypedComparator;
 import org.caleydo.view.domino.api.model.typed.MappingCaches;
 import org.caleydo.view.domino.api.model.typed.TypedCollections;
@@ -56,6 +58,8 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 
 	private TypedGroupList recData;
 	private TypedGroupSet recGroups;
+
+	private EProximityMode proximityMode = EProximityMode.ATTACHED;
 
 	public Node(IDataValues data) {
 		this(data, data.getLabel(), data.getDefaultGroups(EDimension.DIMENSION), data
@@ -97,6 +101,9 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 			break;
 		case MOUSE_OUT:
 			context.getMouseLayer().removeDropTarget(this);
+			break;
+		case MOUSE_WHEEL:
+			findBlock().zoom((IMouseEvent) pick);
 			break;
 		default:
 			break;
@@ -559,6 +566,13 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 	public void selectAll() {
 		for (NodeGroup g : Iterables.filter(this, NodeGroup.class))
 			g.selectMe();
+	}
+
+	/**
+	 * @return
+	 */
+	public EProximityMode getProximityMode() {
+		return proximityMode;
 	}
 
 }
