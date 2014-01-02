@@ -78,6 +78,10 @@ public class LinearBlock extends AbstractCollection<Node> {
 		return nodes.get(0).getIdType(dim.opposite());
 	}
 
+	public Node get(int index) {
+		return nodes.get(index);
+	}
+
 	/**
 	 * @param node
 	 * @param r
@@ -184,6 +188,14 @@ public class LinearBlock extends AbstractCollection<Node> {
 		apply();
 	}
 
+	public void shift(Node node, float x, float y) {
+		int i = nodes.indexOf(node);
+		x = dim.select(x, 0);
+		y = dim.select(0, y);
+		shift(0, i, new Vec2f(-x, -y));
+		shift(i + 1, nodes.size(), new Vec2f(x, y));
+	}
+
 	private void shift(int from, int to, Vec2f shift) {
 		for (int i = from; i < to; ++i) {
 			final Node nnode = nodes.get(i);
@@ -257,6 +269,12 @@ public class LinearBlock extends AbstractCollection<Node> {
 		for (Node node : nodes) {
 			final TypedList slice = data.slice(node.getIdType(dim.opposite()));
 			node.setData(dim.opposite(), TypedGroupList.create(slice, g));
+		}
+		{
+			Node bak = nodes.get(0);
+			for (Node node : nodes.subList(1, nodes.size())) {
+				node.updateNeighbor(EDirection.getPrimary(dim), bak);
+			}
 		}
 	}
 

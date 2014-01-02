@@ -23,6 +23,7 @@ import org.caleydo.core.view.opengl.layout2.layout.GLPadding;
 import org.caleydo.core.view.opengl.layout2.layout.IGLLayout2;
 import org.caleydo.core.view.opengl.layout2.layout.IGLLayoutElement;
 import org.caleydo.core.view.opengl.layout2.renderer.GLRenderers;
+import org.caleydo.view.domino.api.model.graph.EDirection;
 import org.caleydo.view.domino.internal.Resources;
 
 import v2.Domino;
@@ -139,6 +140,14 @@ public class ToolBar extends GLElementContainer {
 				addButton("Remove Group", Resources.ICON_DELETE);
 			else
 				addButton("Remove Node", Resources.ICON_DELETE_ALL);
+
+			if (node.size() > 1) {
+				addButton("Select All In Node", Resources.ICON_SELECT_ALL);
+			}
+			if (group.getNeighbor(EDirection.LEFT_OF) != null || group.getNeighbor(EDirection.RIGHT_OF) != null)
+				addButton("Select Hor", Resources.ICON_SELECT_DIM);
+			if (group.getNeighbor(EDirection.ABOVE) != null || group.getNeighbor(EDirection.BELOW) != null)
+				addButton("Select Ver", Resources.ICON_SELECT_REC);
 		}
 
 		@Override
@@ -168,8 +177,20 @@ public class ToolBar extends GLElementContainer {
 			case "Remove Group":
 				node.removeMe();
 				break;
+			case "Select All In Node":
+				node.getNode().selectAll();
+				break;
+			case "Select Hor":
+				node.select(EDirection.LEFT_OF);
+				node.select(EDirection.RIGHT_OF);
+				break;
+			case "Select Ver":
+				node.select(EDirection.ABOVE);
+				node.select(EDirection.BELOW);
+				break;
 			case "Merge Groups":
 				node.getNode().merge(selection);
+				break;
 			}
 		}
 

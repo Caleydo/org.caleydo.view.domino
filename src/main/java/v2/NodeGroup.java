@@ -70,10 +70,18 @@ public class NodeGroup extends GLElementContainer implements ILabeled, IDragGLSo
 				domino.clear(SelectionType.SELECTION, ctrl ? this : null);
 			else
 				domino.select(SelectionType.SELECTION, this, ctrl);
+			repaint();
 			break;
 		default:
 			break;
 		}
+	}
+
+	public void selectMe() {
+		final Domino domino = findDomino();
+		if (!domino.isSelected(SelectionType.SELECTION, this))
+			domino.select(SelectionType.SELECTION, this, true);
+		repaint();
 	}
 
 	@Override
@@ -137,6 +145,10 @@ public class NodeGroup extends GLElementContainer implements ILabeled, IDragGLSo
 	 */
 	public void setNeighbor(EDirection dir, NodeGroup neighbor) {
 		this.neighbors[dir.ordinal()] = neighbor;
+	}
+
+	public NodeGroup getNeighbor(EDirection dir) {
+		return neighbors[dir.ordinal()];
 	}
 
 	@Override
@@ -215,6 +227,13 @@ public class NodeGroup extends GLElementContainer implements ILabeled, IDragGLSo
 		d.clear(SelectionType.MOUSE_OVER, null);
 		d.clear(SelectionType.SELECTION, this);
 
+	}
+
+	public void select(EDirection dir) {
+		selectMe();
+		NodeGroup g = getNeighbor(dir);
+		if (g != null)
+			g.select(dir);
 	}
 
 }

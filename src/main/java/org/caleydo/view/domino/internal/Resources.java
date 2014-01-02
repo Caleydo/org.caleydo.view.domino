@@ -51,6 +51,10 @@ public class Resources {
 	public static final URL ICON_STATE_MOVE = icon("transform_move.png");
 	public static final URL ICON_STATE_SELECT = icon("select.png");
 
+	public static final URL ICON_SELECT_REC = icon("layer_resize_replicate_h.png");
+	public static final URL ICON_SELECT_DIM = icon("layer_resize_replicate_v.png");
+
+	public static final URL ICON_SELECT_ALL = icon("layer_resize.png");
 
 	/**
 	 * @param string

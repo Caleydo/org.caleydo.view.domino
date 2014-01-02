@@ -39,6 +39,7 @@ import org.caleydo.view.domino.api.model.typed.TypedSetGroup;
 import v2.data.IDataValues;
 
 import com.google.common.collect.Collections2;
+import com.google.common.collect.Iterables;
 
 /**
  * @author Samuel Gratzl
@@ -397,6 +398,27 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 			neighbor.setNeighbor(dir.opposite(), this);
 	}
 
+	public void updateNeighbor(EDirection dir, Node neighbor) {
+		List<NodeGroup> myGroups = getGroupNeighbors(dir);
+		List<NodeGroup> neighborGroups = neighbor == null ? Collections.<NodeGroup> emptyList() : neighbor
+				.getGroupNeighbors(dir.opposite());
+		if (myGroups.size() == neighborGroups.size()) {
+			for (int i = 0; i < myGroups.size(); ++i) {
+				final NodeGroup ng = neighborGroups.get(i);
+				final NodeGroup g = myGroups.get(i);
+				g.setNeighbor(dir, ng);
+				ng.setNeighbor(dir.opposite(), g);
+			}
+		} else {
+			for (NodeGroup g : myGroups) {
+				g.setNeighbor(dir, null);
+			}
+			for (NodeGroup g : neighborGroups) {
+				g.setNeighbor(dir.opposite(), null);
+			}
+		}
+	}
+
 	public Node getNeighbor(EDirection dir) {
 		return neighbors[dir.ordinal()];
 	}
@@ -529,6 +551,14 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 			if (g.get(i).contains(a))
 				return i;
 		return -1;
+	}
+
+	/**
+	 *
+	 */
+	public void selectAll() {
+		for (NodeGroup g : Iterables.filter(this, NodeGroup.class))
+			g.selectMe();
 	}
 
 }

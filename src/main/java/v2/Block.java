@@ -5,11 +5,15 @@
  *******************************************************************************/
 package v2;
 
+import gleem.linalg.Vec2f;
+
 import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.caleydo.core.data.collection.EDimension;
 import org.caleydo.core.id.IDType;
@@ -30,6 +34,7 @@ import v2.band.Band;
 import v2.band.BandLine;
 import v2.band.BandLines;
 
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
 
 /**
@@ -40,6 +45,7 @@ import com.google.common.collect.Maps;
 public class Block extends GLElementContainer implements IGLLayout2 {
 
 	private final List<LinearBlock> linearBlocks = new ArrayList<>();
+	private final Vec2f shift = new Vec2f(0, 0);
 
 	public Block(Node node) {
 		setLayout(this);
@@ -70,7 +76,8 @@ public class Block extends GLElementContainer implements IGLLayout2 {
 		EDimension other = dir.asDim().opposite();
 		if (node.has(other.opposite()))
 			linearBlocks.add(new LinearBlock(other, node));
-
+		shiftNode(node, shift.x(), shift.y());
+		shiftToZero();
 		updateSize();
 	}
 
@@ -90,6 +97,84 @@ public class Block extends GLElementContainer implements IGLLayout2 {
 		setSize((float) r.getWidth(), (float) r.getHeight());
 	}
 
+	public void incSizes(float x, float y) {
+		shift.setX(shift.x() + x);
+		shift.setY(shift.y() + y);
+
+		for (Node n : nodes()) {
+			shiftNode(n, x, y);
+		}
+		Set<LinearBlock> b = filterSingleBlocks();
+		if (!b.isEmpty()) {
+			LinearBlock f = b.iterator().next();
+			Node n = f.get(0);
+			shiftBlocks(f, n, x, y, b);
+
+			shiftToZero();
+		}
+		updateSize();
+	}
+
+	/**
+	 *
+	 */
+	private void shiftToZero() {
+		Vec2f offset = new Vec2f(0, 0);
+		for (Node n : nodes()) {
+			Vec2f l = n.getLocation();
+			if (l.x() < offset.x())
+				offset.setX(l.x());
+			if (l.y() < offset.y())
+				offset.setY(l.y());
+		}
+		if (offset.x() == 0 && offset.y() == 0)
+			return;
+
+		for (Node n : nodes()) {
+			Vec2f l = n.getLocation();
+			n.setLocation(l.x() - offset.x(), l.y() - offset.y());
+		}
+	}
+
+	private void shiftNode(Node n, float x, float y) {
+		Vec2f s = n.getSize().copy();
+		s.setX(Math.max(s.x() + x, 10));
+		s.setY(Math.max(s.y() + y, 10));
+		n.setSize(s.x(), s.y());
+		n.relayout();
+	}
+
+	private void shiftBlocks(LinearBlock block, Node start, float x, float y, Set<LinearBlock> b) {
+		b.remove(block);
+		block.shift(start, x, y);
+		for (Node node : block) {
+			for (LinearBlock bblock : new HashSet<>(b)) {
+				if (bblock.contains(node)) {
+					shiftBlocks(bblock, node, x, y, b);
+				}
+			}
+		}
+	}
+
+	/**
+	 * @return
+	 */
+	private Iterable<Node> nodes() {
+		return Iterables.filter(this, Node.class);
+	}
+
+	/**
+	 * @return
+	 */
+	private Set<LinearBlock> filterSingleBlocks() {
+		Set<LinearBlock> r = new HashSet<>();
+		for (LinearBlock b : linearBlocks) {
+			if (b.size() > 1)
+				r.add(b);
+		}
+		return r;
+	}
+
 	public boolean removeNode(Node node) {
 		for (EDimension dim : EDimension.values()) {
 			if (!node.has(dim.opposite()))
@@ -100,6 +185,7 @@ public class Block extends GLElementContainer implements IGLLayout2 {
 			block.remove(node);
 		}
 		this.remove(node);
+		shiftToZero();
 		updateSize();
 		return this.isEmpty();
 	}
@@ -139,6 +225,7 @@ public class Block extends GLElementContainer implements IGLLayout2 {
 		block.update();
 		block.apply();
 		findParent(Domino.class).updateBands();
+		updateSize();
 	}
 
 	/**

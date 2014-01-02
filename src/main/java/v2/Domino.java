@@ -15,6 +15,7 @@ import java.util.Set;
 import org.caleydo.core.data.collection.EDimension;
 import org.caleydo.core.data.perspective.table.TablePerspective;
 import org.caleydo.core.data.selection.SelectionType;
+import org.caleydo.core.view.opengl.canvas.IGLMouseListener.IMouseEvent;
 import org.caleydo.core.view.opengl.layout2.GLElement;
 import org.caleydo.core.view.opengl.layout2.GLElementContainer;
 import org.caleydo.core.view.opengl.layout2.GLSandBox;
@@ -118,9 +119,54 @@ public class Domino extends GLElementContainer implements IDropGLTarget, IPickin
 		case MOUSE_OUT:
 			context.getMouseLayer().removeDropTarget(this);
 			break;
+		case MOUSE_WHEEL:
+			zoom((IMouseEvent) pick);
+			break;
 		default:
 			break;
 		}
+	}
+
+	/**
+	 * @param pick
+	 */
+	private void zoom(IMouseEvent event) {
+		if (event.getWheelRotation() == 0)
+			return;
+		int dim = toDirection(event, EDimension.DIMENSION);
+		int rec = toDirection(event, EDimension.RECORD);
+
+		float shiftX = dim == 0 ? 0 : event.getWheelRotation() * 5;
+		float shiftY = rec == 0 ? 0 : event.getWheelRotation() * 5;
+		incSizes(shiftX, shiftY);
+
+		bands.relayout();
+	}
+
+	/**
+	 * @param shiftX
+	 * @param shiftY
+	 */
+	private void incSizes(float x, float y) {
+		for (Block block : blocks()) {
+			block.incSizes(x, y);
+		}
+
+	}
+
+	/**
+	 * convert a {@link IMouseEvent} to a direction information
+	 *
+	 * @param event
+	 * @param dim
+	 * @return -1 smaller, +1 larger, and 0 nothing
+	 */
+	private static int toDirection(IMouseEvent event, EDimension dim) {
+		final int w = event.getWheelRotation();
+		if (w == 0)
+			return 0;
+		int factor = w > 0 ? 1 : -1;
+		return event.isCtrlDown() || dim.select(event.isAltDown(), event.isShiftDown()) ? factor : 0;
 	}
 
 	@Override
@@ -191,10 +237,14 @@ public class Domino extends GLElementContainer implements IDropGLTarget, IPickin
 	 * @param node
 	 */
 	private Block getBlock(Node node) {
-		for (Block block : Iterables.filter(nodes, Block.class))
+		for (Block block : blocks())
 			if (block.containsNode(node))
 				return block;
 		return null;
+	}
+
+	private Iterable<Block> blocks() {
+		return Iterables.filter(nodes, Block.class);
 	}
 
 	public void addPlaceholdersFor(Node node) {
@@ -205,7 +255,7 @@ public class Domino extends GLElementContainer implements IDropGLTarget, IPickin
 		content.add(placeholders);
 
 		final List<GLElement> l = placeholders.asList();
-		for (Block block : Iterables.filter(nodes, Block.class)) {
+		for (Block block : blocks()) {
 			l.addAll(block.addPlaceholdersFor(node));
 		}
 	}
@@ -250,7 +300,7 @@ public class Domino extends GLElementContainer implements IDropGLTarget, IPickin
 	 * @return
 	 */
 	public List<Block> getBlocks() {
-		return ImmutableList.copyOf(Iterables.filter(nodes, Block.class));
+		return ImmutableList.copyOf(blocks());
 	}
 
 	public boolean isSelected(SelectionType type, NodeGroup group) {
