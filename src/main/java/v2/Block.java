@@ -47,7 +47,6 @@ import com.google.common.collect.Maps;
 public class Block extends GLElementContainer implements IGLLayout2 {
 
 	private final List<LinearBlock> linearBlocks = new ArrayList<>();
-	private final Vec2f shift = new Vec2f(0, 0);
 
 	public Block(Node node) {
 		setLayout(this);
@@ -74,8 +73,6 @@ public class Block extends GLElementContainer implements IGLLayout2 {
 
 	public void addNode(Node neighbor, EDirection dir, Node node) {
 		this.add(node);
-
-		shiftNode(node, shift.x(), shift.y());
 		LinearBlock block = getBlock(neighbor, dir.asDim());
 		block.add(neighbor, dir, node);
 		EDimension other = dir.asDim().opposite();
@@ -100,20 +97,68 @@ public class Block extends GLElementContainer implements IGLLayout2 {
 		setSize((float) r.getWidth(), (float) r.getHeight());
 	}
 
-	public void incSizes(float x, float y) {
-		shift.setX(shift.x() + x);
-		shift.setY(shift.y() + y);
+	/**
+	 * @param event
+	 */
+	public void zoom(IMouseEvent event, Node just) {
+		int dim = toDirection(event, EDimension.DIMENSION);
+		int rec = toDirection(event, EDimension.RECORD);
 
-		for (Node n : nodes()) {
-			shiftNode(n, x, y);
-		}
-		Set<LinearBlock> b = filterSingleBlocks();
-		if (!b.isEmpty()) {
-			LinearBlock f = b.iterator().next();
-			Node n = f.get(0);
-			shiftBlocks(f, n, b);
+		Vec2f s = just == null ? new Vec2f(100, 100) : just.getSize();
+		float shiftX = dim == 0 ? 0 : event.getWheelRotation() * sizeFactor(s.x());
+		float shiftY = rec == 0 ? 0 : event.getWheelRotation() * sizeFactor(s.x());
 
-			shiftToZero();
+		incSizes(shiftX, shiftY, just);
+		findParent(Domino.class).updateBands();
+	}
+
+	/**
+	 * @param x
+	 * @return
+	 */
+	private int sizeFactor(float x) {
+		if (x < 100)
+			return 5;
+		if (x < 500)
+			return 10;
+		return 20;
+	}
+
+	public void incSizes(float x, float y, Node just) {
+		if (just == null) {
+			for (Node n : nodes()) {
+				shiftNode(n, x, y);
+			}
+			Set<LinearBlock> b = filterSingleBlocks();
+			if (!b.isEmpty()) {
+				LinearBlock f = b.iterator().next();
+				Node n = f.get(0);
+				shiftBlocks(f, n, b);
+
+				shiftToZero();
+			}
+		} else {
+			just.shiftSize(x, y);
+			Set<LinearBlock> b = filterSingleBlocks();
+			if (!b.isEmpty()) {
+				for (LinearBlock bi : b) {
+					if (!bi.contains(just))
+						continue;
+					float xi = bi.getDim().select(0, x);
+					float yi = bi.getDim().select(y, 0); // propagate the other direction
+					for (Node n : bi) {
+						if (n != just)
+							shiftNode(n, xi, yi);
+					}
+				}
+				for (LinearBlock bi : b) {
+					if (bi.contains(just)) {
+						shiftBlocks(bi, just, b);
+						break;
+					}
+				}
+				shiftToZero();
+			}
 		}
 		updateSize();
 	}
@@ -140,13 +185,7 @@ public class Block extends GLElementContainer implements IGLLayout2 {
 	}
 
 	private void shiftNode(Node n, float x, float y) {
-		Vec2f s = n.getSize().copy();
-		Vec2f b = s.copy();
-		s.setX(Math.max(s.x() + x, 10));
-		s.setY(Math.max(s.y() + y, 10));
-		n.setSize(s.x(), s.y());
-		n.setLayoutData(s.minus(b));
-		n.relayout();
+		n.shiftSize(x, y);
 	}
 
 	private void shiftBlocks(LinearBlock block, Node start, Set<LinearBlock> b) {
@@ -236,8 +275,6 @@ public class Block extends GLElementContainer implements IGLLayout2 {
 
 	private void updateBlock(LinearBlock block) {
 		findParent(Domino.class).updateBands();
-		for (Node n : block)
-			shiftNode(n, shift.x(), shift.y());
 		shiftToZero();
 		updateSize();
 	}
@@ -306,20 +343,6 @@ public class Block extends GLElementContainer implements IGLLayout2 {
 
 	private static boolean isCompatible(IDType a, IDType b) {
 		return a.getIDCategory().isOfCategory(b);
-	}
-
-	/**
-	 * @param event
-	 */
-	public void zoom(IMouseEvent event) {
-		int dim = toDirection(event, EDimension.DIMENSION);
-		int rec = toDirection(event, EDimension.RECORD);
-
-		float shiftX = dim == 0 ? 0 : event.getWheelRotation() * 5;
-		float shiftY = rec == 0 ? 0 : event.getWheelRotation() * 5;
-
-		incSizes(shiftX, shiftY);
-		findParent(Domino.class).updateBands();
 	}
 
 	/**

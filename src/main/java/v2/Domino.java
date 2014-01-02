@@ -152,7 +152,7 @@ public class Domino extends GLElementContainer implements IDropGLTarget, IPickin
 		if (event.getWheelRotation() == 0)
 			return;
 		for (Block block : blocks()) {
-			block.zoom(event);
+			block.zoom(event, null);
 		}
 
 		bands.relayout();

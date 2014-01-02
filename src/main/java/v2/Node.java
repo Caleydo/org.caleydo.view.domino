@@ -5,6 +5,8 @@
  *******************************************************************************/
 package v2;
 
+import gleem.linalg.Vec2f;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -66,6 +68,8 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 
 	private EProximityMode proximityMode = EProximityMode.ATTACHED;
 
+	private Vec2f shift = new Vec2f();
+
 	public Node(IDataValues data) {
 		this(data, data.getLabel(), data.getDefaultGroups(EDimension.DIMENSION), data
 				.getDefaultGroups(EDimension.RECORD));
@@ -108,7 +112,7 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 			context.getMouseLayer().removeDropTarget(this);
 			break;
 		case MOUSE_WHEEL:
-			findBlock().zoom((IMouseEvent) pick);
+			findBlock().zoom((IMouseEvent) pick, this);
 			break;
 		default:
 			break;
@@ -247,7 +251,7 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 	private void updateSize(TypedGroupList dimData, TypedGroupList recData) {
 		final float w = Math.max(10, dimData.size()) + BORDER * 2;
 		final float h = Math.max(10, recData.size()) + BORDER * 2;
-		setSize(w, h);
+		setSize(w + shift.x(), h + shift.y());
 	}
 
 	public void integrate(TypedGroupList group) {
@@ -639,6 +643,22 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 			}
 		};
 
+	}
+
+	/**
+	 * @param x
+	 * @param y
+	 */
+	public void shiftSize(float x, float y) {
+		Vec2f s = getSize().copy();
+		Vec2f b = s.copy();
+		s.setX(Math.max(s.x() + x, 10));
+		s.setY(Math.max(s.y() + y, 10));
+		setSize(s.x(), s.y());
+		Vec2f act_shift = s.minus(b);
+		setLayoutData(s.minus(b));
+		this.shift.add(act_shift);
+		relayout();
 	}
 
 }
