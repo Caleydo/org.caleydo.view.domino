@@ -117,6 +117,9 @@ public class NodeGroup extends GLElementDecorator implements ILabeled, IDragGLSo
 				domino.select(SelectionType.SELECTION, this, ctrl);
 			repaint();
 			break;
+		case DOUBLE_CLICKED:
+			getNode().selectAll();
+			break;
 		default:
 			break;
 		}

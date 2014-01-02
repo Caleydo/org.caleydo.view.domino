@@ -182,7 +182,10 @@ public class LinearBlock extends AbstractCollection<Node> {
 			}
 			shift(index + 1, nodes.size(), shift);
 		}
-		this.nodes.add(index + 1, node);
+		if (dir.isPrimaryDirection())
+			this.nodes.add(index, node);
+		else
+			this.nodes.add(index + 1, node);
 
 		sortCriteria.add(node);
 		resort();
@@ -194,9 +197,9 @@ public class LinearBlock extends AbstractCollection<Node> {
 		Vec2f change = node.getLayoutDataAs(Vec2f.class, null);
 		float x = change.x();
 		float y = change.y();
-		x = dim.select(x, 0);
 		y = dim.select(0, y);
-		shift(0, i, new Vec2f(-x, -y));
+		x = dim.select(x, 0);
+		// shift(0, i, new Vec2f(-x, -y));
 		shift(i + 1, nodes.size(), new Vec2f(x, y));
 	}
 

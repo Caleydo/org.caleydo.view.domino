@@ -57,6 +57,7 @@ public class Block extends GLElementContainer implements IGLLayout2 {
 				continue;
 			linearBlocks.add(new LinearBlock(dim, node));
 		}
+		node.setLocation(0, 0);
 		updateSize();
 		setRenderer(GLRenderers.drawRect(Color.BLUE));
 	}
@@ -73,14 +74,14 @@ public class Block extends GLElementContainer implements IGLLayout2 {
 
 	public void addNode(Node neighbor, EDirection dir, Node node) {
 		this.add(node);
+
+		shiftNode(node, shift.x(), shift.y());
 		LinearBlock block = getBlock(neighbor, dir.asDim());
 		block.add(neighbor, dir, node);
 		EDimension other = dir.asDim().opposite();
 		if (node.has(other.opposite()))
 			linearBlocks.add(new LinearBlock(other, node));
-		shiftNode(node, shift.x(), shift.y());
-		shiftToZero();
-		updateSize();
+		updateBlock(block);
 	}
 
 	/**
@@ -144,13 +145,15 @@ public class Block extends GLElementContainer implements IGLLayout2 {
 		s.setX(Math.max(s.x() + x, 10));
 		s.setY(Math.max(s.y() + y, 10));
 		n.setSize(s.x(), s.y());
-		n.setLayoutData(b.minus(s));
+		n.setLayoutData(s.minus(b));
 		n.relayout();
 	}
 
 	private void shiftBlocks(LinearBlock block, Node start, Set<LinearBlock> b) {
 		b.remove(block);
 		block.shift(start);
+		if (b.isEmpty())
+			return;
 		for (Node node : block) {
 			for (LinearBlock bblock : new HashSet<>(b)) {
 				if (bblock.contains(node)) {
@@ -228,7 +231,14 @@ public class Block extends GLElementContainer implements IGLLayout2 {
 		LinearBlock block = getBlock(node, dim.opposite());
 		block.update();
 		block.apply();
+		updateBlock(block);
+	}
+
+	private void updateBlock(LinearBlock block) {
 		findParent(Domino.class).updateBands();
+		for (Node n : block)
+			shiftNode(n, shift.x(), shift.y());
+		shiftToZero();
 		updateSize();
 	}
 
@@ -239,6 +249,8 @@ public class Block extends GLElementContainer implements IGLLayout2 {
 	public void sortByMe(Node node, EDimension dim) {
 		LinearBlock block = getBlock(node, dim.opposite());
 		block.sortBy(node);
+
+		updateBlock(block);
 	}
 
 	/**
@@ -275,7 +287,7 @@ public class Block extends GLElementContainer implements IGLLayout2 {
 		if (line == null)
 			return;
 
-		String label = la.getNode(true).getLabel() + " & " + lb.getNode(false).getLabel();
+		String label = la.getNode(true).getLabel() + " x " + lb.getNode(false).getLabel();
 
 		Band band = new Band(label, line, shared, sData, tData, sLocator, tLocator, la.getDim().opposite(), lb.getDim()
 				.opposite());

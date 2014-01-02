@@ -264,7 +264,7 @@ public class Band implements ILabeled {
 				float s2 = s1 + (sShared.size() / stotal);
 				float t1 = (tinneracc[j] - tgroup.size()) / ttotal;
 				float t2 = t1 + (sShared.size() / ttotal);
-				String label = sgroup.getLabel() + " & " + tgroup.getLabel();
+				String label = sgroup.getLabel() + " x " + tgroup.getLabel();
 				groupRoutes.add(new DataRoute(label, s1, s2, t1, t2, sShared, tShared));
 				sinneracc += sShared.size();
 				tinneracc[j] += tShared.size();
