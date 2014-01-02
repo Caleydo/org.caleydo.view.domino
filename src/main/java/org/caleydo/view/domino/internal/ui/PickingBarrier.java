@@ -20,8 +20,20 @@ public class PickingBarrier extends GLElementDecorator {
 		setPicker(null);
 	}
 
+	public PickingBarrier() {
+		setPicker(null);
+	}
+
 	@Override
 	protected boolean hasPickAbles() {
 		return getVisibility() == EVisibility.PICKABLE;
+	}
+
+	public boolean isPickable() {
+		return getVisibility() == EVisibility.PICKABLE;
+	}
+
+	public void setPickable(boolean pickable) {
+		setVisibility(pickable ? EVisibility.PICKABLE : EVisibility.VISIBLE);
 	}
 }

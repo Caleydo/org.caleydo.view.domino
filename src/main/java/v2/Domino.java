@@ -24,6 +24,8 @@ import org.caleydo.core.view.opengl.layout2.dnd.IDnDItem;
 import org.caleydo.core.view.opengl.layout2.dnd.IDragInfo;
 import org.caleydo.core.view.opengl.layout2.dnd.IDropGLTarget;
 import org.caleydo.core.view.opengl.layout2.layout.GLLayouts;
+import org.caleydo.core.view.opengl.layout2.layout.IGLLayout2;
+import org.caleydo.core.view.opengl.layout2.layout.IGLLayoutElement;
 import org.caleydo.core.view.opengl.picking.IPickingListener;
 import org.caleydo.core.view.opengl.picking.Pick;
 import org.caleydo.core.view.opengl.picking.PickingMode;
@@ -32,6 +34,7 @@ import org.caleydo.view.domino.api.model.graph.EDirection;
 
 import v2.data.Categorical2DDataDomainValues;
 import v2.data.StratificationDataValue;
+import v2.toolbar.LeftToolBar;
 import v2.toolbar.ToolBar;
 
 import com.google.common.collect.HashMultimap;
@@ -43,11 +46,12 @@ import com.google.common.collect.SetMultimap;
  * @author Samuel Gratzl
  *
  */
-public class Domino extends GLElementContainer implements IDropGLTarget, IPickingListener {
+public class Domino extends GLElementContainer implements IDropGLTarget, IPickingListener, IGLLayout2 {
 	private GLElementContainer placeholders;
 	private final Bands bands;
 	private final GLElementContainer nodes;
 	private final ToolBar toolBar;
+	private final LeftToolBar leftToolBar;
 	private final SetMultimap<SelectionType, NodeGroup> selections = HashMultimap.create();
 	private final GLElementContainer content;
 
@@ -55,11 +59,15 @@ public class Domino extends GLElementContainer implements IDropGLTarget, IPickin
 	 *
 	 */
 	public Domino() {
-		super(GLLayouts.flowVertical(2));
+		setLayout(this);
 
 		this.toolBar = new ToolBar();
 		this.toolBar.setSize(-1, 24);
 		this.add(toolBar);
+
+		this.leftToolBar = new LeftToolBar();
+		this.leftToolBar.setSize(24, -1);
+		this.add(leftToolBar);
 
 		this.content = new GLElementContainer(GLLayouts.LAYERS);
 		content.setVisibility(EVisibility.PICKABLE);
@@ -85,6 +93,16 @@ public class Domino extends GLElementContainer implements IDropGLTarget, IPickin
 		content.add(this.bands);
 	}
 
+	@Override
+	public boolean doLayout(List<? extends IGLLayoutElement> children, float w, float h, IGLLayoutElement parent,
+			int deltaTimeMs) {
+		children.get(0).setBounds(0, 0, w, 24);
+		children.get(1).setBounds(0, 24, 24, h - 24);
+
+		for (IGLLayoutElement elem : children.subList(2, children.size()))
+			elem.setBounds(24, 24, w - 24, h - 24);
+		return false;
+	}
 
 	private void fakeData() {
 		MockDataDomain d = MockDataDomain.createCategorical(200, 200, MockDataDomain.RANDOM, "a", "b");
@@ -140,6 +158,11 @@ public class Domino extends GLElementContainer implements IDropGLTarget, IPickin
 		bands.relayout();
 	}
 
+	public void setContentPickable(boolean pickable) {
+		for (Block b : blocks()) {
+			b.setContentPickable(pickable);
+		}
+	}
 
 	@Override
 	public boolean canSWTDrop(IDnDItem item) {

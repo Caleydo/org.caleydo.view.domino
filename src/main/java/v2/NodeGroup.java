@@ -33,6 +33,7 @@ import org.caleydo.view.domino.api.model.graph.EDirection;
 import org.caleydo.view.domino.api.model.typed.TypedGroupList;
 import org.caleydo.view.domino.api.model.typed.TypedGroupSet;
 import org.caleydo.view.domino.api.model.typed.TypedListGroup;
+import org.caleydo.view.domino.internal.ui.PickingBarrier;
 
 import v2.data.IDataValues;
 
@@ -50,12 +51,16 @@ public class NodeGroup extends GLElementDecorator implements ILabeled, IDragGLSo
 	private TypedListGroup dimData;
 	private TypedListGroup recData;
 
+	private final PickingBarrier barrier;
+
 
 	public NodeGroup(Node parent, IDataValues data) {
 		this.parent = parent;
 		this.data = data;
 		setVisibility(EVisibility.PICKABLE);
 		onPick(this);
+		this.barrier = new PickingBarrier();
+		setContent(barrier);
 	}
 
 	public void build() {
@@ -65,11 +70,11 @@ public class NodeGroup extends GLElementDecorator implements ILabeled, IDragGLSo
 		ImmutableList<GLElementSupplier> extensions = GLElementFactories.getExtensions(b.build(), "domino."
  + data.getExtensionID(), parent.getProximityMode());
 		GLElementFactorySwitcher s = new GLElementFactorySwitcher(extensions, ELazyiness.DESTROY);
-		setContent(s);
+		barrier.setContent(s);
 	}
 
 	private GLElementFactorySwitcher getSwitcher() {
-		GLElementFactorySwitcher s = (GLElementFactorySwitcher) getContent();
+		GLElementFactorySwitcher s = (GLElementFactorySwitcher) barrier.getContent();
 		return s;
 	}
 
@@ -78,7 +83,8 @@ public class NodeGroup extends GLElementDecorator implements ILabeled, IDragGLSo
 		final Domino domino = findDomino();
 		switch (pick.getPickingMode()) {
 		case MOUSE_OVER:
-			context.getMouseLayer().addDragSource(this);
+			if (!barrier.isPickable())
+				context.getMouseLayer().addDragSource(this);
 			domino.select(SelectionType.MOUSE_OVER, this, false);
 			repaint();
 			break;
@@ -259,6 +265,10 @@ public class NodeGroup extends GLElementDecorator implements ILabeled, IDragGLSo
 		NodeGroup g = getNeighbor(dir);
 		if (g != null)
 			g.select(dir);
+	}
+
+	public void setContentPickable(boolean pickable) {
+		barrier.setPickable(pickable);
 	}
 
 }

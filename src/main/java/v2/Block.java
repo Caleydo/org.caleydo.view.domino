@@ -300,6 +300,7 @@ public class Block extends GLElementContainer implements IGLLayout2 {
 		float shiftY = rec == 0 ? 0 : event.getWheelRotation() * 5;
 
 		incSizes(shiftX, shiftY);
+		findParent(Domino.class).updateBands();
 	}
 
 	/**
@@ -315,6 +316,14 @@ public class Block extends GLElementContainer implements IGLLayout2 {
 			return 0;
 		int factor = w > 0 ? 1 : -1;
 		return event.isCtrlDown() || dim.select(event.isAltDown(), event.isShiftDown()) ? factor : 0;
+	}
+
+	/**
+	 * @param pickable
+	 */
+	public void setContentPickable(boolean pickable) {
+		for (Node n : nodes())
+			n.setContentPickable(pickable);
 	}
 
 }

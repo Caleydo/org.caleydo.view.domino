@@ -370,6 +370,12 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 	}
 
 	/**
+	 * @return
+	 */
+	private Iterable<NodeGroup> groups() {
+		return Iterables.filter(this, NodeGroup.class);
+	}
+	/**
 	 * @param n
 	 * @return
 	 */
@@ -573,6 +579,15 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 	 */
 	public EProximityMode getProximityMode() {
 		return proximityMode;
+	}
+
+	/**
+	 * @param pickable
+	 */
+	public void setContentPickable(boolean pickable) {
+		for (NodeGroup g : groups()) {
+			g.setContentPickable(pickable);
+		}
 	}
 
 }
