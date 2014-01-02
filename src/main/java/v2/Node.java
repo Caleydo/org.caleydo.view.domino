@@ -22,6 +22,7 @@ import org.caleydo.core.util.collection.Pair;
 import org.caleydo.core.util.color.Color;
 import org.caleydo.core.view.opengl.canvas.IGLMouseListener.IMouseEvent;
 import org.caleydo.core.view.opengl.layout2.GLElementContainer;
+import org.caleydo.core.view.opengl.layout2.GLGraphics;
 import org.caleydo.core.view.opengl.layout2.dnd.EDnDType;
 import org.caleydo.core.view.opengl.layout2.dnd.IDnDItem;
 import org.caleydo.core.view.opengl.layout2.dnd.IDragInfo;
@@ -100,6 +101,18 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 		setLayout(this);
 		setVisibility(EVisibility.PICKABLE);
 		onPick(this);
+	}
+
+	@Override
+	protected void renderImpl(GLGraphics g, float w, float h) {
+		final Block b = findBlock();
+		g.lineWidth(2);
+		g.color(has(EDimension.DIMENSION) ? b.getStateColor(this, EDimension.DIMENSION) : Color.BLACK);
+		g.drawLine(0, 0, w, 0).drawLine(0, h, w, h);
+		g.color(has(EDimension.RECORD) ? b.getStateColor(this, EDimension.RECORD) : Color.BLACK);
+		g.drawLine(0, 0, 0, h).drawLine(w, 0, w, h);
+		g.lineWidth(1);
+		super.renderImpl(g, w, h);
 	}
 
 	@Override
@@ -249,8 +262,8 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 	}
 
 	private void updateSize(TypedGroupList dimData, TypedGroupList recData) {
-		final float w = Math.max(10, dimData.size()) + BORDER * 2;
-		final float h = Math.max(10, recData.size()) + BORDER * 2;
+		final float w = Math.max(10, dimData.size()) + BORDER * 2 * (1 + dimData.getGroups().size());
+		final float h = Math.max(10, recData.size()) + BORDER * 2 * (1 + recData.getGroups().size());
 		setSize(w + shift.x(), h + shift.y());
 	}
 
@@ -496,13 +509,13 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 		int i = 0;
 		final List<TypedListGroup> dimG = dimData.getGroups();
 		final List<TypedListGroup> recG = recData.getGroups();
-		float wi = (w - BORDER * 2 * dimG.size()) / dimData.size();
-		float hi = (h - BORDER * 2 * recG.size()) / recData.size();
+		float wi = (w - BORDER * 2 * (1 + dimG.size())) / dimData.size();
+		float hi = (h - BORDER * 2 * (1 + recG.size())) / recData.size();
 		float x = 0;
-		float xi = 0;
+		float xi = BORDER;
 		for (TypedListGroup dim : dimG) {
 			float y = 0;
-			float yi = 0;
+			float yi = BORDER;
 			for (TypedListGroup rec : recG) {
 				IGLLayoutElement child = children.get(i++);
 				child.setBounds(xi + x * wi, yi + y * hi, wi * dim.size() + BORDER * 2, hi * rec.size() + BORDER * 2);
@@ -571,7 +584,14 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 	}
 
 	public void sortByMe(EDimension dim) {
-		findBlock().sortByMe(this, dim);
+		findBlock().sortBy(this, dim);
+	}
+
+	/**
+	 * @param dimension
+	 */
+	public void limitToMe(EDimension dim) {
+		findBlock().limitTo(this, dim);
 	}
 
 	/**
@@ -612,7 +632,7 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 	}
 
 	static GLLocation shiftLocation(EDimension dim, GLLocation l, int group) {
-		return new GLLocation(l.getOffset() + BORDER * (2 * group + 1), l.getSize());
+		return new GLLocation(l.getOffset() + BORDER * (2 * group + 2), l.getSize());
 	}
 
 	public ILocator getLocator(final EDimension dim) {
@@ -661,4 +681,12 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 		relayout();
 	}
 
+	/**
+	 * @param dimension
+	 * @return
+	 */
+	public boolean isAlone(EDimension dim) {
+		return getNeighbor(EDirection.getPrimary(dim)) == null
+				&& getNeighbor(EDirection.getPrimary(dim).opposite()) == null;
+	}
 }

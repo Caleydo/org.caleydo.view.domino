@@ -283,9 +283,16 @@ public class Block extends GLElementContainer implements IGLLayout2 {
 	 * @param node
 	 * @param dim
 	 */
-	public void sortByMe(Node node, EDimension dim) {
+	public void sortBy(Node node, EDimension dim) {
 		LinearBlock block = getBlock(node, dim.opposite());
 		block.sortBy(node);
+
+		updateBlock(block);
+	}
+
+	public void limitTo(Node node, EDimension dim) {
+		LinearBlock block = getBlock(node, dim.opposite());
+		block.limitDataTo(node);
 
 		updateBlock(block);
 	}
@@ -366,6 +373,18 @@ public class Block extends GLElementContainer implements IGLLayout2 {
 	public void setContentPickable(boolean pickable) {
 		for (Node n : nodes())
 			n.setContentPickable(pickable);
+	}
+
+	/**
+	 * @param node
+	 * @param dimension
+	 * @return
+	 */
+	public Color getStateColor(Node node, EDimension dim) {
+		LinearBlock block = getBlock(node, dim.opposite());
+		if (block == null)
+			return Color.BLACK;
+		return block.getStateColor(node);
 	}
 
 }

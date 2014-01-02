@@ -8,14 +8,20 @@ package org.caleydo.view.domino.api.model.typed;
 import static org.caleydo.view.domino.api.model.typed.TypedCollections.INVALID_ID;
 
 import java.util.AbstractSet;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Set;
 
 import org.caleydo.core.id.IDType;
+import org.caleydo.core.id.IIDTypeMapper;
+import org.caleydo.core.util.collection.Pair;
 
 import com.google.common.base.Function;
 import com.google.common.base.Functions;
+import com.google.common.cache.LoadingCache;
 import com.google.common.collect.Collections2;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
@@ -78,6 +84,14 @@ public class MultiTypedSet extends AbstractSet<int[]> implements IMultiTypedColl
 		return idTypes;
 	}
 
+	public boolean hasIDType(IDType idType) {
+		for (IDType type : idTypes) {
+			if (type == idType)
+				return true;
+		}
+		return false;
+	}
+
 	private Function<int[], Integer> slice(final int index) {
 		return new Function<int[], Integer>() {
 			@Override
@@ -127,6 +141,70 @@ public class MultiTypedSet extends AbstractSet<int[]> implements IMultiTypedColl
 
 	public static MultiTypedSet single(TypedSet set) {
 		return new MultiTypedSet(new IDType[] { set.getIdType() }, new Single(set));
+	}
+
+
+	/**
+	 * expands the current {@link MultiTypedSet} to be able to represent all given id types
+	 *
+	 * @param types
+	 * @return a new set
+	 */
+	public MultiTypedSet expand(Collection<? extends IHasIDType> types) {
+		List<IDType> toAdd = new ArrayList<>();
+		for (IHasIDType idtype : types) {
+			if (toAdd.contains(idtype.getIdType()) &&!hasIDType(idtype.getIdType()))
+				toAdd.add(idtype.getIdType());
+		}
+		if (toAdd.isEmpty()) // nothing missing
+			return this;
+
+		final LoadingCache<Pair<IDType, IDType>, IIDTypeMapper<Integer, Integer>> cache = MappingCaches.create();
+		// select the best mapping (in the best case a 1:1 mapping)
+		List<Pair<Integer, IIDTypeMapper<Integer, Integer>>> converters = new ArrayList<>(toAdd.size());
+		for (IDType idType : toAdd) {
+			IDType source = selectBestIDType(cache, idType);
+			int index = index(source);
+			converters.add(Pair.make(index, cache.getUnchecked(Pair.make(source, idType))));
+		}
+
+		final int oldLength = idTypes.length;
+		final int newLength =oldLength+toAdd.size();
+
+		IDType[] r  = Arrays.copyOf(idTypes, newLength);
+		for(int i = oldLength; i < newLength; ++i)
+			r[i] = toAdd.get(i-oldLength);
+
+		ImmutableSet.Builder<int[]> r_s = ImmutableSet.builder();
+		for(int[] entry : this.ids) {
+			int[] new_ = Arrays.copyOf(entry, newLength);
+			// map all missing entries
+			for(int i = oldLength; i < newLength; ++i) {
+				int j = i - oldLength;
+				Pair<Integer, IIDTypeMapper<Integer, Integer>> p = converters.get(j);
+				new_[i] = TypedCollections.mapSingle(p.getSecond(), new_[p.getFirst()]);
+			}
+			r_s.add(new_);
+		}
+		return new MultiTypedSet(r, r_s.build());
+	}
+
+	/**
+	 * @param cache
+	 * @param idType
+	 */
+	private IDType selectBestIDType(LoadingCache<Pair<IDType, IDType>, IIDTypeMapper<Integer, Integer>> cache,
+			IDType idType) {
+		IIDTypeMapper<Integer, Integer> mapper;
+		for (IDType act : idTypes) {
+			mapper = cache.getUnchecked(Pair.make(act, idType));
+			if (mapper == null)
+				continue;
+			if (mapper.isOne2OneMapping())
+				return act;
+		}
+		return idTypes[0]; // any is possible
+
 	}
 
 	@Override

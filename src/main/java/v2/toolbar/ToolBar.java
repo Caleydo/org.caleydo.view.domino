@@ -108,6 +108,13 @@ public class ToolBar extends GLElementContainer {
 		private void createMulti() {
 			Node node = getSingleNode(selection);
 			EDimension dim = node == null ? null : node.getSingleGroupingDimension();
+
+			if (node != null && node.has(EDimension.DIMENSION) && !node.isAlone(EDimension.DIMENSION)) {
+				addButton("Limit Dim", Resources.ICON_LIMIT_DATA_DIM);
+			}
+			if (node != null && node.has(EDimension.RECORD) && !node.isAlone(EDimension.RECORD)) {
+				addButton("Limit Rec", Resources.ICON_LIMIT_DATA_REC);
+			}
 			if (dim != null)
 				addButton("Merge Groups", dim.select(Resources.ICON_MERGE_DIM, Resources.ICON_MERGE_REC));
 			if (node != null && node.size() == selection.size()) {
@@ -135,6 +142,12 @@ public class ToolBar extends GLElementContainer {
 			}
 			if (node.has(EDimension.RECORD)) {
 				addButton("Sort Rec", Resources.ICON_SORT_REC);
+			}
+			if (node.has(EDimension.DIMENSION) && !node.isAlone(EDimension.DIMENSION)) {
+				addButton("Limit Dim", Resources.ICON_LIMIT_DATA_DIM);
+			}
+			if (node.has(EDimension.RECORD) && !node.isAlone(EDimension.RECORD)) {
+				addButton("Limit Rec", Resources.ICON_LIMIT_DATA_REC);
 			}
 			if (group.canBeRemoved())
 				addButton("Remove Group", Resources.ICON_DELETE);
@@ -170,6 +183,12 @@ public class ToolBar extends GLElementContainer {
 				break;
 			case "Sort Rec":
 				node.getNode().sortByMe(EDimension.RECORD);
+				break;
+			case "Limit Dim":
+				node.getNode().limitToMe(EDimension.DIMENSION);
+				break;
+			case "Limit Rec":
+				node.getNode().limitToMe(EDimension.RECORD);
 				break;
 			case "Remove Node":
 				node.getNode().removeMe();

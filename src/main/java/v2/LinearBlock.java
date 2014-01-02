@@ -12,12 +12,15 @@ import java.util.AbstractCollection;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.caleydo.core.data.collection.EDimension;
 import org.caleydo.core.id.IDType;
+import org.caleydo.core.util.color.Color;
 import org.caleydo.core.view.opengl.layout2.GLElement;
 import org.caleydo.core.view.opengl.layout2.geom.Rect;
 import org.caleydo.core.view.opengl.layout2.layout.IGLLayoutElement;
@@ -50,7 +53,9 @@ public class LinearBlock extends AbstractCollection<Node> {
 	private final EDimension dim;
 	private final List<Node> nodes = new ArrayList<>();
 
-	private List<Node> sortCriteria = new ArrayList<>();
+	private List<Node> sortCriteria = new ArrayList<>(2);
+	private Set<Node> dataSelection = new HashSet<>(2);
+
 	private boolean stratified = true;
 	private MultiTypedList data;
 
@@ -58,6 +63,7 @@ public class LinearBlock extends AbstractCollection<Node> {
 		this.dim = dim;
 		this.nodes.add(node);
 		this.sortCriteria.add(node);
+		this.dataSelection.add(node);
 	}
 
 	public boolean isStratisfied() {
@@ -141,6 +147,7 @@ public class LinearBlock extends AbstractCollection<Node> {
 		}
 		shift(index, nodes.size(), shift);
 		sortCriteria.remove(node);
+		dataSelection.remove(node);
 		if (sortCriteria.isEmpty() && !nodes.isEmpty())
 			sortCriteria.add(nodes.get(0));
 		resort();
@@ -257,14 +264,44 @@ public class LinearBlock extends AbstractCollection<Node> {
 	public void update() {
 		if (nodes.isEmpty())
 			return;
+		MultiTypedSet union;
+
+		if (dataSelection.isEmpty()) {
+			union = unionAll();
+		} else {
+			union = intersectSome();
+		}
+		resortImpl(union);
+	}
+
+	/**
+	 * @return
+	 */
+	private MultiTypedSet intersectSome() {
+		Collection<TypedSet> sets = Collections2.transform(dataSelection, new Function<Node, TypedSet>() {
+			@Override
+			public TypedSet apply(Node input) {
+				return input.getGroups(dim.opposite());
+			}
+		});
+		Collection<TypedSet> all = Collections2.transform(nodes, new Function<Node, TypedSet>() {
+			@Override
+			public TypedSet apply(Node input) {
+				return input.getGroups(dim.opposite());
+			}
+		});
+		MultiTypedSet intersect = TypedSets.intersect(sets.toArray(new TypedSet[0]));
+		return intersect.expand(all);
+	}
+
+	private MultiTypedSet unionAll() {
 		Collection<TypedSet> sets = Collections2.transform(nodes, new Function<Node, TypedSet>() {
 			@Override
 			public TypedSet apply(Node input) {
 				return input.getGroups(dim.opposite());
 			}
 		});
-		MultiTypedSet union = TypedSets.unionDeep(sets.toArray(new TypedSet[0]));
-		resortImpl(union);
+		return TypedSets.unionDeep(sets.toArray(new TypedSet[0]));
 	}
 
 	private List<ITypedComparator> asComparators(final EDimension dim) {
@@ -376,5 +413,34 @@ public class LinearBlock extends AbstractCollection<Node> {
 		return true;
 	}
 
+	public void limitDataTo(Node node) {
+		if (nodes.size() == 1) {
+			return;
+		}
+		// add if it was not part of
+		if (!dataSelection.remove(node))
+			dataSelection.add(node);
+		update();
+		apply();
+	}
+
+	/**
+	 * @param node
+	 * @return
+	 */
+	public Color getStateColor(Node node) {
+		int index = sortCriteria.indexOf(node);
+		boolean limited = dataSelection.contains(node);
+		boolean stratified = index == 0 && isStratisfied();
+		boolean sorted = index != -1;
+		Color c = Color.GRAY;
+		if (stratified) {
+			c = Color.RED;
+		} else if (sorted)
+			c = Color.MAGENTA;
+		if (limited)
+			c = c.darker();
+		return c;
+	}
 
 }
