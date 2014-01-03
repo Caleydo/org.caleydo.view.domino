@@ -5,6 +5,7 @@
  *******************************************************************************/
 package v2;
 
+import java.util.HashSet;
 import java.util.Set;
 
 import org.caleydo.core.data.collection.EDimension;
@@ -55,6 +56,7 @@ public class NodeGroup extends GLElementDecorator implements ILabeled, IDragGLSo
 	private TypedListGroup recData;
 
 	private final PickingBarrier barrier;
+	private boolean armed;
 
 
 	public NodeGroup(Node parent, IDataValues data) {
@@ -121,13 +123,19 @@ public class NodeGroup extends GLElementDecorator implements ILabeled, IDragGLSo
 			repaint();
 			break;
 		case CLICKED:
-			IMouseEvent event = (IMouseEvent) pick;
-			boolean ctrl = event.isCtrlDown();
-			if (domino.isSelected(SelectionType.SELECTION, this))
-				domino.clear(SelectionType.SELECTION, ctrl ? this : null);
-			else
-				domino.select(SelectionType.SELECTION, this, ctrl);
-			repaint();
+			armed = true;
+			break;
+		case MOUSE_RELEASED:
+			if (armed) {
+				IMouseEvent event = (IMouseEvent) pick;
+				boolean ctrl = event.isCtrlDown();
+				if (domino.isSelected(SelectionType.SELECTION, this))
+					domino.clear(SelectionType.SELECTION, ctrl ? this : null);
+				else
+					domino.select(SelectionType.SELECTION, this, ctrl);
+				repaint();
+				armed = false;
+			}
 			break;
 		case DOUBLE_CLICKED:
 			getNode().selectAll();
@@ -216,10 +224,29 @@ public class NodeGroup extends GLElementDecorator implements ILabeled, IDragGLSo
 	public IDragInfo startSWTDrag(IDragEvent event) {
 		final Domino domino = findDomino();
 		Set<NodeGroup> selected = domino.getSelection(SelectionType.SELECTION);
+		selected = new HashSet<>(selected);
+		selected.add(this);
+		Node single = getSingleNode(selected);
+		if (single != null)
+			return new NodeDragInfo(event.getMousePos(), single);
 		Set<NodeGroup> s = compress(selected);
 		if (s.size() <= 1)
 			return new NodeGroupDragInfo(event.getMousePos(), this);
 		return new MultiNodeGroupDragInfo(event.getMousePos(), this, s);
+	}
+
+	private static Node getSingleNode(Set<NodeGroup> selection) {
+		if (selection.isEmpty())
+			return null;
+		Node node = selection.iterator().next().getNode();
+		for (NodeGroup group : selection) {
+			Node n = group.getNode();
+			if (node != n)
+				return null;
+		}
+		if (node.size() == selection.size()) // all of the element
+			return node;
+		return null;
 	}
 
 	/**
@@ -238,7 +265,7 @@ public class NodeGroup extends GLElementDecorator implements ILabeled, IDragGLSo
 
 	@Override
 	public void onDropped(IDnDItem info) {
-		if (info.getType() == EDnDType.MOVE) {
+		if (info.getType() == EDnDType.MOVE && info.getInfo() instanceof NodeGroupDragInfo) {
 			parent.removeGroup(this);
 		}
 	}

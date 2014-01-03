@@ -21,6 +21,7 @@ import org.caleydo.core.util.base.Labels;
 import org.caleydo.core.util.collection.Pair;
 import org.caleydo.core.util.color.Color;
 import org.caleydo.core.view.opengl.canvas.IGLMouseListener.IMouseEvent;
+import org.caleydo.core.view.opengl.layout2.GLElement;
 import org.caleydo.core.view.opengl.layout2.GLElementContainer;
 import org.caleydo.core.view.opengl.layout2.GLGraphics;
 import org.caleydo.core.view.opengl.layout2.dnd.EDnDType;
@@ -72,6 +73,8 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 	private EProximityMode proximityMode = EProximityMode.ATTACHED;
 
 	private Vec2f shift = new Vec2f();
+
+	private boolean highlightDropArea;
 
 	public Node(IDataValues data) {
 		this(data, data.getLabel(), data.getDefaultGroups(EDimension.DIMENSION), data
@@ -126,6 +129,13 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 		g.drawLine(0, 0, 0, h).drawLine(w, 0, w, h);
 		g.lineWidth(1);
 		super.renderImpl(g, w, h);
+
+		if (highlightDropArea) {
+			g.incZ().incZ().incZ();
+			// test
+
+			g.decZ().decZ().decZ();
+		}
 	}
 
 	@Override
@@ -136,6 +146,7 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 			break;
 		case MOUSE_OUT:
 			context.getMouseLayer().removeDropTarget(this);
+			highlightDropArea = false;
 			break;
 		case MOUSE_WHEEL:
 			findBlock().zoom((IMouseEvent) pick, this);
@@ -164,22 +175,34 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 	}
 
 	@Override
+	public void onItemChanged(IDnDItem item) {
+		if (!highlightDropArea) {
+			highlightDropArea = true;
+			repaint();
+		}
+	}
+
+	@Override
 	public EDnDType defaultSWTDnDType(IDnDItem item) {
 		return EDnDType.MOVE;
 	}
 
 	@Override
 	public void onDrop(IDnDItem item) {
+		Vec2f mousePos = toRelative(item.getMousePos());
+
 		IDragInfo info = item.getInfo();
 		if (info instanceof NodeGroupDragInfo) {
 			NodeGroupDragInfo g = (NodeGroupDragInfo) info;
-			dropNode(g.getGroup().toNode());
+			dropNode(g.getGroup().toNode(), mousePos);
 		} else if (info instanceof NodeDragInfo) {
 			NodeDragInfo g = (NodeDragInfo) info;
-			dropNode(item.getType() == EDnDType.COPY ? new Node(g.getNode()) : g.getNode());
+			dropNode(item.getType() == EDnDType.COPY ? new Node(g.getNode()) : g.getNode(), mousePos);
+		} else if (info instanceof MultiNodeGroupDragInfo) {
+			// won't work
 		} else {
 			Node node = Nodes.extract(item);
-			dropNode(node);
+			dropNode(node, mousePos);
 		}
 	}
 
@@ -187,23 +210,24 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 
 	/**
 	 * @param node
+	 * @param mousePos
 	 */
-	private void dropNode(Node node) {
+	private void dropNode(Node node, Vec2f mousePos) {
 		Domino domino = findParent(Domino.class);
 		domino.removeNode(node);
 		EDimension dim = getSingleGroupingDimension();
 		TypedGroupList m = node.getData(dim);
-		integrate(m);
+		integrate(m, toSetType(mousePos.y(), getSize().y()));
+	}
+
+	private final ESetOperation toSetType(float v, float total) {
+		// TODO Auto-generated method stub
+		return ESetOperation.OR;
 	}
 
 	public void removeMe() {
 		Domino domino = findParent(Domino.class);
 		domino.removeNode(this);
-	}
-
-	@Override
-	public void onItemChanged(IDnDItem item) {
-
 	}
 
 	@Override
@@ -269,7 +293,12 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 
 			}
 		}
-		this.asList().subList(n, size()).clear(); // clear rest
+		{
+			final List<GLElement> subList = this.asList().subList(n, size());
+			for (NodeGroup g : Iterables.filter(subList, NodeGroup.class))
+				g.prepareRemoveal();
+			subList.clear(); // clear rest
+		}
 
 		updateSize(dimData, recData);
 		relayout();
@@ -281,7 +310,7 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 		setSize(w + shift.x(), h + shift.y());
 	}
 
-	public void integrate(TypedGroupList group) {
+	public void integrate(TypedGroupList group, ESetOperation setOperation) {
 		EDimension dim = getSingleGroupingDimension();
 		if (dim == null)
 			return;
