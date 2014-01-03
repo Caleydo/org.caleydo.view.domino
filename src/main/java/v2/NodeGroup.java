@@ -5,6 +5,8 @@
  *******************************************************************************/
 package v2;
 
+import gleem.linalg.Vec2f;
+
 import java.util.HashSet;
 import java.util.Set;
 
@@ -254,9 +256,30 @@ public class NodeGroup extends GLElementDecorator implements ILabeled, IDragGLSo
 	 * @return
 	 */
 	private Set<NodeGroup> compress(Set<NodeGroup> selected) {
-		// FIXME Set<NodeGroup>
-		return selected;
-		// return Collections.emptySet();
+		Set<NodeGroup> linked = new HashSet<>(selected.size());
+		compress(this, selected, linked, null);
+		return linked;
+	}
+
+
+	private void compress(NodeGroup n, Set<NodeGroup> selected, Set<NodeGroup> linked, EDirection commingFrom) {
+		linked.add(n);
+		selected.remove(n);
+		for (EDirection dir : EDirection.values()) {
+			if (dir == commingFrom)
+				continue;
+			NodeGroup f = n.findNeigbhor(dir, selected);
+			if (f != null) {
+				compress(f, selected, linked, dir);
+			}
+		}
+	}
+
+	public NodeGroup findNeigbhor(EDirection dir, Set<NodeGroup> selected) {
+		NodeGroup g = this;
+		while (g != null && !selected.contains(g))
+			g = g.getNeighbor(dir);
+		return g;
 	}
 
 	private Domino findDomino() {
@@ -287,7 +310,10 @@ public class NodeGroup extends GLElementDecorator implements ILabeled, IDragGLSo
 	 * @return
 	 */
 	public Node toNode() {
-		return new Node(data, getLabel(), new TypedGroupSet(dimData.asSet()), new TypedGroupSet(recData.asSet()));
+		Node n = new Node(data, getLabel(), new TypedGroupSet(dimData.asSet()), new TypedGroupSet(recData.asSet()));
+		Vec2f shift = getNode().getShiftRatio(this);
+		n.shiftSize(shift.x(), shift.y(), true);
+		return n;
 	}
 
 	/**

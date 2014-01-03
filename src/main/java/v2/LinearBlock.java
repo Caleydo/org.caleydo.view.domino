@@ -178,7 +178,7 @@ public class LinearBlock extends AbstractCollection<Node> {
 		node.setNeighbor(dir, old);
 		{
 			Vec2f s = neighbor.getShift();
-			node.shiftSize(dim.select(0, s.x()), dim.select(s.y(), 0)); // synchronize the other dimension
+			node.shiftSize(dim.select(0, s.x()), dim.select(s.y(), 0), true); // synchronize the other dimension
 		}
 
 		Rect bounds = neighbor.getRectBounds();

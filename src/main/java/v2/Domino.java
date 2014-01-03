@@ -7,7 +7,6 @@ package v2;
 
 import gleem.linalg.Vec2f;
 
-import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
@@ -178,30 +177,40 @@ public class Domino extends GLElementContainer implements IDropGLTarget, IPickin
 		} else if (info instanceof NodeDragInfo) {
 			NodeDragInfo g = (NodeDragInfo) info;
 			dropNode(item, item.getType() == EDnDType.COPY ? new Node(g.getNode()) : g.getNode());
-		} else if (info instanceof NodeGroupDragInfo) {
+		} else if (info instanceof MultiNodeGroupDragInfo) {
 			MultiNodeGroupDragInfo g = (MultiNodeGroupDragInfo) info;
-			dropNode(item, g.getPrimary().toNode(), g.getGroups());
+			Node start = g.getPrimary().toNode();
+			Block b = dropNode(item, start);
+			rebuild(b, start, g.getPrimary(), g.getGroups(), null);
 		} else {
 			Node node = Nodes.extract(item);
 			dropNode(item, node);
 		}
 	}
 
-	private void dropNode(IDnDItem item, Node node) {
-		dropNode(item, node, Collections.<NodeGroup> emptySet());
+	private void rebuild(Block b, Node asNode, NodeGroup act, Set<NodeGroup> items, EDirection commingFrom) {
+		items.remove(act);
+		for (EDirection dir : EDirection.values()) {
+			if (dir == commingFrom)
+				continue;
+			NodeGroup next = act.findNeigbhor(dir, items);
+			if (next == null)
+				continue;
+			Node nextNode = next.toNode();
+			b.addNode(asNode, dir, nextNode);
+			rebuild(b, nextNode, next, items, dir);
+		}
 	}
 
-	private void dropNode(IDnDItem item, Node node, Set<NodeGroup> others) {
+	private Block dropNode(IDnDItem item, Node node) {
 		removeNode(node);
 		Block b = new Block(node);
 		Vec2f pos = toRelative(item.getMousePos());
 		b.setLocation(pos.x(), pos.y());
 		nodes.add(b);
-		for (NodeGroup g : others) {
-
-		}
 		removePlaceholder();
 		bands.relayout();
+		return b;
 	}
 
 	/**

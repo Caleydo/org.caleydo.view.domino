@@ -43,7 +43,9 @@ public class BandLines {
 		if (aDim == bDim) {
 			if (aDim == EDimension.RECORD) {
 				Pair<List<Vec2f>, List<Vec2f>> r = createParallel(rot90(a), rot90(b));
-				return Pair.make(rot90(r.getFirst()), rot90(r.getSecond()));
+				if (r != null)
+					return Pair.make(rot90(r.getFirst()), rot90(r.getSecond()));
+				return null;
 			} else {
 				return createParallel(a, b);
 			}

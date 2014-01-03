@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
 import org.apache.commons.lang.StringUtils;
 import org.caleydo.core.data.collection.EDimension;
@@ -51,6 +52,7 @@ import v2.data.IDataValues;
 import com.google.common.collect.Collections2;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
+import com.google.common.collect.Sets;
 
 /**
  * @author Samuel Gratzl
@@ -206,7 +208,17 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 		}
 	}
 
-
+	public Set<EDimension> dimensions() {
+		boolean dim = has(EDimension.DIMENSION);
+		boolean rec = has(EDimension.RECORD);
+		if (dim && rec)
+			return Sets.immutableEnumSet(EDimension.DIMENSION, EDimension.RECORD);
+		if (dim && !rec)
+			return Sets.immutableEnumSet(EDimension.DIMENSION);
+		if (!dim && rec)
+			return Sets.immutableEnumSet(EDimension.RECORD);
+		return Collections.emptySet();
+	}
 
 	/**
 	 * @param node
@@ -712,7 +724,7 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 	 * @param x
 	 * @param y
 	 */
-	public void shiftSize(float x, float y) {
+	public void shiftSize(float x, float y, boolean set) {
 		Vec2f s = getSize().copy();
 		Vec2f b = s.copy();
 		s.setX(Math.max(s.x() + x, 10));
@@ -720,7 +732,10 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 		setSize(s.x(), s.y());
 		Vec2f act_shift = s.minus(b);
 		setLayoutData(s.minus(b));
-		this.shift.add(act_shift);
+		if (set)
+			this.shift.set(act_shift);
+		else
+			this.shift.add(act_shift);
 		relayout();
 	}
 
@@ -738,5 +753,15 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 	 */
 	public Vec2f getShift() {
 		return shift;
+	}
+
+	/**
+	 * @param nodeGroup
+	 * @return
+	 */
+	public Vec2f getShiftRatio(NodeGroup group) {
+		float xr = ((float) group.getData(EDimension.DIMENSION).size()) / dimData.size();
+		float yr = ((float) group.getData(EDimension.RECORD).size()) / recData.size();
+		return new Vec2f(shift.x() * xr, shift.y() * yr);
 	}
 }

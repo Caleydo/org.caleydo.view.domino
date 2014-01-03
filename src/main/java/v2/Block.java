@@ -138,7 +138,7 @@ public class Block extends GLElementContainer implements IGLLayout2 {
 				shiftToZero();
 			}
 		} else {
-			just.shiftSize(x, y);
+			just.shiftSize(x, y, false);
 			Set<LinearBlock> b = filterSingleBlocks();
 			if (!b.isEmpty()) {
 				for (LinearBlock bi : b) {
@@ -185,7 +185,7 @@ public class Block extends GLElementContainer implements IGLLayout2 {
 	}
 
 	private void shiftNode(Node n, float x, float y) {
-		n.shiftSize(x, y);
+		n.shiftSize(x, y, false);
 	}
 
 	private void shiftBlocks(LinearBlock block, Node start, Set<LinearBlock> b) {
