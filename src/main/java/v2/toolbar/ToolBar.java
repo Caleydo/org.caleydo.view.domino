@@ -143,10 +143,10 @@ public class ToolBar extends GLElementContainer {
 			if (node.has(EDimension.RECORD)) {
 				addButton("Sort Rec", Resources.ICON_SORT_REC);
 			}
-			if (node.has(EDimension.DIMENSION) && !node.isAlone(EDimension.DIMENSION)) {
+			if (node.has(EDimension.DIMENSION) && !node.isAlone(EDimension.RECORD)) {
 				addButton("Limit Dim", Resources.ICON_LIMIT_DATA_DIM);
 			}
-			if (node.has(EDimension.RECORD) && !node.isAlone(EDimension.RECORD)) {
+			if (node.has(EDimension.RECORD) && !node.isAlone(EDimension.DIMENSION)) {
 				addButton("Limit Rec", Resources.ICON_LIMIT_DATA_REC);
 			}
 			if (group.canBeRemoved())

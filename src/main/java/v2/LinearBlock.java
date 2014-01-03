@@ -139,6 +139,15 @@ public class LinearBlock extends AbstractCollection<Node> {
 		this.nodes.remove(index);
 		if (nodes.isEmpty())
 			return;
+		// update neighbors
+		if (index == 0) {
+			nodes.get(0).setNeighbor(EDirection.getPrimary(dim), null);
+		} else if (index >= nodes.size()) {
+			nodes.get(index - 1).setNeighbor(EDirection.getPrimary(dim).opposite(), null);
+		} else {
+			nodes.get(index - 1).setNeighbor(EDirection.getPrimary(dim).opposite(), nodes.get(index));
+		}
+
 		Vec2f shift;
 		if (dim.isHorizontal()) {
 			shift = new Vec2f(-node.getSize().x(), 0);
@@ -418,8 +427,10 @@ public class LinearBlock extends AbstractCollection<Node> {
 			return;
 		}
 		// add if it was not part of
-		if (!dataSelection.remove(node))
+		if (!dataSelection.remove(node)) {
+			dataSelection.clear();
 			dataSelection.add(node);
+		}
 		update();
 		apply();
 	}

@@ -17,6 +17,7 @@ import org.caleydo.core.view.opengl.layout.Column.VAlign;
 import org.caleydo.core.view.opengl.layout2.GLElement;
 import org.caleydo.core.view.opengl.layout2.GLElementDecorator;
 import org.caleydo.core.view.opengl.layout2.GLGraphics;
+import org.caleydo.core.view.opengl.layout2.IGLElementContext;
 import org.caleydo.core.view.opengl.layout2.dnd.EDnDType;
 import org.caleydo.core.view.opengl.layout2.dnd.IDnDItem;
 import org.caleydo.core.view.opengl.layout2.dnd.IDragGLSource;
@@ -70,7 +71,16 @@ public class NodeGroup extends GLElementDecorator implements ILabeled, IDragGLSo
 		content.setBounds(Node.BORDER, Node.BORDER, w - Node.BORDER * 2, h - Node.BORDER * 2);
 	}
 
+	@Override
+	protected void init(IGLElementContext context) {
+		super.init(context);
+		if (dimData != null && recData != null)
+			build();
+	}
+
 	public void build() {
+		if (context == null)
+			return;
 		Builder b = GLElementFactoryContext.builder();
 		data.fill(b, dimData, recData);
 		b.put(EDetailLevel.class, EDetailLevel.HIGH);

@@ -63,7 +63,7 @@ public class EntityTypeSelector extends GLElementContainer implements ISelection
 	/**
 	 * @return
 	 */
-	private static Set<IDCategory> findAllUsedIDCategories() {
+	public static Set<IDCategory> findAllUsedIDCategories() {
 		ImmutableSet.Builder<IDCategory> b = ImmutableSortedSet.orderedBy(new Comparator<IDCategory>() {
 			@Override
 			public int compare(IDCategory o1, IDCategory o2) {

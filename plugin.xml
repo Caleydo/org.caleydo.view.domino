@@ -60,4 +60,12 @@
             class="org.caleydo.view.domino.internal.dnd.PerspectiveDragInfo$Serializer">
       </serializer>
    </extension>
+   <extension
+         point="org.caleydo.ui.GLElementFactory">
+      <factory
+            factory="v2.ui.LabelElementFactory"
+            icon="resources/icons/icon.png"
+            name="Labels">
+      </factory>
+   </extension>
 </plugin>

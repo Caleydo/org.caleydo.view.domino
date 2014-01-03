@@ -18,7 +18,8 @@ import com.google.common.collect.ImmutableSet;
  *
  */
 public enum EProximityMode implements Predicate<String> {
-	ATTACHED("heatmap"), DETACHED("distribution.hist", "boxandwhiskers", "kaplanmaier"), FREE("distribution.pie");
+	ATTACHED("heatmap", "labels"), DETACHED("distribution.hist", "boxandwhiskers", "kaplanmaier"), FREE(
+			"distribution.pie");
 
 	private final Set<String> include;
 

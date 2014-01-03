@@ -40,6 +40,7 @@ import org.caleydo.view.domino.api.model.typed.MappingCaches;
 import org.caleydo.view.domino.api.model.typed.TypedCollections;
 import org.caleydo.view.domino.api.model.typed.TypedGroupList;
 import org.caleydo.view.domino.api.model.typed.TypedGroupSet;
+import org.caleydo.view.domino.api.model.typed.TypedList;
 import org.caleydo.view.domino.api.model.typed.TypedListGroup;
 import org.caleydo.view.domino.api.model.typed.TypedSet;
 import org.caleydo.view.domino.api.model.typed.TypedSetGroup;
@@ -47,6 +48,7 @@ import org.caleydo.view.domino.api.model.typed.TypedSetGroup;
 import v2.data.IDataValues;
 
 import com.google.common.collect.Collections2;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 
 /**
@@ -90,8 +92,19 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 		this.label = label;
 		this.dimGroups = dimGroups;
 		this.recGroups = recGroups;
-		setData(dimGroups.asList(), recGroups.asList());
+		setData(fixList(dimGroups), fixList(recGroups));
 		init();
+	}
+
+	/**
+	 * @param dimGroups2
+	 * @return
+	 */
+	private TypedGroupList fixList(TypedGroupSet data) {
+		if (data.isEmpty())
+			return TypedGroupList.createUngrouped(new TypedList(ImmutableList.of(TypedCollections.INVALID_ID), data
+					.getIdType()));
+		return data.asList();
 	}
 
 	/**
