@@ -201,7 +201,7 @@ public class LinearBlock extends AbstractCollection<Node> {
 			this.nodes.add(index + 1, node);
 
 		sortCriteria.add(node);
-		resort();
+		update();
 		apply();
 	}
 

@@ -153,8 +153,9 @@ public class MultiTypedSet extends AbstractSet<int[]> implements IMultiTypedColl
 	public MultiTypedSet expand(Collection<? extends IHasIDType> types) {
 		List<IDType> toAdd = new ArrayList<>();
 		for (IHasIDType idtype : types) {
-			if (toAdd.contains(idtype.getIdType()) &&!hasIDType(idtype.getIdType()))
-				toAdd.add(idtype.getIdType());
+			final IDType t = idtype.getIdType();
+			if (!toAdd.contains(t) && !hasIDType(t))
+				toAdd.add(t);
 		}
 		if (toAdd.isEmpty()) // nothing missing
 			return this;

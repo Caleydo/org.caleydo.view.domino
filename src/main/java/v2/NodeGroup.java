@@ -75,6 +75,7 @@ public class NodeGroup extends GLElementDecorator implements ILabeled, IDragGLSo
 		data.fill(b, dimData, recData);
 		b.put(EDetailLevel.class, EDetailLevel.HIGH);
 		b.set("heatmap.blurNotSelected");
+		b.set("heatmap.forceTextures");
 		ImmutableList<GLElementSupplier> extensions = GLElementFactories.getExtensions(b.build(), "domino."
  + data.getExtensionID(), parent.getProximityMode());
 		GLElementFactorySwitcher s = new GLElementFactorySwitcher(extensions, ELazyiness.DESTROY);
