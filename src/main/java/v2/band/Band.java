@@ -7,23 +7,36 @@ package v2.band;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.BitSet;
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
+import org.apache.commons.lang.StringUtils;
 import org.caleydo.core.data.collection.EDimension;
 import org.caleydo.core.data.selection.SelectionType;
 import org.caleydo.core.id.IDType;
 import org.caleydo.core.util.base.ILabeled;
 import org.caleydo.core.util.color.Color;
 import org.caleydo.core.view.opengl.layout2.GLGraphics;
+import org.caleydo.core.view.opengl.layout2.manage.GLLocation;
 import org.caleydo.core.view.opengl.layout2.manage.GLLocation.ILocator;
 import org.caleydo.core.view.opengl.layout2.util.PickingPool;
 import org.caleydo.view.domino.api.model.typed.MultiTypedSet;
+import org.caleydo.view.domino.api.model.typed.TypedCollections;
 import org.caleydo.view.domino.api.model.typed.TypedGroupList;
+import org.caleydo.view.domino.api.model.typed.TypedID;
+import org.caleydo.view.domino.api.model.typed.TypedList;
 import org.caleydo.view.domino.api.model.typed.TypedListGroup;
 import org.caleydo.view.domino.api.model.typed.TypedSet;
 import org.caleydo.view.domino.api.model.typed.TypedSets;
 import org.caleydo.view.domino.spi.model.IBandRenderer.IBandHost;
 import org.caleydo.view.domino.spi.model.IBandRenderer.SourceTarget;
+
+import com.google.common.collect.ImmutableMultimap;
+import com.google.common.collect.ImmutableMultimap.Builder;
+import com.google.common.collect.Multimap;
 
 /**
  * @author Samuel Gratzl
@@ -36,7 +49,7 @@ public class Band implements ILabeled {
 
 	private static final Color color = new Color(180, 212, 231, 32);
 
-	private final BandLine band;
+	private BandLine band;
 	private final MultiTypedSet shared;
 
 	private final TypedGroupList sData;
@@ -46,14 +59,14 @@ public class Band implements ILabeled {
 
 	private final DataRoute overviewRoute;
 	private List<DataRoute> groupRoutes;
-	private List<DataRoute> detailRoutes;
+	private List<ADataRoute> detailRoutes;
 
-	private final ILocator sLocator, tLocator;
+	private ILocator sLocator, tLocator;
 
 	private final EDimension sDim;
 	private final EDimension tDim;
 
-	public Band(String label, BandLine band, MultiTypedSet shared, TypedGroupList sData, TypedGroupList tData,
+	public Band(BandLine band, String label, MultiTypedSet shared, TypedGroupList sData, TypedGroupList tData,
 			ILocator sLocator, ILocator tLocator, EDimension sDim, EDimension tDim) {
 		this.band = band;
 		this.shared = shared;
@@ -73,9 +86,22 @@ public class Band implements ILabeled {
 		}
 	}
 
+	public void updateBand(BandLine band, ILocator sLocator, ILocator tLocator) {
+		this.band = band;
+		this.sLocator = sLocator;
+		this.tLocator = tLocator;
+		overviewRoute.updateBand();
+		if (groupRoutes != null)
+			for (DataRoute r : groupRoutes)
+				r.updateBand();
+		if (detailRoutes != null)
+			for (ADataRoute r : detailRoutes)
+				r.updateBand();
+	}
+
 	public TypedSet getIds(SourceTarget type, int subIndex) {
-		DataRoute r = getRoute(subIndex);
-		return type.select(r.sShared, r.tShared);
+		ADataRoute r = getRoute(subIndex);
+		return r.asSet(type);
 	}
 
 	public EDimension getDimension(SourceTarget type) {
@@ -83,11 +109,11 @@ public class Band implements ILabeled {
 	}
 
 	public String getLabel(int subIndex) {
-		DataRoute r = getRoute(subIndex);
+		ADataRoute r = getRoute(subIndex);
 		return r.getLabel();
 	}
 
-	private DataRoute getRoute(int subIndex) {
+	private ADataRoute getRoute(int subIndex) {
 		switch (mode) {
 		case OVERVIEW:
 			return overviewRoute;
@@ -103,20 +129,27 @@ public class Band implements ILabeled {
 		return getIds(type, subIndex).getIdType();
 	}
 
-	private final class DataRoute implements ILabeled {
+	private abstract class ADataRoute implements ILabeled {
 		private final String rlabel;
-		private final float s1, s2, t1, t2;
-		private final PolyArea base;
-		final TypedSet sShared, tShared;
+		protected final float s1, s2, t1, t2;
+		protected PolyArea base;
 
-		public DataRoute(String label, float s1, float s2, float t1, float t2, TypedSet sShared, TypedSet tShared) {
+		public ADataRoute(String label, float s1, float s2, float t1, float t2) {
 			this.rlabel = label;
 			this.s1 = s1;
 			this.t1 = t1;
 			this.s2 = s2;
 			this.t2 = t2;
-			this.sShared = sShared;
-			this.tShared = tShared;
+			this.base = band.computeArea(s1, s2, t1, t2);
+		}
+
+		/**
+		 * @param type
+		 * @return
+		 */
+		public abstract TypedSet asSet(SourceTarget type);
+
+		public void updateBand() {
 			this.base = band.computeArea(s1, s2, t1, t2);
 		}
 
@@ -128,11 +161,42 @@ public class Band implements ILabeled {
 			return rlabel;
 		}
 
+		protected List<SelectionType> selectionTypes() {
+			return Arrays.asList(SelectionType.MOUSE_OVER, SelectionType.SELECTION);
+		}
+
 		void renderRoute(GLGraphics g, IBandHost host) {
 			g.color(color.r, color.g, color.b, 0.5f);
 			g.fillPolygon(base);
 			if (g.isPickingPass())
 				return;
+
+			renderSelection(g, host);
+
+			g.color(color.darker());
+			g.drawPath(base);
+		}
+
+		protected abstract void renderSelection(GLGraphics g, IBandHost host);
+
+	}
+
+	private final class DataRoute extends ADataRoute {
+		final TypedSet sShared, tShared;
+
+		public DataRoute(String label, float s1, float s2, float t1, float t2, TypedSet sShared, TypedSet tShared) {
+			super(label, s1, s2, t1, t2);
+			this.sShared = sShared;
+			this.tShared = tShared;
+		}
+
+		@Override
+		public TypedSet asSet(SourceTarget type) {
+			return type.select(sShared, tShared);
+		}
+
+		@Override
+		protected void renderSelection(GLGraphics g, IBandHost host) {
 			for (SelectionType type : selectionTypes()) {
 				int sS = host.getSelected(sShared, type).size();
 				int tS = host.getSelected(tShared, type).size();
@@ -148,12 +212,87 @@ public class Band implements ILabeled {
 					}
 				}
 			}
-			g.color(color.darker());
-			g.drawPath(base);
+		}
+	}
+
+	private final class DataListRoute extends ADataRoute {
+		final TypedList sshared;
+		final TypedList tshared;
+
+		public DataListRoute(String label, float s1, float s2, float t1, float t2, TypedList shared, TypedList tshared) {
+			super(label, s1, s2, t1, t2);
+			this.sshared = shared;
+			this.tshared = tshared;
 		}
 
-		private List<SelectionType> selectionTypes() {
-			return Arrays.asList(SelectionType.MOUSE_OVER, SelectionType.SELECTION);
+		@Override
+		public TypedSet asSet(SourceTarget type) {
+			return type.select(sshared, tshared).asSet();
+		}
+
+		@Override
+		protected void renderSelection(GLGraphics g, IBandHost host) {
+			for (SelectionType type : selectionTypes()) {
+				BitSet sS = host.isSelected(sshared, type);
+				if (!sS.isEmpty()) {
+					final Color c = type.getColor();
+					g.color(c.r, c.g, c.b, 0.5f);
+					if (sS.cardinality() == sshared.size())
+						g.fillPolygon(base);
+					else {
+						final float sd = (s2 - s1) / sshared.size();
+						final float td = (t2 - t1) / sshared.size();
+						int last = -1;
+						int size = 0;
+						for (int i = sS.nextSetBit(0); i != -1; i = sS.nextSetBit(i + 1)) {
+							if ((last + 1) != i && size > 0) {
+								int start = last - size + 1;
+								int end = last + 1;
+								g.fillPolygon(band.computeArea(s1 + start * sd, s1 + end * sd, t1 + start * td, t1
+										+ end * td));
+								size = 0;
+							}
+							last = i;
+							size++;
+						}
+						{
+							int start = last - size + 1;
+							int end = last + 1;
+							g.fillPolygon(band.computeArea(s1 + start * sd, s1 + end * sd, t1 + start * td, t1 + end
+									* td));
+						}
+					}
+				}
+			}
+		}
+	}
+
+	private final class DataSingleRoute extends ADataRoute {
+		final TypedID sShared, tShared;
+
+		public DataSingleRoute(String label, float s1, float s2, float t1, float t2, TypedID sShared, TypedID tShared) {
+			super(label, s1, s2, t1, t2);
+			this.sShared = sShared;
+			this.tShared = tShared;
+		}
+
+		@Override
+		public TypedSet asSet(SourceTarget type) {
+			TypedID id = type.select(sShared, tShared);
+			return TypedCollections.singleton(id);
+		}
+
+		@Override
+		protected void renderSelection(GLGraphics g, IBandHost host) {
+			for (SelectionType type : selectionTypes()) {
+				boolean sS = host.isSelected(sShared, type);
+				boolean tS = host.isSelected(tShared, type);
+				if (sS && tS) {
+					final Color c = type.getColor();
+					g.color(c.r, c.g, c.b, 0.5f);
+					g.fillPolygon(base);
+				}
+			}
 		}
 	}
 
@@ -172,7 +311,7 @@ public class Band implements ILabeled {
 			break;
 		case DETAIL:
 			z = g.z();
-			for (DataRoute r : lazyDetailRoutes()) {
+			for (ADataRoute r : lazyDetailRoutes()) {
 				g.incZ(0.0001f);
 				r.renderRoute(g, host);
 			}
@@ -201,7 +340,7 @@ public class Band implements ILabeled {
 			}
 			break;
 		case DETAIL:
-			for (DataRoute r : lazyDetailRoutes()) {
+			for (ADataRoute r : lazyDetailRoutes()) {
 				g.pushName(pickingPool.get(start++));
 				r.renderRoute(g, host);
 				g.popName();
@@ -276,11 +415,146 @@ public class Band implements ILabeled {
 	/**
 	 * @return
 	 */
-	private List<DataRoute> lazyDetailRoutes() {
+	private List<ADataRoute> lazyDetailRoutes() {
 		if (detailRoutes != null)
 			return detailRoutes;
-		// FIXME
+		detailRoutes = new ArrayList<>();
+		// FIXME using locators and data create routes from 1:1
+
+		TypedList s = shared.sliceList(sData.getIdType());
+		final Multimap<Integer, Integer> slookup = computeLookup(s);
+		TypedList t = shared.sliceList(tData.getIdType());
+		final Multimap<Integer, Integer> tlookup = computeLookup(tData);
+
+		Set<Line> lines = new HashSet<>();
+
+		for (int i = 0; i < sData.size(); ++i) {
+			Integer sId = sData.get(i);
+			if (sId.intValue() < 0) {
+				flushLines(lines);
+				continue;
+			}
+			Collection<Integer> indices = slookup.get(sId);
+			if (indices.isEmpty()) {
+				flushLines(lines);
+				continue;
+			}
+			GLLocation slocation = sLocator.apply(i);
+			if (!slocation.isDefined()) {
+				flushLines(lines);
+				continue;
+			}
+			for (int sindex : indices) {
+				Integer tId = t.get(sindex);
+				Collection<Integer> tindices = tlookup.get(tId);
+				if (tindices.isEmpty())
+					continue;
+				for (int tindex : tindices) {
+					GLLocation tlocation = tLocator.apply(tindex);
+					if (!tlocation.isDefined())
+						continue;
+					boolean merged = false;
+					for (Line line : lines) {
+						if (line.merge(slocation, tlocation, sId, tId)) {
+							merged = true;
+							break;
+						}
+					}
+					if (!merged) {
+						lines.add(new Line(slocation, tlocation, sId, tId));
+					}
+				}
+			}
+
+		}
+		flushLines(lines);
 		return detailRoutes;
+	}
+
+	/**
+	 * @param lines
+	 */
+	private void flushLines(Set<Line> lines) {
+		if (lines.isEmpty())
+			return;
+		final IDType s = this.overviewRoute.sShared.getIdType();
+		final IDType t = this.overviewRoute.tShared.getIdType();
+		float sMax = band.getDistance(true);
+		float tMax = band.getDistance(false);
+		for (Line line : lines)
+			detailRoutes.add(line.create(sMax, tMax, s, t));
+		lines.clear();
+	}
+
+	private class Line {
+		private GLLocation sloc;
+		private GLLocation tloc;
+		private final List<Integer> sIds = new ArrayList<>(2);
+		private final List<Integer> tIds = new ArrayList<>(2);
+
+		public Line(GLLocation sloc, GLLocation tloc, Integer sId, Integer tId) {
+			this.sloc = sloc;
+			this.tloc = tloc;
+			this.sIds.add(sId);
+			this.tIds.add(tId);
+		}
+
+		public boolean merge(GLLocation sloc, GLLocation tloc, Integer sId, Integer tId) {
+			if (!c(this.sloc.getOffset2(), sloc.getOffset()) || !c(this.tloc.getOffset2(), tloc.getOffset()))
+				return false;
+
+			this.sIds.add(sId);
+			this.tIds.add(tId);
+
+			this.sloc = new GLLocation(this.sloc.getOffset(), sloc.getOffset2() - this.sloc.getOffset());
+			this.tloc = new GLLocation(this.tloc.getOffset(), tloc.getOffset2() - this.tloc.getOffset());
+			return true;
+		}
+
+		private boolean c(double a, double b) {
+			return Math.abs(a - b) < 0.001;
+		}
+
+		public ADataRoute create(float sMax, float tMax, IDType s, IDType t) {
+			String label = StringUtils.join(sIds, ", ") + " x " + StringUtils.join(tIds, ", ");
+			float s1 = (float) sloc.getOffset() / sMax;
+			float s2 = (float) sloc.getOffset2() / sMax;
+			float t1 = (float) tloc.getOffset() / tMax;
+			float t2 = (float) tloc.getOffset2() / tMax;
+			if (sIds.size() == 1)
+				return new DataSingleRoute(label, s1, s2, t1, t2, new TypedID(sIds.get(0), s), new TypedID(tIds.get(0),
+						t));
+			return new DataListRoute(label, s1, s2, t1, t2, new TypedList(sIds, s), new TypedList(tIds, t));
+		}
+
+	}
+
+	/**
+	 * @param s
+	 * @return
+	 */
+	private Multimap<Integer, Integer> computeLookup(List<Integer> s) {
+		Builder<Integer, Integer> b = ImmutableMultimap.builder();
+		for (int i = 0; i < s.size(); ++i) {
+			b.put(s.get(i), i);
+		}
+		return b.build();
+	}
+
+	private boolean canHaveDetailMode() {
+		return sLocator != null && GLLocation.NO_LOCATOR != sLocator && tLocator != null
+				&& GLLocation.NO_LOCATOR != tLocator;
+	}
+	/**
+	 * @param b
+	 */
+	public void changeLevel(boolean increase) {
+		if ((mode == EBandMode.OVERVIEW && !increase))
+			return;
+		boolean detailsThere = canHaveDetailMode();
+		if ((mode == EBandMode.GROUPS && !detailsThere && increase) || (mode == EBandMode.DETAIL && increase))
+			return;
+		mode = EBandMode.values()[this.mode.ordinal() + (increase ? 1 : -1)];
 	}
 
 }

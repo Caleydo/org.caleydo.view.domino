@@ -333,7 +333,7 @@ public class Block extends GLElementContainer implements IGLLayout2 {
 
 		String label = la.getNode(true).getLabel() + " x " + lb.getNode(false).getLabel();
 
-		Band band = new Band(label, line, shared, sData, tData, sLocator, tLocator, la.getDim().opposite(), lb.getDim()
+		Band band = new Band(line, label, shared, sData, tData, sLocator, tLocator, la.getDim().opposite(), lb.getDim()
 				.opposite());
 		routes.add(band);
 	}

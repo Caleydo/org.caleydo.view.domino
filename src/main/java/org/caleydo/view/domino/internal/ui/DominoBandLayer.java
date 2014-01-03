@@ -7,6 +7,7 @@ package org.caleydo.view.domino.internal.ui;
 
 import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
+import java.util.BitSet;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -31,6 +32,8 @@ import org.caleydo.view.domino.api.model.graph.BandEdge;
 import org.caleydo.view.domino.api.model.graph.DominoGraph;
 import org.caleydo.view.domino.api.model.graph.ISortableNode;
 import org.caleydo.view.domino.api.model.graph.NodeUIState;
+import org.caleydo.view.domino.api.model.typed.TypedID;
+import org.caleydo.view.domino.api.model.typed.TypedList;
 import org.caleydo.view.domino.api.model.typed.TypedSet;
 import org.caleydo.view.domino.internal.ui.BandRoute.BandBlock;
 import org.caleydo.view.domino.spi.model.IBandRenderer;
@@ -245,6 +248,27 @@ public class DominoBandLayer extends DominoBackgroundLayer implements
 		if (active.isEmpty())
 			return new TypedSet(Collections.<Integer> emptySet(), ids.getIdType());
 		return ids.intersect(new TypedSet(active, ids.getIdType()));
+	}
+
+	@Override
+	public boolean isSelected(TypedID id, SelectionType type) {
+		SelectionManager manager = getOrCreate(id.getIdType());
+		return manager.checkStatus(type, id.getId());
+	}
+
+	@Override
+	public BitSet isSelected(TypedList ids, SelectionType type) {
+		if (ids.isEmpty())
+			return new BitSet(0);
+		SelectionManager manager = getOrCreate(ids.getIdType());
+		Set<Integer> active = manager.getElements(type);
+		if (active.isEmpty())
+			return new BitSet(0);
+
+		BitSet r = new BitSet(ids.size());
+		for (int i = 0; i < ids.size(); ++i)
+			r.set(i, active.contains(ids.get(i)));
+		return r;
 	}
 
 	/**

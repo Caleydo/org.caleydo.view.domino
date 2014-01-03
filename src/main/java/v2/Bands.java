@@ -8,6 +8,7 @@ package v2;
 import gleem.linalg.Vec2f;
 
 import java.util.ArrayList;
+import java.util.BitSet;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
@@ -30,6 +31,8 @@ import org.caleydo.core.view.opengl.picking.IPickingLabelProvider;
 import org.caleydo.core.view.opengl.picking.IPickingListener;
 import org.caleydo.core.view.opengl.picking.Pick;
 import org.caleydo.core.view.opengl.picking.PickingListenerComposite;
+import org.caleydo.view.domino.api.model.typed.TypedID;
+import org.caleydo.view.domino.api.model.typed.TypedList;
 import org.caleydo.view.domino.api.model.typed.TypedSet;
 import org.caleydo.view.domino.spi.model.IBandRenderer.IBandHost;
 import org.caleydo.view.domino.spi.model.IBandRenderer.SourceTarget;
@@ -47,9 +50,7 @@ import com.jogamp.common.util.IntIntHashMap.Entry;
  * @author Samuel Gratzl
  *
  */
-public class Bands extends GLElement implements
-		MultiSelectionManagerMixin.ISelectionMixinCallback,
- IBandHost,
+public class Bands extends GLElement implements MultiSelectionManagerMixin.ISelectionMixinCallback, IBandHost,
 		IPickingListener, IPickingLabelProvider, IDragGLSource {
 	@DeepScan
 	private final MultiSelectionManagerMixin selections = new MultiSelectionManagerMixin(this);
@@ -120,6 +121,10 @@ public class Bands extends GLElement implements
 		case MOUSE_OUT:
 			context.getMouseLayer().removeDragSource(this);
 			clear(getRoute(split[0]), split[1], SelectionType.MOUSE_OVER);
+			break;
+		case RIGHT_CLICKED:
+			getRoute(split[0]).changeLevel(true); // FIXME
+			repaint();
 			break;
 		default:
 			break;
@@ -256,6 +261,27 @@ public class Bands extends GLElement implements
 		if (active.isEmpty())
 			return new TypedSet(Collections.<Integer> emptySet(), ids.getIdType());
 		return ids.intersect(new TypedSet(active, ids.getIdType()));
+	}
+
+	@Override
+	public boolean isSelected(TypedID id, SelectionType type) {
+		SelectionManager manager = getOrCreate(id.getIdType());
+		return manager.checkStatus(type, id.getId());
+	}
+
+	@Override
+	public BitSet isSelected(TypedList ids, SelectionType type) {
+		if (ids.isEmpty())
+			return new BitSet(0);
+		SelectionManager manager = getOrCreate(ids.getIdType());
+		Set<Integer> active = manager.getElements(type);
+		if (active.isEmpty())
+			return new BitSet(0);
+
+		BitSet r = new BitSet(ids.size());
+		for (int i = 0; i < ids.size(); ++i)
+			r.set(i, active.contains(ids.get(i)));
+		return r;
 	}
 
 	/**

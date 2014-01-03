@@ -34,6 +34,10 @@ public class BandLine {
 		return connectionLines;
 	}
 
+	public float getDistance(boolean first) {
+		return connectionLines[first ? 0 : (connectionLines.length - 1)].length();
+	}
+
 	public List<Vec2f> computeLine(float v0, float v1) {
 		final int l = top.size();
 		assert l == bottom.size();

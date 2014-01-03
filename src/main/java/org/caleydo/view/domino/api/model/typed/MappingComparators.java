@@ -67,7 +67,7 @@ public class MappingComparators {
 				if (r != 0)
 					return r;
 			}
-			return 0;
+			return o1.getId() - o2.getId();
 		}
 
 		private Integer map(TypedID id, IDType target) {
@@ -109,6 +109,9 @@ public class MappingComparators {
 				if (r != 0)
 					return r;
 			}
+			for (int i = 0; i < o1.length; ++i)
+				if (o1[i] != o2[i])
+					return o1[i] - o2[i];
 			return 0;
 		}
 	}

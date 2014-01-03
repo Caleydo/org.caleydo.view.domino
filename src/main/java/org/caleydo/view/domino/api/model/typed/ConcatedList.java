@@ -13,9 +13,9 @@ import com.google.common.collect.Iterables;
 
 /**
  * an immutable list of items in a read only fashion
- * 
+ *
  * @author Samuel Gratzl
- * 
+ *
  */
 public final class ConcatedList<T> extends AbstractList<T> {
 	private final int[] ends;
@@ -42,7 +42,7 @@ public final class ConcatedList<T> extends AbstractList<T> {
 		for (int i = 0; i < ends.length; ++i) {
 			if (index < ends[i]) {
 				final List<T> l = groups.get(i);
-				return l.get(index - ends[i] - l.size());
+				return l.get(index - ends[i] + l.size());
 			}
 		}
 		throw new IndexOutOfBoundsException();

@@ -5,11 +5,15 @@
  *******************************************************************************/
 package org.caleydo.view.domino.spi.model;
 
+import java.util.BitSet;
+
 import org.caleydo.core.data.selection.SelectionType;
 import org.caleydo.core.id.IDType;
 import org.caleydo.core.util.base.ILabeled;
 import org.caleydo.core.view.opengl.layout2.GLGraphics;
 import org.caleydo.core.view.opengl.layout2.IGLElementContext;
+import org.caleydo.view.domino.api.model.typed.TypedID;
+import org.caleydo.view.domino.api.model.typed.TypedList;
 import org.caleydo.view.domino.api.model.typed.TypedSet;
 
 /**
@@ -68,6 +72,10 @@ public interface IBandRenderer extends ILabeled {
 		 * @return
 		 */
 		TypedSet getSelected(TypedSet ids, SelectionType type);
+
+		boolean isSelected(TypedID id, SelectionType type);
+
+		BitSet isSelected(TypedList ids, SelectionType type);
 
 		/**
 		 * return the {@link IGLElementContext}
