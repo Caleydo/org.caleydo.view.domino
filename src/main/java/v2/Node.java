@@ -74,7 +74,7 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 
 	private EProximityMode proximityMode = EProximityMode.ATTACHED;
 
-	private Vec2f shift = new Vec2f();
+	private final Vec2f shift = new Vec2f();
 
 	private boolean highlightDropArea;
 
@@ -88,6 +88,7 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 		this.label = clone.label;
 		this.dimGroups = clone.dimGroups;
 		this.recGroups = clone.recGroups;
+		this.shift.set(clone.shift);
 		setData(clone.dimData, clone.recData);
 		init();
 	}
@@ -97,8 +98,39 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 		this.label = label;
 		this.dimGroups = dimGroups;
 		this.recGroups = recGroups;
+		guessShift(dimGroups.size(), recGroups.size());
 		setData(fixList(dimGroups), fixList(recGroups));
 		init();
+	}
+
+	/**
+	 * @param size
+	 * @param size2
+	 */
+	private void guessShift(float d, float r) {
+		Vec2f s = initialSize(d, r);
+		shift.set(s.x() - d, s.y() - r);
+	}
+
+	/**
+	 * @param d
+	 * @param r
+	 * @return
+	 */
+	public static Vec2f initialSize(float d, float r) {
+		final float c = 250;
+		if (d < c && r < c)
+			return new Vec2f(d, r);
+		float aspectRatio = (d) / r;
+		float di, ri;
+		if (d > r) {
+			di = c;
+			ri = di / aspectRatio;
+		} else {
+			ri = c;
+			di = ri * aspectRatio;
+		}
+		return new Vec2f(di, ri);
 	}
 
 	/**

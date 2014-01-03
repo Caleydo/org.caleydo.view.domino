@@ -35,4 +35,9 @@ public class NodeDragInfo extends ADragInfo {
 	public Node getBaseNode() {
 		return node;
 	}
+
+	@Override
+	protected Vec2f getSize() {
+		return node.getSize();
+	}
 }

@@ -7,13 +7,15 @@ package v2;
 
 import gleem.linalg.Vec2f;
 
-import org.caleydo.core.view.opengl.layout2.dnd.IDragInfo;
+import org.caleydo.core.view.opengl.layout2.GLElement;
+import org.caleydo.core.view.opengl.layout2.dnd.IUIDragInfo;
+import org.caleydo.view.domino.internal.dnd.DragElement;
 
 /**
  * @author Samuel Gratzl
  *
  */
-public abstract class ADragInfo implements IDragInfo {
+public abstract class ADragInfo implements IUIDragInfo {
 	private final Vec2f mousePos;
 	private Vec2f offset = new Vec2f(0, 0);
 
@@ -44,4 +46,12 @@ public abstract class ADragInfo implements IDragInfo {
 	}
 
 	public abstract Node getBaseNode();
+
+	protected abstract Vec2f getSize();
+
+	@Override
+	public GLElement createUI() {
+		Vec2f size = getSize();
+		return new DragElement(getBaseNode().getLabel(), size);
+	}
 }

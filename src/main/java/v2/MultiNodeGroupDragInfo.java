@@ -48,4 +48,9 @@ public class MultiNodeGroupDragInfo extends ADragInfo {
 	public Node getBaseNode() {
 		return primary.getNode();
 	}
+
+	@Override
+	protected Vec2f getSize() {
+		return primary.getSize();
+	}
 }

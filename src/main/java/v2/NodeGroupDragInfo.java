@@ -35,4 +35,9 @@ public class NodeGroupDragInfo extends ADragInfo {
 	public Node getBaseNode() {
 		return group.getNode();
 	}
+
+	@Override
+	protected Vec2f getSize() {
+		return group.getSize();
+	}
 }

@@ -18,6 +18,7 @@ import org.caleydo.core.view.opengl.canvas.IGLMouseListener.IMouseEvent;
 import org.caleydo.core.view.opengl.layout2.GLElement;
 import org.caleydo.core.view.opengl.layout2.GLElementContainer;
 import org.caleydo.core.view.opengl.layout2.GLSandBox;
+import org.caleydo.core.view.opengl.layout2.IGLElementContext;
 import org.caleydo.core.view.opengl.layout2.dnd.EDnDType;
 import org.caleydo.core.view.opengl.layout2.dnd.IDnDItem;
 import org.caleydo.core.view.opengl.layout2.dnd.IDragInfo;
@@ -30,6 +31,7 @@ import org.caleydo.core.view.opengl.picking.Pick;
 import org.caleydo.core.view.opengl.picking.PickingMode;
 import org.caleydo.datadomain.mock.MockDataDomain;
 import org.caleydo.view.domino.api.model.graph.EDirection;
+import org.caleydo.view.domino.internal.dnd.TablePerspectiveRemoveDragCreator;
 
 import v2.data.Categorical2DDataDomainValues;
 import v2.data.StratificationDataValue;
@@ -115,6 +117,12 @@ public class Domino extends GLElementContainer implements IDropGLTarget, IPickin
 		TablePerspective grouping = MockDataDomain.addRecGrouping(d2, 100, 50);
 		node = new Node(new StratificationDataValue(grouping.getRecordPerspective(), EDimension.RECORD, null));
 		nodes.add(new Block(node).setLocation(20, 250));
+	}
+
+	@Override
+	protected void init(IGLElementContext context) {
+		context.getMouseLayer().addRemoteDragInfoUICreator(new TablePerspectiveRemoveDragCreator());
+		super.init(context);
 	}
 
 
