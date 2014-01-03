@@ -70,7 +70,6 @@ public class StratificationDataValue implements IDataValues, Function2<Integer, 
 		b.put("heatmap." + prim + ".idType", groups.getIdType());
 		b.put("heatmap." + sec, op);
 		b.put("heatmap." + sec + ".idType", TypedCollections.INVALID_IDTYPE);
-		b.set("heatmap." + "forceTextures");
 		b.put(Function2.class, this);
 	}
 

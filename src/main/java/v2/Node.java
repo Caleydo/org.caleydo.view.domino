@@ -739,6 +739,21 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 		relayout();
 	}
 
+	public void shiftSize(EDimension dim, float v, boolean set) {
+		Vec2f s = getSize().copy();
+		Vec2f b = s.copy();
+		s.setX(Math.max(s.x() + dim.select(v, 0), 10));
+		s.setY(Math.max(s.y() + dim.select(0, v), 10));
+		setSize(s.x(), s.y());
+		Vec2f act_shift = s.minus(b);
+		setLayoutData(s.minus(b));
+		if (set)
+			this.shift.set(dim.select(0, 1), v);
+		else
+			this.shift.add(act_shift);
+		relayout();
+	}
+
 	/**
 	 * @param dimension
 	 * @return
