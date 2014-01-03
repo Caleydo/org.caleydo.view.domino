@@ -108,14 +108,14 @@ public class BandLines {
 			tl3 = add(tcenter, -10 + -t.height(), 0);
 		} else {
 			Vec2f scenter = add(st1, SHIFT, -10);
-			sl2 = scenter.plus(new Vec2f(cos45 * 10, sin45 * 10));
-			st2 = scenter.plus(new Vec2f(cos45 * (10 + s.height()), sin45 * (10 + s.height())));
+			st2 = scenter.plus(new Vec2f(cos45 * 10, sin45 * 10));
+			sl2 = scenter.plus(new Vec2f(cos45 * (10 + s.height()), sin45 * (10 + s.height())));
 			st3 = add(scenter, 10, 0);
 			sl3 = add(scenter, 10 + s.height(), 0);
 
 			Vec2f tcenter = add(tl1, -SHIFT, 10);
-			tt2 = tcenter.plus(new Vec2f(-cos45 * 10, -sin45 * 10));
-			tl2 = tcenter.plus(new Vec2f(-cos45 * (10 + t.height()), -sin45 * (10 + t.height())));
+			tl2 = tcenter.plus(new Vec2f(-cos45 * 10, -sin45 * 10));
+			tt2 = tcenter.plus(new Vec2f(-cos45 * (10 + t.height()), -sin45 * (10 + t.height())));
 			tl3 = add(tcenter, -10, 0);
 			tt3 = add(tcenter, -10 + -t.height(), 0);
 		}

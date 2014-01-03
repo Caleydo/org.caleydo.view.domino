@@ -272,6 +272,7 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 		this.asList().subList(n, size()).clear(); // clear rest
 
 		updateSize(dimData, recData);
+		relayout();
 	}
 
 	private void updateSize(TypedGroupList dimData, TypedGroupList recData) {
@@ -701,5 +702,12 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 	public boolean isAlone(EDimension dim) {
 		return getNeighbor(EDirection.getPrimary(dim)) == null
 				&& getNeighbor(EDirection.getPrimary(dim).opposite()) == null;
+	}
+
+	/**
+	 *
+	 */
+	public Vec2f getShift() {
+		return shift;
 	}
 }

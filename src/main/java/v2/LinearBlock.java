@@ -12,11 +12,9 @@ import java.util.AbstractCollection;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import org.caleydo.core.data.collection.EDimension;
 import org.caleydo.core.id.IDType;
@@ -54,7 +52,7 @@ public class LinearBlock extends AbstractCollection<Node> {
 	private final List<Node> nodes = new ArrayList<>();
 
 	private List<Node> sortCriteria = new ArrayList<>(2);
-	private Set<Node> dataSelection = new HashSet<>(2);
+	private Node dataSelection = null;
 
 	private boolean stratified = true;
 	private MultiTypedList data;
@@ -63,7 +61,7 @@ public class LinearBlock extends AbstractCollection<Node> {
 		this.dim = dim;
 		this.nodes.add(node);
 		this.sortCriteria.add(node);
-		this.dataSelection.add(node);
+		this.dataSelection = node;
 	}
 
 	public boolean isStratisfied() {
@@ -156,7 +154,9 @@ public class LinearBlock extends AbstractCollection<Node> {
 		}
 		shift(index, nodes.size(), shift);
 		sortCriteria.remove(node);
-		dataSelection.remove(node);
+		if (dataSelection == node) {
+			dataSelection = nodes.size() == 1 ? nodes.get(0) : null;
+		}
 		if (sortCriteria.isEmpty() && !nodes.isEmpty())
 			sortCriteria.add(nodes.get(0));
 		resort();
@@ -177,10 +177,8 @@ public class LinearBlock extends AbstractCollection<Node> {
 		neighbor.setNeighbor(dir, node);
 		node.setNeighbor(dir, old);
 		{
-			Vec2f s = node.getSize();
-			Vec2f t = neighbor.getSize();
-			node.shiftSize(dim.select(s.x(), t.x()) - s.x(), dim.select(t.y(), s.y()) - s.y()); // synchronize the other
-																								// dimension
+			Vec2f s = neighbor.getShift();
+			node.shiftSize(dim.select(0, s.x()), dim.select(s.y(), 0)); // synchronize the other dimension
 		}
 
 		Rect bounds = neighbor.getRectBounds();
@@ -190,7 +188,7 @@ public class LinearBlock extends AbstractCollection<Node> {
 				node.setLocation(bounds.x() - node.getSize().x(), bounds.y());
 				shift = new Vec2f(-node.getSize().x(), 0);
 			} else {
-				node.setLocation(bounds.x(), bounds.y() - node.getSize().x());
+				node.setLocation(bounds.x(), bounds.y() - node.getSize().y());
 				shift = new Vec2f(0, -node.getSize().y());
 			}
 			shift(0, index, shift);
@@ -275,7 +273,7 @@ public class LinearBlock extends AbstractCollection<Node> {
 			return;
 		MultiTypedSet union;
 
-		if (dataSelection.isEmpty()) {
+		if (dataSelection == null) {
 			union = unionAll();
 		} else {
 			union = intersectSome();
@@ -287,19 +285,14 @@ public class LinearBlock extends AbstractCollection<Node> {
 	 * @return
 	 */
 	private MultiTypedSet intersectSome() {
-		Collection<TypedSet> sets = Collections2.transform(dataSelection, new Function<Node, TypedSet>() {
-			@Override
-			public TypedSet apply(Node input) {
-				return input.getGroups(dim.opposite());
-			}
-		});
+		TypedSet dataSelection = this.dataSelection.getGroups(dim.opposite());
 		Collection<TypedSet> all = Collections2.transform(nodes, new Function<Node, TypedSet>() {
 			@Override
 			public TypedSet apply(Node input) {
 				return input.getGroups(dim.opposite());
 			}
 		});
-		MultiTypedSet intersect = TypedSets.intersect(sets.toArray(new TypedSet[0]));
+		MultiTypedSet intersect = TypedSets.intersect(dataSelection);
 		return intersect.expand(all);
 	}
 
@@ -323,7 +316,7 @@ public class LinearBlock extends AbstractCollection<Node> {
 	}
 
 	public void apply() {
-		List<ITypedGroup> g = asGroupList();
+		List<? extends ITypedGroup> g = asGroupList();
 
 		for (Node node : nodes) {
 			final TypedList slice = data.slice(node.getIdType(dim.opposite()));
@@ -337,27 +330,51 @@ public class LinearBlock extends AbstractCollection<Node> {
 		}
 	}
 
-	private List<ITypedGroup> asGroupList() {
+	private List<? extends ITypedGroup> asGroupList() {
 		if (!isStratisfied())
 			return Collections.singletonList(ungrouped(data.size()));
-		List<TypedSetGroup> groups = sortCriteria.get(0).getGroups(dim.opposite()).getGroups();
+		final Node sortedBy = sortCriteria.get(0);
+		final Node selected = dataSelection;
+
+		List<TypedSetGroup> groups = sortedBy.getGroups(dim.opposite()).getGroups();
+		if (selected == sortedBy) // 1:1 mapping
+			return groups;
 		List<ITypedGroup> g = new ArrayList<>(groups.size() + 1);
-		int sum = 0;
-		TypedList gdata = data.slice(groups.get(0).getIdType());
-		for (ITypedGroup group : groups) {
-			int bak = sum;
-			sum += group.size();
-			while (sum < gdata.size() && group.contains(gdata.get(sum)))
-				sum++;
-			if ((bak + groups.size()) == sum) { // no extra elems
-				g.add(group);
-			} else { // have repeating elements
-				g.add(new TypedListGroup(new RepeatingList<>(TypedCollections.INVALID_ID, sum - bak),
-						group.getIdType(), group.getLabel(), group.getColor()));
+		if (selected == null) {
+			int sum = 0;
+			TypedList gdata = data.slice(groups.get(0).getIdType());
+			for (ITypedGroup group : groups) {
+				int bak = sum;
+				sum += group.size();
+				while (sum < gdata.size() && group.contains(gdata.get(sum)))
+					sum++;
+				if ((bak + groups.size()) == sum) { // no extra elems
+					g.add(group);
+				} else { // have repeating elements
+					g.add(new TypedListGroup(new RepeatingList<>(TypedCollections.INVALID_ID, sum - bak), group
+							.getIdType(), group.getLabel(), group.getColor()));
+				}
 			}
+			if (sum < data.size())
+				g.add(unmapped(data.size() - sum));
+		} else {
+			// we have data selection but a different grouping
+			int sum = 0;
+			TypedList gdata = data.slice(groups.get(0).getIdType());
+			for (ITypedGroup group : groups) {
+				int bak = sum;
+				while (sum < gdata.size() && group.contains(gdata.get(sum)))
+					sum++;
+				if ((bak + groups.size()) == sum) { // no extra elems
+					g.add(group);
+				} else { // have repeating or less elements
+					g.add(new TypedListGroup(new RepeatingList<>(TypedCollections.INVALID_ID, sum - bak), group
+							.getIdType(), group.getLabel(), group.getColor()));
+				}
+			}
+			if (sum < data.size())
+				g.add(unmapped(data.size() - sum));
 		}
-		if (sum < data.size())
-			g.add(unmapped(data.size() - sum));
 		return g;
 	}
 
@@ -427,10 +444,10 @@ public class LinearBlock extends AbstractCollection<Node> {
 			return;
 		}
 		// add if it was not part of
-		if (!dataSelection.remove(node)) {
-			dataSelection.clear();
-			dataSelection.add(node);
-		}
+		if (dataSelection == node) {
+			dataSelection = null;
+		} else
+			dataSelection = node;
 		update();
 		apply();
 	}
@@ -441,7 +458,7 @@ public class LinearBlock extends AbstractCollection<Node> {
 	 */
 	public Color getStateColor(Node node) {
 		int index = sortCriteria.indexOf(node);
-		boolean limited = dataSelection.contains(node);
+		boolean limited = dataSelection == node;
 		boolean stratified = index == 0 && isStratisfied();
 		boolean sorted = index != -1;
 		Color c = Color.GRAY;

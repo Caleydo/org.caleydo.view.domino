@@ -111,6 +111,8 @@ public class TypedSets {
 	public static MultiTypedSet intersect(TypedSet... sets) {
 		if (sets.length == 0) // empty
 			return new MultiTypedSet(new IDType[0], Collections.<int[]> emptySet());
+		if (sets.length == 1) // single id type
+			return MultiTypedSet.single(sets[0]);
 		// union same idtypes
 		sets = compress(sets, false);
 
