@@ -58,6 +58,8 @@ public class Resources {
 
 	public static final URL ICON_SELECT_ALL = icon("layer_resize.png");
 
+	public static final URL ICON_TRANSPOSE = icon("transform_rotate.png");
+
 	/**
 	 * @param string
 	 * @return

@@ -112,7 +112,7 @@ public class LabelElementFactory implements IGLElementFactory2 {
 			if (!recData.isEmpty()) {
 				final int size = recData.size();
 				float hi = h / size;
-				if (hi >= 4) {
+				if (hi >= 3) {
 					Set<Integer> mouseOvers = manager.getElements(SelectionType.MOUSE_OVER);
 					Set<Integer> selected = manager.getElements(SelectionType.SELECTION);
 					for (int i = 0; i < size; ++i) {

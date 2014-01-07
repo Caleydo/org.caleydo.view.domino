@@ -26,12 +26,14 @@ import org.caleydo.view.domino.api.model.graph.EDirection;
 public class Placeholder extends PickableGLElement implements IDropGLTarget {
 	private final Node neighbor;
 	private final EDirection dir;
+	private final boolean transpose;
 
 	private boolean armed;
 
-	public Placeholder(Node neighbor, EDirection dir) {
+	public Placeholder(Node neighbor, EDirection dir, boolean transpose) {
 		this.neighbor = neighbor;
 		this.dir = dir;
+		this.transpose = transpose;
 
 		Vec2f size = neighbor.getSize();
 		Vec2f loc = neighbor.getAbsoluteLocation();
@@ -81,7 +83,7 @@ public class Placeholder extends PickableGLElement implements IDropGLTarget {
 
 	private void dropNode(Node node) {
 		Domino domino = findParent(Domino.class);
-		domino.placeAt(neighbor, dir, node);
+		domino.placeAt(neighbor, dir, node, transpose);
 	}
 
 	@Override

@@ -352,5 +352,4 @@ public class NodeGroup extends GLElementDecorator implements ILabeled, IDragGLSo
 	public void setContentPickable(boolean pickable) {
 		barrier.setPickable(pickable);
 	}
-
 }

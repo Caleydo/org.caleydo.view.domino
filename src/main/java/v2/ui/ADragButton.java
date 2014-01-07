@@ -28,6 +28,23 @@ public abstract class ADragButton extends AGLButton implements IDragGLSource {
 			hoverEffect.render(g, w, h, this);
 		if (armed)
 			armedEffect.render(g, w, h, this);
+		if (!isEnabled()) {
+			g.color(1, 1, 1, 0.25f).fillRoundedRect(0, 0, w, h, Math.min(w, h) * 0.25f);
+		}
+	}
+
+	/**
+	 * @param enabled
+	 *            setter, see {@link enabled}
+	 */
+	public void setEnabled(boolean enabled) {
+		if (isEnabled() == enabled)
+			return;
+		setVisibility(enabled ? EVisibility.PICKABLE : EVisibility.VISIBLE);
+	}
+
+	public boolean isEnabled() {
+		return getVisibility() == EVisibility.PICKABLE;
 	}
 
 	@Override

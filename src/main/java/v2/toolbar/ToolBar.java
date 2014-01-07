@@ -109,12 +109,17 @@ public class ToolBar extends GLElementContainer {
 			Node node = getSingleNode(selection);
 			EDimension dim = node == null ? null : node.getSingleGroupingDimension();
 
-			if (node != null && node.has(EDimension.DIMENSION) && !node.isAlone(EDimension.DIMENSION)) {
-				addButton("Limit Dim", Resources.ICON_LIMIT_DATA_DIM);
+			if (node != null) {
+				final boolean dimAlone = node.isAlone(EDimension.DIMENSION);
+				final boolean recAlone = node.isAlone(EDimension.RECORD);
+				if (node.has(EDimension.DIMENSION) && !dimAlone)
+					addButton("Limit Dim", Resources.ICON_LIMIT_DATA_DIM);
+				if (node.has(EDimension.RECORD) && !recAlone)
+					addButton("Limit Rec", Resources.ICON_LIMIT_DATA_REC);
+				if (recAlone && dimAlone)
+					addButton("Transpose", Resources.ICON_TRANSPOSE);
 			}
-			if (node != null && node.has(EDimension.RECORD) && !node.isAlone(EDimension.RECORD)) {
-				addButton("Limit Rec", Resources.ICON_LIMIT_DATA_REC);
-			}
+
 			if (dim != null)
 				addButton("Merge Groups", dim.select(Resources.ICON_MERGE_DIM, Resources.ICON_MERGE_REC));
 			if (node != null && node.size() == selection.size()) {
@@ -143,10 +148,12 @@ public class ToolBar extends GLElementContainer {
 			if (node.has(EDimension.RECORD)) {
 				addButton("Sort Rec", Resources.ICON_SORT_REC);
 			}
-			if (node.has(EDimension.DIMENSION) && !node.isAlone(EDimension.RECORD)) {
+			final boolean recAlone = node.isAlone(EDimension.RECORD);
+			if (node.has(EDimension.DIMENSION) && !recAlone) {
 				addButton("Limit Dim", Resources.ICON_LIMIT_DATA_DIM);
 			}
-			if (node.has(EDimension.RECORD) && !node.isAlone(EDimension.DIMENSION)) {
+			final boolean dimAlone = node.isAlone(EDimension.DIMENSION);
+			if (node.has(EDimension.RECORD) && !dimAlone) {
 				addButton("Limit Rec", Resources.ICON_LIMIT_DATA_REC);
 			}
 			if (group.canBeRemoved())
@@ -161,6 +168,10 @@ public class ToolBar extends GLElementContainer {
 				addButton("Select Hor", Resources.ICON_SELECT_DIM);
 			if (group.getNeighbor(EDirection.ABOVE) != null || group.getNeighbor(EDirection.BELOW) != null)
 				addButton("Select Ver", Resources.ICON_SELECT_REC);
+
+			if (recAlone && dimAlone) {
+				addButton("Transpose", Resources.ICON_TRANSPOSE);
+			}
 		}
 
 		@Override
@@ -209,6 +220,9 @@ public class ToolBar extends GLElementContainer {
 				break;
 			case "Merge Groups":
 				node.getNode().merge(selection);
+				break;
+			case "Transpose":
+				node.getNode().transpose();
 				break;
 			}
 		}

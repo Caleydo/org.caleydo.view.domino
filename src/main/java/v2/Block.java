@@ -50,15 +50,24 @@ public class Block extends GLElementContainer implements IGLLayout2 {
 
 	public Block(Node node) {
 		setLayout(this);
-		this.add(node);
-		for (EDimension dim : EDimension.values()) {
-			if (!node.has(dim.opposite()))
-				continue;
-			linearBlocks.add(new LinearBlock(dim, node));
-		}
 		node.setLocation(0, 0);
-		updateSize();
 		setRenderer(GLRenderers.drawRect(Color.BLUE));
+		addFirstNode(node);
+	}
+
+
+
+	/**
+	 * @param node
+	 * @param n
+	 */
+	public void replace(Node node, Node with) {
+		assert size() == 1 && get(0) == node;
+
+		this.remove(node);
+		linearBlocks.clear();
+		addFirstNode(with);
+		findParent(Domino.class).updateBands();
 	}
 
 	public Collection<Placeholder> addPlaceholdersFor(Node node) {
@@ -79,6 +88,16 @@ public class Block extends GLElementContainer implements IGLLayout2 {
 		if (node.has(other.opposite()))
 			linearBlocks.add(new LinearBlock(other, node));
 		updateBlock(block);
+	}
+
+	private void addFirstNode(Node node) {
+		this.add(node);
+		for (EDimension dim : EDimension.values()) {
+			if (!node.has(dim.opposite()))
+				continue;
+			linearBlocks.add(new LinearBlock(dim, node));
+		}
+		updateSize();
 	}
 
 	/**
@@ -386,5 +405,4 @@ public class Block extends GLElementContainer implements IGLLayout2 {
 			return Color.BLACK;
 		return block.getStateColor(node);
 	}
-
 }

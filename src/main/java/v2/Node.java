@@ -48,6 +48,7 @@ import org.caleydo.view.domino.api.model.typed.TypedSet;
 import org.caleydo.view.domino.api.model.typed.TypedSetGroup;
 
 import v2.data.IDataValues;
+import v2.data.TransposedDataValues;
 
 import com.google.common.collect.Collections2;
 import com.google.common.collect.ImmutableList;
@@ -810,5 +811,22 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 		float xr = ((float) group.getData(EDimension.DIMENSION).size()) / dimData.size();
 		float yr = ((float) group.getData(EDimension.RECORD).size()) / recData.size();
 		return new Vec2f(shift.x() * xr, shift.y() * yr);
+	}
+
+	/**
+	 *
+	 */
+	public void transpose() {
+		findBlock().replace(this, asTransposed());
+	}
+
+	/**
+	 * @return
+	 */
+	public Node asTransposed() {
+		Node n = new Node(TransposedDataValues.transpose(data));
+		n.shift.setX(shift.y());
+		n.shift.setY(shift.x());
+		return n;
 	}
 }

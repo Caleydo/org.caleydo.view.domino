@@ -8,6 +8,11 @@ package v2.toolbar;
 import java.net.URL;
 import java.util.List;
 
+import org.caleydo.core.data.selection.MultiSelectionManagerMixin;
+import org.caleydo.core.data.selection.MultiSelectionManagerMixin.ISelectionMixinCallback;
+import org.caleydo.core.data.selection.SelectionManager;
+import org.caleydo.core.data.selection.SelectionType;
+import org.caleydo.core.event.EventListenerManager.DeepScan;
 import org.caleydo.core.id.IDCategory;
 import org.caleydo.core.util.color.Color;
 import org.caleydo.core.view.opengl.layout2.GLElementContainer;
@@ -21,12 +26,18 @@ import org.caleydo.view.domino.internal.tourguide.vis.EntityTypeSelector;
 
 import v2.Domino;
 import v2.ui.DragLabelButton;
+import v2.ui.DragSelectionButton;
+
+import com.google.common.collect.Iterables;
 
 /**
  * @author Samuel Gratzl
  *
  */
-public class LeftToolBar extends GLElementContainer implements IGLLayout2, ISelectionCallback {
+public class LeftToolBar extends GLElementContainer implements IGLLayout2, ISelectionCallback, ISelectionMixinCallback {
+
+	@DeepScan
+	private final MultiSelectionManagerMixin selections = new MultiSelectionManagerMixin(this);
 
 	/**
 	 *
@@ -40,8 +51,12 @@ public class LeftToolBar extends GLElementContainer implements IGLLayout2, ISele
 
 		for (IDCategory cat : EntityTypeSelector.findAllUsedIDCategories()) {
 			addDragLabelsButton(cat);
+			final SelectionManager manager = new SelectionManager(cat.getPrimaryMappingType());
+			DragSelectionButton b = new DragSelectionButton(manager);
+			this.add(b);
+			b.setEnabled(false);
+			selections.add(manager);
 		}
-
 	}
 
 	/**
@@ -88,5 +103,14 @@ public class LeftToolBar extends GLElementContainer implements IGLLayout2, ISele
 		b.setRenderer(GLRenderers.fillImage(iconSortDim));
 		b.setTooltip(string);
 		this.add(b);
+	}
+
+	@Override
+	public void onSelectionUpdate(SelectionManager manager) {
+		for (DragSelectionButton b : Iterables.filter(this, DragSelectionButton.class)) {
+			if (b.getManager() == manager) {
+				b.setEnabled(manager.getNumberOfElements(SelectionType.SELECTION) > 0);
+			}
+		}
 	}
 }
