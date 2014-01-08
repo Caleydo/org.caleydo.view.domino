@@ -817,6 +817,7 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 	 *
 	 */
 	public void transpose() {
+
 		findBlock().replace(this, asTransposed());
 	}
 

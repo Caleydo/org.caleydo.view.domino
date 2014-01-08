@@ -55,8 +55,7 @@ public class Categorical2DDataDomainValues extends ADataDomainDataValues {
 
 	@Override
 	public void fill(Builder b, TypedListGroup dimData, TypedListGroup recData) {
-		TablePerspective t = asTablePerspective(dimData, recData);
-		b.withData(t);
+		super.fillHeatMap(b, dimData, recData);
 	}
 	/**
 	 * @param t2

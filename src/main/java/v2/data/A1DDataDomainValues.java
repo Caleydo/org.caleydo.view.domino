@@ -54,10 +54,15 @@ public abstract class A1DDataDomainValues extends ADataDomainDataValues {
 
 	@Override
 	public void fill(Builder b, TypedListGroup dimData, TypedListGroup recData) {
-		b.put(EDimension.class, getMain());
-		final TypedList data = getMain().select(dimData, recData);
-		TablePerspective t = asTablePerspective(data);
-		b.withData(t);
+		EDimension dim = main;
+		TypedList data = main.select(dimData, recData);
+		boolean transposed = data.getIdType() == this.singleGroup.getIdType();
+		if (transposed) {
+			dim = dim.opposite();
+			data = main.opposite().select(dimData, recData);
+		}
+		TypedList single = TypedCollections.singletonList(id);
+		super.fillHeatMap(b, dim.select(data, single), dim.select(single, data));
 	}
 
 	@Override
@@ -68,27 +73,4 @@ public abstract class A1DDataDomainValues extends ADataDomainDataValues {
 	public float getNormalized(int id) {
 		return getNormalized(main.select(id, this.id.getId()), main.select(this.id.getId(), id));
 	}
-
-	protected final TablePerspective asTablePerspective(TypedList data) {
-		TypedID singleID = id;
-		TypedList single = TypedCollections.singletonList(singleID);
-		if (main == EDimension.DIMENSION) {
-			TypedList t = single;
-			single = data;
-			data = t;
-		}
-		return asTablePerspective(single, data);
-	}
-
-	protected final TablePerspective asTablePerspective(TypedGroupList data) {
-		TypedID singleID = id;
-		TypedGroupList single = TypedGroupList.createUngrouped(TypedCollections.singletonList(singleID));
-		if (main == EDimension.DIMENSION) {
-			TypedGroupList t = single;
-			single = data;
-			data = t;
-		}
-		return asTablePerspective(single, data);
-	}
-
 }

@@ -50,7 +50,7 @@ public class TransposedDataValues implements IDataValues {
 
 	@Override
 	public void fill(Builder b, TypedListGroup dimData, TypedListGroup recData) {
-		wrappee.fill(b, recData, dimData);
+		wrappee.fill(b, dimData, recData);
 	}
 
 

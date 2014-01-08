@@ -230,6 +230,10 @@ public class Domino extends GLElementContainer implements IDropGLTarget, IPickin
 			nodes.remove(block);
 			bands.relayout();
 		}
+		cleanupNode(node);
+	}
+
+	public void cleanupNode(Node node) {
 		for (SelectionType type : selections.keySet()) {
 			Set<NodeGroup> c = selections.get(type);
 			boolean changed = false;

@@ -9,16 +9,11 @@ import org.caleydo.core.data.collection.EDimension;
 import org.caleydo.core.data.collection.table.Table;
 import org.caleydo.core.data.datadomain.ATableBasedDataDomain;
 import org.caleydo.core.data.perspective.table.TablePerspective;
-import org.caleydo.core.data.perspective.variable.Perspective;
-import org.caleydo.core.data.perspective.variable.PerspectiveInitializationData;
-import org.caleydo.core.data.virtualarray.VirtualArray;
-import org.caleydo.core.data.virtualarray.group.Group;
-import org.caleydo.core.data.virtualarray.group.GroupList;
 import org.caleydo.core.id.IDType;
 import org.caleydo.core.util.color.Color;
-import org.caleydo.view.domino.api.model.typed.TypedGroupList;
+import org.caleydo.core.util.function.Function2;
+import org.caleydo.core.view.opengl.layout2.manage.GLElementFactoryContext.Builder;
 import org.caleydo.view.domino.api.model.typed.TypedList;
-import org.caleydo.view.domino.api.model.typed.TypedListGroup;
 import org.caleydo.view.domino.api.model.typed.TypedSet;
 
 import com.google.common.primitives.Floats;
@@ -27,7 +22,7 @@ import com.google.common.primitives.Floats;
  * @author Samuel Gratzl
  *
  */
-public abstract class ADataDomainDataValues implements IDataValues {
+public abstract class ADataDomainDataValues implements IDataValues, Function2<Integer, Integer, Color> {
 	protected final ATableBasedDataDomain d;
 	private final String label;
 
@@ -93,47 +88,18 @@ public abstract class ADataDomainDataValues implements IDataValues {
 		return d;
 	}
 
-	public TablePerspective asTablePerspective(TypedList dim, TypedList rec) {
-		Perspective d = asPerspective(dim);
-		Perspective r = asPerspective(rec);
-		TablePerspective t = new TablePerspective(this.d, r, d);
-		return t;
+	@Override
+	public Color apply(Integer recordID, Integer dimensionID) {
+		if (isInvalid(recordID) || isInvalid(dimensionID))
+			return Color.NOT_A_NUMBER_COLOR;
+		// get value
+		float[] color = d.getTable().getColor(dimensionID, recordID);
+		// to a color
+		return new Color(color[0], color[1], color[2], 1.0f);
 	}
 
-	public TablePerspective asTablePerspective(TypedGroupList dim, TypedGroupList rec) {
-		Perspective d = asPerspective(dim);
-		Perspective r = asPerspective(rec);
-		TablePerspective t = new TablePerspective(this.d, r, d);
-		return t;
-	}
-
-	private Perspective asPerspective(TypedList data) {
-		PerspectiveInitializationData init = new PerspectiveInitializationData();
-		init.setData(data);
-		Perspective d = new Perspective(this.d, data.getIdType());
-		d.init(init);
-		return d;
-	}
-
-	private Perspective asPerspective(TypedGroupList data) {
-		if (data.getGroups().size() <= 1)
-			return asPerspective((TypedList) data);
-
-		PerspectiveInitializationData init = new PerspectiveInitializationData();
-		VirtualArray va = new VirtualArray(data.getIdType(), data);
-		GroupList groupList = new GroupList();
-		for (TypedListGroup g : data.getGroups()) {
-			Group group = new Group(g.size(), 0);
-			group.setLabel(g.getLabel());
-			groupList.append(group);
-		}
-		va.setGroupList(groupList);
-
-		init.setData(va);
-
-		Perspective d = new Perspective(this.d, data.getIdType());
-		d.init(init);
-		return d;
+	private static boolean isInvalid(Integer id) {
+		return id == null || id.intValue() < 0;
 	}
 
 	@Override
@@ -162,5 +128,21 @@ public abstract class ADataDomainDataValues implements IDataValues {
 		if (dim.isDimension())
 			return getNormalized(a, other);
 		return getNormalized(other, a);
+	}
+
+	/**
+	 * @param b
+	 * @param dimData
+	 * @param recData
+	 */
+	protected void fillHeatMap(Builder b, TypedList dimData, TypedList recData) {
+		b.put("heatmap.dimensions", dimData);
+		b.put("heatmap.dimensions.idType", dimData.getIdType());
+		b.put("heatmap.records", recData);
+		b.put("heatmap.records.idType", recData.getIdType());
+		if (dimData.getIdType() != getIDType(EDimension.DIMENSION)) { // swapped
+			b.put(Function2.class, Functions2s.swap(this));
+		} else
+			b.put(Function2.class, this);
 	}
 }

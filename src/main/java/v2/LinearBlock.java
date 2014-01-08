@@ -62,6 +62,9 @@ public class LinearBlock extends AbstractCollection<Node> {
 		this.nodes.add(node);
 		this.sortCriteria.add(node);
 		this.dataSelection = node;
+		update();
+		apply();
+		updateNeighbors();
 	}
 
 	public boolean isStratisfied() {
@@ -244,11 +247,12 @@ public class LinearBlock extends AbstractCollection<Node> {
 
 	public void updateNeighbors() {
 		Node prev = null;
-		EDirection dir = EDirection.getPrimary(dim).opposite();
+		EDirection dir = EDirection.getPrimary(dim);
 		for (Node node : nodes) {
 			node.setNeighbor(dir, prev);
 			prev = node;
 		}
+		nodes.get(nodes.size() - 1).setNeighbor(dir.opposite(), null);
 	}
 
 	public void doLayout(Map<GLElement, ? extends IGLLayoutElement> lookup) {

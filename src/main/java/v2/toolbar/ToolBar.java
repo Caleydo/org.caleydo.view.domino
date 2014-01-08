@@ -110,14 +110,7 @@ public class ToolBar extends GLElementContainer {
 			EDimension dim = node == null ? null : node.getSingleGroupingDimension();
 
 			if (node != null) {
-				final boolean dimAlone = node.isAlone(EDimension.DIMENSION);
-				final boolean recAlone = node.isAlone(EDimension.RECORD);
-				if (node.has(EDimension.DIMENSION) && !dimAlone)
-					addButton("Limit Dim", Resources.ICON_LIMIT_DATA_DIM);
-				if (node.has(EDimension.RECORD) && !recAlone)
-					addButton("Limit Rec", Resources.ICON_LIMIT_DATA_REC);
-				if (recAlone && dimAlone)
-					addButton("Transpose", Resources.ICON_TRANSPOSE);
+				addSingleNode(node);
 			}
 
 			if (dim != null)
@@ -142,6 +135,27 @@ public class ToolBar extends GLElementContainer {
 		 */
 		private void createSingle(NodeGroup group) {
 			Node node = group.getNode();
+			addSingleNode(node);
+
+			if (group.canBeRemoved())
+				addButton("Remove Group", Resources.ICON_DELETE);
+			else
+				addButton("Remove Node", Resources.ICON_DELETE_ALL);
+
+			if (node.size() > 1) {
+				addButton("Select All In Node", Resources.ICON_SELECT_ALL);
+			}
+			if (group.getNeighbor(EDirection.LEFT_OF) != null || group.getNeighbor(EDirection.RIGHT_OF) != null)
+				addButton("Select Hor", Resources.ICON_SELECT_DIM);
+			if (group.getNeighbor(EDirection.ABOVE) != null || group.getNeighbor(EDirection.BELOW) != null)
+				addButton("Select Ver", Resources.ICON_SELECT_REC);
+
+		}
+
+		/**
+		 * @param node
+		 */
+		private void addSingleNode(Node node) {
 			if (node.has(EDimension.DIMENSION)) {
 				addButton("Sort Dim", Resources.ICON_SORT_DIM);
 			}
@@ -156,19 +170,6 @@ public class ToolBar extends GLElementContainer {
 			if (node.has(EDimension.RECORD) && !dimAlone) {
 				addButton("Limit Rec", Resources.ICON_LIMIT_DATA_REC);
 			}
-			if (group.canBeRemoved())
-				addButton("Remove Group", Resources.ICON_DELETE);
-			else
-				addButton("Remove Node", Resources.ICON_DELETE_ALL);
-
-			if (node.size() > 1) {
-				addButton("Select All In Node", Resources.ICON_SELECT_ALL);
-			}
-			if (group.getNeighbor(EDirection.LEFT_OF) != null || group.getNeighbor(EDirection.RIGHT_OF) != null)
-				addButton("Select Hor", Resources.ICON_SELECT_DIM);
-			if (group.getNeighbor(EDirection.ABOVE) != null || group.getNeighbor(EDirection.BELOW) != null)
-				addButton("Select Ver", Resources.ICON_SELECT_REC);
-
 			if (recAlone && dimAlone) {
 				addButton("Transpose", Resources.ICON_TRANSPOSE);
 			}

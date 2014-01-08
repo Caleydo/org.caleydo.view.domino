@@ -65,6 +65,7 @@ public class Block extends GLElementContainer implements IGLLayout2 {
 		assert size() == 1 && get(0) == node;
 
 		this.remove(node);
+		findParent(Domino.class).cleanupNode(node);
 		linearBlocks.clear();
 		addFirstNode(with);
 		findParent(Domino.class).updateBands();
@@ -73,8 +74,6 @@ public class Block extends GLElementContainer implements IGLLayout2 {
 	public Collection<Placeholder> addPlaceholdersFor(Node node) {
 		List<Placeholder> r = new ArrayList<>();
 		for (LinearBlock block : linearBlocks) {
-			if (!node.has(block.getDim().opposite()))
-				continue;
 			block.addPlaceholdersFor(node, r);
 		}
 		return r;
