@@ -205,6 +205,9 @@ public class ToolBar extends GLElementContainer {
 			case "Remove Node":
 				node.getNode().removeMe();
 				break;
+			case "Remove Slice":
+				node.getNode().removeSlice(selection);
+				break;
 			case "Remove Group":
 				node.removeMe();
 				break;

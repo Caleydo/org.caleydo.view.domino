@@ -27,7 +27,7 @@ public class SingleNodeGroup extends NodeGroup {
 
 	@Override
 	public void onDropped(IDnDItem info) {
-		// nothing
+		getNode().showAgain();
 	}
 
 	@Override

@@ -12,6 +12,7 @@ import java.util.Set;
 
 import org.caleydo.core.data.collection.EDimension;
 import org.caleydo.core.data.selection.SelectionType;
+import org.caleydo.core.event.EventPublisher;
 import org.caleydo.core.util.base.ILabeled;
 import org.caleydo.core.util.color.Color;
 import org.caleydo.core.view.opengl.canvas.EDetailLevel;
@@ -42,6 +43,7 @@ import org.caleydo.view.domino.api.model.typed.TypedListGroup;
 import org.caleydo.view.domino.internal.ui.PickingBarrier;
 
 import v2.data.IDataValues;
+import v2.event.HideNodeEvent;
 
 import com.google.common.collect.ImmutableList;
 
@@ -229,8 +231,10 @@ public class NodeGroup extends GLElementDecorator implements ILabeled, IDragGLSo
 		selected = new HashSet<>(selected);
 		selected.add(this);
 		Node single = getSingleNode(selected);
-		if (single != null)
+		if (single != null) {
+			EventPublisher.trigger(new HideNodeEvent().to(single));
 			return new NodeDragInfo(event.getMousePos(), single);
+		}
 		Set<NodeGroup> s = compress(selected);
 		if (s.size() <= 1)
 			return new NodeGroupDragInfo(event.getMousePos(), this);
@@ -291,6 +295,10 @@ public class NodeGroup extends GLElementDecorator implements ILabeled, IDragGLSo
 		if (info.getType() == EDnDType.MOVE && info.getInfo() instanceof NodeGroupDragInfo) {
 			parent.removeGroup(this);
 		}
+		if (info.getInfo() instanceof NodeDragInfo) {
+			getNode().showAgain();
+		}
+
 	}
 
 	@Override

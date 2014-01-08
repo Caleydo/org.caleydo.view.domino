@@ -15,6 +15,7 @@ import java.util.Set;
 
 import org.apache.commons.lang.StringUtils;
 import org.caleydo.core.data.collection.EDimension;
+import org.caleydo.core.event.EventListenerManager.ListenTo;
 import org.caleydo.core.id.IDType;
 import org.caleydo.core.id.IIDTypeMapper;
 import org.caleydo.core.util.base.ILabeled;
@@ -49,6 +50,7 @@ import org.caleydo.view.domino.api.model.typed.TypedSetGroup;
 
 import v2.data.IDataValues;
 import v2.data.TransposedDataValues;
+import v2.event.HideNodeEvent;
 
 import com.google.common.collect.Collections2;
 import com.google.common.collect.ImmutableList;
@@ -829,5 +831,24 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 		n.shift.setX(shift.y());
 		n.shift.setY(shift.x());
 		return n;
+	}
+
+	/**
+	 * @param selection
+	 */
+	public void removeSlice(Set<NodeGroup> selection) {
+		// TODO Auto-generated method stub
+
+	}
+
+	@ListenTo(sendToMe = true)
+	private void onHideNodeEvent(HideNodeEvent event) {
+		setVisibility(EVisibility.HIDDEN);
+	}
+	/**
+	 *
+	 */
+	public void showAgain() {
+		setVisibility(EVisibility.VISIBLE);
 	}
 }

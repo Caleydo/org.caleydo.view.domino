@@ -213,7 +213,7 @@ public class Domino extends GLElementContainer implements IDropGLTarget, IPickin
 	private Block dropNode(IDnDItem item, Node node) {
 		removeNode(node);
 		Block b = new Block(node);
-		Vec2f pos = toRelative(item.getMousePos());
+		Vec2f pos = nodes.toRelative(item.getMousePos());
 		b.setLocation(pos.x(), pos.y());
 		nodes.add(b);
 		removePlaceholder();
