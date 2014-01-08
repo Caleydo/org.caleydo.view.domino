@@ -172,7 +172,7 @@ public class LinearBlock extends AbstractCollection<Node> {
 		}
 		if (sortCriteria.isEmpty() && !nodes.isEmpty())
 			sortCriteria.add(nodes.get(0));
-		resort();
+		update();
 		apply();
 	}
 
