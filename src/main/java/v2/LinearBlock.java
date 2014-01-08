@@ -225,15 +225,19 @@ public class LinearBlock extends AbstractCollection<Node> {
 		apply();
 	}
 
-	public void shift(Node node) {
+	public Vec2f shift(Node node, Vec2f shiftI) {
 		int i = nodes.indexOf(node);
 		Vec2f change = node.getLayoutDataAs(Vec2f.class, null);
 		float x = change.x();
 		float y = change.y();
 		y = dim.select(0, y);
 		x = dim.select(x, 0);
+		x += shiftI.x();
+		y += shiftI.y();
 		// shift(0, i, new Vec2f(-x, -y));
-		shift(i + 1, nodes.size(), new Vec2f(x, y));
+		shiftI = new Vec2f(x, y);
+		shift(i + 1, nodes.size(), shiftI);
+		return shiftI;
 	}
 
 	private void shift(int from, int to, Vec2f shift) {

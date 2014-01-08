@@ -151,7 +151,7 @@ public class Block extends GLElementContainer implements IGLLayout2 {
 			if (!b.isEmpty()) {
 				LinearBlock f = b.iterator().next();
 				Node n = f.get(0);
-				shiftBlocks(f, n, b);
+				shiftBlocks(f, n, b, new Vec2f(0, 0));
 
 				shiftToZero();
 			}
@@ -171,7 +171,7 @@ public class Block extends GLElementContainer implements IGLLayout2 {
 				}
 				for (LinearBlock bi : b) {
 					if (bi.contains(just)) {
-						shiftBlocks(bi, just, b);
+						shiftBlocks(bi, just, b, new Vec2f(0, 0));
 						break;
 					}
 				}
@@ -206,15 +206,15 @@ public class Block extends GLElementContainer implements IGLLayout2 {
 		n.shiftSize(x, y, false);
 	}
 
-	private void shiftBlocks(LinearBlock block, Node start, Set<LinearBlock> b) {
+	private void shiftBlocks(LinearBlock block, Node start, Set<LinearBlock> b, Vec2f shift) {
 		b.remove(block);
-		block.shift(start);
+		shift = block.shift(start, shift);
 		if (b.isEmpty())
 			return;
 		for (Node node : block) {
 			for (LinearBlock bblock : new HashSet<>(b)) {
 				if (bblock.contains(node)) {
-					shiftBlocks(bblock, node, b);
+					shiftBlocks(bblock, node, b, shift);
 				}
 			}
 		}
