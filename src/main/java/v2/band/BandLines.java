@@ -24,7 +24,7 @@ import com.google.common.collect.Lists;
  *
  */
 public class BandLines {
-	private final static float SHIFT = 20;
+	private final static float SHIFT = 10;
 	private final static Vec2f SHIFT_V = new Vec2f(SHIFT, 0);
 
 	public static BandLine create(Rect a, EDimension aDim, Rect b, EDimension bDim) {

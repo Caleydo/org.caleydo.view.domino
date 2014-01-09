@@ -5,6 +5,7 @@
  *******************************************************************************/
 package v2.band;
 
+import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.BitSet;
@@ -23,6 +24,7 @@ import org.caleydo.core.view.opengl.layout2.GLGraphics;
 import org.caleydo.core.view.opengl.layout2.manage.GLLocation;
 import org.caleydo.core.view.opengl.layout2.manage.GLLocation.ILocator;
 import org.caleydo.core.view.opengl.layout2.util.PickingPool;
+import org.caleydo.core.view.opengl.util.spline.ITesselatedPolygon;
 import org.caleydo.view.domino.api.model.typed.MultiTypedSet;
 import org.caleydo.view.domino.api.model.typed.TypedCollections;
 import org.caleydo.view.domino.api.model.typed.TypedGroupList;
@@ -86,6 +88,13 @@ public class Band implements ILabeled {
 		}
 	}
 
+	/**
+	 *
+	 */
+	public void stubify() {
+		updateBand(band.asStubified(), sLocator, tLocator);
+	}
+
 	public void updateBand(BandLine band, ILocator sLocator, ILocator tLocator) {
 		this.band = band;
 		this.sLocator = sLocator;
@@ -132,7 +141,7 @@ public class Band implements ILabeled {
 	private abstract class ADataRoute implements ILabeled {
 		private final String rlabel;
 		protected final float s1, s2, t1, t2;
-		protected PolyArea base;
+		protected ITesselatedPolygon base;
 
 		public ADataRoute(String label, float s1, float s2, float t1, float t2) {
 			this.rlabel = label;
@@ -555,6 +564,14 @@ public class Band implements ILabeled {
 		if ((mode == EBandMode.GROUPS && !detailsThere && increase) || (mode == EBandMode.DETAIL && increase))
 			return;
 		mode = EBandMode.values()[this.mode.ordinal() + (increase ? 1 : -1)];
+	}
+
+	/**
+	 * @param bound
+	 * @return
+	 */
+	public boolean intersects(Rectangle2D bound) {
+		return band.intersects(bound);
 	}
 
 }

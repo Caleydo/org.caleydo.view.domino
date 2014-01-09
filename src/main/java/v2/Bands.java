@@ -7,8 +7,10 @@ package v2;
 
 import gleem.linalg.Vec2f;
 
+import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
 import java.util.BitSet;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
@@ -71,9 +73,26 @@ public class Bands extends GLElement implements MultiSelectionManagerMixin.ISele
 		Domino domino = findParent(Domino.class);
 		List<Block> blocks = domino.getBlocks();
 		final int length = blocks.size();
+
+		// create bands
+		Collection<Rectangle2D> bounds = new ArrayList<>();
 		for (int i = 0; i < length; ++i) {
-			blocks.get(i).createBandsTo(blocks.subList(i + 1, length), routes);
+			final Block block = blocks.get(i);
+			block.createBandsTo(blocks.subList(i + 1, length), routes);
+			for (LinearBlock b : block.getLinearBlocks())
+				bounds.add(block.getAbsoluteBounds(b).asRectangle2D());
 		}
+
+		// collected the bounds check what we have to stubify
+		for (Band band : routes) {
+			for (Rectangle2D bound : bounds) {
+				if (band.intersects(bound)) {
+					band.stubify();
+					break;
+				}
+			}
+		}
+
 	}
 
 	@Override
@@ -123,7 +142,7 @@ public class Bands extends GLElement implements MultiSelectionManagerMixin.ISele
 			clear(getRoute(split[0]), split[1], SelectionType.MOUSE_OVER);
 			break;
 		case RIGHT_CLICKED:
-			getRoute(split[0]).changeLevel(true); // FIXME
+			getRoute(split[0]).changeLevel(false); // FIXME
 			repaint();
 			break;
 		default:

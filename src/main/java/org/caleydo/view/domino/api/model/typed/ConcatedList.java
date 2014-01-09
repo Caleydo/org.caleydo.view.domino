@@ -6,6 +6,7 @@
 package org.caleydo.view.domino.api.model.typed;
 
 import java.util.AbstractList;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 
@@ -30,6 +31,11 @@ public final class ConcatedList<T> extends AbstractList<T> {
 			c += group.size();
 			ends[i] = c;
 		}
+	}
+
+	@SafeVarargs
+	public ConcatedList(List<T>... groups) {
+		this(Arrays.asList(groups));
 	}
 
 	@Override

@@ -8,8 +8,12 @@ package v2.band;
 import gleem.linalg.Vec2f;
 
 import java.util.AbstractList;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+
+import com.google.common.collect.Lists;
+import com.google.common.primitives.Floats;
 
 public class PolyLine extends AbstractList<Vec2f> {
 	private final List<Vec2f> points;
@@ -27,6 +31,65 @@ public class PolyLine extends AbstractList<Vec2f> {
 			percentages[i] = 0;
 			percentages[percentages.length - 1 - i] = 1;
 		}
+	}
+
+	private PolyLine(List<Vec2f> points, float[] percentages, float distance) {
+		this.points = points;
+		this.percentages = percentages;
+		this.distance = distance;
+	}
+
+	public PolyLine stubifyByDistance(float distance) {
+		return stubify(distance / this.distance);
+	}
+	/**
+	 * @return
+	 */
+	public PolyLine stubify(float stubFactor) {
+		if (stubFactor >= 0.5f)
+			return this;
+		List<Vec2f> s = new ArrayList<>();
+		List<Float> ps = new ArrayList<>();
+		{
+			int i = 0;
+			while (percentages[i] <= stubFactor) {
+				s.add(points.get(i));
+				ps.add(percentages[i]);
+				i++;
+			}
+			final float last = percentages[i - 1];
+			float delta = percentages[i] - last;
+			float alpha = (stubFactor - last) / delta;
+			if (alpha > 0) {
+				final Vec2f lastP = points.get(i - 1);
+				final Vec2f nextP = points.get(i);
+				s.add(lastP.times(1 - alpha).addScaled(alpha, nextP)); // linear interpolation
+				ps.add(stubFactor);
+			}
+		}
+		{
+			List<Vec2f> s_r = new ArrayList<>();
+			List<Float> ps_r = new ArrayList<>();
+			int i = percentages.length - 1;
+			while (percentages[i] >= (1 - stubFactor)) {
+				s_r.add(points.get(i));
+				ps_r.add(percentages[i]);
+				i--;
+			}
+			final float last = percentages[i + 1];
+			float delta = last - percentages[i];
+			float alpha = (1 - stubFactor - percentages[i]) / delta;
+			if (alpha > 0) {
+				final Vec2f lastP = points.get(i + 1);
+				final Vec2f nextP = points.get(i);
+				s_r.add(lastP.times(alpha).addScaled(1 - alpha, nextP)); // linear interpolation
+				ps_r.add(1 - stubFactor);
+			}
+			s.addAll(Lists.reverse(s_r));
+			ps.addAll(Lists.reverse(ps_r));
+		}
+
+		return new PolyLine(s, Floats.toArray(ps), distance);
 	}
 
 	float getPercentage(int p) {

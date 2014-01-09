@@ -10,6 +10,7 @@ import gleem.linalg.Vec2f;
 import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -139,7 +140,9 @@ public class Block extends GLElementContainer implements IGLLayout2 {
 			return 5;
 		if (x < 500)
 			return 10;
-		return 20;
+		if (x < 1000)
+			return 20;
+		return 50;
 	}
 
 	public void incSizes(float x, float y, Node just) {
@@ -360,7 +363,7 @@ public class Block extends GLElementContainer implements IGLLayout2 {
 	 * @param la
 	 * @return
 	 */
-	private Rect getAbsoluteBounds(LinearBlock b) {
+	public Rect getAbsoluteBounds(LinearBlock b) {
 		Rect r = new Rect(b.getBounds());
 		r.xy(toAbsolute(r.xy()));
 		return r;
@@ -403,5 +406,12 @@ public class Block extends GLElementContainer implements IGLLayout2 {
 		if (block == null)
 			return Color.BLACK;
 		return block.getStateColor(node);
+	}
+
+	/**
+	 * @return the linearBlocks, see {@link #linearBlocks}
+	 */
+	public List<LinearBlock> getLinearBlocks() {
+		return Collections.unmodifiableList(linearBlocks);
 	}
 }
