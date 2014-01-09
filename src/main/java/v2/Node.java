@@ -309,42 +309,50 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 		final List<TypedListGroup> recGroups = recData.getGroups();
 
 		if (dimGroups.size() == 1 && recGroups.size() == 1) {
+			for (NodeGroup g : Iterables.filter(this, NodeGroup.class))
+				g.prepareRemoveal();
 			this.clear();
 			SingleNodeGroup single = new SingleNodeGroup(this, data);
 			single.setData(dimGroups.get(0), recGroups.get(0));
 			this.add(single);
-		} else if (size() == 1)
-			this.clear();// maybe was a single
-
-		int n = 0;
-		List<NodeGroup> left = new ArrayList<>();
-		for (TypedListGroup dimGroup : dimGroups) {
-			NodeGroup above = null;
-			int i = 0;
-			for (TypedListGroup recGroup : recGroups) {
-				final NodeGroup child = getOrCreate(n);
-				n++;
-				child.setData(dimGroup, recGroup);
-				child.setNeighbor(EDirection.ABOVE,above);
-				if (above != null)
-					above.setNeighbor(EDirection.BELOW, child);
-				above = child;
-				if (left.size() > i) {
-					left.get(i).setNeighbor(EDirection.RIGHT_OF, child);
-					child.setNeighbor(EDirection.LEFT_OF, left.get(i));
-				}
-				if (i < left.size())
-					left.set(i++, child);
-				else
-					left.add(i++, child);
-
+		} else {
+			if (size() == 1) {
+				for (NodeGroup g : Iterables.filter(this, NodeGroup.class))
+					g.prepareRemoveal();
+				this.clear();// maybe was a single
 			}
-		}
-		{
-			final List<GLElement> subList = this.asList().subList(n, size());
-			for (NodeGroup g : Iterables.filter(subList, NodeGroup.class))
-				g.prepareRemoveal();
-			subList.clear(); // clear rest
+
+			int n = 0;
+			List<NodeGroup> left = new ArrayList<>();
+			for (TypedListGroup dimGroup : dimGroups) {
+				NodeGroup above = null;
+				int i = 0;
+				for (TypedListGroup recGroup : recGroups) {
+					final NodeGroup child = getOrCreate(n);
+					n++;
+					child.setData(dimGroup, recGroup);
+					child.setNeighbor(EDirection.ABOVE, above);
+					if (above != null)
+						above.setNeighbor(EDirection.BELOW, child);
+					above = child;
+					if (left.size() > i) {
+						left.get(i).setNeighbor(EDirection.RIGHT_OF, child);
+						child.setNeighbor(EDirection.LEFT_OF, left.get(i));
+					}
+					if (i < left.size())
+						left.set(i++, child);
+					else
+						left.add(i++, child);
+
+				}
+			}
+
+			{
+				final List<GLElement> subList = this.asList().subList(n, size());
+				for (NodeGroup g : Iterables.filter(subList, NodeGroup.class))
+					g.prepareRemoveal();
+				subList.clear(); // clear rest
+			}
 		}
 
 		updateSize(dimData, recData);
@@ -451,12 +459,23 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 		EDimension dim = getSingleGroupingDimension();
 		if (dim == null)
 			return; // no single grouping
-		List<TypedListGroup> d = new ArrayList<>(dim.select(dimData, recData).getGroups());
-		d.remove(group.getData(dim));
+		final TypedGroupList select = dim.select(dimData, recData);
+		int old = select.size();
+		List<TypedListGroup> d = new ArrayList<>(select.getGroups());
+		final TypedListGroup toRemove = group.getData(dim);
+		d.remove(toRemove);
+
 		if (d.isEmpty()) {
 			removeMe();
 			return;
 		}
+
+		final float factor = 1 - (toRemove.size()) / (float) old;
+		if (dim.isDimension())
+			shift.setX(shift.x() * factor);
+		else
+			shift.setY(shift.y() * factor);
+
 		TypedGroupList l = new TypedGroupList(d);
 		setGroups(dim, l.asSet());
 		triggerResort(dim);
@@ -827,7 +846,7 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 	 * @return
 	 */
 	public Node asTransposed() {
-		Node n = new Node(TransposedDataValues.transpose(data));
+		Node n = new Node(TransposedDataValues.transpose(data), label, recGroups, dimGroups);
 		n.shift.setX(shift.y());
 		n.shift.setY(shift.x());
 		return n;

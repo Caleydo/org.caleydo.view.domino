@@ -26,6 +26,9 @@ public abstract class ADataDomainDataValues implements IDataValues, Function2<In
 	protected final ATableBasedDataDomain d;
 	private final String label;
 
+	private final int dims;
+	private final int records;
+
 	public ADataDomainDataValues(String label, TablePerspective t) {
 		this(label, t.getDataDomain());
 	}
@@ -36,6 +39,8 @@ public abstract class ADataDomainDataValues implements IDataValues, Function2<In
 	public ADataDomainDataValues(String label, ATableBasedDataDomain dataDomain) {
 		this.d = dataDomain;
 		this.label = label;
+		this.dims = d.getTable().size();
+		this.records = d.getTable().depth();
 	}
 
 	@Override
@@ -49,9 +54,9 @@ public abstract class ADataDomainDataValues implements IDataValues, Function2<In
 
 	public Color getColor(Integer dimensionID, Integer recordID) {
 		Table table = getTable();
-		if (dimensionID == null || dimensionID < 0 || dimensionID >= table.size())
+		if (dimensionID == null || dimensionID < 0 || dimensionID >= dims)
 			return Color.NOT_A_NUMBER_COLOR;
-		if (recordID == null || recordID < 0 || recordID >= table.depth())
+		if (recordID == null || recordID < 0 || recordID >= records)
 			return Color.NOT_A_NUMBER_COLOR;
 		float[] c = table.getColor(dimensionID, recordID);
 		if (c == null)
@@ -61,18 +66,18 @@ public abstract class ADataDomainDataValues implements IDataValues, Function2<In
 
 	public Object getRaw(Integer dimensionID, Integer recordID) {
 		Table table = getTable();
-		if (dimensionID == null || dimensionID < 0 || dimensionID >= table.size())
+		if (dimensionID == null || dimensionID < 0 || dimensionID >= dims)
 			return null;
-		if (recordID == null || recordID < 0 || recordID >= table.depth())
+		if (recordID == null || recordID < 0 || recordID >= records)
 			return null;
 		return table.getRaw(dimensionID, recordID);
 	}
 
 	public float getNormalized(Integer dimensionID, Integer recordID) {
 		Table table = getTable();
-		if (dimensionID == null || dimensionID < 0 || dimensionID >= table.size())
+		if (dimensionID == null || dimensionID < 0 || dimensionID >= dims)
 			return Float.NaN;
-		if (recordID == null || recordID < 0 || recordID >= table.depth())
+		if (recordID == null || recordID < 0 || recordID >= records)
 			return Float.NaN;
 		return table.getNormalizedValue(dimensionID, recordID);
 	}
