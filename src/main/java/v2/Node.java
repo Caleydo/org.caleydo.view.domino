@@ -740,8 +740,13 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 		}
 	}
 
-	static GLLocation shiftLocation(EDimension dim, GLLocation l, int group) {
-		return new GLLocation(l.getOffset() + BORDER * (2 * group + 2), l.getSize());
+	GLLocation shiftLocation(EDimension dim, GLLocation l, int group, int offset) {
+		final float border = BORDER * (2 * group + 2);
+		final TypedGroupList d = getData(dim);
+		float total = dim.select(getSize()) - BORDER * 2 * (1 + d.getGroups().size());
+		float groupOffset = total * (offset / (float) d.size());
+
+		return new GLLocation(l.getOffset() + border + groupOffset, l.getSize());
 	}
 
 	public ILocator getLocator(final EDimension dim) {
@@ -763,7 +768,7 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 				int locIndex = 0;
 				for (Pair<Integer, ILocator> loc : locators) {
 					if (loc.getFirst() > dataIndex) {
-						return shiftLocation(dim, loc.getSecond().apply(dataIndex - offset), locIndex);
+						return shiftLocation(dim, loc.getSecond().apply(dataIndex - offset), locIndex, offset);
 					}
 					offset = loc.getFirst();
 					locIndex++;

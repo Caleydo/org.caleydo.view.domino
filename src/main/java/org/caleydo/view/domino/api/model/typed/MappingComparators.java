@@ -141,7 +141,7 @@ public class MappingComparators {
 				if (r != 0)
 					return r;
 			}
-			return 0;
+			return o1.compareTo(o2);
 		}
 
 		private Integer map(Integer id, IDType target) {
