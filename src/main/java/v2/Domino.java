@@ -7,6 +7,7 @@ package v2;
 
 import gleem.linalg.Vec2f;
 
+import java.awt.geom.Rectangle2D;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
@@ -23,6 +24,7 @@ import org.caleydo.core.view.opengl.layout2.dnd.EDnDType;
 import org.caleydo.core.view.opengl.layout2.dnd.IDnDItem;
 import org.caleydo.core.view.opengl.layout2.dnd.IDragInfo;
 import org.caleydo.core.view.opengl.layout2.dnd.IDropGLTarget;
+import org.caleydo.core.view.opengl.layout2.geom.Rect;
 import org.caleydo.core.view.opengl.layout2.layout.GLLayouts;
 import org.caleydo.core.view.opengl.layout2.layout.IGLLayout2;
 import org.caleydo.core.view.opengl.layout2.layout.IGLLayoutElement;
@@ -55,6 +57,7 @@ public class Domino extends GLElementContainer implements IDropGLTarget, IPickin
 	private final LeftToolBar leftToolBar;
 	private final SetMultimap<SelectionType, NodeGroup> selections = HashMultimap.create();
 	private final GLElementContainer content;
+	private SelectLayer select;
 
 	/**
 	 *
@@ -146,6 +149,23 @@ public class Domino extends GLElementContainer implements IDropGLTarget, IPickin
 			break;
 		case MOUSE_WHEEL:
 			zoom((IMouseEvent) pick);
+			break;
+		case DRAG_DETECTED:
+			pick.setDoDragging(true);
+			this.select = new SelectLayer(bands.toRelative(pick.getPickedPoint()));
+			content.add(this.select);
+			break;
+		case DRAGGED:
+			if (pick.isDoDragging() && this.select != null) {
+				this.select.dragTo(pick.getDx(), pick.getDy(), ((IMouseEvent)pick).isCtrlDown());
+			}
+			break;
+		case MOUSE_RELEASED:
+			if (pick.isDoDragging() && this.select != null) {
+				this.select.dragTo(pick.getDx(), pick.getDy(), ((IMouseEvent) pick).isCtrlDown());
+				content.remove(this.select);
+				this.select = null;
+			}
 			break;
 		default:
 			break;
@@ -355,5 +375,21 @@ public class Domino extends GLElementContainer implements IDropGLTarget, IPickin
 	 */
 	public void updateBands() {
 		bands.relayout();
+	}
+
+	/**
+	 * @param rect
+	 * @param clear
+	 */
+	public void selectByBounds(Rect rect, boolean clear) {
+		if (clear)
+			clear(SelectionType.SELECTION, null);
+
+		Rectangle2D r = rect.asRectangle2D();
+		for (Block block : getBlocks()) {
+			if (block.getRectangleBounds().intersects(r)) {
+				block.selectByBounds(r);
+			}
+		}
 	}
 }

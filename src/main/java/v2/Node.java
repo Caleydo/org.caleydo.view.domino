@@ -7,6 +7,7 @@ package v2;
 
 import gleem.linalg.Vec2f;
 
+import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -874,5 +875,19 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 	 */
 	public void showAgain() {
 		setVisibility(EVisibility.VISIBLE);
+	}
+
+	/**
+	 * @param r
+	 */
+	public void selectByBounds(Rectangle2D r) {
+		Vec2f l = getLocation();
+		r = new Rectangle2D.Double(r.getX() - l.x(), r.getY() - l.y(), r.getWidth(), r.getHeight());
+		for (NodeGroup node : Iterables.filter(this, NodeGroup.class)) {
+			final Rectangle2D ri = node.getRectangleBounds();
+			if (ri.intersects(r)) {
+				node.selectMe();
+			}
+		}
 	}
 }

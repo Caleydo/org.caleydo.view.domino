@@ -414,4 +414,19 @@ public class Block extends GLElementContainer implements IGLLayout2 {
 	public List<LinearBlock> getLinearBlocks() {
 		return Collections.unmodifiableList(linearBlocks);
 	}
+
+	/**
+	 * @param r
+	 */
+	public void selectByBounds(Rectangle2D r) {
+		r = (Rectangle2D) r.clone(); // local copy
+
+		Vec2f l = getLocation(); // to relative coordinates;
+		r = new Rectangle2D.Double(r.getX() - l.x(), r.getY() - l.y(), r.getWidth(), r.getHeight());
+		for (Node node : nodes()) {
+			if (node.getRectangleBounds().intersects(r)) {
+				node.selectByBounds(r);
+			}
+		}
+	}
 }
