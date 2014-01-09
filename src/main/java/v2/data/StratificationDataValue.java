@@ -6,7 +6,6 @@
 package v2.data;
 
 import java.util.Collections;
-import java.util.List;
 
 import org.caleydo.core.data.collection.EDimension;
 import org.caleydo.core.data.perspective.variable.Perspective;
@@ -16,13 +15,10 @@ import org.caleydo.core.view.opengl.layout2.manage.GLElementFactoryContext.Build
 import org.caleydo.view.domino.api.model.typed.TypedCollections;
 import org.caleydo.view.domino.api.model.typed.TypedGroupList;
 import org.caleydo.view.domino.api.model.typed.TypedGroupSet;
-import org.caleydo.view.domino.api.model.typed.TypedList;
 import org.caleydo.view.domino.api.model.typed.TypedListGroup;
 import org.caleydo.view.domino.api.model.typed.TypedSet;
 import org.caleydo.view.domino.api.model.typed.TypedSetGroup;
 import org.caleydo.view.domino.internal.util.Utils;
-
-import com.google.common.collect.ImmutableList;
 
 /**
  * @author Samuel Gratzl
@@ -60,17 +56,14 @@ public class StratificationDataValue implements IDataValues, Function2<Integer, 
 
 	@Override
 	public void fill(Builder b, TypedListGroup dimData, TypedListGroup recData) {
-		final EDimension dimension = main;
-		b.put(EDimension.class, dimension);
-		final TypedList data = dimension.select(dimData, recData);
-		final List<Integer> op = ImmutableList.of(0);
-		String prim = dimension.select("dimensions", "records");
-		String sec = dimension.select("records", "dimensions");
-		b.put("heatmap." + prim, data);
-		b.put("heatmap." + prim + ".idType", groups.getIdType());
-		b.put("heatmap." + sec, op);
-		b.put("heatmap." + sec + ".idType", TypedCollections.INVALID_IDTYPE);
-		b.put(Function2.class, this);
+		b.put("heatmap.dimensions", dimData);
+		b.put("heatmap.dimensions.idType", dimData.getIdType());
+		b.put("heatmap.records", recData);
+		b.put("heatmap.records.idType", recData.getIdType());
+		if (dimData.getIdType() != getDefaultGroups(EDimension.DIMENSION).getIdType()) { // swapped
+			b.put(Function2.class, Functions2s.swap(this));
+		} else
+			b.put(Function2.class, this);
 	}
 
 	@Override
