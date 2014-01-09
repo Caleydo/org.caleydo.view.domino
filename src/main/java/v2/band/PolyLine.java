@@ -122,4 +122,11 @@ public class PolyLine extends AbstractList<Vec2f> {
 		return points.get(index);
 	}
 
+	/**
+	 * @return the percentages, see {@link #percentages}
+	 */
+	public float[] getPercentages() {
+		return percentages;
+	}
+
 }

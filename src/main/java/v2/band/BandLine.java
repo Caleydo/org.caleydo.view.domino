@@ -82,9 +82,7 @@ public class BandLine {
 			return new PolyArea(top, bottom);
 
 		int split = top.size() / 2;
-		int n = top.size();
-		return new PolyAreas(new PolyArea(top.subList(0, split), bottom.subList(0, split)), new PolyArea(top.subList(n
-				- split, n), bottom.subList(n - split, n)));
+		return new StubifiedArea(top, bottom, split, this.top.getPercentages(), this.bottom.getPercentages(), 1);
 	}
 
 	public boolean intersects(Rectangle2D bounds) {
