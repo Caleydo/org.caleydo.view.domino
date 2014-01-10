@@ -67,6 +67,8 @@ public abstract class A1DDataDomainValues extends ADataDomainDataValues {
 		super.fillHeatMap(b, dim.select(data, single), dim.select(single, data));
 		b.put(EDimension.class, dim);
 		b.put("axis.data", data);
+		b.put("axis.min", 0);
+		b.put("axis.max", 1);
 		b.put("axis.f", new Function<Integer, Double>() {
 			@Override
 			public Double apply(Integer input) {

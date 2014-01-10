@@ -95,6 +95,7 @@ public class NodeGroup extends GLElementDecorator implements ILabeled, IDragGLSo
 		ImmutableList<GLElementSupplier> extensions = GLElementFactories.getExtensions(b.build(), "domino."
  + data.getExtensionID(), parent.getProximityMode());
 		GLElementFactorySwitcher s = new GLElementFactorySwitcher(extensions, ELazyiness.DESTROY);
+		parent.selectDefaultVisualization(s);
 		barrier.setContent(s);
 	}
 

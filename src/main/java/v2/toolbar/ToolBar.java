@@ -118,6 +118,23 @@ public class ToolBar extends GLElementContainer {
 			if (node != null && node.size() == selection.size()) {
 				addButton("Remove Node", Resources.ICON_DELETE_ALL);
 			}
+
+			if (node == null) {
+				EDimension blockDim = isSingleBlock();
+				if (blockDim != null) {
+					addButton("Remove " + (blockDim.select("Dim", "Rec")) + " Block", Resources.ICON_DELETE_ALL);
+				}
+			}
+		}
+
+		/**
+		 * @param selection2
+		 * @return
+		 */
+		private EDimension isSingleBlock() {
+
+			// TODO Auto-generated method stub
+			return null;
 		}
 
 		private static Node getSingleNode(Set<NodeGroup> selection) {
@@ -210,6 +227,12 @@ public class ToolBar extends GLElementContainer {
 				break;
 			case "Remove Group":
 				node.removeMe();
+				break;
+			case "Remove Dim Block":
+				node.getNode().removeBlock(EDimension.DIMENSION);
+				break;
+			case "Remove Rec Block":
+				node.getNode().removeBlock(EDimension.RECORD);
 				break;
 			case "Select All In Node":
 				node.getNode().selectAll();

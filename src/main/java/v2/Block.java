@@ -22,6 +22,7 @@ import org.caleydo.core.util.color.Color;
 import org.caleydo.core.view.opengl.canvas.IGLMouseListener.IMouseEvent;
 import org.caleydo.core.view.opengl.layout2.GLElement;
 import org.caleydo.core.view.opengl.layout2.GLElementContainer;
+import org.caleydo.core.view.opengl.layout2.IGLElementContext;
 import org.caleydo.core.view.opengl.layout2.geom.Rect;
 import org.caleydo.core.view.opengl.layout2.layout.AGLLayoutElement;
 import org.caleydo.core.view.opengl.layout2.layout.IGLLayout2;
@@ -83,6 +84,8 @@ public class Block extends GLElementContainer implements IGLLayout2 {
 	public void addNode(Node neighbor, EDirection dir, Node node) {
 		this.add(node);
 		LinearBlock block = getBlock(neighbor, dir.asDim());
+		if (block == null)
+			return;
 		block.add(neighbor, dir, node);
 		EDimension other = dir.asDim().opposite();
 		if (node.has(other.opposite()))
@@ -97,6 +100,13 @@ public class Block extends GLElementContainer implements IGLLayout2 {
 				continue;
 			linearBlocks.add(new LinearBlock(dim, node));
 		}
+		if (context != null)
+			updateSize();
+	}
+
+	@Override
+	protected void init(IGLElementContext context) {
+		super.init(context);
 		updateSize();
 	}
 
@@ -257,12 +267,27 @@ public class Block extends GLElementContainer implements IGLLayout2 {
 		return this.isEmpty();
 	}
 
+	/**
+	 * @param node
+	 * @param dim
+	 */
+	public void removeBlock(Node node, EDimension dim) {
+		LinearBlock block = getBlock(node, dim.opposite());
+		if (block == null)
+			return;
+		List<Node> nodes = new ArrayList<>(block);
+		for (Node n : nodes) {
+			n.removeMe();
+		}
+	}
+
 	private LinearBlock getBlock(Node node, EDimension dim) {
 		for (LinearBlock block : linearBlocks) {
 			if (block.getDim() == dim && block.contains(node))
 				return block;
 		}
-		throw new IllegalStateException();
+		// throw new IllegalStateException();
+		return null;
 	}
 
 	@Override

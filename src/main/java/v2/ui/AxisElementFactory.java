@@ -56,7 +56,7 @@ public class AxisElementFactory implements IGLElementFactory2 {
 		if (hasTablePerspective(context))
 			return new AxisElement(context.getData());
 
-		EDimension dim = context.get("dimension", EDimension.class, EDimension.RECORD);
+		EDimension dim = context.get(EDimension.class, EDimension.RECORD);
 		double min = context.getDouble("min", Double.NaN);
 		double max = context.getDouble("max", Double.NaN);
 
@@ -197,7 +197,7 @@ public class AxisElementFactory implements IGLElementFactory2 {
 			DescBuilder b = GLElementDimensionDesc.newBuilder();
 			if (this.dim != dim)
 				return b.before(inRange(20, 10, Double.POSITIVE_INFINITY)).build();
-			return b.before(inRange(20, 10, Double.POSITIVE_INFINITY)).locateUsing(this).build();
+			return b.before(inRange(200, 50, Double.POSITIVE_INFINITY)).locateUsing(this).build();
 
 		}
 

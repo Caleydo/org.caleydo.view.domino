@@ -27,12 +27,15 @@ import org.caleydo.core.view.opengl.canvas.IGLMouseListener.IMouseEvent;
 import org.caleydo.core.view.opengl.layout2.GLElement;
 import org.caleydo.core.view.opengl.layout2.GLElementContainer;
 import org.caleydo.core.view.opengl.layout2.GLGraphics;
+import org.caleydo.core.view.opengl.layout2.IGLElementContext;
 import org.caleydo.core.view.opengl.layout2.dnd.EDnDType;
 import org.caleydo.core.view.opengl.layout2.dnd.IDnDItem;
 import org.caleydo.core.view.opengl.layout2.dnd.IDragInfo;
 import org.caleydo.core.view.opengl.layout2.dnd.IDropGLTarget;
 import org.caleydo.core.view.opengl.layout2.layout.IGLLayout2;
 import org.caleydo.core.view.opengl.layout2.layout.IGLLayoutElement;
+import org.caleydo.core.view.opengl.layout2.manage.GLElementFactories.GLElementSupplier;
+import org.caleydo.core.view.opengl.layout2.manage.GLElementFactorySwitcher;
 import org.caleydo.core.view.opengl.layout2.manage.GLLocation;
 import org.caleydo.core.view.opengl.layout2.manage.GLLocation.ILocator;
 import org.caleydo.core.view.opengl.picking.IPickingListener;
@@ -50,6 +53,7 @@ import org.caleydo.view.domino.api.model.typed.TypedSet;
 import org.caleydo.view.domino.api.model.typed.TypedSetGroup;
 
 import v2.data.IDataValues;
+import v2.data.StratificationDataValue;
 import v2.data.TransposedDataValues;
 import v2.event.HideNodeEvent;
 
@@ -76,7 +80,7 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 	private TypedGroupList recData;
 	private TypedGroupSet recGroups;
 
-	private EProximityMode proximityMode = EProximityMode.ATTACHED;
+	private EProximityMode proximityMode = EProximityMode.DETACHED;
 
 	private final Vec2f shift = new Vec2f();
 
@@ -266,6 +270,7 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 		EDimension dim = getSingleGroupingDimension();
 		TypedGroupList m = node.getData(dim);
 		integrate(m, toSetType(mousePos.y(), getSize().y()));
+
 	}
 
 	private final ESetOperation toSetType(float v, float total) {
@@ -356,14 +361,36 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 			}
 		}
 
+		if (context != null) {
+			updateSize(dimData, recData);
+			relayout();
+		}
+	}
+
+	@Override
+	protected void init(IGLElementContext context) {
+		super.init(context);
 		updateSize(dimData, recData);
-		relayout();
 	}
 
 	private void updateSize(TypedGroupList dimData, TypedGroupList recData) {
-		final float w = Math.max(10, dimData.size()) + BORDER * 2 * (1 + dimData.getGroups().size());
-		final float h = Math.max(10, recData.size()) + BORDER * 2 * (1 + recData.getGroups().size());
+		float[] xi = getSizes(EDimension.DIMENSION);
+		float[] yi = getSizes(EDimension.RECORD);
+
+		float w = BORDER * 2 + sum(xi);
+		float h = BORDER * 2 + sum(yi);
 		setSize(w + shift.x(), h + shift.y());
+	}
+
+	private float[] getSizes(EDimension dim) {
+		List<NodeGroup> lefts = getGroupNeighbors(EDirection.getPrimary(dim.opposite()));
+		float[] r = new float[lefts.size()];
+		int i = 0;
+		for (NodeGroup l : lefts) {
+			double size = l.getDesc(dim).getSize(l.getData(dim).size());
+			r[i++] = (float) size + BORDER * 2;
+		}
+		return r;
 	}
 
 	public void integrate(TypedGroupList group, ESetOperation setOperation) {
@@ -616,26 +643,36 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 	@Override
 	public boolean doLayout(List<? extends IGLLayoutElement> children, float w, float h, IGLLayoutElement parent,
 			int deltaTimeMs) {
-		int i = 0;
-		final List<TypedListGroup> dimG = dimData.getGroups();
-		final List<TypedListGroup> recG = recData.getGroups();
-		float wi = (w - BORDER * 2 * (1 + dimG.size())) / dimData.size();
-		float hi = (h - BORDER * 2 * (1 + recG.size())) / recData.size();
-		float x = 0;
-		float xi = BORDER;
-		for (TypedListGroup dim : dimG) {
-			float y = 0;
-			float yi = BORDER;
-			for (TypedListGroup rec : recG) {
-				IGLLayoutElement child = children.get(i++);
-				child.setBounds(xi + x * wi, yi + y * hi, wi * dim.size() + BORDER * 2, hi * rec.size() + BORDER * 2);
-				y += rec.size();
-				yi += BORDER * 2;
+		float[] dims = getSizes(EDimension.DIMENSION);
+		float[] recs = getSizes(EDimension.RECORD);
+		float fw = (w - BORDER * 2) / sum(dims);
+		float fh = (h - BORDER * 2) / sum(recs);
+
+		int k = 0;
+		float x = BORDER;
+		for (int i = 0; i < dims.length; ++i) {
+			float y = BORDER;
+			float wi = dims[i] * fw;
+			for (int j = 0; j < recs.length; ++j) {
+				float hi = recs[j] * fh;
+				IGLLayoutElement child = children.get(k++);
+				child.setBounds(x, y, wi, hi);
+				y += hi;
 			}
-			x += dim.size();
-			xi += BORDER * 2;
+			x += wi;
 		}
 		return false;
+	}
+
+	/**
+	 * @param dims
+	 * @return
+	 */
+	private static float sum(float... vs) {
+		float r = 0;
+		for (float v : vs)
+			r += v;
+		return r;
 	}
 
 	public boolean has(EDimension dim) {
@@ -887,6 +924,30 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 			final Rectangle2D ri = node.getRectangleBounds();
 			if (ri.intersects(r)) {
 				node.selectMe();
+			}
+		}
+	}
+
+	/**
+	 * @param dimension
+	 * @return
+	 */
+	public void removeBlock(EDimension dim) {
+		if (!has(dim))
+			return;
+		findBlock().removeBlock(this, dim);
+	}
+
+	/**
+	 * @param s
+	 */
+	public void selectDefaultVisualization(GLElementFactorySwitcher s) {
+		if (data instanceof StratificationDataValue)
+			return;
+		for (GLElementSupplier supp : s) {
+			if (supp.getId().equals("axis")) {
+				s.setActive(supp);
+				break;
 			}
 		}
 	}
