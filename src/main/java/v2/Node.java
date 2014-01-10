@@ -28,12 +28,15 @@ import org.caleydo.core.view.opengl.layout2.GLElement;
 import org.caleydo.core.view.opengl.layout2.GLElementContainer;
 import org.caleydo.core.view.opengl.layout2.GLGraphics;
 import org.caleydo.core.view.opengl.layout2.IGLElementContext;
+import org.caleydo.core.view.opengl.layout2.basic.GLButton;
+import org.caleydo.core.view.opengl.layout2.basic.GLButton.ISelectionCallback;
 import org.caleydo.core.view.opengl.layout2.dnd.EDnDType;
 import org.caleydo.core.view.opengl.layout2.dnd.IDnDItem;
 import org.caleydo.core.view.opengl.layout2.dnd.IDragInfo;
 import org.caleydo.core.view.opengl.layout2.dnd.IDropGLTarget;
 import org.caleydo.core.view.opengl.layout2.layout.IGLLayout2;
 import org.caleydo.core.view.opengl.layout2.layout.IGLLayoutElement;
+import org.caleydo.core.view.opengl.layout2.manage.ButtonBarBuilder;
 import org.caleydo.core.view.opengl.layout2.manage.GLElementFactories.GLElementSupplier;
 import org.caleydo.core.view.opengl.layout2.manage.GLElementFactorySwitcher;
 import org.caleydo.core.view.opengl.layout2.manage.GLLocation;
@@ -332,7 +335,7 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 		final List<TypedListGroup> recGroups = recData.getGroups();
 
 		if (dimGroups.size() == 1 && recGroups.size() == 1) {
-			for (NodeGroup g : Iterables.filter(this, NodeGroup.class))
+			for (NodeGroup g : nodeGroups())
 				g.prepareRemoveal();
 			this.clear();
 			SingleNodeGroup single = new SingleNodeGroup(this, data);
@@ -340,7 +343,7 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 			this.add(single);
 		} else {
 			if (size() == 1) {
-				for (NodeGroup g : Iterables.filter(this, NodeGroup.class))
+				for (NodeGroup g : nodeGroups())
 					g.prepareRemoveal();
 				this.clear();// maybe was a single
 			}
@@ -382,6 +385,10 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 			updateSize(dimData, recData);
 			relayout();
 		}
+	}
+
+	private Iterable<NodeGroup> nodeGroups() {
+		return Iterables.filter(this, NodeGroup.class);
 	}
 
 	@Override
@@ -555,7 +562,7 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 	 * @return
 	 */
 	private Iterable<NodeGroup> groups() {
-		return Iterables.filter(this, NodeGroup.class);
+		return nodeGroups();
 	}
 	/**
 	 * @param n
@@ -777,7 +784,7 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 	 *
 	 */
 	public void selectAll() {
-		for (NodeGroup g : Iterables.filter(this, NodeGroup.class))
+		for (NodeGroup g : nodeGroups())
 			g.selectMe();
 	}
 
@@ -945,7 +952,7 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 	public void selectByBounds(Rectangle2D r) {
 		Vec2f l = getLocation();
 		r = new Rectangle2D.Double(r.getX() - l.x(), r.getY() - l.y(), r.getWidth(), r.getHeight());
-		for (NodeGroup node : Iterables.filter(this, NodeGroup.class)) {
+		for (NodeGroup node : nodeGroups()) {
 			final Rectangle2D ri = node.getRectangleBounds();
 			if (ri.intersects(r)) {
 				node.selectMe();
@@ -976,5 +983,26 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 				}
 			}
 		}
+	}
+
+	/**
+	 * @return
+	 */
+	public ButtonBarBuilder createSwitchButtonBarBuilder() {
+		NodeGroup g = (NodeGroup) get(0);
+		ButtonBarBuilder b = g.getSwitcher().createButtonBarBuilder();
+		b.customCallback(new ISelectionCallback() {
+			@Override
+			public void onSelectionChanged(GLButton button, boolean selected) {
+				int active = button.getPickingObjectId();
+				for (NodeGroup g : nodeGroups()) {
+					g.getSwitcher().setActive(active);
+				}
+				updateSize(dimData, recData);
+				relayout();
+				findBlock().updatedNode();
+			}
+		});
+		return b;
 	}
 }

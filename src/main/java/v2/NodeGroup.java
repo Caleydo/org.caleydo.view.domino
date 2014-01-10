@@ -99,7 +99,7 @@ public class NodeGroup extends GLElementDecorator implements ILabeled, IDragGLSo
 		barrier.setContent(s);
 	}
 
-	private GLElementFactorySwitcher getSwitcher() {
+	GLElementFactorySwitcher getSwitcher() {
 		GLElementFactorySwitcher s = (GLElementFactorySwitcher) barrier.getContent();
 		return s;
 	}

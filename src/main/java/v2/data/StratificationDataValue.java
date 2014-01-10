@@ -15,8 +15,6 @@ import org.caleydo.core.data.collection.Histogram;
 import org.caleydo.core.data.perspective.variable.Perspective;
 import org.caleydo.core.util.color.Color;
 import org.caleydo.core.util.function.Function2;
-import org.caleydo.core.util.function.IDoubleList;
-import org.caleydo.core.util.function.MappedDoubleList;
 import org.caleydo.core.view.opengl.layout2.manage.GLElementFactoryContext.Builder;
 import org.caleydo.view.domino.api.model.graph.EProximityMode;
 import org.caleydo.view.domino.api.model.typed.TypedCollections;
@@ -94,7 +92,7 @@ public class StratificationDataValue implements IDataValues, Function2<Integer, 
 		};
 		b.put("index2double", toIndex);
 		b.put(Histogram.class, createHist(data));
-		b.put(IDoubleList.class, new MappedDoubleList<>(data, toIndex));
+		// b.put(IDoubleList.class, new MappedDoubleList<>(data, toIndex));
 	}
 
 	/**

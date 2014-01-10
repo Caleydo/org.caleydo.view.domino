@@ -141,14 +141,15 @@ public class AxisElementFactory implements IGLElementFactory2 {
 					max = stats.getMax();
 			}
 			this.normalize = DoubleFunctions.normalize(min, max);
-			selections.add(new SelectionManager(ids.getIdType()));
+			if (ids != null)
+				selections.add(new SelectionManager(ids.getIdType()));
 		}
 
 
 
 		@Override
 		protected void renderImpl(GLGraphics g, float w, float h) {
-			SelectionManager manager = selections.get(0);
+			SelectionManager manager = selections.isEmpty() ? null : selections.get(0);
 			int n = list.size();
 			float o = dim.opposite().select(w, h) * 0.1f;
 			if (dim.isHorizontal()) {
@@ -161,7 +162,7 @@ public class AxisElementFactory implements IGLElementFactory2 {
 				double v = normalize.apply(list.getPrimitive(i));
 				if(Double.isNaN(v))
 					v = 0;
-				SelectionType t = data == null ? null : manager.getHighestSelectionType(data.get(i));
+				SelectionType t = data == null || manager == null ? null : manager.getHighestSelectionType(data.get(i));
 				if (t == null) {
 					g.color(0, 0, 0, 0.5f);
 				} else {

@@ -110,6 +110,12 @@ public class Block extends GLElementContainer implements IGLLayout2 {
 		updateSize();
 	}
 
+	public void updatedNode() {
+		findParent(Domino.class).updateBands();
+		shiftToZero();
+		updateSize();
+	}
+
 	/**
 	 *
 	 */

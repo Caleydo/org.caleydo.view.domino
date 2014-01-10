@@ -82,8 +82,12 @@ public abstract class A1DDataDomainValues extends ADataDomainDataValues {
 		};
 		b.put("id2double", toNormalized);
 		b.put(Histogram.class, createHist(data));
-		b.put("distribution.colors", getHistColors());
-		b.put("distribution.labels", getHistLabels());
+		final Color[] hc = getHistColors();
+		if (hc != null)
+			b.put("distribution.colors", hc);
+		final String[] hl = getHistLabels();
+		if (hl != null)
+			b.put("distribution.labels", hl);
 		b.put(IDoubleList.class, new MappedDoubleList<>(data, toNormalized));
 	}
 

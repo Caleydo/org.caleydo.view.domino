@@ -22,6 +22,8 @@ import org.caleydo.core.view.opengl.layout2.layout.GLLayouts;
 import org.caleydo.core.view.opengl.layout2.layout.GLPadding;
 import org.caleydo.core.view.opengl.layout2.layout.IGLLayout2;
 import org.caleydo.core.view.opengl.layout2.layout.IGLLayoutElement;
+import org.caleydo.core.view.opengl.layout2.manage.ButtonBarBuilder;
+import org.caleydo.core.view.opengl.layout2.manage.ButtonBarBuilder.EButtonBarLayout;
 import org.caleydo.core.view.opengl.layout2.renderer.GLRenderers;
 import org.caleydo.view.domino.api.model.graph.EDirection;
 import org.caleydo.view.domino.internal.Resources;
@@ -190,6 +192,10 @@ public class ToolBar extends GLElementContainer {
 			if (recAlone && dimAlone) {
 				addButton("Transpose", Resources.ICON_TRANSPOSE);
 			}
+
+			ButtonBarBuilder b = node.createSwitchButtonBarBuilder();
+			b.layoutAs(EButtonBarLayout.SLIDE_DOWN);
+			this.add(b.build());
 		}
 
 		@Override
