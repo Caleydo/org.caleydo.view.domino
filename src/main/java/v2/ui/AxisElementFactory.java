@@ -19,11 +19,11 @@ import org.caleydo.core.data.selection.SelectionType;
 import org.caleydo.core.data.virtualarray.VirtualArray;
 import org.caleydo.core.event.EventListenerManager.DeepScan;
 import org.caleydo.core.util.color.Color;
-import org.caleydo.core.util.function.ADoubleList;
 import org.caleydo.core.util.function.DoubleFunctions;
 import org.caleydo.core.util.function.DoubleStatistics;
 import org.caleydo.core.util.function.IDoubleFunction;
 import org.caleydo.core.util.function.IDoubleList;
+import org.caleydo.core.util.function.MappedDoubleList;
 import org.caleydo.core.view.opengl.layout2.GLElement;
 import org.caleydo.core.view.opengl.layout2.GLGraphics;
 import org.caleydo.core.view.opengl.layout2.PickableGLElement;
@@ -60,14 +60,14 @@ public class AxisElementFactory implements IGLElementFactory2 {
 		double min = context.getDouble("min", Double.NaN);
 		double max = context.getDouble("max", Double.NaN);
 
-		if (context.get("data", TypedList.class, null) != null && context.get("f", Function.class, null) != null) {
-			TypedList data = context.get("data", TypedList.class, null);
+		if (context.get(TypedList.class, null) != null && context.get("id2double", Function.class, null) != null) {
+			TypedList data = context.get(TypedList.class, null);
 			@SuppressWarnings("unchecked")
-			Function<Integer, Double> f = context.get("f", Function.class, null);
+			Function<Integer, Double> f = context.get("id2double", Function.class, null);
 			return new AxisElement(dim, data, f, min, max);
 		}
-		if (context.get("data", IDoubleList.class, null) != null) {
-			IDoubleList data = context.get("data", IDoubleList.class, null);
+		if (context.get(IDoubleList.class, null) != null) {
+			IDoubleList data = context.get(IDoubleList.class, null);
 			return new AxisElement(dim, data, min, max);
 		}
 		return null;
@@ -89,9 +89,9 @@ public class AxisElementFactory implements IGLElementFactory2 {
 
 	@Override
 	public boolean apply(GLElementFactoryContext context) {
-		if (context.get("data", TypedList.class, null) != null && context.get("f", Function.class, null) != null)
+		if (context.get(TypedList.class, null) != null && context.get("id2double", Function.class, null) != null)
 			return true;
-		if (context.get("data", IDoubleList.class, null) != null)
+		if (context.get(IDoubleList.class, null) != null)
 			return true;
 		return hasTablePerspective(context);
 	}
@@ -122,7 +122,7 @@ public class AxisElementFactory implements IGLElementFactory2 {
 		}
 
 		public AxisElement(EDimension dim, TypedList data, Function<Integer, Double> f, double min, double max) {
-			this(dim, new LookupDoubleList<Integer>(data, f), min, max, data);
+			this(dim, new MappedDoubleList<Integer>(data, f), min, max, data);
 		}
 
 		public AxisElement(EDimension dim, IDoubleList data, double min, double max) {
@@ -224,26 +224,4 @@ public class AxisElementFactory implements IGLElementFactory2 {
 		}
 
 	}
-
-	private static final class LookupDoubleList<T> extends ADoubleList {
-		private final List<T> data;
-		private final Function<? super T, Double> f;
-
-		public LookupDoubleList(List<T> data, Function<? super T, Double> f) {
-			this.data = data;
-			this.f = f;
-		}
-
-		@Override
-		public double getPrimitive(int index) {
-			return f.apply(data.get(index));
-		}
-
-		@Override
-		public int size() {
-			return data.size();
-		}
-
-	}
-
 }

@@ -5,14 +5,19 @@
  *******************************************************************************/
 package v2.data;
 
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.Set;
 
 import org.caleydo.core.data.collection.EDimension;
+import org.caleydo.core.data.collection.Histogram;
 import org.caleydo.core.data.perspective.table.TablePerspective;
 import org.caleydo.core.data.perspective.variable.Perspective;
 import org.caleydo.core.util.color.Color;
+import org.caleydo.view.domino.api.model.graph.EProximityMode;
 import org.caleydo.view.domino.api.model.typed.TypedGroupList;
 import org.caleydo.view.domino.api.model.typed.TypedGroupSet;
+import org.caleydo.view.domino.api.model.typed.TypedListGroup;
 import org.caleydo.view.domino.api.model.typed.TypedSet;
 import org.caleydo.view.domino.api.model.typed.TypedSetGroup;
 import org.caleydo.view.domino.internal.util.BitSetSet;
@@ -61,5 +66,42 @@ public class Numerical1DDataDomainValues extends A1DDataDomainValues {
 		return groups;
 	}
 
+	@Override
+	public Collection<String> getDefaultVisualization(EProximityMode mode) {
+		// FIXME hack
+		if (getLabel().contains("Death"))
+			Arrays.asList("kaplanmaier", "boxandwhiskers", "heatmap");
+		return Arrays.asList("boxandwhiskers", "kaplanmaier", "heatmap");
+	}
+
+	@Override
+	protected Histogram createHist(TypedListGroup data) {
+		final int bins = (int) Math.sqrt(data.size());
+		Histogram h = new Histogram(bins);
+		for (Integer id : data) {
+			float v = getNormalized(id.intValue());
+			if (Float.isNaN(v)) {
+				h.addNAN(id);
+			} else {
+				// this works because the values in the container are
+				// already normalized
+				int bucketIndex = (int) (v * bins);
+				if (bucketIndex == bins)
+					bucketIndex--;
+				h.add(bucketIndex, id);
+			}
+		}
+		return h;
+	}
+
+	@Override
+	protected Color[] getHistColors() {
+		return null;
+	}
+
+	@Override
+	protected String[] getHistLabels() {
+		return null;
+	}
 
 }

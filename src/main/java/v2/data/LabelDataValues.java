@@ -5,9 +5,13 @@
  *******************************************************************************/
 package v2.data;
 
+import java.util.Collection;
+import java.util.Collections;
+
 import org.caleydo.core.data.collection.EDimension;
 import org.caleydo.core.id.IDCategory;
 import org.caleydo.core.view.opengl.layout2.manage.GLElementFactoryContext.Builder;
+import org.caleydo.view.domino.api.model.graph.EProximityMode;
 import org.caleydo.view.domino.api.model.typed.TypedGroupList;
 import org.caleydo.view.domino.api.model.typed.TypedGroupSet;
 import org.caleydo.view.domino.api.model.typed.TypedListGroup;
@@ -55,4 +59,8 @@ public class LabelDataValues implements IDataValues {
 		b.put("labels.recs", recData);
 	}
 
+	@Override
+	public Collection<String> getDefaultVisualization(EProximityMode mode) {
+		return Collections.singleton("labels");
+	}
 }

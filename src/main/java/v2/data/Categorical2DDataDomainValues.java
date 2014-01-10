@@ -7,6 +7,7 @@ package v2.data;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 import org.caleydo.core.data.collection.EDimension;
@@ -18,6 +19,7 @@ import org.caleydo.core.data.perspective.table.TablePerspective;
 import org.caleydo.core.id.IDType;
 import org.caleydo.core.util.collection.Pair;
 import org.caleydo.core.view.opengl.layout2.manage.GLElementFactoryContext.Builder;
+import org.caleydo.view.domino.api.model.graph.EProximityMode;
 import org.caleydo.view.domino.api.model.typed.TypedGroupSet;
 import org.caleydo.view.domino.api.model.typed.TypedListGroup;
 import org.caleydo.view.domino.api.model.typed.TypedSet;
@@ -147,5 +149,10 @@ public class Categorical2DDataDomainValues extends ADataDomainDataValues {
 	@Override
 	public TypedGroupSet getDefaultGroups(EDimension dim) {
 		return dim.select(dimGroups, recGroups);
+	}
+
+	@Override
+	public Collection<String> getDefaultVisualization(EProximityMode mode) {
+		return Collections.singleton("heatmap");
 	}
 }

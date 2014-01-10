@@ -8,8 +8,12 @@ package v2.data;
 import java.util.Collections;
 
 import org.caleydo.core.data.collection.EDimension;
+import org.caleydo.core.data.collection.Histogram;
 import org.caleydo.core.data.perspective.table.TablePerspective;
 import org.caleydo.core.data.perspective.variable.Perspective;
+import org.caleydo.core.util.color.Color;
+import org.caleydo.core.util.function.IDoubleList;
+import org.caleydo.core.util.function.MappedDoubleList;
 import org.caleydo.core.view.opengl.layout2.manage.GLElementFactoryContext.Builder;
 import org.caleydo.view.domino.api.model.typed.TypedCollections;
 import org.caleydo.view.domino.api.model.typed.TypedGroupList;
@@ -57,7 +61,7 @@ public abstract class A1DDataDomainValues extends ADataDomainDataValues {
 	@Override
 	public void fill(Builder b, TypedListGroup dimData, TypedListGroup recData) {
 		EDimension dim = main;
-		TypedList data = main.select(dimData, recData);
+		TypedListGroup data = main.select(dimData, recData);
 		boolean transposed = data.getIdType() == this.singleGroup.getIdType();
 		if (transposed) {
 			dim = dim.opposite();
@@ -66,16 +70,38 @@ public abstract class A1DDataDomainValues extends ADataDomainDataValues {
 		TypedList single = TypedCollections.singletonList(id);
 		super.fillHeatMap(b, dim.select(data, single), dim.select(single, data));
 		b.put(EDimension.class, dim);
-		b.put("axis.data", data);
+		b.put(TypedListGroup.class, data);
+		b.put("idType", data.getIdType());
 		b.put("axis.min", 0);
 		b.put("axis.max", 1);
-		b.put("axis.f", new Function<Integer, Double>() {
+		final Function<Integer, Double> toNormalized = new Function<Integer, Double>() {
 			@Override
 			public Double apply(Integer input) {
 				return (double) getNormalized(input.intValue());
 			}
-		});
+		};
+		b.put("id2double", toNormalized);
+		b.put(Histogram.class, createHist(data));
+		b.put("distribution.colors", getHistColors());
+		b.put("distribution.labels", getHistLabels());
+		b.put(IDoubleList.class, new MappedDoubleList<>(data, toNormalized));
 	}
+
+	/**
+	 * @return
+	 */
+	protected abstract String[] getHistLabels();
+
+	/**
+	 * @return
+	 */
+	protected abstract Color[] getHistColors();
+
+	/**
+	 * @param data
+	 * @return
+	 */
+	protected abstract Histogram createHist(TypedListGroup data);
 
 	@Override
 	public TypedGroupSet getDefaultGroups(EDimension dim) {

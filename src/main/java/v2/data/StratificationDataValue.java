@@ -5,13 +5,20 @@
  *******************************************************************************/
 package v2.data;
 
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 
 import org.caleydo.core.data.collection.EDimension;
+import org.caleydo.core.data.collection.Histogram;
 import org.caleydo.core.data.perspective.variable.Perspective;
 import org.caleydo.core.util.color.Color;
 import org.caleydo.core.util.function.Function2;
+import org.caleydo.core.util.function.IDoubleList;
+import org.caleydo.core.util.function.MappedDoubleList;
 import org.caleydo.core.view.opengl.layout2.manage.GLElementFactoryContext.Builder;
+import org.caleydo.view.domino.api.model.graph.EProximityMode;
 import org.caleydo.view.domino.api.model.typed.TypedCollections;
 import org.caleydo.view.domino.api.model.typed.TypedGroupList;
 import org.caleydo.view.domino.api.model.typed.TypedGroupSet;
@@ -56,6 +63,10 @@ public class StratificationDataValue implements IDataValues, Function2<Integer, 
 		return "stratification";
 	}
 
+	protected List<TypedSetGroup> groups() {
+		return groups.getGroups();
+	}
+
 	@Override
 	public void fill(Builder b, TypedListGroup dimData, TypedListGroup recData) {
 		b.put("heatmap.dimensions", dimData);
@@ -70,19 +81,42 @@ public class StratificationDataValue implements IDataValues, Function2<Integer, 
 
 		final EDimension dir = swapped ? main.opposite() : main;
 		b.put(EDimension.class, dir);
-		b.put("axis.data", dir.select(dimData, recData));
-		b.put("axis.f", new Function<Integer, Double>() {
+		final TypedListGroup data = dir.select(dimData, recData);
+		b.put("data",data);
+		b.put("idType",data.getIdType());
+		b.put("axis.min", 0);
+		b.put("axis.max", groups().size() - 1);
+		final Function<Integer, Double> toIndex = new Function<Integer, Double>() {
 			@Override
 			public Double apply(Integer input) {
 				return (double) indexOf(input);
 			}
-		});
+		};
+		b.put("index2double", toIndex);
+		b.put(Histogram.class, createHist(data));
+		b.put(IDoubleList.class, new MappedDoubleList<>(data, toIndex));
+	}
+
+	/**
+	 * @param data
+	 * @return
+	 */
+	private Histogram createHist(TypedListGroup data) {
+		Histogram h = new Histogram(groups().size());
+		for (Integer id : data) {
+			int index = indexOf(id);
+			if (index < 0)
+				h.addNAN(id);
+			else
+				h.add(index, id);
+		}
+		return h;
 	}
 
 	@Override
 	public Color apply(Integer record, Integer dimension) {
 		Integer id = main.select(dimension, record);
-		for (TypedSetGroup g : groups.getGroups()) {
+		for (TypedSetGroup g : groups()) {
 			if (g.contains(id))
 				return g.getColor();
 		}
@@ -91,7 +125,7 @@ public class StratificationDataValue implements IDataValues, Function2<Integer, 
 
 	public int indexOf(Integer id) {
 		int i = 0;
-		for (TypedSetGroup g : groups.getGroups()) {
+		for (TypedSetGroup g : groups()) {
 			if (g.contains(id))
 				return i;
 			i++;
@@ -112,6 +146,11 @@ public class StratificationDataValue implements IDataValues, Function2<Integer, 
 	@Override
 	public int compare(EDimension dim, int a, int b, TypedSet otherData) {
 		return a - b;
+	}
+
+	@Override
+	public Collection<String> getDefaultVisualization(EProximityMode mode) {
+		return Arrays.asList("distribution.pie", "distribution.hist", "heatmap");
 	}
 
 }

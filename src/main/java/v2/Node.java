@@ -53,7 +53,6 @@ import org.caleydo.view.domino.api.model.typed.TypedSet;
 import org.caleydo.view.domino.api.model.typed.TypedSetGroup;
 
 import v2.data.IDataValues;
-import v2.data.StratificationDataValue;
 import v2.data.TransposedDataValues;
 import v2.event.HideNodeEvent;
 
@@ -80,11 +79,13 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 	private TypedGroupList recData;
 	private TypedGroupSet recGroups;
 
-	private EProximityMode proximityMode = EProximityMode.DETACHED;
+	private boolean isDimDetached = false;
+	private boolean isRecDetached = false;
 
 	private final Vec2f shift = new Vec2f();
 
 	private boolean highlightDropArea;
+
 
 	public Node(IDataValues data) {
 		this(data, data.getLabel(), data.getDefaultGroups(EDimension.DIMENSION), data
@@ -106,7 +107,7 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 		this.label = label;
 		this.dimGroups = dimGroups;
 		this.recGroups = recGroups;
-		guessShift(dimGroups.size(), recGroups.size());
+		// guessShift(dimGroups.size(), recGroups.size());
 		setData(fixList(dimGroups), fixList(recGroups));
 		init();
 	}
@@ -118,6 +119,22 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 	private void guessShift(float d, float r) {
 		Vec2f s = initialSize(d, r);
 		shift.set(s.x() - d, s.y() - r);
+	}
+
+	public boolean isDetached(EDimension dim) {
+		return dim.select(isDimDetached, isRecDetached);
+	}
+
+	public void setDetached(EDimension dim, boolean value) {
+		if (isDetached(dim) == value)
+			return;
+		EProximityMode p = getProximityMode();
+		if (dim.isDimension())
+			isDimDetached = value;
+		else
+			isRecDetached = value;
+		if (p != getProximityMode()) // trigger update of vis
+			setData(dimData, recData);
 	}
 
 	/**
@@ -553,6 +570,8 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 	}
 
 	public void setNeighbor(EDirection dir, Node neighbor) {
+		setDetached(dir.asDim(), false);
+
 		Node bak = this.neighbors[dir.ordinal()];
 		if (bak == neighbor)
 			return;
@@ -766,7 +785,13 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 	 * @return
 	 */
 	public EProximityMode getProximityMode() {
-		return proximityMode;
+		boolean dAlone = isAlone(EDimension.DIMENSION);
+		final boolean rAlone = isAlone(EDimension.RECORD);
+		if (dAlone && rAlone)
+			return EProximityMode.FREE;
+		if ((isDimDetached || dAlone) && (isRecDetached || rAlone))
+			return EProximityMode.DETACHED;
+		return EProximityMode.ATTACHED;
 	}
 
 	/**
@@ -942,12 +967,13 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 	 * @param s
 	 */
 	public void selectDefaultVisualization(GLElementFactorySwitcher s) {
-		if (data instanceof StratificationDataValue)
-			return;
-		for (GLElementSupplier supp : s) {
-			if (supp.getId().equals("axis")) {
-				s.setActive(supp);
-				break;
+		Collection<String> list = this.data.getDefaultVisualization(getProximityMode());
+		for (String target : list) {
+			for (GLElementSupplier supp : s) {
+				if (target.equals(supp.getId())) {
+					s.setActive(supp);
+					return;
+				}
 			}
 		}
 	}
