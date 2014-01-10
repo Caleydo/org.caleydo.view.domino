@@ -19,6 +19,8 @@ import org.caleydo.view.domino.api.model.typed.TypedList;
 import org.caleydo.view.domino.api.model.typed.TypedListGroup;
 import org.caleydo.view.domino.api.model.typed.TypedSet;
 
+import com.google.common.base.Function;
+
 /**
  * @author Samuel Gratzl
  *
@@ -63,6 +65,14 @@ public abstract class A1DDataDomainValues extends ADataDomainDataValues {
 		}
 		TypedList single = TypedCollections.singletonList(id);
 		super.fillHeatMap(b, dim.select(data, single), dim.select(single, data));
+		b.put(EDimension.class, dim);
+		b.put("axis.data", data);
+		b.put("axis.f", new Function<Integer, Double>() {
+			@Override
+			public Double apply(Integer input) {
+				return (double) getNormalized(input.intValue());
+			}
+		});
 	}
 
 	@Override

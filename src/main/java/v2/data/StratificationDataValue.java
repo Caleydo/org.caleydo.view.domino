@@ -20,6 +20,8 @@ import org.caleydo.view.domino.api.model.typed.TypedSet;
 import org.caleydo.view.domino.api.model.typed.TypedSetGroup;
 import org.caleydo.view.domino.internal.util.Utils;
 
+import com.google.common.base.Function;
+
 /**
  * @author Samuel Gratzl
  *
@@ -60,10 +62,21 @@ public class StratificationDataValue implements IDataValues, Function2<Integer, 
 		b.put("heatmap.dimensions.idType", dimData.getIdType());
 		b.put("heatmap.records", recData);
 		b.put("heatmap.records.idType", recData.getIdType());
-		if (dimData.getIdType() != getDefaultGroups(EDimension.DIMENSION).getIdType()) { // swapped
+		final boolean swapped = dimData.getIdType() != getDefaultGroups(EDimension.DIMENSION).getIdType();
+		if (swapped) { // swapped
 			b.put(Function2.class, Functions2s.swap(this));
 		} else
 			b.put(Function2.class, this);
+
+		final EDimension dir = swapped ? main.opposite() : main;
+		b.put(EDimension.class, dir);
+		b.put("axis.data", dir.select(dimData, recData));
+		b.put("axis.f", new Function<Integer, Double>() {
+			@Override
+			public Double apply(Integer input) {
+				return (double) indexOf(input);
+			}
+		});
 	}
 
 	@Override
@@ -74,6 +87,16 @@ public class StratificationDataValue implements IDataValues, Function2<Integer, 
 				return g.getColor();
 		}
 		return Color.NOT_A_NUMBER_COLOR;
+	}
+
+	public int indexOf(Integer id) {
+		int i = 0;
+		for (TypedSetGroup g : groups.getGroups()) {
+			if (g.contains(id))
+				return i;
+			i++;
+		}
+		return -1;
 	}
 
 	@Override

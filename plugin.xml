@@ -67,5 +67,10 @@
             icon="resources/icons/icon.png"
             name="Labels">
       </factory>
+      <factory
+            factory="v2.ui.AxisElementFactory"
+            icon="resources/icons/icon.png"
+            name="Axis">
+      </factory>
    </extension>
 </plugin>
