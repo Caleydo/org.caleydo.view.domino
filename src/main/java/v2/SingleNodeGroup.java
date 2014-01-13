@@ -7,8 +7,6 @@ package v2;
 
 import org.caleydo.core.view.opengl.layout2.dnd.IDnDItem;
 
-import v2.data.IDataValues;
-
 
 /**
  * @author Samuel Gratzl
@@ -16,8 +14,8 @@ import v2.data.IDataValues;
  */
 public class SingleNodeGroup extends NodeGroup {
 
-	public SingleNodeGroup(Node parent, IDataValues data) {
-		super(parent, data);
+	public SingleNodeGroup(Node parent) {
+		super(parent);
 	}
 
 	@Override

@@ -74,7 +74,7 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 	private Node[] neighbors = new Node[4];
 
 	private final String label;
-	private final IDataValues data;
+	IDataValues data;
 
 	private TypedGroupList dimData;
 	private TypedGroupSet dimGroups;
@@ -89,15 +89,20 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 
 	private boolean highlightDropArea;
 
+	private final Node origin;
+
+	private String visualizationType;
 
 	public Node(IDataValues data) {
-		this(data, data.getLabel(), data.getDefaultGroups(EDimension.DIMENSION), data
+		this(null, data, data.getLabel(), data.getDefaultGroups(EDimension.DIMENSION), data
 				.getDefaultGroups(EDimension.RECORD));
 	}
 
 	public Node(Node clone) {
+		this.origin = clone;
 		this.data = clone.data;
 		this.label = clone.label;
+		this.visualizationType = clone.visualizationType;
 		this.dimGroups = clone.dimGroups;
 		this.recGroups = clone.recGroups;
 		this.shift.set(clone.shift);
@@ -105,7 +110,9 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 		init();
 	}
 
-	public Node(IDataValues data, String label, TypedGroupSet dimGroups, TypedGroupSet recGroups) {
+	public Node(Node origin, IDataValues data, String label, TypedGroupSet dimGroups, TypedGroupSet recGroups) {
+		this.origin = origin;
+		this.visualizationType = origin == null ? null : origin.visualizationType;
 		this.data = data;
 		this.label = label;
 		this.dimGroups = dimGroups;
@@ -338,7 +345,7 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 			for (NodeGroup g : nodeGroups())
 				g.prepareRemoveal();
 			this.clear();
-			SingleNodeGroup single = new SingleNodeGroup(this, data);
+			SingleNodeGroup single = new SingleNodeGroup(this);
 			single.setData(dimGroups.get(0), recGroups.get(0));
 			this.add(single);
 		} else {
@@ -571,7 +578,7 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 	private NodeGroup getOrCreate(int n) {
 		if (n < size())
 			return (NodeGroup) get(n);
-		NodeGroup g = new NodeGroup(this, data);
+		NodeGroup g = new NodeGroup(this);
 		this.add(g);
 		return g;
 	}
@@ -913,18 +920,24 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 	 *
 	 */
 	public void transpose() {
-
-		findBlock().replace(this, asTransposed());
+		findBlock().updatedNode();
 	}
 
-	/**
-	 * @return
-	 */
-	public Node asTransposed() {
-		Node n = new Node(TransposedDataValues.transpose(data), label, recGroups, dimGroups);
-		n.shift.setX(shift.y());
-		n.shift.setY(shift.x());
-		return n;
+	public Node transposeMe() {
+		this.data = TransposedDataValues.transpose(data);
+
+		TypedGroupSet g = recGroups;
+		this.recGroups = dimGroups;
+		this.dimGroups = g;
+		TypedGroupList t = this.recData;
+		this.recData = dimData;
+		this.dimData = t;
+		boolean tmpR = this.isRecDetached;
+		this.isRecDetached = this.isDimDetached;
+		this.isDimDetached = tmpR;
+		this.shift.set(this.shift.y(), this.shift.x());
+
+		return this;
 	}
 
 	/**
@@ -974,15 +987,39 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 	 * @param s
 	 */
 	public void selectDefaultVisualization(GLElementFactorySwitcher s) {
-		Collection<String> list = this.data.getDefaultVisualization(getProximityMode());
+		if (visualizationType != null && trySetVisualizationType(s, visualizationType))
+			return;
+
+		// if (origin != null && )
+		final EProximityMode proximityMode = getProximityMode();
+		if (origin != null && proximityMode == origin.getProximityMode()) {
+			String target = origin.getVisualizationType();
+			if (trySetVisualizationType(s, target))
+				return;
+		}
+		Collection<String> list = this.data.getDefaultVisualization(proximityMode);
 		for (String target : list) {
-			for (GLElementSupplier supp : s) {
-				if (target.equals(supp.getId())) {
-					s.setActive(supp);
-					return;
-				}
+			if (trySetVisualizationType(s, target))
+				return;
+		}
+	}
+
+	private static boolean trySetVisualizationType(GLElementFactorySwitcher s, String target) {
+		for (GLElementSupplier supp : s) {
+			if (target.equals(supp.getId())) {
+				s.setActive(supp);
+				return true;
 			}
 		}
+		return false;
+	}
+
+	/**
+	 * @return
+	 */
+	private String getVisualizationType() {
+		NodeGroup g = (NodeGroup) get(0);
+		return g.getSwitcher().getActiveId();
 	}
 
 	/**
@@ -998,6 +1035,7 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 				for (NodeGroup g : nodeGroups()) {
 					g.getSwitcher().setActive(active);
 				}
+				visualizationType = button.getLayoutDataAs(GLElementSupplier.class, null).getId();
 				updateSize(dimData, recData);
 				relayout();
 				findBlock().updatedNode();

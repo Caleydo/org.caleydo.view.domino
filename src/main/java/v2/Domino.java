@@ -324,7 +324,7 @@ public class Domino extends GLElementContainer implements IDropGLTarget, IPickin
 		removeNode(node);
 		Block block = getBlock(neighbor);
 		if (transpose) {
-			node = node.asTransposed();
+			node.transposeMe();
 		}
 		block.addNode(neighbor, dir, node);
 		removePlaceholder();

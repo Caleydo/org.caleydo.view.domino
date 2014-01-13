@@ -54,7 +54,7 @@ public class LinearBlock extends AbstractCollection<Node> {
 	private List<Node> sortCriteria = new ArrayList<>(2);
 	private Node dataSelection = null;
 
-	private boolean stratified = true;
+	private boolean stratified = false;
 	private MultiTypedList data;
 
 	public LinearBlock(EDimension dim, Node node) {

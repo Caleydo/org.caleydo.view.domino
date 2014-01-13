@@ -42,7 +42,6 @@ import org.caleydo.view.domino.api.model.typed.TypedGroupSet;
 import org.caleydo.view.domino.api.model.typed.TypedListGroup;
 import org.caleydo.view.domino.internal.ui.PickingBarrier;
 
-import v2.data.IDataValues;
 import v2.event.HideNodeEvent;
 
 import com.google.common.collect.ImmutableList;
@@ -53,7 +52,6 @@ import com.google.common.collect.ImmutableList;
  */
 public class NodeGroup extends GLElementDecorator implements ILabeled, IDragGLSource, IPickingListener {
 	private final Node parent;
-	private final IDataValues data;
 
 	private final NodeGroup[] neighbors = new NodeGroup[4];
 	private TypedListGroup dimData;
@@ -63,9 +61,8 @@ public class NodeGroup extends GLElementDecorator implements ILabeled, IDragGLSo
 	private boolean armed;
 
 
-	public NodeGroup(Node parent, IDataValues data) {
+	public NodeGroup(Node parent) {
 		this.parent = parent;
-		this.data = data;
 		setVisibility(EVisibility.PICKABLE);
 		onPick(this);
 		this.barrier = new PickingBarrier();
@@ -88,12 +85,12 @@ public class NodeGroup extends GLElementDecorator implements ILabeled, IDragGLSo
 		if (context == null)
 			return;
 		Builder b = GLElementFactoryContext.builder();
-		data.fill(b, dimData, recData);
+		parent.data.fill(b, dimData, recData);
 		b.put(EDetailLevel.class, EDetailLevel.HIGH);
 		b.set("heatmap.blurNotSelected");
 		b.set("heatmap.forceTextures");
 		ImmutableList<GLElementSupplier> extensions = GLElementFactories.getExtensions(b.build(), "domino."
- + data.getExtensionID(), parent.getProximityMode());
+				+ parent.data.getExtensionID(), parent.getProximityMode());
 		GLElementFactorySwitcher s = new GLElementFactorySwitcher(extensions, ELazyiness.DESTROY);
 		parent.selectDefaultVisualization(s);
 		barrier.setContent(s);
@@ -319,7 +316,8 @@ public class NodeGroup extends GLElementDecorator implements ILabeled, IDragGLSo
 	 * @return
 	 */
 	public Node toNode() {
-		Node n = new Node(data, getLabel(), new TypedGroupSet(dimData.asSet()), new TypedGroupSet(recData.asSet()));
+		Node n = new Node(parent, parent.data, getLabel(), new TypedGroupSet(dimData.asSet()), new TypedGroupSet(
+				recData.asSet()));
 		Vec2f shift = getNode().getShiftRatio(this);
 		n.shiftSize(shift.x(), shift.y(), true);
 		return n;

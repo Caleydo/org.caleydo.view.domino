@@ -110,7 +110,7 @@ public class Band implements ILabeled {
 
 	public TypedSet getIds(SourceTarget type, int subIndex) {
 		ADataRoute r = getRoute(subIndex);
-		return r.asSet(type);
+		return r == null ? overviewRoute.asSet(type) : r.asSet(type);
 	}
 
 	public EDimension getDimension(SourceTarget type) {
@@ -119,7 +119,7 @@ public class Band implements ILabeled {
 
 	public String getLabel(int subIndex) {
 		ADataRoute r = getRoute(subIndex);
-		return r.getLabel();
+		return r == null ? "" : r.getLabel();
 	}
 
 	private ADataRoute getRoute(int subIndex) {
@@ -127,9 +127,15 @@ public class Band implements ILabeled {
 		case OVERVIEW:
 			return overviewRoute;
 		case GROUPS:
-			return lazyGroupRoutes().get(subIndex);
+			final List<DataRoute> g = lazyGroupRoutes();
+			if (subIndex < 0 || g.size() <= subIndex)
+				return null;
+			return g.get(subIndex);
 		case DETAIL:
-			return lazyDetailRoutes().get(subIndex);
+			final List<ADataRoute> l = lazyDetailRoutes();
+			if (subIndex < 0 || l.size() <= subIndex)
+				return null;
+			return l.get(subIndex);
 		}
 		throw new IllegalStateException();
 	}
@@ -312,7 +318,13 @@ public class Band implements ILabeled {
 			break;
 		case GROUPS:
 			float z = g.z();
-			for (DataRoute r : lazyGroupRoutes()) {
+			final List<DataRoute> gR = lazyGroupRoutes();
+			if (gR.isEmpty()) {
+				mode = EBandMode.OVERVIEW;
+				render(g, w, h, host);
+				return;
+			}
+			for (DataRoute r : gR) {
 				g.incZ(0.0001f);
 				r.renderRoute(g, host);
 			}
@@ -320,7 +332,13 @@ public class Band implements ILabeled {
 			break;
 		case DETAIL:
 			z = g.z();
-			for (ADataRoute r : lazyDetailRoutes()) {
+			final List<ADataRoute> lR = lazyDetailRoutes();
+			if (lR.isEmpty()) {
+				mode = EBandMode.GROUPS;
+				render(g, w, h, host);
+				return;
+			}
+			for (ADataRoute r : lR) {
 				g.incZ(0.0001f);
 				r.renderRoute(g, host);
 			}
@@ -509,15 +527,48 @@ public class Band implements ILabeled {
 		}
 
 		public boolean merge(GLLocation sloc, GLLocation tloc, Integer sId, Integer tId) {
-			if (!c(this.sloc.getOffset2(), sloc.getOffset()) || !c(this.tloc.getOffset2(), tloc.getOffset()))
+			if (!combineAble(this.sloc, sloc) || !combineAble(this.tloc, tloc))
 				return false;
 
 			this.sIds.add(sId);
 			this.tIds.add(tId);
 
-			this.sloc = new GLLocation(this.sloc.getOffset(), sloc.getOffset2() - this.sloc.getOffset());
+			this.sloc = merge(this.sloc, sloc);
 			this.tloc = new GLLocation(this.tloc.getOffset(), tloc.getOffset2() - this.tloc.getOffset());
 			return true;
+		}
+
+		/**
+		 * @param sloc2
+		 * @param sloc3
+		 * @return
+		 */
+		private boolean combineAble(GLLocation a, GLLocation b) {
+			// two lines can be combined if
+			double aStart = a.getOffset();
+			double aEnd = a.getOffset2();
+			double bStart = b.getOffset();
+			double bEnd = b.getOffset2();
+			if (c(aEnd, bStart) || c(aStart, bEnd)) // concat each other
+				return true;
+			if (c(aStart, bStart) && c(aEnd, bEnd)) // same
+				return true;
+			if (bStart > aStart && bStart <= aEnd) // b starts in a
+				return true;
+			if (aStart > bStart && aStart <= bEnd) // a starts in b
+				return true;
+			return false;
+		}
+
+		/**
+		 * @param sloc2
+		 * @param sloc3
+		 * @return
+		 */
+		private GLLocation merge(GLLocation a, GLLocation b) {
+			double start = Math.min(a.getOffset(), b.getOffset());
+			double end = Math.max(a.getOffset2(), b.getOffset2());
+			return new GLLocation(start, end - start);
 		}
 
 		private boolean c(double a, double b) {
