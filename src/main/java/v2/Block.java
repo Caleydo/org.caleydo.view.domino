@@ -263,9 +263,10 @@ public class Block extends GLElementContainer implements IGLLayout2 {
 			if (!node.has(dim.opposite()))
 				continue;
 			LinearBlock block = getBlock(node, dim);
-			if (block.size() == 1)
+			if (block != null && block.size() == 1)
 				linearBlocks.remove(block);
-			block.remove(node);
+			if (block != null)
+				block.remove(node);
 		}
 		this.remove(node);
 		shiftToZero();
@@ -375,6 +376,8 @@ public class Block extends GLElementContainer implements IGLLayout2 {
 
 		ILocator sLocator = la.getLocator(true);
 		ILocator tLocator = lb.getLocator(false);
+		ILocator sGroupLocator = la.getGroupLocator(true);
+		ILocator tGroupLocator = lb.getGroupLocator(false);
 
 		Rect ra = a.getAbsoluteBounds(la);
 		Rect rb = b.getAbsoluteBounds(lb);
@@ -385,7 +388,8 @@ public class Block extends GLElementContainer implements IGLLayout2 {
 
 		String label = la.getNode(true).getLabel() + " x " + lb.getNode(false).getLabel();
 
-		Band band = new Band(line, label, shared, sData, tData, sLocator, tLocator, la.getDim().opposite(), lb.getDim()
+		Band band = new Band(line, label, shared, sData, tData, sLocator, tLocator, sGroupLocator, tGroupLocator, la
+				.getDim().opposite(), lb.getDim()
 				.opposite());
 		routes.add(band);
 	}

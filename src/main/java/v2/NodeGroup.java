@@ -34,6 +34,8 @@ import org.caleydo.core.view.opengl.layout2.manage.GLElementFactoryContext;
 import org.caleydo.core.view.opengl.layout2.manage.GLElementFactoryContext.Builder;
 import org.caleydo.core.view.opengl.layout2.manage.GLElementFactorySwitcher;
 import org.caleydo.core.view.opengl.layout2.manage.GLElementFactorySwitcher.ELazyiness;
+import org.caleydo.core.view.opengl.layout2.manage.GLLocation;
+import org.caleydo.core.view.opengl.layout2.manage.GLLocation.ILocator;
 import org.caleydo.core.view.opengl.picking.IPickingListener;
 import org.caleydo.core.view.opengl.picking.Pick;
 import org.caleydo.view.domino.api.model.graph.EDirection;
@@ -319,7 +321,7 @@ public class NodeGroup extends GLElementDecorator implements ILabeled, IDragGLSo
 		Node n = new Node(parent, parent.data, getLabel(), new TypedGroupSet(dimData.asSet()), new TypedGroupSet(
 				recData.asSet()));
 		Vec2f shift = getNode().getShiftRatio(this);
-		n.shiftSize(shift.x(), shift.y(), true);
+		n.setShift(shift);
 		return n;
 	}
 
@@ -358,5 +360,10 @@ public class NodeGroup extends GLElementDecorator implements ILabeled, IDragGLSo
 
 	public void setContentPickable(boolean pickable) {
 		barrier.setPickable(pickable);
+	}
+
+	public ILocator getLocator(final EDimension dim) {
+		ILocator desc = getDesc(dim);
+		return GLLocation.shift(desc, Node.BORDER);
 	}
 }

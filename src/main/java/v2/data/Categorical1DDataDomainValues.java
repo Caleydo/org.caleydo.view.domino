@@ -76,11 +76,10 @@ public class Categorical1DDataDomainValues extends A1DDataDomainValues {
 	@Override
 	public void fill(Builder b, TypedListGroup dimData, TypedListGroup recData) {
 		super.fill(b, dimData, recData);
-		b.put("distribution.colors", getHistColors());
-		b.put("distribution.labels", getHistLabels());
 	}
 
-	protected Color[] getHistColors() {
+	@Override
+	protected Color[] getHistColors(Histogram hist, TypedListGroup data) {
 		Color[] r = new Color[groups().size()];
 		int i = 0;
 		for (TypedSetGroup s : groups()) {
@@ -89,7 +88,8 @@ public class Categorical1DDataDomainValues extends A1DDataDomainValues {
 		return r;
 	}
 
-	protected String[] getHistLabels() {
+	@Override
+	protected String[] getHistLabels(Histogram hist, TypedListGroup data) {
 		String[] r = new String[groups().size()];
 		int i = 0;
 		for (TypedSetGroup s : groups()) {

@@ -817,18 +817,22 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 		}
 	}
 
-	GLLocation shiftLocation(EDimension dim, GLLocation l, int group, int offset) {
-		final float border = BORDER * (2 * group + 2);
-		final TypedGroupList d = getData(dim);
-		float total = dim.select(getSize()) - BORDER * 2 * (1 + d.getGroups().size());
-		float groupOffset = total * (offset / (float) d.size());
-
-		return new GLLocation(l.getOffset() + border + groupOffset, l.getSize());
+	public ILocator getGroupLocator(final EDimension dim) {
+		final List<NodeGroup> groups = getGroupNeighbors(EDirection.getPrimary(dim.opposite()));
+		return new GLLocation.ALocator() {
+			@Override
+			public GLLocation apply(int dataIndex) {
+				NodeGroup g = groups.get(dataIndex);
+				double offset = dim.select(g.getLocation());
+				double size = dim.select(g.getSize());
+				return new GLLocation(offset, size);
+			}
+		};
 	}
 
 	public ILocator getLocator(final EDimension dim) {
 		TypedGroupList data = getData(dim);
-		List<NodeGroup> groups = getGroupNeighbors(EDirection.getPrimary(dim.opposite()));
+		final List<NodeGroup> groups = getGroupNeighbors(EDirection.getPrimary(dim.opposite()));
 		int offset = 0;
 		List<TypedListGroup> gropus2 = data.getGroups();
 		final List<Pair<Integer, ILocator>> locators = new ArrayList<>(gropus2.size());
@@ -836,19 +840,19 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 		for (int i = 0; i < gropus2.size(); ++i) {
 			int size = gropus2.get(i).size();
 			offset += size;
-			locators.add(Pair.make(offset, (ILocator) groups.get(i).getDesc(dim)));
+			final NodeGroup g = groups.get(i);
+			float loffset = dim.select(g.getLocation());
+			locators.add(Pair.make(offset, GLLocation.shift(g.getLocator(dim), loffset)));
 		}
 		return new GLLocation.ALocator() {
 			@Override
 			public GLLocation apply(int dataIndex) {
 				int offset = 0;
-				int locIndex = 0;
 				for (Pair<Integer, ILocator> loc : locators) {
 					if (loc.getFirst() > dataIndex) {
-						return shiftLocation(dim, loc.getSecond().apply(dataIndex - offset), locIndex, offset);
+						return loc.getSecond().apply(dataIndex - offset);
 					}
 					offset = loc.getFirst();
-					locIndex++;
 				}
 				return GLLocation.UNKNOWN;
 			}
@@ -856,6 +860,9 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 
 	}
 
+	void setShift(Vec2f shift) {
+		this.shift.set(shift);
+	}
 	/**
 	 * @param x
 	 * @param y
@@ -920,6 +927,7 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 	 *
 	 */
 	public void transpose() {
+		transposeMe();
 		findBlock().updatedNode();
 	}
 
@@ -936,6 +944,7 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 		this.isRecDetached = this.isDimDetached;
 		this.isDimDetached = tmpR;
 		this.shift.set(this.shift.y(), this.shift.x());
+		setData(dimData, recData);
 
 		return this;
 	}

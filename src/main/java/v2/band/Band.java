@@ -63,19 +63,22 @@ public class Band implements ILabeled {
 	private List<DataRoute> groupRoutes;
 	private List<ADataRoute> detailRoutes;
 
-	private ILocator sLocator, tLocator;
+	private ILocator sLocator, tLocator, sGroupLocator, tGroupLocator;
 
 	private final EDimension sDim;
 	private final EDimension tDim;
 
 	public Band(BandLine band, String label, MultiTypedSet shared, TypedGroupList sData, TypedGroupList tData,
-			ILocator sLocator, ILocator tLocator, EDimension sDim, EDimension tDim) {
+			ILocator sLocator, ILocator tLocator, ILocator sGroupLocator, ILocator tGroupLocator, EDimension sDim,
+			EDimension tDim) {
 		this.band = band;
 		this.shared = shared;
 		this.sData = sData;
 		this.tData = tData;
 		this.sLocator = sLocator;
 		this.tLocator = tLocator;
+		this.sGroupLocator = sGroupLocator;
+		this.tGroupLocator = tGroupLocator;
 		this.sDim = sDim;
 		this.tDim = tDim;
 
@@ -92,13 +95,16 @@ public class Band implements ILabeled {
 	 *
 	 */
 	public void stubify() {
-		updateBand(band.asStubified(), sLocator, tLocator);
+		updateBand(band.asStubified(), sLocator, tLocator, sGroupLocator, tGroupLocator);
 	}
 
-	public void updateBand(BandLine band, ILocator sLocator, ILocator tLocator) {
+	public void updateBand(BandLine band, ILocator sLocator, ILocator tLocator, ILocator sGroupLocator,
+			ILocator tGroupLocator) {
 		this.band = band;
 		this.sLocator = sLocator;
 		this.tLocator = tLocator;
+		this.sGroupLocator = sGroupLocator;
+		this.tGroupLocator = tGroupLocator;
 		overviewRoute.updateBand();
 		if (groupRoutes != null)
 			for (DataRoute r : groupRoutes)

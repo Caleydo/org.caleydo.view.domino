@@ -425,6 +425,10 @@ public class LinearBlock extends AbstractCollection<Node> {
 		return getNode(first).getLocator(dim.opposite());
 	}
 
+	public ILocator getGroupLocator(boolean first) {
+		return getNode(first).getGroupLocator(dim.opposite());
+	}
+
 	/**
 	 * @param node
 	 */

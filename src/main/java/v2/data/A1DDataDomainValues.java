@@ -11,6 +11,7 @@ import org.caleydo.core.data.collection.EDimension;
 import org.caleydo.core.data.collection.Histogram;
 import org.caleydo.core.data.perspective.table.TablePerspective;
 import org.caleydo.core.data.perspective.variable.Perspective;
+import org.caleydo.core.util.color.Color;
 import org.caleydo.core.view.opengl.layout2.manage.GLElementFactoryContext.Builder;
 import org.caleydo.view.domino.api.model.typed.TypedCollections;
 import org.caleydo.view.domino.api.model.typed.TypedGroupList;
@@ -67,8 +68,15 @@ public abstract class A1DDataDomainValues extends ADataDomainDataValues {
 		b.put(EDimension.class, dim);
 		b.put(TypedListGroup.class, data);
 		b.put("idType", data.getIdType());
-		b.put(Histogram.class, createHist(data));
+		final Histogram hist = createHist(data);
+		b.put(Histogram.class, hist);
+		b.put("distribution.colors", getHistColors(hist, data));
+		b.put("distribution.labels", getHistLabels(hist, data));
 	}
+
+	protected abstract Color[] getHistColors(Histogram hist, TypedListGroup data);
+
+	protected abstract String[] getHistLabels(Histogram hist, TypedListGroup data);
 
 	/**
 	 * @param data
@@ -83,5 +91,9 @@ public abstract class A1DDataDomainValues extends ADataDomainDataValues {
 
 	public float getNormalized(int id) {
 		return getNormalized(main.select(id, this.id.getId()), main.select(this.id.getId(), id));
+	}
+
+	public Object getRaw(int id) {
+		return getRaw(main.select(id, this.id.getId()), main.select(this.id.getId(), id));
 	}
 }
