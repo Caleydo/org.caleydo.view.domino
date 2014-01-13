@@ -22,6 +22,7 @@ import org.caleydo.core.util.color.Color;
 import org.caleydo.core.view.opengl.layout2.GLElement;
 import org.caleydo.core.view.opengl.layout2.geom.Rect;
 import org.caleydo.core.view.opengl.layout2.layout.IGLLayoutElement;
+import org.caleydo.core.view.opengl.layout2.manage.GLLocation;
 import org.caleydo.core.view.opengl.layout2.manage.GLLocation.ILocator;
 import org.caleydo.view.domino.api.model.graph.EDirection;
 import org.caleydo.view.domino.api.model.typed.IMultiTypedCollection;
@@ -417,16 +418,12 @@ public class LinearBlock extends AbstractCollection<Node> {
 		return first ? nodes.get(0) : nodes.get(nodes.size() - 1);
 	}
 
-	/**
-	 * @param b
-	 * @return
-	 */
-	public ILocator getLocator(boolean first) {
-		return getNode(first).getLocator(dim.opposite());
-	}
-
-	public ILocator getGroupLocator(boolean first) {
-		return getNode(first).getGroupLocator(dim.opposite());
+	public INodeLocator getNodeLocator(boolean first) {
+		EDimension d = dim.opposite();
+		Node n = getNode(first);
+		float offset = d.select(n.getLocation());
+		float size = d.select(n.getSize());
+		return new NodeLocator(new GLLocation(offset, size), n.getGroupLocator(d), n.getLocator(d));
 	}
 
 	/**

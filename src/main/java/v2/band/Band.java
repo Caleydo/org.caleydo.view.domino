@@ -22,7 +22,6 @@ import org.caleydo.core.util.base.ILabeled;
 import org.caleydo.core.util.color.Color;
 import org.caleydo.core.view.opengl.layout2.GLGraphics;
 import org.caleydo.core.view.opengl.layout2.manage.GLLocation;
-import org.caleydo.core.view.opengl.layout2.manage.GLLocation.ILocator;
 import org.caleydo.core.view.opengl.layout2.util.PickingPool;
 import org.caleydo.core.view.opengl.util.spline.ITesselatedPolygon;
 import org.caleydo.view.domino.api.model.typed.MultiTypedSet;
@@ -35,6 +34,8 @@ import org.caleydo.view.domino.api.model.typed.TypedSet;
 import org.caleydo.view.domino.api.model.typed.TypedSets;
 import org.caleydo.view.domino.spi.model.IBandRenderer.IBandHost;
 import org.caleydo.view.domino.spi.model.IBandRenderer.SourceTarget;
+
+import v2.INodeLocator;
 
 import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.ImmutableMultimap.Builder;
@@ -63,13 +64,13 @@ public class Band implements ILabeled {
 	private List<DataRoute> groupRoutes;
 	private List<ADataRoute> detailRoutes;
 
-	private ILocator sLocator, tLocator, sGroupLocator, tGroupLocator;
+	private INodeLocator sLocator, tLocator;
 
 	private final EDimension sDim;
 	private final EDimension tDim;
 
 	public Band(BandLine band, String label, MultiTypedSet shared, TypedGroupList sData, TypedGroupList tData,
-			ILocator sLocator, ILocator tLocator, ILocator sGroupLocator, ILocator tGroupLocator, EDimension sDim,
+			INodeLocator sLocator, INodeLocator tLocator, EDimension sDim,
 			EDimension tDim) {
 		this.band = band;
 		this.shared = shared;
@@ -77,8 +78,6 @@ public class Band implements ILabeled {
 		this.tData = tData;
 		this.sLocator = sLocator;
 		this.tLocator = tLocator;
-		this.sGroupLocator = sGroupLocator;
-		this.tGroupLocator = tGroupLocator;
 		this.sDim = sDim;
 		this.tDim = tDim;
 
@@ -95,16 +94,13 @@ public class Band implements ILabeled {
 	 *
 	 */
 	public void stubify() {
-		updateBand(band.asStubified(), sLocator, tLocator, sGroupLocator, tGroupLocator);
+		updateBand(band.asStubified(), sLocator, tLocator);
 	}
 
-	public void updateBand(BandLine band, ILocator sLocator, ILocator tLocator, ILocator sGroupLocator,
-			ILocator tGroupLocator) {
+	public void updateBand(BandLine band, INodeLocator sLocator, INodeLocator tLocator) {
 		this.band = band;
 		this.sLocator = sLocator;
 		this.tLocator = tLocator;
-		this.sGroupLocator = sGroupLocator;
-		this.tGroupLocator = tGroupLocator;
 		overviewRoute.updateBand();
 		if (groupRoutes != null)
 			for (DataRoute r : groupRoutes)
@@ -398,28 +394,22 @@ public class Band implements ILabeled {
 		for (TypedListGroup tGroup : tgroups)
 			tSets.add(overviewRoute.tShared.intersect(tGroup.asSet()));
 
-		int sacc = 0;
-		float stotal = sData.size();
-		float ttotal = tData.size();
-
 		// starting points for right side groups
-		float[] tinneracc = new float[tgroups.size()];
-		{
-			float tacc = 0;
-			for (int j = 0; j < tgroups.size(); ++j) {
-				TypedListGroup tgroup = tgroups.get(j);
-				tacc += tgroup.size();
-				tinneracc[j] = tacc;
-			}
-		}
+		int[] tinneracc = new int[tgroups.size()];
+		Arrays.fill(tinneracc, 0);
+
+		final double sOverallFactor = 1.f / sLocator.apply(EBandMode.OVERVIEW, 0).getSize();
+		final double tOverallFactor = 1.f / tLocator.apply(EBandMode.OVERVIEW, 0).getSize();
+
 		// for each left groups check all right groups
 		for (int i = 0; i < sgroups.size(); ++i) {
 			TypedListGroup sgroup = sgroups.get(i);
-			sacc += sgroup.size();
 			TypedSet sset = sSets.get(i);
 			if (sset.isEmpty())
 				continue;
-			float sinneracc = sacc;
+			GLLocation sgroupLocation = sLocator.apply(EBandMode.GROUPS, i);
+			int sinneracc = 0;
+			final double sFactor = sgroupLocation.getSize() / sgroup.size();
 			for (int j = 0; j < tgroups.size(); ++j) {
 				TypedListGroup tgroup = tgroups.get(j);
 				TypedSet tset = tSets.get(j);
@@ -430,14 +420,16 @@ public class Band implements ILabeled {
 				if (shared.isEmpty()) // nothing shared
 					continue;
 
+				GLLocation tgroupLocation = tLocator.apply(EBandMode.GROUPS, j);
+				final double tFactor = tgroupLocation.getSize() / tgroup.size();
 				TypedSet sShared = shared.slice(sData.getIdType());
 				TypedSet tShared = shared.slice(tData.getIdType());
-				float s1 = (sinneracc - sgroup.size()) / stotal;
-				float s2 = s1 + (sShared.size() / stotal);
-				float t1 = (tinneracc[j] - tgroup.size()) / ttotal;
-				float t2 = t1 + (sShared.size() / ttotal);
+				double s1 = (sgroupLocation.getOffset() + sinneracc * sFactor) * sOverallFactor;
+				double s2 = s1 + sShared.size() * sFactor * sOverallFactor;
+				double t1 = (tgroupLocation.getOffset() + tinneracc[j] * tFactor) * tOverallFactor;
+				double t2 = t1 + tShared.size() * tFactor * tOverallFactor;
 				String label = sgroup.getLabel() + " x " + tgroup.getLabel();
-				groupRoutes.add(new DataRoute(label, s1, s2, t1, t2, sShared, tShared));
+				groupRoutes.add(new DataRoute(label, (float) s1, (float) s2, (float) t1, (float) t2, sShared, tShared));
 				sinneracc += sShared.size();
 				tinneracc[j] += tShared.size();
 			}
@@ -472,7 +464,7 @@ public class Band implements ILabeled {
 				flushLines(lines);
 				continue;
 			}
-			GLLocation slocation = sLocator.apply(i);
+			GLLocation slocation = sLocator.apply(EBandMode.DETAIL, i);
 			if (!slocation.isDefined()) {
 				flushLines(lines);
 				continue;
@@ -483,7 +475,7 @@ public class Band implements ILabeled {
 				if (tindices.isEmpty())
 					continue;
 				for (int tindex : tindices) {
-					GLLocation tlocation = tLocator.apply(tindex);
+					GLLocation tlocation = tLocator.apply(EBandMode.DETAIL, tindex);
 					if (!tlocation.isDefined())
 						continue;
 					boolean merged = false;
@@ -507,40 +499,33 @@ public class Band implements ILabeled {
 	/**
 	 * @param lines
 	 */
-	private void flushLines(Set<Line> lines) {
+	private void flushLines(Set<? extends ALine> lines) {
 		if (lines.isEmpty())
 			return;
 		final IDType s = this.overviewRoute.sShared.getIdType();
 		final IDType t = this.overviewRoute.tShared.getIdType();
-		float sMax = band.getDistance(true);
-		float tMax = band.getDistance(false);
-		for (Line line : lines)
+		float sMax = (float) sLocator.apply(EBandMode.OVERVIEW, 0).getSize();
+		float tMax = (float) tLocator.apply(EBandMode.OVERVIEW, 0).getSize();
+		for (ALine line : lines)
 			detailRoutes.add(line.create(sMax, tMax, s, t));
 		lines.clear();
 	}
 
-	private class Line {
-		private GLLocation sloc;
-		private GLLocation tloc;
-		private final List<Integer> sIds = new ArrayList<>(2);
-		private final List<Integer> tIds = new ArrayList<>(2);
+	private abstract class ALine {
+		protected GLLocation sloc;
+		protected GLLocation tloc;
 
-		public Line(GLLocation sloc, GLLocation tloc, Integer sId, Integer tId) {
+		public ALine(GLLocation sloc, GLLocation tloc) {
 			this.sloc = sloc;
 			this.tloc = tloc;
-			this.sIds.add(sId);
-			this.tIds.add(tId);
 		}
 
-		public boolean merge(GLLocation sloc, GLLocation tloc, Integer sId, Integer tId) {
+		public boolean merge(GLLocation sloc, GLLocation tloc) {
 			if (!combineAble(this.sloc, sloc) || !combineAble(this.tloc, tloc))
 				return false;
 
-			this.sIds.add(sId);
-			this.tIds.add(tId);
-
-			this.sloc = merge(this.sloc, sloc);
-			this.tloc = new GLLocation(this.tloc.getOffset(), tloc.getOffset2() - this.tloc.getOffset());
+			this.sloc = mergeImpl(this.sloc, sloc);
+			this.tloc = mergeImpl(this.tloc, tloc);
 			return true;
 		}
 
@@ -571,7 +556,7 @@ public class Band implements ILabeled {
 		 * @param sloc3
 		 * @return
 		 */
-		private GLLocation merge(GLLocation a, GLLocation b) {
+		private GLLocation mergeImpl(GLLocation a, GLLocation b) {
 			double start = Math.min(a.getOffset(), b.getOffset());
 			double end = Math.max(a.getOffset2(), b.getOffset2());
 			return new GLLocation(start, end - start);
@@ -581,6 +566,28 @@ public class Band implements ILabeled {
 			return Math.abs(a - b) < 0.01;
 		}
 
+		public abstract ADataRoute create(float sMax, float tMax, IDType s, IDType t);
+	}
+
+	private class Line extends ALine {
+		private final List<Integer> sIds = new ArrayList<>(2);
+		private final List<Integer> tIds = new ArrayList<>(2);
+
+		public Line(GLLocation sloc, GLLocation tloc, Integer sId, Integer tId) {
+			super(sloc, tloc);
+			this.sIds.add(sId);
+			this.tIds.add(tId);
+		}
+
+		public boolean merge(GLLocation sloc, GLLocation tloc, Integer sId, Integer tId) {
+			if (!super.merge(sloc, tloc))
+				return false;
+			this.sIds.add(sId);
+			this.tIds.add(tId);
+			return true;
+		}
+
+		@Override
 		public ADataRoute create(float sMax, float tMax, IDType s, IDType t) {
 			String label = StringUtils.join(sIds, ", ") + " x " + StringUtils.join(tIds, ", ");
 			float s1 = (float) sloc.getOffset() / sMax;
@@ -591,6 +598,45 @@ public class Band implements ILabeled {
 				return new DataSingleRoute(label, s1, s2, t1, t2, new TypedID(sIds.get(0), s), new TypedID(tIds.get(0),
 						t));
 			return new DataListRoute(label, s1, s2, t1, t2, new TypedList(sIds, s), new TypedList(tIds, t));
+		}
+
+	}
+
+	private class SetLine extends ALine {
+		private final List<String> sLabels = new ArrayList<>(1);
+		private final List<String> tLabels = new ArrayList<>(2);
+		private final Set<Integer> sIds = new HashSet<>(2);
+		private final Set<Integer> tIds = new HashSet<>(2);
+
+		public SetLine(GLLocation sloc, GLLocation tloc, String slabel, Set<Integer> sId, String tLabel,
+				Set<Integer> tId) {
+			super(sloc, tloc);
+			this.sLabels.add(slabel);
+			this.tLabels.add(tLabel);
+			this.sIds.addAll(sId);
+			this.tIds.addAll(tId);
+		}
+
+		public boolean merge(GLLocation sloc, GLLocation tloc, String slabel, Set<Integer> sId, String tLabel,
+				Set<Integer> tId) {
+			if (!super.merge(sloc, tloc))
+				return false;
+
+			this.sIds.addAll(sId);
+			this.tIds.addAll(tId);
+			this.sLabels.add(slabel);
+			this.tLabels.add(tLabel);
+			return true;
+		}
+
+		@Override
+		public ADataRoute create(float sMax, float tMax, IDType s, IDType t) {
+			String label = StringUtils.join(sLabels, ", ") + " x " + StringUtils.join(tLabels, ", ");
+			float s1 = (float) sloc.getOffset() / sMax;
+			float s2 = (float) sloc.getOffset2() / sMax;
+			float t1 = (float) tloc.getOffset() / tMax;
+			float t2 = (float) tloc.getOffset2() / tMax;
+			return new DataRoute(label, s1, s2, t1, t2, new TypedSet(sIds, s), new TypedSet(tIds, t));
 		}
 
 	}
