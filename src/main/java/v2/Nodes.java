@@ -12,6 +12,7 @@ import org.caleydo.core.data.perspective.table.TablePerspective;
 import org.caleydo.core.view.opengl.layout2.dnd.IDnDItem;
 import org.caleydo.core.view.opengl.layout2.dnd.IDragInfo;
 import org.caleydo.view.domino.internal.dnd.PerspectiveDragInfo;
+import org.caleydo.view.domino.internal.dnd.SetDragInfo;
 import org.caleydo.view.domino.internal.dnd.TablePerspectiveDragInfo;
 
 import v2.data.Categorical1DDataDomainValues;
@@ -54,6 +55,10 @@ public class Nodes {
 			StratificationDataValue v = new StratificationDataValue(pinfo.getPerspective(), pinfo.getDim(),
 					pinfo.getReferenceID());
 			return new Node(v);
+		} else if (info instanceof SetDragInfo) {
+			SetDragInfo pinfo = (SetDragInfo) info;
+			StratificationDataValue v = new StratificationDataValue(pinfo.getLabel(), pinfo.getSet(), pinfo.getDim());
+			return new Node(v);
 		}
 		return null;
 	}
@@ -64,7 +69,8 @@ public class Nodes {
 	 */
 	public static boolean canExtract(IDnDItem item) {
 		IDragInfo info = item.getInfo();
-		return info instanceof TablePerspectiveDragInfo || info instanceof PerspectiveDragInfo;
+		return info instanceof TablePerspectiveDragInfo || info instanceof PerspectiveDragInfo
+				|| info instanceof SetDragInfo;
 	}
 
 }

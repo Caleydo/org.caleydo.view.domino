@@ -15,6 +15,7 @@ import org.caleydo.core.data.datadomain.DataSupportDefinitions;
 import org.caleydo.core.data.datadomain.IDataDomain;
 import org.caleydo.core.util.color.Color;
 import org.caleydo.core.view.opengl.layout2.renderer.GLRenderers;
+import org.caleydo.datadomain.pathway.PathwayDataDomain;
 import org.caleydo.view.tourguide.api.adapter.ATourGuideDataMode;
 import org.caleydo.view.tourguide.api.model.ADataDomainQuery;
 import org.caleydo.view.tourguide.api.model.AScoreRow;
@@ -37,6 +38,8 @@ public class StratificationTourGuideDataMode extends ATourGuideDataMode {
 
 	@Override
 	public Iterable<? extends ADataDomainQuery> createDataDomainQuery(IDataDomain dd) {
+		if (dd instanceof PathwayDataDomain)
+			return Arrays.asList(new PathwaySetDataDomainQuery());
 		if (!DataSupportDefinitions.homogenousTables.apply(dd))
 			// inhomogenous categorical just them
 			return Collections.singleton(new InhomogenousDataDomainQuery((ATableBasedDataDomain) dd, Sets
@@ -78,7 +81,7 @@ public class StratificationTourGuideDataMode extends ATourGuideDataMode {
 
 	@Override
 	public boolean apply(IDataDomain input) {
-		return input instanceof ATableBasedDataDomain;
+		return input instanceof ATableBasedDataDomain || input instanceof PathwayDataDomain;
 	}
 
 }

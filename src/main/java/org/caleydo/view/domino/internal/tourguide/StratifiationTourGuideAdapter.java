@@ -14,6 +14,7 @@ import org.caleydo.view.domino.internal.tourguide.vis.EntityTypeSelector;
 import org.caleydo.view.tourguide.api.model.ADataDomainQuery;
 import org.caleydo.view.tourguide.api.model.AScoreRow;
 import org.caleydo.view.tourguide.api.model.ASingleIDDataDomainQuery;
+import org.caleydo.view.tourguide.api.model.PathwayPerspectiveRow;
 import org.caleydo.view.tourguide.api.model.StratificationDataDomainQuery;
 import org.caleydo.view.tourguide.api.vis.ITourGuideView;
 import org.caleydo.view.tourguide.spi.adapter.ITourGuideAdapter;
@@ -46,6 +47,8 @@ public class StratifiationTourGuideAdapter extends ATourGuideAdapter implements 
 
 	@Override
 	protected IDragGLSource createDragSource(AScoreRow row) {
+		if (row instanceof PathwayPerspectiveRow)
+			return new DragSetRowSource(row);
 		return new DragPerspectiveRowSource(row);
 	}
 
@@ -65,7 +68,8 @@ public class StratifiationTourGuideAdapter extends ATourGuideAdapter implements 
 			idType = ((ASingleIDDataDomainQuery) query).getStratificationIDType();
 		} else if (query instanceof StratificationDataDomainQuery) {
 			idType = ((StratificationDataDomainQuery) query).getIDType();
-		}
+		} else if (query instanceof PathwaySetDataDomainQuery)
+			idType = ((PathwaySetDataDomainQuery) query).getIDType();
 		return idType == null ? false : activeCategory.isOfCategory(idType);
 	}
 
