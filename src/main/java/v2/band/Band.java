@@ -553,9 +553,9 @@ public class Band implements ILabeled {
 				return true;
 			if (c(aStart, bStart) && c(aEnd, bEnd)) // same
 				return true;
-			if (bStart > aStart && bStart <= aEnd) // b starts in a
+			if (bStart >= aStart && bStart <= aEnd) // b starts in a
 				return true;
-			if (aStart > bStart && aStart <= bEnd) // a starts in b
+			if (aStart >= bStart && aStart <= bEnd) // a starts in b
 				return true;
 			return false;
 		}
@@ -572,7 +572,7 @@ public class Band implements ILabeled {
 		}
 
 		private boolean c(double a, double b) {
-			return Math.abs(a - b) < 0.001;
+			return Math.abs(a - b) < 0.01;
 		}
 
 		public ADataRoute create(float sMax, float tMax, IDType s, IDType t) {

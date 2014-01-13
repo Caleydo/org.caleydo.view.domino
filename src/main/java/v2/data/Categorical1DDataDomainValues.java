@@ -14,6 +14,7 @@ import org.caleydo.core.data.collection.Histogram;
 import org.caleydo.core.data.perspective.table.TablePerspective;
 import org.caleydo.core.data.perspective.variable.Perspective;
 import org.caleydo.core.util.color.Color;
+import org.caleydo.core.view.opengl.layout2.manage.GLElementFactoryContext.Builder;
 import org.caleydo.view.domino.api.model.graph.EProximityMode;
 import org.caleydo.view.domino.api.model.typed.TypedGroupSet;
 import org.caleydo.view.domino.api.model.typed.TypedListGroup;
@@ -73,6 +74,12 @@ public class Categorical1DDataDomainValues extends A1DDataDomainValues {
 	}
 
 	@Override
+	public void fill(Builder b, TypedListGroup dimData, TypedListGroup recData) {
+		super.fill(b, dimData, recData);
+		b.put("distribution.colors", getHistColors());
+		b.put("distribution.labels", getHistLabels());
+	}
+
 	protected Color[] getHistColors() {
 		Color[] r = new Color[groups().size()];
 		int i = 0;
@@ -82,7 +89,6 @@ public class Categorical1DDataDomainValues extends A1DDataDomainValues {
 		return r;
 	}
 
-	@Override
 	protected String[] getHistLabels() {
 		String[] r = new String[groups().size()];
 		int i = 0;

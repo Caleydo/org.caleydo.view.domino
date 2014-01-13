@@ -14,6 +14,9 @@ import org.caleydo.core.data.collection.Histogram;
 import org.caleydo.core.data.perspective.table.TablePerspective;
 import org.caleydo.core.data.perspective.variable.Perspective;
 import org.caleydo.core.util.color.Color;
+import org.caleydo.core.util.function.IDoubleList;
+import org.caleydo.core.util.function.MappedDoubleList;
+import org.caleydo.core.view.opengl.layout2.manage.GLElementFactoryContext.Builder;
 import org.caleydo.view.domino.api.model.graph.EProximityMode;
 import org.caleydo.view.domino.api.model.typed.TypedGroupList;
 import org.caleydo.view.domino.api.model.typed.TypedGroupSet;
@@ -22,6 +25,7 @@ import org.caleydo.view.domino.api.model.typed.TypedSet;
 import org.caleydo.view.domino.api.model.typed.TypedSetGroup;
 import org.caleydo.view.domino.internal.util.BitSetSet;
 
+import com.google.common.base.Function;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 
@@ -95,13 +99,24 @@ public class Numerical1DDataDomainValues extends A1DDataDomainValues {
 	}
 
 	@Override
-	protected Color[] getHistColors() {
-		return null;
-	}
+	public void fill(Builder b, TypedListGroup dimData, TypedListGroup recData) {
+		super.fill(b, dimData, recData);
 
-	@Override
-	protected String[] getHistLabels() {
-		return null;
-	}
+		TypedListGroup data = main.select(dimData, recData);
+		boolean transposed = data.getIdType() == this.singleGroup.getIdType();
+		if (transposed) {
+			data = main.opposite().select(dimData, recData);
+		}
 
+		b.put("axis.min", 0);
+		b.put("axis.max", 1);
+		final Function<Integer, Double> toNormalized = new Function<Integer, Double>() {
+			@Override
+			public Double apply(Integer input) {
+				return (double) getNormalized(input.intValue());
+			}
+		};
+		b.put("id2double", toNormalized);
+		b.put(IDoubleList.class, new MappedDoubleList<>(data, toNormalized));
+	}
 }

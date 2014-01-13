@@ -142,7 +142,7 @@ public class Bands extends GLElement implements MultiSelectionManagerMixin.ISele
 			clear(getRoute(split[0]), split[1], SelectionType.MOUSE_OVER);
 			break;
 		case RIGHT_CLICKED:
-			getRoute(split[0]).changeLevel(true); // FIXME
+			getRoute(split[0]).changeLevel(!((IMouseEvent) pick).isCtrlDown()); // FIXME
 			repaint();
 			break;
 		default:
