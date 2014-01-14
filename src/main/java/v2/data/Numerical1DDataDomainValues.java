@@ -16,6 +16,7 @@ import org.caleydo.core.data.datadomain.DataSupportDefinitions;
 import org.caleydo.core.data.perspective.table.TablePerspective;
 import org.caleydo.core.data.perspective.variable.Perspective;
 import org.caleydo.core.util.color.Color;
+import org.caleydo.core.util.function.DoubleStatistics;
 import org.caleydo.core.util.function.IDoubleList;
 import org.caleydo.core.util.function.MappedDoubleList;
 import org.caleydo.core.view.opengl.layout2.manage.GLElementFactoryContext.Builder;
@@ -78,8 +79,8 @@ public class Numerical1DDataDomainValues extends A1DDataDomainValues {
 	public Collection<String> getDefaultVisualization(EProximityMode mode) {
 		// FIXME hack
 		if (getLabel().contains("Death"))
-			return Arrays.asList("kaplanmaier", "boxandwhiskers", "heatmap");
-		return Arrays.asList("boxandwhiskers", "kaplanmaier", "heatmap");
+			return Arrays.asList("kaplanmaier", "boxandwhiskers", "hbar", "heatmap");
+		return Arrays.asList("boxandwhiskers", "kaplanmaier", "hbar", "heatmap");
 	}
 
 	@Override
@@ -131,8 +132,6 @@ public class Numerical1DDataDomainValues extends A1DDataDomainValues {
 			data = main.opposite().select(dimData, recData);
 		}
 
-		// b.put("axis.min", 0);
-		// b.put("axis.max", 1);
 		final Function<Integer, Double> toRaw = new Function<Integer, Double>() {
 			@Override
 			public Double apply(Integer input) {
@@ -140,7 +139,12 @@ public class Numerical1DDataDomainValues extends A1DDataDomainValues {
 			}
 		};
 		b.put("id2double", toRaw);
-		b.put(IDoubleList.class, new MappedDoubleList<>(data, toRaw));
+		final MappedDoubleList<Integer> list = new MappedDoubleList<>(data, toRaw);
+		DoubleStatistics stats = DoubleStatistics.of(list);
+
+		b.put("min", stats.getMin());
+		b.put("max", stats.getMax());
+		b.put(IDoubleList.class, list);
 	}
 
 	@Override

@@ -148,7 +148,7 @@ public class StratificationDataValue implements IDataValues, Function2<Integer, 
 
 	@Override
 	public Collection<String> getDefaultVisualization(EProximityMode mode) {
-		return Arrays.asList("distribution.pie", "distribution.hist", "heatmap");
+		return Arrays.asList("distribution.hist", "heatmap");
 	}
 
 }

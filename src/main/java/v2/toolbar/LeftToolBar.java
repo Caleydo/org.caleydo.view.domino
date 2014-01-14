@@ -109,7 +109,7 @@ public class LeftToolBar extends GLElementContainer implements IGLLayout2, ISele
 	public void onSelectionUpdate(SelectionManager manager) {
 		for (DragSelectionButton b : Iterables.filter(this, DragSelectionButton.class)) {
 			if (b.getManager() == manager) {
-				b.setEnabled(manager.getNumberOfElements(SelectionType.SELECTION) > 0);
+				b.setNumberOfElements(manager.getNumberOfElements(SelectionType.SELECTION));
 			}
 		}
 	}
