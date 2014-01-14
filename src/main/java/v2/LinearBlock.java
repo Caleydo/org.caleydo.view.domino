@@ -23,7 +23,6 @@ import org.caleydo.core.view.opengl.layout2.GLElement;
 import org.caleydo.core.view.opengl.layout2.geom.Rect;
 import org.caleydo.core.view.opengl.layout2.layout.IGLLayoutElement;
 import org.caleydo.core.view.opengl.layout2.manage.GLLocation;
-import org.caleydo.core.view.opengl.layout2.manage.GLLocation.ILocator;
 import org.caleydo.view.domino.api.model.graph.EDirection;
 import org.caleydo.view.domino.api.model.typed.IMultiTypedCollection;
 import org.caleydo.view.domino.api.model.typed.ITypedComparator;
@@ -101,20 +100,28 @@ public class LinearBlock extends AbstractCollection<Node> {
 		if (!normal && !transposed)
 			return;
 		Node n = nodes.get(0);
+		final EDirection dir = EDirection.getPrimary(dim);
 		if (n != node) {
-			if (normal)
-				r.add(new Placeholder(n, EDirection.getPrimary(dim), false));
-			if (transposed)
-				r.add(new Placeholder(n, EDirection.getPrimary(dim), true));
+			addPlaceHolders(r, normal, transposed, n, dir, 0);
+			addPlaceHolders(r, normal, transposed, n, dir, 70);
+		} else if (nodes.size() > 1) {
+			addPlaceHolders(r, normal, transposed, nodes.get(1), dir, dim.select(n.getSize()));
 		}
 		n = nodes.get(nodes.size()-1);
 		if (n != node) {
-			if (normal)
-				r.add(new Placeholder(n, EDirection.getPrimary(dim).opposite(), false));
-			if (transposed)
-				r.add(new Placeholder(n, EDirection.getPrimary(dim).opposite(), true));
+			addPlaceHolders(r, normal, transposed, n, dir.opposite(), 0);
+			addPlaceHolders(r, normal, transposed, n, dir.opposite(), 70);
+		} else if (nodes.size() > 1) {
+			addPlaceHolders(r, normal, transposed, nodes.get(nodes.size() - 2), dir.opposite(), dim.select(n.getSize()));
 		}
+	}
 
+	private void addPlaceHolders(List<Placeholder> r, boolean normal, boolean transposed, Node n, EDirection dir,
+			float offset) {
+		if (normal)
+			r.add(new Placeholder(n, dir, false, offset));
+		if (transposed)
+			r.add(new Placeholder(n, dir, true, offset));
 	}
 
 	private static boolean isCompatible(IDType a, IDType b) {

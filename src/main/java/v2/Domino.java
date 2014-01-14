@@ -319,8 +319,9 @@ public class Domino extends GLElementContainer implements IDropGLTarget, IPickin
 	 * @param dir
 	 * @param node
 	 * @param transpose
+	 * @param detached
 	 */
-	public void placeAt(Node neighbor, EDirection dir, Node node, boolean transpose) {
+	public void placeAt(Node neighbor, EDirection dir, Node node, boolean transpose, boolean detached) {
 		removeNode(node);
 		Block block = getBlock(neighbor);
 		if (transpose) {

@@ -14,7 +14,6 @@ import java.util.List;
 import org.caleydo.core.data.collection.EDimension;
 import org.caleydo.core.util.collection.Pair;
 import org.caleydo.core.view.opengl.layout2.geom.Rect;
-import org.caleydo.core.view.opengl.util.spline.TesselatedPolygons;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
@@ -131,7 +130,8 @@ public class BandLines {
 	 * @return
 	 */
 	private static List<Vec2f> spline(List<Vec2f> shifted) {
-		return TesselatedPolygons.spline(shifted, shifted.size() * 3);
+		return shifted;
+		// return TesselatedPolygons.spline(shifted, shifted.size() * 3);
 	}
 
 	private static Vec2f add(Vec2f v, float x, float y) {
