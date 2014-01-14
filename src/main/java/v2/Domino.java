@@ -20,6 +20,7 @@ import org.caleydo.core.view.opengl.layout2.GLElement;
 import org.caleydo.core.view.opengl.layout2.GLElementContainer;
 import org.caleydo.core.view.opengl.layout2.GLSandBox;
 import org.caleydo.core.view.opengl.layout2.IGLElementContext;
+import org.caleydo.core.view.opengl.layout2.basic.ScrollingDecorator;
 import org.caleydo.core.view.opengl.layout2.dnd.EDnDType;
 import org.caleydo.core.view.opengl.layout2.dnd.IDnDItem;
 import org.caleydo.core.view.opengl.layout2.dnd.IDragInfo;
@@ -33,6 +34,7 @@ import org.caleydo.core.view.opengl.picking.Pick;
 import org.caleydo.core.view.opengl.picking.PickingMode;
 import org.caleydo.datadomain.mock.MockDataDomain;
 import org.caleydo.view.domino.api.model.graph.EDirection;
+import org.caleydo.view.domino.internal.dnd.DragElement;
 import org.caleydo.view.domino.internal.dnd.TablePerspectiveRemoveDragCreator;
 
 import v2.data.Categorical2DDataDomainValues;
@@ -42,7 +44,6 @@ import v2.toolbar.ToolBar;
 
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Iterables;
 import com.google.common.collect.SetMultimap;
 
 /**
@@ -52,12 +53,13 @@ import com.google.common.collect.SetMultimap;
 public class Domino extends GLElementContainer implements IDropGLTarget, IPickingListener, IGLLayout2 {
 	private GLElementContainer placeholders;
 	private final Bands bands;
-	private final GLElementContainer nodes;
+	private final Blocks blocks;
 	private final ToolBar toolBar;
 	private final LeftToolBar leftToolBar;
 	private final SetMultimap<SelectionType, NodeGroup> selections = HashMultimap.create();
 	private final GLElementContainer content;
 	private SelectLayer select;
+	private DragElement currentlyDraggedVis;
 
 	/**
 	 *
@@ -83,12 +85,14 @@ public class Domino extends GLElementContainer implements IDropGLTarget, IPickin
 					removePlaceholder();
 			}
 		});
-		this.add(content);
+		ScrollingDecorator scroll = ScrollingDecorator.wrap(content, 10);
+		this.add(scroll);
 
 		// fakeData();
-		this.nodes = new GLElementContainer();
-		nodes.setzDelta(0.1f);
-		content.add(nodes);
+		this.blocks = new Blocks();
+		scroll.setMinSizeProvider(blocks);
+		blocks.setzDelta(0.1f);
+		content.add(blocks);
 
 		this.bands = new Bands();
 		this.bands.setVisibility(EVisibility.PICKABLE);
@@ -111,20 +115,20 @@ public class Domino extends GLElementContainer implements IDropGLTarget, IPickin
 	private void fakeData() {
 		MockDataDomain d = MockDataDomain.createCategorical(200, 200, MockDataDomain.RANDOM, "a", "b");
 		Node node = new Node(new Categorical2DDataDomainValues(d.getDefaultTablePerspective()));
-		nodes.add(new Block(node));
+		blocks.add(new Block(node));
 
 		MockDataDomain d2 = MockDataDomain.createCategorical(200, 200, MockDataDomain.RANDOM, "c", "d", "e");
 		node = new Node(new Categorical2DDataDomainValues(d2.getDefaultTablePerspective()));
-		nodes.add(new Block(node).setLocation(250, 250));
+		blocks.add(new Block(node).setLocation(250, 250));
 
 		TablePerspective grouping = MockDataDomain.addRecGrouping(d2, 100, 50);
 		node = new Node(new StratificationDataValue(grouping.getRecordPerspective(), EDimension.RECORD, null));
-		nodes.add(new Block(node).setLocation(20, 250));
+		blocks.add(new Block(node).setLocation(20, 250));
 	}
 
 	@Override
 	protected void init(IGLElementContext context) {
-		context.getMouseLayer().addRemoteDragInfoUICreator(new TablePerspectiveRemoveDragCreator());
+		context.getMouseLayer().addRemoteDragInfoUICreator(new TablePerspectiveRemoveDragCreator(this));
 		super.init(context);
 	}
 
@@ -178,17 +182,9 @@ public class Domino extends GLElementContainer implements IDropGLTarget, IPickin
 	private void zoom(IMouseEvent event) {
 		if (event.getWheelRotation() == 0)
 			return;
-		for (Block block : blocks()) {
-			block.zoom(event, null);
-		}
+		blocks.zoom(event);
 
 		bands.relayout();
-	}
-
-	public void setContentPickable(boolean pickable) {
-		for (Block b : blocks()) {
-			b.setContentPickable(pickable);
-		}
 	}
 
 	@Override
@@ -233,11 +229,14 @@ public class Domino extends GLElementContainer implements IDropGLTarget, IPickin
 	private Block dropNode(IDnDItem item, Node node) {
 		removeNode(node);
 		Block b = new Block(node);
-		Vec2f pos = nodes.toRelative(item.getMousePos());
+		Vec2f pos = blocks.toRelative(item.getMousePos());
+		if (currentlyDraggedVis != null)
+			pos.add(currentlyDraggedVis.getLocation());
 		b.setLocation(pos.x(), pos.y());
-		nodes.add(b);
+		blocks.add(b);
 		removePlaceholder();
 		bands.relayout();
+		content.getParent().relayout();
 		return b;
 	}
 
@@ -247,7 +246,7 @@ public class Domino extends GLElementContainer implements IDropGLTarget, IPickin
 	public void removeNode(Node node) {
 		Block block = getBlock(node);
 		if (block != null && block.removeNode(node)) {
-			nodes.remove(block);
+			blocks.remove(block);
 			bands.relayout();
 		}
 		cleanupNode(node);
@@ -273,14 +272,10 @@ public class Domino extends GLElementContainer implements IDropGLTarget, IPickin
 	 * @param node
 	 */
 	private Block getBlock(Node node) {
-		for (Block block : blocks())
+		for (Block block : blocks.getBlocks())
 			if (block.containsNode(node))
 				return block;
 		return null;
-	}
-
-	private Iterable<Block> blocks() {
-		return Iterables.filter(nodes, Block.class);
 	}
 
 	public void addPlaceholdersFor(Node node) {
@@ -291,7 +286,7 @@ public class Domino extends GLElementContainer implements IDropGLTarget, IPickin
 		content.add(placeholders);
 
 		final List<GLElement> l = placeholders.asList();
-		for (Block block : blocks()) {
+		for (Block block : blocks.getBlocks()) {
 			l.addAll(block.addPlaceholdersFor(node));
 		}
 	}
@@ -307,7 +302,12 @@ public class Domino extends GLElementContainer implements IDropGLTarget, IPickin
 			}
 		}
 
+		// update drag to grid
+		if (currentlyDraggedVis != null) {
+			blocks.snapDraggedVis(currentlyDraggedVis);
+		}
 	}
+
 
 	@Override
 	public EDnDType defaultSWTDnDType(IDnDItem item) {
@@ -336,12 +336,7 @@ public class Domino extends GLElementContainer implements IDropGLTarget, IPickin
 		placeholders = null;
 	}
 
-	/**
-	 * @return
-	 */
-	public List<Block> getBlocks() {
-		return ImmutableList.copyOf(blocks());
-	}
+
 
 	public boolean isSelected(SelectionType type, NodeGroup group) {
 		return selections.get(type).contains(group);
@@ -386,10 +381,38 @@ public class Domino extends GLElementContainer implements IDropGLTarget, IPickin
 			clear(SelectionType.SELECTION, null);
 
 		Rectangle2D r = rect.asRectangle2D();
-		for (Block block : getBlocks()) {
+		for (Block block : blocks.getBlocks()) {
 			if (block.getRectangleBounds().intersects(r)) {
 				block.selectByBounds(r);
 			}
 		}
+	}
+
+	/**
+	 * @param dragElement
+	 */
+	public void setCurrentlyDragged(DragElement dragElement) {
+		currentlyDraggedVis = dragElement;
+	}
+
+	/**
+	 * @return the currentlyDraggedVis, see {@link #currentlyDraggedVis}
+	 */
+	public DragElement getCurrentlyDraggedVis() {
+		return currentlyDraggedVis;
+	}
+
+	/**
+	 * @return
+	 */
+	public List<Block> getBlocks() {
+		return ImmutableList.copyOf(blocks.getBlocks());
+	}
+
+	/**
+	 * @param b
+	 */
+	public void setContentPickable(boolean pickable) {
+		blocks.setContentPickable(pickable);
 	}
 }

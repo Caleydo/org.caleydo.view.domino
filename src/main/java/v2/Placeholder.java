@@ -7,8 +7,6 @@ package v2;
 
 import gleem.linalg.Vec2f;
 
-import javax.media.opengl.GL2;
-
 import org.caleydo.core.util.color.Color;
 import org.caleydo.core.view.opengl.layout2.GLGraphics;
 import org.caleydo.core.view.opengl.layout2.PickableGLElement;
@@ -18,6 +16,7 @@ import org.caleydo.core.view.opengl.layout2.dnd.IDragInfo;
 import org.caleydo.core.view.opengl.layout2.dnd.IDropGLTarget;
 import org.caleydo.core.view.opengl.picking.Pick;
 import org.caleydo.view.domino.api.model.graph.EDirection;
+import org.caleydo.view.domino.internal.dnd.DragElement;
 
 /**
  * @author Samuel Gratzl
@@ -92,6 +91,10 @@ public class Placeholder extends PickableGLElement implements IDropGLTarget {
 			armed = true;
 			repaint();
 		}
+		DragElement current = findParent(Domino.class).getCurrentlyDraggedVis();
+		if (current == null)
+			return;
+		current.stickTo(getAbsoluteLocation(), getSize(), null);
 	}
 
 	@Override
@@ -116,13 +119,10 @@ public class Placeholder extends PickableGLElement implements IDropGLTarget {
 	@Override
 	protected void renderImpl(GLGraphics g, float w, float h) {
 		g.color(Color.DARK_BLUE).fillRect(0, 0, w, h);
-		g.gl.glEnable(GL2.GL_LINE_STIPPLE);
-		g.gl.glLineStipple(2, (short) 0xAAAA);
-		g.lineWidth(2);
+		g.lineStippled(true).lineWidth(2);
 		g.color(armed ? 0.80f : 0.95f).fillRoundedRect(0, 0, w, h, 5);
 		g.color(Color.GRAY).drawRoundedRect(0, 0, w, h, 5);
-		g.gl.glDisable(GL2.GL_LINE_STIPPLE);
-		g.lineWidth(1);
+		g.lineStippled(false).lineWidth(1);
 		super.renderImpl(g, w, h);
 	}
 

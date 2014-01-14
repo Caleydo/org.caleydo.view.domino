@@ -17,25 +17,9 @@ import org.caleydo.view.domino.internal.dnd.DragElement;
  */
 public abstract class ADragInfo implements IUIDragInfo {
 	private final Vec2f mousePos;
-	private Vec2f offset = new Vec2f(0, 0);
 
 	public ADragInfo(Vec2f mousePos) {
 		this.mousePos = mousePos;
-	}
-
-	/**
-	 * @param offset
-	 *            setter, see {@link offset}
-	 */
-	public void setOffset(Vec2f offset) {
-		this.offset = offset;
-	}
-
-	/**
-	 * @return the offset, see {@link #offset}
-	 */
-	public Vec2f getOffset() {
-		return offset;
 	}
 
 	/**
@@ -51,7 +35,15 @@ public abstract class ADragInfo implements IUIDragInfo {
 
 	@Override
 	public GLElement createUI() {
+		return null;
+	}
+
+	/**
+	 * @param findDomino
+	 * @return
+	 */
+	public GLElement createUI(Domino domino) {
 		Vec2f size = getSize();
-		return new DragElement(getBaseNode().getLabel(), size);
+		return new DragElement(getBaseNode().getLabel(), size, domino, this);
 	}
 }

@@ -304,6 +304,8 @@ public class NodeGroup extends GLElementDecorator implements ILabeled, IDragGLSo
 	@Override
 	public GLElement createUI(IDragInfo info) {
 		findDomino().addPlaceholdersFor(parent);
+		if (info instanceof ADragInfo)
+			return ((ADragInfo) info).createUI(findDomino());
 		return null;
 	}
 

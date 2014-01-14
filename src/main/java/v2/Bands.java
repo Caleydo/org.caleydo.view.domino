@@ -152,6 +152,8 @@ public class Bands extends GLElement implements MultiSelectionManagerMixin.ISele
 
 	@Override
 	public GLElement createUI(IDragInfo info) {
+		if (info instanceof ADragInfo)
+			return ((ADragInfo) info).createUI(findParent(Domino.class));
 		return null;
 	}
 
