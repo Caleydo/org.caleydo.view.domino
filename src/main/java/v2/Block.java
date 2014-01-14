@@ -80,12 +80,12 @@ public class Block extends GLElementContainer implements IGLLayout2 {
 		return r;
 	}
 
-	public void addNode(Node neighbor, EDirection dir, Node node) {
+	public void addNode(Node neighbor, EDirection dir, Node node, boolean detached) {
 		this.add(node);
 		LinearBlock block = getBlock(neighbor, dir.asDim());
 		if (block == null)
 			return;
-		block.add(neighbor, dir, node);
+		block.add(neighbor, dir, node, detached);
 		EDimension other = dir.asDim().opposite();
 		if (node.has(other.opposite()))
 			linearBlocks.add(new LinearBlock(other, node));

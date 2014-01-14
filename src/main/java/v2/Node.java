@@ -584,7 +584,7 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 	}
 
 	public void setNeighbor(EDirection dir, Node neighbor) {
-		setDetached(dir.asDim(), false);
+		// setDetached(dir.asDim(), false);
 
 		Node bak = this.neighbors[dir.ordinal()];
 		if (bak == neighbor)

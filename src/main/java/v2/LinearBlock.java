@@ -146,7 +146,7 @@ public class LinearBlock extends AbstractCollection<Node> {
 
 	@Override
 	public boolean add(Node node) {
-		this.add(this.nodes.get(this.nodes.size() - 1), EDirection.getPrimary(dim).opposite(), node);
+		this.add(this.nodes.get(this.nodes.size() - 1), EDirection.getPrimary(dim).opposite(), node, false);
 		return true;
 	}
 
@@ -189,8 +189,10 @@ public class LinearBlock extends AbstractCollection<Node> {
 	 * @param neighbor
 	 * @param dir
 	 * @param node
+	 * @param detached
 	 */
-	public void add(Node neighbor, EDirection dir, Node node) {
+	public void add(Node neighbor, EDirection dir, Node node, boolean detached) {
+		node.setDetached(dim, detached);
 		int index = nodes.indexOf(neighbor);
 		assert index >= 0;
 

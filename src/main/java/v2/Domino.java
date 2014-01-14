@@ -221,7 +221,7 @@ public class Domino extends GLElementContainer implements IDropGLTarget, IPickin
 			if (next == null)
 				continue;
 			Node nextNode = next.toNode();
-			b.addNode(asNode, dir, nextNode);
+			b.addNode(asNode, dir, nextNode, false);
 			rebuild(b, nextNode, next, items, dir);
 		}
 	}
@@ -327,7 +327,7 @@ public class Domino extends GLElementContainer implements IDropGLTarget, IPickin
 		if (transpose) {
 			node.transposeMe();
 		}
-		block.addNode(neighbor, dir, node);
+		block.addNode(neighbor, dir, node, detached);
 		removePlaceholder();
 		bands.relayout();
 	}
