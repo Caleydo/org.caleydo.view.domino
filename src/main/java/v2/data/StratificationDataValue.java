@@ -143,7 +143,7 @@ public class StratificationDataValue implements IDataValues, Function2<Integer, 
 
 	@Override
 	public int compare(EDimension dim, int a, int b, TypedSet otherData) {
-		return a - b;
+		return indexOf(a) - indexOf(b);
 	}
 
 	@Override

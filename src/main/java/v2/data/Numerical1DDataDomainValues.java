@@ -79,8 +79,8 @@ public class Numerical1DDataDomainValues extends A1DDataDomainValues {
 	public Collection<String> getDefaultVisualization(EProximityMode mode) {
 		// FIXME hack
 		if (getLabel().contains("Death"))
-			return Arrays.asList("kaplanmaier", "boxandwhiskers", "hbar", "heatmap");
-		return Arrays.asList("boxandwhiskers", "kaplanmaier", "hbar", "heatmap");
+			return Arrays.asList("kaplanmaier", "boxandwhiskers", "heatmap");
+		return Arrays.asList("boxandwhiskers", "kaplanmaier", "heatmap");
 	}
 
 	@Override

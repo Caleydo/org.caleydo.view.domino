@@ -34,6 +34,7 @@ import org.caleydo.core.view.opengl.layout2.dnd.EDnDType;
 import org.caleydo.core.view.opengl.layout2.dnd.IDnDItem;
 import org.caleydo.core.view.opengl.layout2.dnd.IDragInfo;
 import org.caleydo.core.view.opengl.layout2.dnd.IDropGLTarget;
+import org.caleydo.core.view.opengl.layout2.geom.Rect;
 import org.caleydo.core.view.opengl.layout2.layout.IGLLayout2;
 import org.caleydo.core.view.opengl.layout2.layout.IGLLayoutElement;
 import org.caleydo.core.view.opengl.layout2.manage.ButtonBarBuilder;
@@ -84,6 +85,7 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 
 	private boolean isDimDetached = false;
 	private boolean isRecDetached = false;
+	private final Vec2f detachedShift = new Vec2f();
 
 	private final Vec2f shift = new Vec2f();
 
@@ -139,10 +141,15 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 		if (isDetached(dim) == value)
 			return;
 		EProximityMode p = getProximityMode();
-		if (dim.isDimension())
+		if (dim.isDimension()) {
 			isDimDetached = value;
-		else
+			if (!value)
+				detachedShift.setY(0);
+		} else {
 			isRecDetached = value;
+			if (!value)
+				detachedShift.setX(0);
+		}
 		if (p != getProximityMode()) // trigger update of vis
 			setData(dimData, recData);
 	}
@@ -199,11 +206,9 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 		g.lineWidth(1);
 		super.renderImpl(g, w, h);
 
-		if (highlightDropArea) {
-			g.incZ().incZ().incZ();
-			// test
+		// render detached bands
+		if (isDimDetached) {
 
-			g.decZ().decZ().decZ();
 		}
 	}
 
@@ -410,7 +415,9 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 
 		float w = BORDER * 2 + sum(xi);
 		float h = BORDER * 2 + sum(yi);
-		setSize(w + shift.x(), h + shift.y());
+		w = Math.max(w + shift.x(), 10);
+		h = Math.max(h + shift.y(), 10);
+		setSize(w, h);
 	}
 
 	private float[] getSizes(EDimension dim) {
@@ -803,9 +810,20 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 		final boolean rAlone = isAlone(EDimension.RECORD);
 		if (dAlone && rAlone)
 			return EProximityMode.FREE;
-		if ((isDimDetached || dAlone) && (isRecDetached || rAlone))
+		if ((isDimDetached || areNeighborsDetached(EDimension.DIMENSION))
+				&& (isRecDetached || areNeighborsDetached(EDimension.RECORD)))
 			return EProximityMode.DETACHED;
 		return EProximityMode.ATTACHED;
+	}
+
+	/**
+	 * @param dimension
+	 * @return
+	 */
+	private boolean areNeighborsDetached(EDimension dim) {
+		Node n = getNeighbor(EDirection.getPrimary(dim));
+		Node n2 = getNeighbor(EDirection.getPrimary(dim).opposite());
+		return (n == null || n.isDetached(dim)) && (n2 == null || n2.isDetached(dim));
 	}
 
 	/**
@@ -860,43 +878,6 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 
 	}
 
-	void setShift(Vec2f shift) {
-		this.shift.set(shift);
-	}
-	/**
-	 * @param x
-	 * @param y
-	 */
-	public void shiftSize(float x, float y, boolean set) {
-		Vec2f s = getSize().copy();
-		Vec2f b = s.copy();
-		s.setX(Math.max(s.x() + x, 10));
-		s.setY(Math.max(s.y() + y, 10));
-		setSize(s.x(), s.y());
-		Vec2f act_shift = s.minus(b);
-		setLayoutData(s.minus(b));
-		if (set)
-			this.shift.set(act_shift);
-		else
-			this.shift.add(act_shift);
-		relayout();
-	}
-
-	public void shiftSize(EDimension dim, float v, boolean set) {
-		Vec2f s = getSize().copy();
-		Vec2f b = s.copy();
-		s.setX(Math.max(s.x() + dim.select(v, 0), 10));
-		s.setY(Math.max(s.y() + dim.select(0, v), 10));
-		setSize(s.x(), s.y());
-		Vec2f act_shift = s.minus(b);
-		setLayoutData(s.minus(b));
-		if (set)
-			this.shift.set(dim.select(0, 1), v);
-		else
-			this.shift.add(act_shift);
-		relayout();
-	}
-
 	/**
 	 * @param dimension
 	 * @return
@@ -918,8 +899,10 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 	 * @return
 	 */
 	public Vec2f getShiftRatio(NodeGroup group) {
-		float xr = ((float) group.getData(EDimension.DIMENSION).size()) / dimData.size();
-		float yr = ((float) group.getData(EDimension.RECORD).size()) / recData.size();
+		Vec2f size = group.getSize();
+		Vec2f total = getSize();
+		float xr = size.x() / total.x();
+		float yr = size.y() / total.y();
 		return new Vec2f(shift.x() * xr, shift.y() * yr);
 	}
 
@@ -928,7 +911,7 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 	 */
 	public void transpose() {
 		transposeMe();
-		findBlock().updatedNode();
+		findBlock().updatedNode(this);
 	}
 
 	public Node transposeMe() {
@@ -965,7 +948,7 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 	 *
 	 */
 	public void showAgain() {
-		setVisibility(EVisibility.VISIBLE);
+		setVisibility(EVisibility.PICKABLE);
 	}
 
 	/**
@@ -1047,9 +1030,93 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 				visualizationType = button.getLayoutDataAs(GLElementSupplier.class, null).getId();
 				updateSize(dimData, recData);
 				relayout();
-				findBlock().updatedNode();
+				findBlock().updatedNode(Node.this);
 			}
 		});
 		return b;
+	}
+
+	/**
+	 * @param shift2
+	 */
+	public void setShift(Vec2f shift) {
+		this.shift.set(shift);
+	}
+
+	/**
+	 * @param shiftX
+	 * @param shiftY
+	 */
+	public void shiftBy(float shiftX, float shiftY) {
+		Vec2f s = getSize().copy();
+		s.add(new Vec2f(shiftX, shiftY));
+		if (s.x() < 10)
+			s.setX(10);
+		if (s.y() < 10)
+			s.setY(10);
+		Vec2f change = s.minus(getSize());
+		setSize(s.x(), s.y());
+		shift.add(change);
+
+		if (isDimDetached) {
+			detachedShift.setY(detachedShift.y() - change.y() * .5f);
+			final Vec2f l = getLocation();
+			setLocation(l.x(), l.y() - change.y() * .5f);
+		}
+		if (isRecDetached) {
+			detachedShift.setX(detachedShift.x() - change.x() * .5f);
+			final Vec2f l = getLocation();
+			setLocation(l.x() - change.x() * .5f, l.y());
+		}
+
+		relayout();
+	}
+
+	public void shiftTo(EDimension dim, float v) {
+		v = v - dim.select(getSize());
+		shiftBy(dim.select(v, 0), dim.select(0, v));
+	}
+
+	public Rect getDetachedRectBounds() {
+		Rect r = getRectBounds().clone();
+		if (isDimDetached) {
+			r.x(r.x() - 50);
+			r.width(r.width() + 100);
+			r.y(r.y() - detachedShift.y());
+			r.height(r.height() + detachedShift.y() * 2);
+		}
+		if (isRecDetached) {
+			r.y(r.y() - 50);
+			r.height(r.height() + 100);
+			r.x(r.x() - detachedShift.x());
+			r.width(r.width() + detachedShift.x() * 2);
+		}
+		return r;
+	}
+
+	/**
+	 * @param f
+	 * @param y
+	 * @param width
+	 * @param height
+	 */
+	public void setDetachedBounds(float x, float y, float w, float h) {
+		Vec2f size = getSize();
+		if (isDimDetached) {
+			x += 50;
+			w -= 100;
+			detachedShift.setY((h - size.y()) * 0.5f);
+			y += detachedShift.y();
+			h = size.y();
+		}
+		if (isRecDetached) {
+			y += 50;
+			h -= 100;
+			detachedShift.setX((w - size.x()) * 0.5f);
+			x += detachedShift.x();
+			w = size.x();
+		}
+		setBounds(x, y, w, h);
+		relayout();
 	}
 }

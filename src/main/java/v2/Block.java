@@ -11,10 +11,8 @@ import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import org.caleydo.core.data.collection.EDimension;
 import org.caleydo.core.id.IDType;
@@ -89,7 +87,33 @@ public class Block extends GLElementContainer implements IGLLayout2 {
 		EDimension other = dir.asDim().opposite();
 		if (node.has(other.opposite()))
 			linearBlocks.add(new LinearBlock(other, node));
-		updateBlock(block);
+		realign(neighbor);
+		updateBlock();
+	}
+
+	public void realign(Node startPoint) {
+		realign(startPoint, null);
+	}
+	/**
+	 * @param neighbor
+	 */
+	private void realign(Node startPoint, EDimension commingFrom) {
+		LinearBlock dim = commingFrom == EDimension.DIMENSION ? null : getBlock(startPoint, EDimension.DIMENSION);
+		LinearBlock rec = commingFrom == EDimension.RECORD ? null : getBlock(startPoint, EDimension.RECORD);
+		if (rec != null) {
+			rec.alignAlong(startPoint);
+			for (Node node : rec) {
+				if (node != startPoint)
+					realign(node, EDimension.RECORD);
+			}
+		}
+		if (dim != null) {
+			dim.alignAlong(startPoint);
+			for (Node node : dim) {
+				if (node != startPoint)
+					realign(node, EDimension.DIMENSION);
+			}
+		}
 	}
 
 	private void addFirstNode(Node node) {
@@ -109,7 +133,8 @@ public class Block extends GLElementContainer implements IGLLayout2 {
 		updateSize();
 	}
 
-	public void updatedNode() {
+	public void updatedNode(Node node) {
+		realign(node);
 		findParent(Domino.class).updateBands();
 		shiftToZero();
 		updateSize();
@@ -142,7 +167,16 @@ public class Block extends GLElementContainer implements IGLLayout2 {
 		float shiftX = dim == 0 ? 0 : event.getWheelRotation() * sizeFactor(s.x());
 		float shiftY = rec == 0 ? 0 : event.getWheelRotation() * sizeFactor(s.x());
 
-		incSizes(shiftX, shiftY, just);
+		if (just != null) {
+			just.shiftBy(shiftX, shiftY);
+			realign(just);
+		} else {
+			for (Node node : nodes())
+				node.shiftBy(shiftX, shiftY);
+			Node first = nodes().iterator().next();
+			realign(first);
+		}
+		updateBlock();
 		findParent(Domino.class).updateBands();
 	}
 
@@ -160,50 +194,12 @@ public class Block extends GLElementContainer implements IGLLayout2 {
 		return 50;
 	}
 
-	public void incSizes(float x, float y, Node just) {
-		if (just == null) {
-			for (Node n : nodes()) {
-				shiftNode(n, x, y);
-			}
-			Set<LinearBlock> b = filterSingleBlocks();
-			if (!b.isEmpty()) {
-				LinearBlock f = b.iterator().next();
-				Node n = f.get(0);
-				shiftBlocks(f, n, b, new Vec2f(0, 0));
-
-				shiftToZero();
-			}
-		} else {
-			just.shiftSize(x, y, false);
-			Set<LinearBlock> b = filterSingleBlocks();
-			if (!b.isEmpty()) {
-				for (LinearBlock bi : b) {
-					if (!bi.contains(just))
-						continue;
-					float xi = bi.getDim().select(0, x);
-					float yi = bi.getDim().select(y, 0); // propagate the other direction
-					for (Node n : bi) {
-						if (n != just)
-							shiftNode(n, xi, yi);
-					}
-				}
-				for (LinearBlock bi : b) {
-					if (bi.contains(just)) {
-						shiftBlocks(bi, just, b, new Vec2f(0, 0));
-						break;
-					}
-				}
-				shiftToZero();
-			}
-		}
-		updateSize();
-	}
 
 	/**
 	 *
 	 */
 	private void shiftToZero() {
-		Vec2f offset = new Vec2f(0, 0);
+		Vec2f offset = new Vec2f(Float.POSITIVE_INFINITY, Float.POSITIVE_INFINITY);
 		for (Node n : nodes()) {
 			Vec2f l = n.getLocation();
 			if (l.x() < offset.x())
@@ -220,24 +216,6 @@ public class Block extends GLElementContainer implements IGLLayout2 {
 		}
 	}
 
-	private void shiftNode(Node n, float x, float y) {
-		n.shiftSize(x, y, false);
-	}
-
-	private void shiftBlocks(LinearBlock block, Node start, Set<LinearBlock> b, Vec2f shift) {
-		b.remove(block);
-		shift = block.shift(start, shift);
-		if (b.isEmpty())
-			return;
-		for (Node node : block) {
-			for (LinearBlock bblock : new HashSet<>(b)) {
-				if (bblock.contains(node)) {
-					shiftBlocks(bblock, node, b, shift);
-				}
-			}
-		}
-	}
-
 	/**
 	 * @return
 	 */
@@ -245,31 +223,30 @@ public class Block extends GLElementContainer implements IGLLayout2 {
 		return Iterables.filter(this, Node.class);
 	}
 
-	/**
-	 * @return
-	 */
-	private Set<LinearBlock> filterSingleBlocks() {
-		Set<LinearBlock> r = new HashSet<>();
-		for (LinearBlock b : linearBlocks) {
-			if (b.size() > 1)
-				r.add(b);
-		}
-		return r;
-	}
-
 	public boolean removeNode(Node node) {
+		if (this.size() == 1) {
+			this.remove(node);
+			return true;
+		}
+
 		for (EDimension dim : EDimension.values()) {
 			if (!node.has(dim.opposite()))
 				continue;
 			LinearBlock block = getBlock(node, dim);
-			if (block != null && block.size() == 1)
-				linearBlocks.remove(block);
-			if (block != null)
-				block.remove(node);
+			if (block != null) {
+				if (block.size() == 1)
+					linearBlocks.remove(block);
+				else {
+					int index = block.remove(node);
+					if (index == 0)
+						realign(block.get(0));
+					else
+						realign(block.get(index - 1));
+				}
+			}
 		}
 		this.remove(node);
-		shiftToZero();
-		updateSize();
+		updateBlock();
 		return this.isEmpty();
 	}
 
@@ -322,13 +299,13 @@ public class Block extends GLElementContainer implements IGLLayout2 {
 		LinearBlock block = getBlock(node, dim.opposite());
 		block.update();
 		block.apply();
-		updateBlock(block);
+		updateBlock();
 	}
 
-	private void updateBlock(LinearBlock block) {
-		findParent(Domino.class).updateBands();
+	private void updateBlock() {
 		shiftToZero();
 		updateSize();
+		findParent(Domino.class).updateBands();
 	}
 
 	/**
@@ -338,15 +315,15 @@ public class Block extends GLElementContainer implements IGLLayout2 {
 	public void sortBy(Node node, EDimension dim) {
 		LinearBlock block = getBlock(node, dim.opposite());
 		block.sortBy(node);
-
-		updateBlock(block);
+		realign(node);
+		updateBlock();
 	}
 
 	public void limitTo(Node node, EDimension dim) {
 		LinearBlock block = getBlock(node, dim.opposite());
 		block.limitDataTo(node);
-
-		updateBlock(block);
+		realign(node);
+		updateBlock();
 	}
 
 	/**

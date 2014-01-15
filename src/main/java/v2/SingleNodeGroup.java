@@ -20,7 +20,11 @@ public class SingleNodeGroup extends NodeGroup {
 
 	@Override
 	public String getLabel() {
-		return getNode().getLabel();
+		StringBuilder b = new StringBuilder();
+		b.append(getNode().getLabel());
+
+		b.append(" shown as " + getSwitcher().getActiveSupplier().getLabel());
+		return b.toString();
 	}
 
 	@Override

@@ -5,8 +5,6 @@
  *******************************************************************************/
 package v2;
 
-import gleem.linalg.Vec2f;
-
 import java.awt.geom.Rectangle2D;
 import java.util.AbstractCollection;
 import java.util.ArrayList;
@@ -153,11 +151,11 @@ public class LinearBlock extends AbstractCollection<Node> {
 	/**
 	 * @param node
 	 */
-	public void remove(Node node) {
+	public int remove(Node node) {
 		int index = nodes.indexOf(node);
 		this.nodes.remove(index);
 		if (nodes.isEmpty())
-			return;
+			return 0;
 		// update neighbors
 		if (index == 0) {
 			nodes.get(0).setNeighbor(EDirection.getPrimary(dim), null);
@@ -167,13 +165,6 @@ public class LinearBlock extends AbstractCollection<Node> {
 			nodes.get(index - 1).setNeighbor(EDirection.getPrimary(dim).opposite(), nodes.get(index));
 		}
 
-		Vec2f shift;
-		if (dim.isHorizontal()) {
-			shift = new Vec2f(-node.getSize().x(), 0);
-		} else {
-			shift = new Vec2f(0, -node.getSize().y());
-		}
-		shift(index, nodes.size(), shift);
 		sortCriteria.remove(node);
 		if (dataSelection == node) {
 			dataSelection = nodes.size() == 1 ? nodes.get(0) : null;
@@ -182,6 +173,7 @@ public class LinearBlock extends AbstractCollection<Node> {
 			sortCriteria.add(nodes.get(0));
 		update();
 		apply();
+		return index;
 	}
 
 
@@ -199,32 +191,7 @@ public class LinearBlock extends AbstractCollection<Node> {
 		Node old = neighbor.getNeighbor(dir);
 		neighbor.setNeighbor(dir, node);
 		node.setNeighbor(dir, old);
-		{
-			Vec2f s = neighbor.getShift();
-			node.shiftSize(dim.opposite(), dim.select(s.y(), s.x()), true); // synchronize the other dimension
-		}
 
-		Rect bounds = neighbor.getRectBounds();
-		Vec2f shift;
-		if (dir.isPrimaryDirection()) {
-			if (dim.isHorizontal()) {
-				node.setLocation(bounds.x() - node.getSize().x(), bounds.y());
-				shift = new Vec2f(-node.getSize().x(), 0);
-			} else {
-				node.setLocation(bounds.x(), bounds.y() - node.getSize().y());
-				shift = new Vec2f(0, -node.getSize().y());
-			}
-			shift(0, index, shift);
-		} else {
-			if (dim.isHorizontal()) {
-				node.setLocation(bounds.x2(), bounds.y());
-				shift = new Vec2f(node.getSize().x(), 0);
-			} else {
-				node.setLocation(bounds.x(), bounds.y2());
-				shift = new Vec2f(0, node.getSize().y());
-			}
-			shift(index + 1, nodes.size(), shift);
-		}
 		if (dir.isPrimaryDirection())
 			this.nodes.add(index, node);
 		else
@@ -233,29 +200,6 @@ public class LinearBlock extends AbstractCollection<Node> {
 		sortCriteria.add(node);
 		update();
 		apply();
-	}
-
-	public Vec2f shift(Node node, Vec2f shiftI) {
-		int i = nodes.indexOf(node);
-		Vec2f change = node.getLayoutDataAs(Vec2f.class, null);
-		float x = change.x();
-		float y = change.y();
-		y = dim.select(0, y);
-		x = dim.select(x, 0);
-		x += shiftI.x();
-		y += shiftI.y();
-		// shift(0, i, new Vec2f(-x, -y));
-		shiftI = new Vec2f(x, y);
-		shift(i + 1, nodes.size(), shiftI);
-		return shiftI;
-	}
-
-	private void shift(int from, int to, Vec2f shift) {
-		for (int i = from; i < to; ++i) {
-			final Node nnode = nodes.get(i);
-			Vec2f loc = nnode.getLocation();
-			nnode.setLocation(loc.x() + shift.x(), loc.y() + shift.y());
-		}
 	}
 
 
@@ -497,6 +441,37 @@ public class LinearBlock extends AbstractCollection<Node> {
 		if (limited)
 			c = c.darker();
 		return c;
+	}
+
+	/**
+	 * @param startPoint
+	 */
+	public void alignAlong(Node startPoint) {
+		if (nodes.size() <= 1)
+			return;
+		int start = nodes.indexOf(startPoint);
+		Rect bounds = startPoint.getDetachedRectBounds();
+		for (int i = start - 1; i >= 0; --i) {
+			Node n = nodes.get(i);
+			Rect n_bounds = n.getDetachedRectBounds().clone();
+			if (dim.isDimension()) {
+				n.setDetachedBounds(bounds.x() - n_bounds.width(), n_bounds.y(), n_bounds.width(), bounds.height());
+			} else {
+				n.setDetachedBounds(n_bounds.x(), bounds.y() - n_bounds.height(), bounds.width(), n_bounds.height());
+			}
+			bounds = n.getDetachedRectBounds();
+		}
+		bounds = startPoint.getDetachedRectBounds();
+		for (int i = start + 1; i < nodes.size(); ++i) {
+			Node n = nodes.get(i);
+			Rect n_bounds = n.getDetachedRectBounds().clone();
+			if (dim.isDimension()) {
+				n.setDetachedBounds(bounds.x2(), n_bounds.y(), n_bounds.width(), bounds.height());
+			} else {
+				n.setDetachedBounds(n_bounds.x(), bounds.y2(), bounds.width(), n_bounds.height());
+			}
+			bounds = n.getDetachedRectBounds();
+		}
 	}
 
 }
