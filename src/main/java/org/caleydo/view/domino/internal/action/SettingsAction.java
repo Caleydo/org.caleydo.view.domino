@@ -26,7 +26,7 @@ public class SettingsAction extends SimpleAction implements IMenuCreator {
 	private Menu menu;
 
 	public SettingsAction(Object receiver) {
-		super("Crossword Settings", "resources/icons/setting_tools.png", Resources.getResourceLoader());
+		super("Domino Settings", "resources/icons/setting_tools.png", Resources.getResourceLoader());
 		this.receiver = receiver;
 		setMenuCreator(this);
 	}

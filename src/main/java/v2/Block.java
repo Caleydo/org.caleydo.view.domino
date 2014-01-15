@@ -20,12 +20,12 @@ import org.caleydo.core.util.color.Color;
 import org.caleydo.core.view.opengl.canvas.IGLMouseListener.IMouseEvent;
 import org.caleydo.core.view.opengl.layout2.GLElement;
 import org.caleydo.core.view.opengl.layout2.GLElementContainer;
+import org.caleydo.core.view.opengl.layout2.GLGraphics;
 import org.caleydo.core.view.opengl.layout2.IGLElementContext;
 import org.caleydo.core.view.opengl.layout2.geom.Rect;
 import org.caleydo.core.view.opengl.layout2.layout.AGLLayoutElement;
 import org.caleydo.core.view.opengl.layout2.layout.IGLLayout2;
 import org.caleydo.core.view.opengl.layout2.layout.IGLLayoutElement;
-import org.caleydo.core.view.opengl.layout2.renderer.GLRenderers;
 import org.caleydo.view.domino.api.model.graph.EDirection;
 import org.caleydo.view.domino.api.model.typed.MultiTypedSet;
 import org.caleydo.view.domino.api.model.typed.TypedGroupList;
@@ -50,8 +50,15 @@ public class Block extends GLElementContainer implements IGLLayout2 {
 	public Block(Node node) {
 		setLayout(this);
 		node.setLocation(0, 0);
-		setRenderer(GLRenderers.drawRect(Color.BLUE));
 		addFirstNode(node);
+	}
+
+	@Override
+	protected void renderImpl(GLGraphics g, float w, float h) {
+		super.renderImpl(g, w, h);
+		Domino domino = findParent(Domino.class);
+		if (domino.isShowDebugInfos())
+			g.color(Color.BLUE).drawRect(0, 0, w, h);
 	}
 
 
@@ -322,6 +329,8 @@ public class Block extends GLElementContainer implements IGLLayout2 {
 	 */
 	public void sortBy(Node node, EDimension dim) {
 		LinearBlock block = getBlock(node, dim.opposite());
+		if (block == null)
+			return;
 		block.sortBy(node);
 		realign(node);
 		updateBlock();

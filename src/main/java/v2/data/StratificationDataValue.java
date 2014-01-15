@@ -91,7 +91,10 @@ public class StratificationDataValue implements IDataValues, Function2<Integer, 
 			}
 		};
 		b.put("index2double", toIndex);
-		b.put(Histogram.class, createHist(data));
+		final Histogram hist = createHist(data);
+		b.put(Histogram.class, hist);
+		b.put("distribution.colors", getHistColors(hist, data));
+		b.put("distribution.labels", getHistLabels(hist, data));
 		// b.put(IDoubleList.class, new MappedDoubleList<>(data, toIndex));
 	}
 
@@ -109,6 +112,24 @@ public class StratificationDataValue implements IDataValues, Function2<Integer, 
 				h.add(index, id);
 		}
 		return h;
+	}
+
+	protected Color[] getHistColors(Histogram hist, TypedListGroup data) {
+		Color[] r = new Color[groups().size()];
+		int i = 0;
+		for (TypedSetGroup s : groups()) {
+			r[i++] = s.getColor();
+		}
+		return r;
+	}
+
+	protected String[] getHistLabels(Histogram hist, TypedListGroup data) {
+		String[] r = new String[groups().size()];
+		int i = 0;
+		for (TypedSetGroup s : groups()) {
+			r[i++] = s.getLabel();
+		}
+		return r;
 	}
 
 	@Override

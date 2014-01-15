@@ -1075,20 +1075,22 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 		if (s.y() < 10)
 			s.setY(10);
 		Vec2f change = s.minus(getSize());
-		setSize(s.x(), s.y());
 		shift.add(change);
 
 		if (dimDetached.isDetached()) {
 			dimDetached.incShift(-change.y() * .5f);
 			final Vec2f l = getLocation();
 			setLocation(l.x(), l.y() - change.y() * .5f);
+			// s.setY(getSize().y()); // no y change
 		}
 		if (recDetached.isDetached()) {
 			recDetached.incShift(-change.x() * .5f);
 			final Vec2f l = getLocation();
 			setLocation(l.x() - change.x() * .5f, l.y());
+			// s.setX(getSize().x()); // no y change
 		}
 
+		setSize(s.x(), s.y());
 		relayout();
 	}
 

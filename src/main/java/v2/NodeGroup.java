@@ -89,6 +89,7 @@ public class NodeGroup extends GLElementDecorator implements ILabeled, IDragGLSo
 			return;
 		Builder b = GLElementFactoryContext.builder();
 		parent.data.fill(b, dimData, recData);
+		// if free high else medium
 		b.put(EDetailLevel.class, getNode().getProximityMode() == EProximityMode.FREE ? EDetailLevel.HIGH
 				: EDetailLevel.MEDIUM);
 		b.set("heatmap.blurNotSelected");
@@ -211,7 +212,10 @@ public class NodeGroup extends GLElementDecorator implements ILabeled, IDragGLSo
 			g.color(Color.BLACK).lineWidth(1);
 		g.drawRect(0, 0, w, h);
 		g.lineWidth(1);
-		g.drawText(getLabel(), -100, h * 0.5f - 5, w + 200, 10, VAlign.CENTER);
+
+		if (domino.isShowDebugInfos()) {
+			g.drawText(getLabel(), -100, h * 0.5f - 5, w + 200, 10, VAlign.CENTER);
+		}
 		super.renderImpl(g, w, h);
 	}
 

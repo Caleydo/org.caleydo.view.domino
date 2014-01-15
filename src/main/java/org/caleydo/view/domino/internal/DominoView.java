@@ -62,7 +62,7 @@ public class DominoView extends AMultiTablePerspectiveElementView {
 
 	@ListenTo(sendToMe = true)
 	private void onToggleHeaderAlwaysHeader(ToggleHeaderAlwaysEvent event) {
-		// domino.toggleAlwaysShowHeader();
+		domino.setShowDebugInfos(!domino.isShowDebugInfos());
 	}
 
 	public void replaceTablePerspectiveInternally(TablePerspective from, TablePerspective to) {

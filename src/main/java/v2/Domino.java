@@ -60,6 +60,7 @@ public class Domino extends GLElementContainer implements IDropGLTarget, IPickin
 	private final GLElementContainer content;
 	private SelectLayer select;
 	private DragElement currentlyDraggedVis;
+	private boolean showDebugInfos = true;
 
 	/**
 	 *
@@ -132,6 +133,20 @@ public class Domino extends GLElementContainer implements IDropGLTarget, IPickin
 		super.init(context);
 	}
 
+	/**
+	 * @return the showDebugInfos, see {@link #showDebugInfos}
+	 */
+	public boolean isShowDebugInfos() {
+		return showDebugInfos;
+	}
+
+	/**
+	 * @param showDebugInfos
+	 *            setter, see {@link showDebugInfos}
+	 */
+	public void setShowDebugInfos(boolean showDebugInfos) {
+		this.showDebugInfos = showDebugInfos;
+	}
 
 	public static void main(String[] args) {
 		GLSandBox.main(args, new Domino());
