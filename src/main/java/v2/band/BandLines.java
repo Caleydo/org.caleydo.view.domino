@@ -59,7 +59,7 @@ public class BandLines {
 	}
 
 	private static Pair<List<Vec2f>, List<Vec2f>> createParallel(Rect s, Rect t) {
-		if (s.x2() < t.x() - 50) {
+		if (s.x2() < t.x() - 40) {
 			return createHorizontal(s, t);
 		} else {
 			final float delta = Math.max(s.height(), t.height()) * 1.5f;

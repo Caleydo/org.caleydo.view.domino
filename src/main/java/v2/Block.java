@@ -67,7 +67,7 @@ public class Block extends GLElementContainer implements IGLLayout2 {
 		findParent(Domino.class).cleanupNode(node);
 		linearBlocks.clear();
 		addFirstNode(with);
-		findParent(Domino.class).updateBands();
+		updateBands();
 	}
 
 	public Collection<Placeholder> addPlaceholdersFor(Node node) {
@@ -135,7 +135,7 @@ public class Block extends GLElementContainer implements IGLLayout2 {
 
 	public void updatedNode(Node node) {
 		realign(node);
-		findParent(Domino.class).updateBands();
+		updateBands();
 		shiftToZero();
 		updateSize();
 	}
@@ -177,7 +177,7 @@ public class Block extends GLElementContainer implements IGLLayout2 {
 			realign(first);
 		}
 		updateBlock();
-		findParent(Domino.class).updateBands();
+		updateBands();
 	}
 
 	/**
@@ -305,6 +305,14 @@ public class Block extends GLElementContainer implements IGLLayout2 {
 	private void updateBlock() {
 		shiftToZero();
 		updateSize();
+		updateBands();
+	}
+
+
+
+	private void updateBands() {
+		for (Node n : nodes())
+			n.updateBands();
 		findParent(Domino.class).updateBands();
 	}
 

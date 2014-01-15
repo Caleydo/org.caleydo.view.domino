@@ -39,6 +39,7 @@ import org.caleydo.core.view.opengl.layout2.manage.GLLocation.ILocator;
 import org.caleydo.core.view.opengl.picking.IPickingListener;
 import org.caleydo.core.view.opengl.picking.Pick;
 import org.caleydo.view.domino.api.model.graph.EDirection;
+import org.caleydo.view.domino.api.model.graph.EProximityMode;
 import org.caleydo.view.domino.api.model.typed.TypedGroupList;
 import org.caleydo.view.domino.api.model.typed.TypedGroupSet;
 import org.caleydo.view.domino.api.model.typed.TypedListGroup;
@@ -88,7 +89,8 @@ public class NodeGroup extends GLElementDecorator implements ILabeled, IDragGLSo
 			return;
 		Builder b = GLElementFactoryContext.builder();
 		parent.data.fill(b, dimData, recData);
-		b.put(EDetailLevel.class, EDetailLevel.HIGH);
+		b.put(EDetailLevel.class, getNode().getProximityMode() == EProximityMode.FREE ? EDetailLevel.HIGH
+				: EDetailLevel.MEDIUM);
 		b.set("heatmap.blurNotSelected");
 		b.set("heatmap.forceTextures");
 		ImmutableList<GLElementSupplier> extensions = GLElementFactories.getExtensions(b.build(), "domino."
