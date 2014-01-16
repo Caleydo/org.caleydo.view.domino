@@ -3,28 +3,14 @@
  * Copyright (c) The Caleydo Team. All rights reserved.
  * Licensed under the new BSD license, available at http://caleydo.org/license
  *******************************************************************************/
-package v2;
+package v2.event;
 
-import org.caleydo.core.view.opengl.layout2.dnd.IDnDItem;
-
+import org.caleydo.core.event.ADirectedEvent;
 
 /**
  * @author Samuel Gratzl
  *
  */
-public class SingleNodeGroup extends NodeGroup {
-
-	public SingleNodeGroup(Node parent) {
-		super(parent);
-	}
-
-	@Override
-	public void onDropped(IDnDItem info) {
-		getNode().showAgain();
-	}
-
-	@Override
-	public boolean canBeRemoved() {
-		return false;
-	}
+public class ToggleShowMiniMapEvent extends ADirectedEvent {
 }
+

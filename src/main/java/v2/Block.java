@@ -226,7 +226,7 @@ public class Block extends GLElementContainer implements IGLLayout2 {
 	/**
 	 * @return
 	 */
-	private Iterable<Node> nodes() {
+	Iterable<Node> nodes() {
 		return Iterables.filter(this, Node.class);
 	}
 
@@ -451,5 +451,13 @@ public class Block extends GLElementContainer implements IGLLayout2 {
 				node.selectByBounds(r);
 			}
 		}
+	}
+
+	/**
+	 * @param node
+	 */
+	public void tranposedNode(Node node) {
+		replace(node, node);
+		updatedNode(node);
 	}
 }

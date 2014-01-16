@@ -71,6 +71,11 @@ import com.google.common.collect.Sets;
  *
  */
 public class Node extends GLElementContainer implements IGLLayout2, ILabeled, IDropGLTarget, IPickingListener {
+	/**
+	 *
+	 */
+	private static final int MIN_SIZE = 30;
+
 	static final float BORDER = 2;
 
 	private Node[] neighbors = new Node[4];
@@ -429,8 +434,8 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 
 		float w = BORDER * 2 + sum(xi);
 		float h = BORDER * 2 + sum(yi);
-		w = Math.max(w + shift.x(), 10);
-		h = Math.max(h + shift.y(), 10);
+		w = Math.max(w + shift.x(), MIN_SIZE);
+		h = Math.max(h + shift.y(), MIN_SIZE);
 		setSize(w, h);
 	}
 
@@ -931,7 +936,7 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 	 */
 	public void transpose() {
 		transposeMe();
-		findBlock().updatedNode(this);
+		findBlock().tranposedNode(this);
 	}
 
 	public Node transposeMe() {
@@ -1070,10 +1075,10 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 	public void shiftBy(float shiftX, float shiftY) {
 		Vec2f s = getSize().copy();
 		s.add(new Vec2f(shiftX, shiftY));
-		if (s.x() < 10)
-			s.setX(10);
-		if (s.y() < 10)
-			s.setY(10);
+		if (s.x() < MIN_SIZE)
+			s.setX(MIN_SIZE);
+		if (s.y() < MIN_SIZE)
+			s.setY(MIN_SIZE);
 		Vec2f change = s.minus(getSize());
 		shift.add(change);
 
@@ -1172,5 +1177,12 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 	 */
 	public void updateBands() {
 		this.dirtyBands = true;
+	}
+
+	/**
+	 * @return
+	 */
+	public Color getColor() {
+		return data.getColor();
 	}
 }

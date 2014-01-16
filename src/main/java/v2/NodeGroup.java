@@ -194,7 +194,9 @@ public class NodeGroup extends GLElementDecorator implements ILabeled, IDragGLSo
 		} else if (isRec && isDim) {
 			b.append(" ").append(dimData.getLabel()).append("/").append(recData.getLabel());
 		}
-		b.append(" shown as " + getSwitcher().getActiveSupplier().getLabel());
+		GLElementFactorySwitcher s = getSwitcher();
+		if (s != null)
+			b.append(" shown as " + getSwitcher().getActiveSupplier().getLabel());
 		return b.toString();
 	}
 

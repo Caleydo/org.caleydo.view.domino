@@ -31,7 +31,7 @@ import org.caleydo.core.view.opengl.layout2.manage.GLElementDimensionDesc.DescBu
 import org.caleydo.core.view.opengl.layout2.manage.GLElementFactoryContext;
 import org.caleydo.core.view.opengl.layout2.manage.IGLElementFactory2;
 import org.caleydo.core.view.opengl.picking.Pick;
-import org.caleydo.view.domino.api.model.typed.TypedListGroup;
+import org.caleydo.view.domino.api.model.typed.TypedList;
 /**
  * @author Samuel Gratzl
  *
@@ -45,15 +45,22 @@ public class LabelElementFactory implements IGLElementFactory2 {
 
 	@Override
 	public GLElement create(GLElementFactoryContext context) {
-		TypedListGroup dimData = context.get("dims", TypedListGroup.class, null);
-		TypedListGroup recData = context.get("recs", TypedListGroup.class, null);
-		return new LabelElement(dimData, recData);
+		EDimension dim = context.get(EDimension.class, EDimension.RECORD);
+		IDType idType = context.get(IDType.class, null);
+		@SuppressWarnings("unchecked")
+		List<Integer> data = context.get(List.class, null);
+		TypedList l;
+		if (data instanceof TypedList)
+			l = ((TypedList) data);
+		else
+			l = new TypedList(data, idType);
+		return new LabelElement(dim, l, context.get("align", VAlign.class, VAlign.LEFT));
 	}
 
 	@Override
 	public boolean apply(GLElementFactoryContext context) {
-		return context.get("dims", TypedListGroup.class, null) != null
-				|| context.get("recs", TypedListGroup.class, null) != null;
+		return context.get(TypedList.class, null) != null
+				|| (context.get(List.class, null) != null && context.get(IDType.class, null) != null);
 	}
 
 	@Override
@@ -65,29 +72,28 @@ public class LabelElementFactory implements IGLElementFactory2 {
 	private static final class LabelElement extends PickableGLElement implements
 			MultiSelectionManagerMixin.ISelectionMixinCallback {
 
-		private final TypedListGroup dimData;
-		private final List<String> dimLabels;
-
-		private final TypedListGroup recData;
-		private final List<String> recLabels;
+		private final EDimension dim;
+		private final TypedList data;
+		private final List<String> labels;
+		private VAlign align;
 
 		@DeepScan
 		private final MultiSelectionManagerMixin selections = new MultiSelectionManagerMixin(this);
 
-		public LabelElement(TypedListGroup dimData, TypedListGroup recData) {
-			this.dimData = dimData;
-			this.recData = recData;
+		public LabelElement(EDimension dim, TypedList data, VAlign align) {
+			this.dim = dim;
+			this.data = data;
+			this.align = align;
 
-			selections.add(new SelectionManager(this.dimData.getIdType()));
-			this.dimLabels = toLabels(dimData);
-			this.recLabels = toLabels(recData);
+			selections.add(new SelectionManager(data.getIdType()));
+			this.labels = toLabels(data);
 		}
 
 		/**
 		 * @param dimData2
 		 * @return
 		 */
-		private List<String> toLabels(TypedListGroup data) {
+		private List<String> toLabels(TypedList data) {
 			IDType idType = data.getIdType();
 			IIDTypeMapper<Integer, String> mapper = IDMappingManagerRegistry.get()
 					.getIDMappingManager(idType.getIDCategory())
@@ -104,31 +110,69 @@ public class LabelElementFactory implements IGLElementFactory2 {
 		protected void renderImpl(GLGraphics g, float w, float h) {
 			g.color(Color.WHITE).fillRect(0, 0, w, h);
 
-			if (dimData.isEmpty() && recData.isEmpty()) {
+			if (data.isEmpty()) {
 				g.drawText("Labels", 0, (h - 12) * 0.5f, w, 12, VAlign.CENTER);
 				return;
 			}
-			SelectionManager manager = selections.get(0);
-			if (!recData.isEmpty()) {
-				final int size = recData.size();
-				float hi = h / size;
-				if (hi >= 3) {
-					Set<Integer> mouseOvers = manager.getElements(SelectionType.MOUSE_OVER);
-					Set<Integer> selected = manager.getElements(SelectionType.SELECTION);
-					for (int i = 0; i < size; ++i) {
-						String l = recLabels.get(i);
-						Integer id = recData.get(i);
-						if (selected.contains(id)) {
-							g.color(SelectionType.SELECTION.getColor().brighter()).fillRect(0, i * hi, w, hi);
-						} else if (mouseOvers.contains(id)) {
-							g.color(SelectionType.MOUSE_OVER.getColor().brighter()).fillRect(0, i * hi, w, hi);
-						}
-						float ti = Math.min(hi - 1, 16);
-						g.drawText(l, 0, i * hi + (hi - ti) * 0.5f, w, ti);
-					}
-				}
-			}
+			if (dim.isHorizontal()) {
+				g.save().move(0, h).gl.glRotatef(-90, 0, 0, 1);
+				renderLabels(g, h, w);
+				g.restore();
+			} else
+				renderLabels(g, w, h);
+
 			super.renderImpl(g, w, h);
+		}
+
+		/**
+		 * @param g
+		 * @param h
+		 * @param w
+		 */
+		private void renderLabels(GLGraphics g, float w, float h) {
+			SelectionManager manager = selections.get(data.getIdType());
+			Set<Integer> mouseOvers = manager.getElements(SelectionType.MOUSE_OVER);
+			Set<Integer> selected = manager.getElements(SelectionType.SELECTION);
+			final int size = data.size();
+			if ((h / size) > 8)
+				renderUniform(g,w,h, mouseOvers, selected);
+		}
+
+			// Set<Integer> toHighlight = ImmutableSet.copyOf(Sets.intersection(Sets.union(mouseOvers, selected),
+			// data.asSet()));
+			// else if (toHighlight)
+			//
+			//
+			// float hi = h / size;
+			// if (hi >= 4)
+			// if (hi >= 3) {
+			// for (int i = 0; i < size; ++i) {
+			// String l = recLabels.get(i);
+			// Integer id = recData.get(i);
+			// if (selected.contains(id)) {
+			// g.color(SelectionType.SELECTION.getColor().brighter()).fillRect(0, i * hi, w, hi);
+			// } else if (mouseOvers.contains(id)) {
+			// g.color(SelectionType.MOUSE_OVER.getColor().brighter()).fillRect(0, i * hi, w, hi);
+			// }
+			// float ti = Math.min(hi - 1, 16);
+			// g.drawText(l, 0, i * hi + (hi - ti) * 0.5f, w, ti);
+			// }
+			// }
+
+		private void renderUniform(GLGraphics g, float w, float h, Set<Integer> mouseOvers, Set<Integer> selected) {
+			final int size = data.size();
+			float hi = h / size;
+			for (int i = 0; i < size; ++i) {
+				String l = labels.get(i);
+				Integer id = data.get(i);
+				if (selected.contains(id)) {
+					g.color(SelectionType.SELECTION.getColor().brighter()).fillRect(0, i * hi, w, hi);
+				} else if (mouseOvers.contains(id)) {
+					g.color(SelectionType.MOUSE_OVER.getColor().brighter()).fillRect(0, i * hi, w, hi);
+				}
+				float ti = Math.min(hi - 1, 16);
+				g.drawText(l, 0, i * hi + (hi - ti) * 0.5f, w, ti, align);
+			}
 		}
 
 		@Override
@@ -148,7 +192,6 @@ public class LabelElementFactory implements IGLElementFactory2 {
 		 * @return
 		 */
 		public GLElementDimensionDesc getDesc(EDimension dim) {
-			TypedListGroup data = dim.select(dimData, recData);
 			DescBuilder b = GLElementDimensionDesc.newBuilder();
 			if (data.isEmpty())
 				return b.before(inRange(100, 50, Double.POSITIVE_INFINITY)).build();

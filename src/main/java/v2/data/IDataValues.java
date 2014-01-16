@@ -10,6 +10,7 @@ import java.util.Collection;
 import org.caleydo.core.data.collection.EDimension;
 import org.caleydo.core.util.base.ILabeled;
 import org.caleydo.core.view.opengl.layout2.manage.GLElementFactoryContext.Builder;
+import org.caleydo.core.view.opengl.util.gleem.IColored;
 import org.caleydo.view.domino.api.model.graph.EProximityMode;
 import org.caleydo.view.domino.api.model.typed.TypedGroupSet;
 import org.caleydo.view.domino.api.model.typed.TypedListGroup;
@@ -19,7 +20,7 @@ import org.caleydo.view.domino.api.model.typed.TypedSet;
  * @author Samuel Gratzl
  *
  */
-public interface IDataValues extends ILabeled {
+public interface IDataValues extends ILabeled, IColored {
 
 	TypedGroupSet getDefaultGroups(EDimension dim);
 

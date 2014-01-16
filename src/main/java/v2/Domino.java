@@ -18,6 +18,7 @@ import org.caleydo.core.data.selection.SelectionType;
 import org.caleydo.core.view.opengl.canvas.IGLMouseListener.IMouseEvent;
 import org.caleydo.core.view.opengl.layout2.GLElement;
 import org.caleydo.core.view.opengl.layout2.GLElementContainer;
+import org.caleydo.core.view.opengl.layout2.GLGraphics;
 import org.caleydo.core.view.opengl.layout2.GLSandBox;
 import org.caleydo.core.view.opengl.layout2.IGLElementContext;
 import org.caleydo.core.view.opengl.layout2.basic.ScrollingDecorator;
@@ -61,6 +62,7 @@ public class Domino extends GLElementContainer implements IDropGLTarget, IPickin
 	private SelectLayer select;
 	private DragElement currentlyDraggedVis;
 	private boolean showDebugInfos = true;
+	private boolean showMiniMap = false;
 
 	/**
 	 *
@@ -381,6 +383,19 @@ public class Domino extends GLElementContainer implements IDropGLTarget, IPickin
 			toolBar.update(type);
 	}
 
+	@Override
+	protected void renderImpl(GLGraphics g, float w, float h) {
+		super.renderImpl(g, w, h);
+
+		if (showMiniMap) {
+			g.incZ();
+			g.save().move(w * 0.8f - 10, h * 0.8f - 10);
+			blocks.renderMiniMap(g, w * 0.2f, h * 0.2f);
+			g.restore();
+			g.decZ();
+		}
+	}
+
 	/**
 	 *
 	 */
@@ -402,6 +417,11 @@ public class Domino extends GLElementContainer implements IDropGLTarget, IPickin
 				block.selectByBounds(r);
 			}
 		}
+	}
+
+	public void toggleShowMiniMap() {
+		this.showMiniMap = !showMiniMap;
+		repaint();
 	}
 
 	/**

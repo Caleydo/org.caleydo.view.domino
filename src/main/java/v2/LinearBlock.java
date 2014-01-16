@@ -117,7 +117,7 @@ public class LinearBlock extends AbstractCollection<Node> {
 			float offset) {
 		if (normal)
 			r.add(new Placeholder(n, dir, false, offset));
-		if (transposed)
+		if (transposed && !normal)
 			r.add(new Placeholder(n, dir, true, offset));
 	}
 
@@ -451,9 +451,9 @@ public class LinearBlock extends AbstractCollection<Node> {
 			Node n = nodes.get(i);
 			Rect n_bounds = n.getDetachedRectBounds().clone();
 			if (dim.isDimension()) {
-				n.setDetachedBounds(bounds.x() - n_bounds.width(), n_bounds.y(), n_bounds.width(), bounds.height());
+				n.setDetachedBounds(bounds.x() - n_bounds.width(), bounds.y(), n_bounds.width(), bounds.height());
 			} else {
-				n.setDetachedBounds(n_bounds.x(), bounds.y() - n_bounds.height(), bounds.width(), n_bounds.height());
+				n.setDetachedBounds(bounds.x(), bounds.y() - n_bounds.height(), bounds.width(), n_bounds.height());
 			}
 			bounds = n.getDetachedRectBounds();
 		}
@@ -462,9 +462,9 @@ public class LinearBlock extends AbstractCollection<Node> {
 			Node n = nodes.get(i);
 			Rect n_bounds = n.getDetachedRectBounds().clone();
 			if (dim.isDimension()) {
-				n.setDetachedBounds(bounds.x2(), n_bounds.y(), n_bounds.width(), bounds.height());
+				n.setDetachedBounds(bounds.x2(), bounds.y(), n_bounds.width(), bounds.height());
 			} else {
-				n.setDetachedBounds(n_bounds.x(), bounds.y2(), bounds.width(), n_bounds.height());
+				n.setDetachedBounds(bounds.x(), bounds.y2(), bounds.width(), n_bounds.height());
 			}
 			bounds = n.getDetachedRectBounds();
 		}

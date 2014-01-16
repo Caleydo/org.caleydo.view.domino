@@ -15,6 +15,8 @@ import org.eclipse.jface.action.IMenuCreator;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Menu;
 
+import v2.event.ToggleShowMiniMapEvent;
+
 /**
  * different settings regarding the presentation of crossword
  *
@@ -51,10 +53,13 @@ public class SettingsAction extends SimpleAction implements IMenuCreator {
 
 		menu= new Menu(parent);
 
-		addActionToMenu(menu, new SimpleEventAction("Toggle always show header bar",
+		addActionToMenu(menu, new SimpleEventAction("Show/Hide Debug Infos",
  "resources/icons/text_large_cap.png", Resources
 						.getResourceLoader(), new ToggleHeaderAlwaysEvent()
 						.to(receiver).from(this)));
+
+		addActionToMenu(menu, new SimpleEventAction("Show/Hide Mini Map", "resources/icons/text_large_cap.png",
+				Resources.getResourceLoader(), new ToggleShowMiniMapEvent().to(receiver).from(this)));
 
 		return menu;
 	}

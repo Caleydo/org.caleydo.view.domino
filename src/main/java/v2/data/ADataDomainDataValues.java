@@ -150,4 +150,9 @@ public abstract class ADataDomainDataValues implements IDataValues, Function2<In
 		} else
 			b.put(Function2.class, this);
 	}
+
+	@Override
+	public Color getColor() {
+		return d.getColor();
+	}
 }

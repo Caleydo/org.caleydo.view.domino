@@ -172,4 +172,9 @@ public class StratificationDataValue implements IDataValues, Function2<Integer, 
 		return Arrays.asList("distribution.hist", "heatmap");
 	}
 
+	@Override
+	public Color getColor() {
+		return Color.LIGHT_RED;
+	}
+
 }

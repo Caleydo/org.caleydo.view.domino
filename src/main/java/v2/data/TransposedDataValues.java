@@ -8,6 +8,7 @@ package v2.data;
 import java.util.Collection;
 
 import org.caleydo.core.data.collection.EDimension;
+import org.caleydo.core.util.color.Color;
 import org.caleydo.core.view.opengl.layout2.manage.GLElementFactoryContext.Builder;
 import org.caleydo.view.domino.api.model.graph.EProximityMode;
 import org.caleydo.view.domino.api.model.typed.TypedGroupSet;
@@ -61,4 +62,8 @@ public class TransposedDataValues implements IDataValues {
 		return wrappee.getDefaultVisualization(mode);
 	}
 
+	@Override
+	public Color getColor() {
+		return wrappee.getColor();
+	}
 }

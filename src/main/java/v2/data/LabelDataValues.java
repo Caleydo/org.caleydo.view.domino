@@ -10,6 +10,7 @@ import java.util.Collections;
 
 import org.caleydo.core.data.collection.EDimension;
 import org.caleydo.core.id.IDCategory;
+import org.caleydo.core.util.color.Color;
 import org.caleydo.core.view.opengl.layout2.manage.GLElementFactoryContext.Builder;
 import org.caleydo.view.domino.api.model.graph.EProximityMode;
 import org.caleydo.view.domino.api.model.typed.TypedGroupList;
@@ -55,12 +56,19 @@ public class LabelDataValues implements IDataValues {
 
 	@Override
 	public void fill(Builder b, TypedListGroup dimData, TypedListGroup recData) {
-		b.put("labels.dims", dimData);
-		b.put("labels.recs", recData);
+		TypedListGroup g = dimData.isEmpty() ? recData : dimData;
+		EDimension dim = EDimension.get(g == dimData);
+		b.put(TypedListGroup.class, g);
+		b.put(EDimension.class, dim);
 	}
 
 	@Override
 	public Collection<String> getDefaultVisualization(EProximityMode mode) {
 		return Collections.singleton("labels");
+	}
+
+	@Override
+	public Color getColor() {
+		return Color.LIGHT_GRAY;
 	}
 }

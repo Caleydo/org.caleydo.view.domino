@@ -20,6 +20,7 @@ import org.caleydo.view.domino.internal.event.ToggleHeaderAlwaysEvent;
 import org.caleydo.view.domino.internal.serial.SerializedDominoView;
 
 import v2.Domino;
+import v2.event.ToggleShowMiniMapEvent;
 
 /**
  * basic view based on {@link GLElement} with a {@link AMultiTablePerspectiveElementView}
@@ -61,8 +62,13 @@ public class DominoView extends AMultiTablePerspectiveElementView {
 	}
 
 	@ListenTo(sendToMe = true)
-	private void onToggleHeaderAlwaysHeader(ToggleHeaderAlwaysEvent event) {
+	private void on(ToggleHeaderAlwaysEvent event) {
 		domino.setShowDebugInfos(!domino.isShowDebugInfos());
+	}
+
+	@ListenTo(sendToMe = true)
+	private void on(ToggleShowMiniMapEvent event) {
+		domino.toggleShowMiniMap();
 	}
 
 	public void replaceTablePerspectiveInternally(TablePerspective from, TablePerspective to) {

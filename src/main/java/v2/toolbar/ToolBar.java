@@ -134,7 +134,14 @@ public class ToolBar extends GLElementContainer {
 		 * @return
 		 */
 		private EDimension isSingleBlock() {
-
+			Node node = selection.iterator().next().getNode();
+			//
+			// for (NodeGroup group : selection) {
+			// Node n = group.getNode();
+			// if (node != n)
+			// return null;
+			// }
+			// return node;
 			// TODO Auto-generated method stub
 			return null;
 		}

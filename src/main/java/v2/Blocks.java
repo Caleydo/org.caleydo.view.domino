@@ -10,9 +10,12 @@ import gleem.linalg.Vec2f;
 import java.awt.geom.Rectangle2D;
 
 import org.caleydo.core.util.collection.Pair;
+import org.caleydo.core.util.color.Color;
 import org.caleydo.core.view.opengl.canvas.IGLMouseListener.IMouseEvent;
 import org.caleydo.core.view.opengl.layout2.GLElement;
 import org.caleydo.core.view.opengl.layout2.GLElementContainer;
+import org.caleydo.core.view.opengl.layout2.GLGraphics;
+import org.caleydo.core.view.opengl.layout2.basic.ScrollingDecorator;
 import org.caleydo.core.view.opengl.layout2.basic.ScrollingDecorator.IHasMinSize;
 import org.caleydo.core.view.opengl.layout2.geom.Rect;
 import org.caleydo.view.domino.internal.dnd.DragElement;
@@ -108,6 +111,43 @@ public class Blocks extends GLElementContainer implements IHasMinSize {
 		else {
 			Vec2f pos = toAbsolute(stickTo.getFirst().xy());
 			current.stickTo(pos, stickTo.getFirst().wh(), stickTo.getSecond());
+		}
+	}
+
+	public void renderMiniMap(GLGraphics g, float w, float h) {
+		g.color(Color.WHITE).fillRect(0, 0, w, h);
+		g.color(Color.BLACK).drawRect(0, 0, w, h);
+		Vec2f size = getSize();
+		g.save();
+		computeFactor(g, size, w, h);
+
+		for(Block block : getBlocks()) {
+			Vec2f loc = block.getLocation();
+			for (Node n : block.nodes()) {
+				Rect bounds = n.getRectBounds();
+				g.color(n.getColor()).fillRect(loc.x() + bounds.x(), loc.y() + bounds.y(), bounds.width(),
+						bounds.height());
+			}
+		}
+
+
+		final ScrollingDecorator s = findParent(ScrollingDecorator.class);
+		if (s != null) {
+			Rect clip = s.getClipingArea();
+			g.color(Color.BLACK).drawRect(clip.x(), clip.y(), clip.width(), clip.height());
+		}
+
+		g.restore();
+
+	}
+
+	private void computeFactor(GLGraphics g, Vec2f size, float w, float h) {
+		float wi = w / size.x();
+		float hi = h / size.y();
+		if (wi < hi) {
+			g.move(0, (h - size.y() * wi) * 0.5f).gl.glScalef(wi, wi, 1);
+		} else {
+			g.move((w - size.x() * hi) * 0.5f, 0).gl.glScalef(hi, hi, 1);
 		}
 	}
 }
