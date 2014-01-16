@@ -172,7 +172,7 @@ public class DominoBandLayer extends DominoBackgroundLayer implements
 		if (route == null)
 			return;
 		for (SourceTarget st : SourceTarget.values()) {
-			SelectionManager manager = selections.getSelectionManager(route.getIds(st).getIdType());
+			SelectionManager manager = selections.get(route.getIds(st).getIdType());
 			if (manager == null)
 				return;
 			manager.clearSelection(type);
@@ -276,7 +276,7 @@ public class DominoBandLayer extends DominoBackgroundLayer implements
 	 * @return
 	 */
 	private SelectionManager getOrCreate(IDType idType) {
-		SelectionManager manager = selections.getSelectionManager(idType);
+		SelectionManager manager = selections.get(idType);
 		if (manager == null) {
 			manager = new SelectionManager(idType);
 			selections.add(manager);

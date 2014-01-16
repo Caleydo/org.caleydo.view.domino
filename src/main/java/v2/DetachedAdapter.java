@@ -221,7 +221,7 @@ public class DetachedAdapter implements MultiSelectionManagerMixin.ISelectionMix
 		if (route == null)
 			return;
 		for (SourceTarget st : SourceTarget.values()) {
-			SelectionManager manager = selections.getSelectionManager(route.getIds(st, subIndex).getIdType());
+			SelectionManager manager = selections.get(route.getIds(st, subIndex).getIdType());
 			if (manager == null)
 				return;
 			manager.clearSelection(type);
@@ -321,7 +321,7 @@ public class DetachedAdapter implements MultiSelectionManagerMixin.ISelectionMix
 	 * @return
 	 */
 	private SelectionManager getOrCreate(IDType idType) {
-		SelectionManager manager = selections.getSelectionManager(idType);
+		SelectionManager manager = selections.get(idType);
 		if (manager == null) {
 			manager = new SelectionManager(idType);
 			selections.add(manager);
