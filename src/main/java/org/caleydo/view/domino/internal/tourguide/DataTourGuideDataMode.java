@@ -5,14 +5,18 @@
  *******************************************************************************/
 package org.caleydo.view.domino.internal.tourguide;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 
 import org.caleydo.core.data.collection.EDataClass;
 import org.caleydo.core.data.datadomain.ATableBasedDataDomain;
 import org.caleydo.core.data.datadomain.DataSupportDefinitions;
 import org.caleydo.core.data.datadomain.IDataDomain;
+import org.caleydo.core.id.IDCategory;
 import org.caleydo.core.view.opengl.layout2.renderer.GLRenderers;
+import org.caleydo.view.domino.internal.tourguide.vis.EntityTypeSelector;
 import org.caleydo.view.tourguide.api.adapter.ATourGuideDataMode;
 import org.caleydo.view.tourguide.api.model.ADataDomainQuery;
 import org.caleydo.view.tourguide.api.model.AScoreRow;
@@ -37,11 +41,25 @@ public class DataTourGuideDataMode extends ATourGuideDataMode {
 		return Collections.singleton(createFor(dd));
 	}
 
+	@Override
+	public Iterable<? extends ADataDomainQuery> createDataDomainQueries() {
+		return Iterables.concat(super.createDataDomainQueries(), createLabelQueries());
+	}
+
+	private Iterable<ADataDomainQuery> createLabelQueries() {
+		List<ADataDomainQuery> r = new ArrayList<>();
+		for (IDCategory cat : EntityTypeSelector.findAllUsedIDCategories()) {
+			r.add(new LabelDataDomainQuery(cat));
+		}
+		return r;
+	}
+
 	protected ADataDomainQuery createFor(IDataDomain dd) {
 		if (!DataSupportDefinitions.homogenousTables.apply(dd))
 			return new InhomogenousDataDomainQuery((ATableBasedDataDomain) dd,
  Sets.immutableEnumSet(
-					EDataClass.CATEGORICAL, EDataClass.NATURAL_NUMBER, EDataClass.REAL_NUMBER));
+EDataClass.CATEGORICAL, EDataClass.NATURAL_NUMBER, EDataClass.REAL_NUMBER,
+							EDataClass.UNIQUE_OBJECT));
 		return new DataDomainQuery((ATableBasedDataDomain) dd);
 	}
 

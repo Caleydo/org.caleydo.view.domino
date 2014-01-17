@@ -47,9 +47,7 @@ public class StratifiationTourGuideAdapter extends ATourGuideAdapter implements 
 
 	@Override
 	protected IDragGLSource createDragSource(AScoreRow row) {
-		if (row instanceof PathwayPerspectiveRow)
-			return new DragSetRowSource(row);
-		return new DragPerspectiveRowSource(row);
+		return new DragRowSource(row);
 	}
 
 	@Override

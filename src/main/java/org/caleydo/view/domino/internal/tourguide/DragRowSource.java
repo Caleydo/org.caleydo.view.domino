@@ -5,14 +5,29 @@
  *******************************************************************************/
 package org.caleydo.view.domino.internal.tourguide;
 
+import org.caleydo.core.data.collection.EDimension;
 import org.caleydo.core.data.perspective.table.TablePerspective;
+import org.caleydo.core.data.perspective.variable.Perspective;
 import org.caleydo.core.view.opengl.layout2.GLElement;
 import org.caleydo.core.view.opengl.layout2.dnd.IDnDItem;
 import org.caleydo.core.view.opengl.layout2.dnd.IDragGLSource;
 import org.caleydo.core.view.opengl.layout2.dnd.IDragInfo;
+import org.caleydo.view.domino.api.model.typed.TypedSet;
+import org.caleydo.view.domino.internal.dnd.PerspectiveDragInfo;
+import org.caleydo.view.domino.internal.dnd.SetDragInfo;
 import org.caleydo.view.domino.internal.dnd.TablePerspectiveDragInfo;
 import org.caleydo.view.tourguide.api.model.AScoreRow;
+import org.caleydo.view.tourguide.api.model.IPerspectiveScoreRow;
 import org.caleydo.view.tourguide.api.model.ITablePerspectiveScoreRow;
+import org.caleydo.view.tourguide.api.model.PathwayPerspectiveRow;
+import org.caleydo.view.tourguide.api.model.SingleIDPerspectiveRow;
+
+import v2.Node;
+import v2.NodeDragInfo;
+import v2.data.IDataValues;
+import v2.data.LabelDataValues;
+
+import com.google.common.collect.ImmutableSet;
 
 /**
  * @author Samuel Gratzl
@@ -31,8 +46,23 @@ public class DragRowSource implements IDragGLSource {
 
 	@Override
 	public IDragInfo startSWTDrag(IDragEvent event) {
-		TablePerspective t = ((ITablePerspectiveScoreRow) row).asTablePerspective();
-		return new TablePerspectiveDragInfo(t);
+		if (row instanceof PathwayPerspectiveRow) {
+			final PathwayPerspectiveRow r = (PathwayPerspectiveRow) row;
+			TypedSet s = new TypedSet(ImmutableSet.copyOf(r.of(null)), r.getIdType());
+			return new SetDragInfo(r.getLabel(), s, EDimension.DIMENSION);
+		} else if (row instanceof IPerspectiveScoreRow) {
+			Perspective p = ((IPerspectiveScoreRow) row).asPerspective();
+			Integer refernceId = (row instanceof SingleIDPerspectiveRow) ? ((SingleIDPerspectiveRow) row)
+					.getDimensionID() : null;
+			return new PerspectiveDragInfo(p, refernceId, ((IPerspectiveScoreRow) row).getDimension());
+		} else if (row instanceof ITablePerspectiveScoreRow) {
+			TablePerspective t = ((ITablePerspectiveScoreRow) row).asTablePerspective();
+			return new TablePerspectiveDragInfo(t);
+		} else if (row instanceof LabelScoreRow) {
+			IDataValues v = new LabelDataValues(((LabelScoreRow) row).getCategory());
+			return new NodeDragInfo(event.getMousePos(), new Node(v));
+		}
+		return null;
 	}
 
 	@Override
