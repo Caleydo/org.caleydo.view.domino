@@ -31,6 +31,8 @@ public enum EProximityMode implements Predicate<String> {
 
 	@Override
 	public boolean apply(String input) {
+		if (this == FREE)
+			return true;
 		for (EProximityMode mode : EnumSet.range(EProximityMode.ATTACHED, this))
 			if (mode.include.contains(input))
 				return true;
