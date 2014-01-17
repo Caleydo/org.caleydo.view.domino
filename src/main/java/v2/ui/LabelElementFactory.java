@@ -32,6 +32,8 @@ import org.caleydo.core.view.opengl.layout2.manage.GLElementFactoryContext;
 import org.caleydo.core.view.opengl.layout2.manage.IGLElementFactory2;
 import org.caleydo.core.view.opengl.picking.Pick;
 import org.caleydo.view.domino.api.model.typed.TypedList;
+
+import com.google.common.base.Function;
 /**
  * @author Samuel Gratzl
  *
@@ -54,7 +56,9 @@ public class LabelElementFactory implements IGLElementFactory2 {
 			l = ((TypedList) data);
 		else
 			l = new TypedList(data, idType);
-		return new LabelElement(dim, l, context.get("align", VAlign.class, VAlign.LEFT));
+		@SuppressWarnings("unchecked")
+		Function<Integer, String> toString = context.get("toString", Function.class, null);
+		return new LabelElement(dim, l, toString, context.get("align", VAlign.class, VAlign.LEFT));
 	}
 
 	@Override
@@ -80,13 +84,13 @@ public class LabelElementFactory implements IGLElementFactory2 {
 		@DeepScan
 		private final MultiSelectionManagerMixin selections = new MultiSelectionManagerMixin(this);
 
-		public LabelElement(EDimension dim, TypedList data, VAlign align) {
+		public LabelElement(EDimension dim, TypedList data, Function<Integer, String> toString, VAlign align) {
 			this.dim = dim;
 			this.data = data;
 			this.align = align;
 
 			selections.add(new SelectionManager(data.getIdType()));
-			this.labels = toLabels(data);
+			this.labels = toString == null ? toLabels(data) : toLabels(data, toString);
 		}
 
 		/**
@@ -102,6 +106,15 @@ public class LabelElementFactory implements IGLElementFactory2 {
 			List<String> r = new ArrayList<>(data.size());
 			for (Set<String> m : mapped) {
 				r.add(m == null ? "Unmapped" : StringUtils.join(m, ", "));
+			}
+			return r;
+		}
+
+		private List<String> toLabels(TypedList data, Function<Integer, String> toString) {
+			List<String> r = new ArrayList<>(data.size());
+			for (Integer id : data) {
+				String label = toString.apply(id);
+				r.add(label == null ? "Unnamed" : label);
 			}
 			return r;
 		}

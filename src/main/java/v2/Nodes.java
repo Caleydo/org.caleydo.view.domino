@@ -5,6 +5,7 @@
  *******************************************************************************/
 package v2;
 
+import org.caleydo.core.data.collection.EDataClass;
 import org.caleydo.core.data.collection.EDimension;
 import org.caleydo.core.data.datadomain.ATableBasedDataDomain;
 import org.caleydo.core.data.datadomain.DataSupportDefinitions;
@@ -21,6 +22,7 @@ import v2.data.IDataValues;
 import v2.data.Numerical1DDataDomainValues;
 import v2.data.Numerical2DDataDomainValues;
 import v2.data.StratificationDataValue;
+import v2.data.String1DDataDomainValues;
 
 /**
  * @author Samuel Gratzl
@@ -40,7 +42,9 @@ public class Nodes {
 			return new Numerical2DDataDomainValues(t);
 		if (DataSupportDefinitions.categoricalColumns.apply(t))
 			return new Categorical1DDataDomainValues(t, EDimension.RECORD);
-		if (DataSupportDefinitions.homogenousColumns.apply(t))
+		if (DataSupportDefinitions.dataClass(EDataClass.UNIQUE_OBJECT).apply(t))
+			return new String1DDataDomainValues(t, EDimension.RECORD);
+		if (DataSupportDefinitions.dataClass(EDataClass.NATURAL_NUMBER, EDataClass.REAL_NUMBER).apply(t))
 			return new Numerical1DDataDomainValues(t, EDimension.RECORD);
 		return null;
 	}

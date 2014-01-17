@@ -8,10 +8,8 @@ package v2.data;
 import java.util.Collections;
 
 import org.caleydo.core.data.collection.EDimension;
-import org.caleydo.core.data.collection.Histogram;
 import org.caleydo.core.data.perspective.table.TablePerspective;
 import org.caleydo.core.data.perspective.variable.Perspective;
-import org.caleydo.core.util.color.Color;
 import org.caleydo.core.view.opengl.layout2.manage.GLElementFactoryContext.Builder;
 import org.caleydo.view.domino.api.model.typed.TypedCollections;
 import org.caleydo.view.domino.api.model.typed.TypedGroupList;
@@ -66,23 +64,17 @@ public abstract class A1DDataDomainValues extends ADataDomainDataValues {
 		TypedList single = TypedCollections.singletonList(id);
 		super.fillHeatMap(b, dim.select(data, single), dim.select(single, data));
 		b.put(EDimension.class, dim);
-		b.put(TypedListGroup.class, data);
-		b.put("idType", data.getIdType());
-		final Histogram hist = createHist(data);
-		b.put(Histogram.class, hist);
-		b.put("distribution.colors", getHistColors(hist, data));
-		b.put("distribution.labels", getHistLabels(hist, data));
+		fill(b, data);
 	}
 
-	protected abstract Color[] getHistColors(Histogram hist, TypedListGroup data);
-
-	protected abstract String[] getHistLabels(Histogram hist, TypedListGroup data);
-
 	/**
+	 * @param b
 	 * @param data
-	 * @return
 	 */
-	protected abstract Histogram createHist(TypedListGroup data);
+	protected void fill(Builder b, TypedListGroup data) {
+		b.put(TypedListGroup.class, data);
+		b.put("idType", data.getIdType());
+	}
 
 	@Override
 	public TypedGroupSet getDefaultGroups(EDimension dim) {

@@ -83,7 +83,6 @@ public class Numerical1DDataDomainValues extends A1DDataDomainValues {
 		return Arrays.asList("boxandwhiskers", "kaplanmaier", "heatmap");
 	}
 
-	@Override
 	protected Histogram createHist(TypedListGroup data) {
 		final int bins = (int) Math.sqrt(data.size());
 		Histogram h = new Histogram(bins);
@@ -103,7 +102,6 @@ public class Numerical1DDataDomainValues extends A1DDataDomainValues {
 		return h;
 	}
 
-	@Override
 	protected Color[] getHistColors(Histogram hist, TypedListGroup data) {
 		Color[] r = new Color[hist.size()];
 		float f = 1.f / (r.length - 1);
@@ -113,7 +111,6 @@ public class Numerical1DDataDomainValues extends A1DDataDomainValues {
 		return r;
 	}
 
-	@Override
 	protected String[] getHistLabels(Histogram hist, TypedListGroup data) {
 		String[] r = new String[hist.size()];
 		for (int i = 0; i < r.length; ++i) {
@@ -123,14 +120,12 @@ public class Numerical1DDataDomainValues extends A1DDataDomainValues {
 	}
 
 	@Override
-	public void fill(Builder b, TypedListGroup dimData, TypedListGroup recData) {
-		super.fill(b, dimData, recData);
-
-		TypedListGroup data = main.select(dimData, recData);
-		boolean transposed = data.getIdType() == this.singleGroup.getIdType();
-		if (transposed) {
-			data = main.opposite().select(dimData, recData);
-		}
+	protected void fill(Builder b, TypedListGroup data) {
+		super.fill(b, data);
+		final Histogram hist = createHist(data);
+		b.put(Histogram.class, hist);
+		b.put("distribution.colors", getHistColors(hist, data));
+		b.put("distribution.labels", getHistLabels(hist, data));
 
 		final Function<Integer, Double> toRaw = new Function<Integer, Double>() {
 			@Override
