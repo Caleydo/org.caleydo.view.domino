@@ -13,6 +13,7 @@ import java.util.List;
 import org.caleydo.core.data.collection.EDimension;
 import org.caleydo.core.data.collection.Histogram;
 import org.caleydo.core.data.perspective.variable.Perspective;
+import org.caleydo.core.id.IDType;
 import org.caleydo.core.util.color.Color;
 import org.caleydo.core.util.function.Function2;
 import org.caleydo.core.view.opengl.layout2.manage.GLElementFactoryContext.Builder;
@@ -80,8 +81,10 @@ public class StratificationDataValue implements IDataValues, Function2<Integer, 
 		final EDimension dir = swapped ? main.opposite() : main;
 		b.put(EDimension.class, dir);
 		final TypedListGroup data = dir.select(dimData, recData);
+		b.put(TypedListGroup.class, data);
 		b.put("data",data);
 		b.put("idType",data.getIdType());
+		b.put(IDType.class, data.getIdType());
 		b.put("axis.min", 0);
 		b.put("axis.max", groups().size() - 1);
 		final Function<Integer, Double> toIndex = new Function<Integer, Double>() {

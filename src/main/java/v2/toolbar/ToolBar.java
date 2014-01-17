@@ -176,6 +176,9 @@ public class ToolBar extends GLElementContainer {
 			if (group.getNeighbor(EDirection.ABOVE) != null || group.getNeighbor(EDirection.BELOW) != null)
 				addButton("Select Ver", Resources.ICON_SELECT_REC);
 
+			GLElement parameter = group.createVisParameter();
+			if (parameter != null)
+				this.add(parameter);
 		}
 
 		/**
@@ -203,6 +206,7 @@ public class ToolBar extends GLElementContainer {
 			ButtonBarBuilder b = node.createSwitchButtonBarBuilder();
 			b.layoutAs(EButtonBarLayout.SLIDE_DOWN);
 			this.add(b.build());
+
 		}
 
 		@Override
@@ -210,8 +214,9 @@ public class ToolBar extends GLElementContainer {
 				int deltaTimeMs) {
 			float x = 0;
 			for (IGLLayoutElement child : children) {
-				child.setBounds(x, 0, h, h);
-				x += h + 3;
+				float wi = GLLayouts.defaultValue(child.getSetWidth(), h);
+				child.setBounds(x, 0, wi, h);
+				x += wi + 3;
 			}
 			return false;
 		}

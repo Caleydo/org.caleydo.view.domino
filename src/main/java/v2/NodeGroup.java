@@ -5,8 +5,6 @@
  *******************************************************************************/
 package v2;
 
-import gleem.linalg.Vec2f;
-
 import java.util.HashSet;
 import java.util.Set;
 
@@ -331,8 +329,6 @@ public class NodeGroup extends GLElementDecorator implements ILabeled, IDragGLSo
 	public Node toNode() {
 		Node n = new Node(parent, parent.data, getLabel(), new TypedGroupSet(dimData.asSet()), new TypedGroupSet(
 				recData.asSet()));
-		Vec2f shift = getNode().getShiftRatio(this);
-		n.setShift(shift);
 		return n;
 	}
 
@@ -376,5 +372,12 @@ public class NodeGroup extends GLElementDecorator implements ILabeled, IDragGLSo
 	public ILocator getLocator(final EDimension dim) {
 		ILocator desc = getDesc(dim);
 		return GLLocation.shift(desc, Node.BORDER);
+	}
+
+	/**
+	 * @return
+	 */
+	public GLElement createVisParameter() {
+		return getSwitcher().createParameter();
 	}
 }

@@ -136,7 +136,7 @@ public abstract class ANodeUI<T extends INode> extends GLElementDecorator implem
 	@Override
 	public double getSize(EDimension dim) {
 		GLElementDimensionDesc desc = getSwitcher().getActiveDesc(dim);
-		return desc.getSize(getDataSafe(dim));
+		return desc.size(getDataSafe(dim));
 	}
 
 	private int getDataSafe(EDimension dim) {

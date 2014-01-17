@@ -5,8 +5,6 @@
  *******************************************************************************/
 package v2.ui;
 
-import static org.caleydo.core.view.opengl.layout2.manage.GLElementDimensionDesc.inRange;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -27,7 +25,6 @@ import org.caleydo.core.view.opengl.layout2.GLElement;
 import org.caleydo.core.view.opengl.layout2.GLGraphics;
 import org.caleydo.core.view.opengl.layout2.PickableGLElement;
 import org.caleydo.core.view.opengl.layout2.manage.GLElementDimensionDesc;
-import org.caleydo.core.view.opengl.layout2.manage.GLElementDimensionDesc.DescBuilder;
 import org.caleydo.core.view.opengl.layout2.manage.GLElementFactoryContext;
 import org.caleydo.core.view.opengl.layout2.manage.IGLElementFactory2;
 import org.caleydo.core.view.opengl.picking.Pick;
@@ -57,7 +54,7 @@ public class LabelElementFactory implements IGLElementFactory2 {
 		else
 			l = new TypedList(data, idType);
 		@SuppressWarnings("unchecked")
-		Function<Integer, String> toString = context.get("toString", Function.class, null);
+		Function<Integer, String> toString = context.get("id2string", Function.class, null);
 		return new LabelElement(dim, l, toString, context.get("align", VAlign.class, VAlign.LEFT));
 	}
 
@@ -71,6 +68,11 @@ public class LabelElementFactory implements IGLElementFactory2 {
 	public GLElementDimensionDesc getDesc(EDimension dim, GLElement elem) {
 		LabelElement l = (LabelElement) elem;
 		return l.getDesc(dim);
+	}
+
+	@Override
+	public GLElement createParameters(GLElement elem) {
+		return null;
 	}
 
 	private static final class LabelElement extends PickableGLElement implements
@@ -205,10 +207,9 @@ public class LabelElementFactory implements IGLElementFactory2 {
 		 * @return
 		 */
 		public GLElementDimensionDesc getDesc(EDimension dim) {
-			DescBuilder b = GLElementDimensionDesc.newBuilder();
 			if (data.isEmpty())
-				return b.before(inRange(100, 50, Double.POSITIVE_INFINITY)).build();
-			return b.factor(GLElementDimensionDesc.inRange(10, 10, 100)).build();
+				return GLElementDimensionDesc.newFix(100).minimum(50).build();
+			return GLElementDimensionDesc.newCountDependent(10).minimum(10).build();
 		}
 
 		@Override

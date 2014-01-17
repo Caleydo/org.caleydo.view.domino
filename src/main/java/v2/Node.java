@@ -11,7 +11,9 @@ import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.apache.commons.lang.StringUtils;
@@ -94,7 +96,10 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 	@DeepScan
 	private DetachedAdapter recDetached = new DetachedAdapter(this, EDimension.RECORD);
 
-	private final Vec2f shift = new Vec2f();
+	// visualizationtype -> scale factor
+	// if type is size dependent -> global factor
+	// else local factor
+	private final Map<String, Vec2f> scaleFactors = new HashMap<>();
 
 	private boolean highlightDropArea;
 
@@ -116,9 +121,14 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 		this.visualizationType = clone.visualizationType;
 		this.dimGroups = clone.dimGroups;
 		this.recGroups = clone.recGroups;
-		this.shift.set(clone.shift);
+		copyScaleFactory(clone);
 		setData(clone.dimData, clone.recData);
 		init();
+	}
+
+	private void copyScaleFactory(Node clone) {
+		for (Map.Entry<String, Vec2f> entry : clone.scaleFactors.entrySet())
+			this.scaleFactors.put(entry.getKey(), entry.getValue().copy());
 	}
 
 	public Node(Node origin, IDataValues data, String label, TypedGroupSet dimGroups, TypedGroupSet recGroups) {
@@ -128,18 +138,11 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 		this.label = label;
 		this.dimGroups = dimGroups;
 		this.recGroups = recGroups;
+		if (origin != null)
+			copyScaleFactory(origin);
 		// guessShift(dimGroups.size(), recGroups.size());
 		setData(fixList(dimGroups), fixList(recGroups));
 		init();
-	}
-
-	/**
-	 * @param size
-	 * @param size2
-	 */
-	private void guessShift(float d, float r) {
-		Vec2f s = initialSize(d, r);
-		shift.set(s.x() - d, s.y() - r);
 	}
 
 	public boolean isDetached(EDimension dim) {
@@ -410,7 +413,7 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 		}
 
 		if (context != null) {
-			updateSize(dimData, recData);
+			updateSize();
 			relayout();
 		}
 	}
@@ -422,21 +425,47 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 	@Override
 	protected void init(IGLElementContext context) {
 		super.init(context);
-		updateSize(dimData, recData);
+		updateSize();
 		dimDetached.init(context);
 		recDetached.init(context);
 	}
 
 
-	private void updateSize(TypedGroupList dimData, TypedGroupList recData) {
+	private void updateSize() {
+		Vec2f size = fixSize(scaleSize(originalSize()));
+		setSize(size.x(), size.y());
+	}
+
+	private static Vec2f fixSize(Vec2f size) {
+		size.setX(Math.max(size.x(), MIN_SIZE));
+		size.setY(Math.max(size.y(), MIN_SIZE));
+		return size;
+	}
+
+	private Vec2f originalSize() {
 		float[] xi = getSizes(EDimension.DIMENSION);
 		float[] yi = getSizes(EDimension.RECORD);
 
 		float w = BORDER * 2 + sum(xi);
 		float h = BORDER * 2 + sum(yi);
-		w = Math.max(w + shift.x(), MIN_SIZE);
-		h = Math.max(h + shift.y(), MIN_SIZE);
-		setSize(w, h);
+		return new Vec2f(w, h);
+	}
+
+	private Vec2f scaleSize(Vec2f size) {
+		Vec2f scale = getScaleFactor();
+		size.setX(scale.x() * size.x());
+		size.setY(scale.y() * size.y());
+		return size;
+	}
+
+	private Vec2f getScaleFactor() {
+		Vec2f scale;
+		String type = getVisualizationType();
+		if (this.scaleFactors.containsKey(type))
+			scale = this.scaleFactors.get(type);
+		else
+			scale = new Vec2f(1, 1);
+		return scale;
 	}
 
 	private float[] getSizes(EDimension dim) {
@@ -444,7 +473,7 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 		float[] r = new float[lefts.size()];
 		int i = 0;
 		for (NodeGroup l : lefts) {
-			double size = l.getDesc(dim).getSize(l.getData(dim).size());
+			double size = l.getDesc(dim).size(l.getData(dim).size());
 			r[i++] = (float) size + BORDER * 2;
 		}
 		return r;
@@ -545,7 +574,6 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 		if (dim == null)
 			return; // no single grouping
 		final TypedGroupList select = dim.select(dimData, recData);
-		int old = select.size();
 		List<TypedListGroup> d = new ArrayList<>(select.getGroups());
 		final TypedListGroup toRemove = group.getData(dim);
 		d.remove(toRemove);
@@ -554,12 +582,6 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 			removeMe();
 			return;
 		}
-
-		final float factor = 1 - (toRemove.size()) / (float) old;
-		if (dim.isDimension())
-			shift.setX(shift.x() * factor);
-		else
-			shift.setY(shift.y() * factor);
 
 		TypedGroupList l = new TypedGroupList(d);
 		setGroups(dim, l.asSet());
@@ -915,25 +937,6 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 	/**
 	 *
 	 */
-	public Vec2f getShift() {
-		return shift;
-	}
-
-	/**
-	 * @param nodeGroup
-	 * @return
-	 */
-	public Vec2f getShiftRatio(NodeGroup group) {
-		Vec2f size = group.getSize();
-		Vec2f total = getSize();
-		float xr = size.x() / total.x();
-		float yr = size.y() / total.y();
-		return new Vec2f(shift.x() * xr, shift.y() * yr);
-	}
-
-	/**
-	 *
-	 */
 	public void transpose() {
 		transposeMe();
 		findBlock().tranposedNode(this);
@@ -951,7 +954,10 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 		boolean tmpR = this.isDetached(EDimension.RECORD);
 		this.setDetached(EDimension.RECORD, this.isDetached(EDimension.DIMENSION));
 		this.setDetached(EDimension.DIMENSION, tmpR);
-		this.shift.set(this.shift.y(), this.shift.x());
+
+		for (Vec2f scale : scaleFactors.values())
+			scale.set(scale.y(), scale.x());
+
 		setData(dimData, recData);
 
 		return this;
@@ -1049,11 +1055,15 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 			@Override
 			public void onSelectionChanged(GLButton button, boolean selected) {
 				int active = button.getPickingObjectId();
+
 				for (NodeGroup g : nodeGroups()) {
-					g.getSwitcher().setActive(active);
+					GLElementFactorySwitcher s = g.getSwitcher();
+					if (s.getActive() == active) // no change
+						return;
+					s.setActive(active);
 				}
 				visualizationType = button.getLayoutDataAs(GLElementSupplier.class, null).getId();
-				updateSize(dimData, recData);
+				updateSize();
 				relayout();
 				findBlock().updatedNode(Node.this);
 			}
@@ -1062,40 +1072,33 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 	}
 
 	/**
-	 * @param shift2
-	 */
-	public void setShift(Vec2f shift) {
-		this.shift.set(shift);
-	}
-
-	/**
 	 * @param shiftX
 	 * @param shiftY
 	 */
 	public void shiftBy(float shiftX, float shiftY) {
-		Vec2f s = getSize().copy();
-		s.add(new Vec2f(shiftX, shiftY));
-		if (s.x() < MIN_SIZE)
-			s.setX(MIN_SIZE);
-		if (s.y() < MIN_SIZE)
-			s.setY(MIN_SIZE);
-		Vec2f change = s.minus(getSize());
-		shift.add(change);
+		if (shiftX == 0 && shiftY == 0)
+			return;
+		Vec2f raw = originalSize();
+		Vec2f new_ = fixSize(scaleSize(raw.copy()).plus(new Vec2f(shiftX, shiftY)));
+		// TODO check if the change is valid according to the visualizations
 
-		if (dimDetached.isDetached()) {
-			dimDetached.incShift(-change.y() * .5f);
-			final Vec2f l = getLocation();
-			setLocation(l.x(), l.y() - change.y() * .5f);
-			// s.setY(getSize().y()); // no y change
-		}
-		if (recDetached.isDetached()) {
-			recDetached.incShift(-change.x() * .5f);
-			final Vec2f l = getLocation();
-			setLocation(l.x() - change.x() * .5f, l.y());
-			// s.setX(getSize().x()); // no y change
-		}
+		float sx = new_.x() / raw.x();
+		float sy = new_.y() / raw.y();
+		String type = getVisualizationType();
+		scaleFactors.put(type, new Vec2f(sx, sy));
 
-		setSize(s.x(), s.y());
+		// if (dimDetached.isDetached()) {
+		// dimDetached.incShift(-change.y() * .5f);
+		// final Vec2f l = getLocation();
+		// setLocation(l.x(), l.y() - change.y() * .5f);
+		// }
+		// if (recDetached.isDetached()) {
+		// recDetached.incShift(-change.x() * .5f);
+		// final Vec2f l = getLocation();
+		// setLocation(l.x() - change.x() * .5f, l.y());
+		// }
+
+		setSize(new_.x(), new_.y());
 		relayout();
 	}
 

@@ -5,8 +5,6 @@
  *******************************************************************************/
 package v2.ui;
 
-import static org.caleydo.core.view.opengl.layout2.manage.GLElementDimensionDesc.inRange;
-
 import java.util.List;
 
 import org.caleydo.core.data.collection.EDimension;
@@ -28,7 +26,6 @@ import org.caleydo.core.view.opengl.layout2.GLElement;
 import org.caleydo.core.view.opengl.layout2.GLGraphics;
 import org.caleydo.core.view.opengl.layout2.PickableGLElement;
 import org.caleydo.core.view.opengl.layout2.manage.GLElementDimensionDesc;
-import org.caleydo.core.view.opengl.layout2.manage.GLElementDimensionDesc.DescBuilder;
 import org.caleydo.core.view.opengl.layout2.manage.GLElementFactoryContext;
 import org.caleydo.core.view.opengl.layout2.manage.GLLocation;
 import org.caleydo.core.view.opengl.layout2.manage.GLLocation.ILocator;
@@ -100,6 +97,11 @@ public class AxisElementFactory implements IGLElementFactory2 {
 	public GLElementDimensionDesc getDesc(EDimension dim, GLElement elem) {
 		AxisElement l = (AxisElement) elem;
 		return l.getDesc(dim);
+	}
+
+	@Override
+	public GLElement createParameters(GLElement elem) {
+		return null;
 	}
 
 	private static final class AxisElement extends PickableGLElement implements
@@ -195,12 +197,11 @@ public class AxisElementFactory implements IGLElementFactory2 {
 		 * @return
 		 */
 		public GLElementDimensionDesc getDesc(EDimension dim) {
-			DescBuilder b = GLElementDimensionDesc.newBuilder();
 			if (this.dim != dim)
-				return b.before(inRange(20, 10, Double.POSITIVE_INFINITY)).build();
-			return b.before(inRange(200, 50, Double.POSITIVE_INFINITY)).locateUsing(this).build();
-
+				return GLElementDimensionDesc.newFix(20).minimum(10).build();
+			return GLElementDimensionDesc.newFix(200).minimum(50).locateUsing(this).build();
 		}
+
 
 		@Override
 		public void onSelectionUpdate(SelectionManager manager) {
