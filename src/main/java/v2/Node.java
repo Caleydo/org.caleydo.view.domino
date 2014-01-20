@@ -1055,14 +1055,16 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 			@Override
 			public void onSelectionChanged(GLButton button, boolean selected) {
 				int active = button.getPickingObjectId();
+				visualizationType = button.getLayoutDataAs(GLElementSupplier.class, null).getId();
 
+				boolean anyChange = false;
 				for (NodeGroup g : nodeGroups()) {
 					GLElementFactorySwitcher s = g.getSwitcher();
-					if (s.getActive() == active) // no change
-						return;
+					anyChange = anyChange || s.getActive() != active;
 					s.setActive(active);
 				}
-				visualizationType = button.getLayoutDataAs(GLElementSupplier.class, null).getId();
+				if (!anyChange && size() > 1)
+					return;
 				updateSize();
 				relayout();
 				findBlock().updatedNode(Node.this);
@@ -1087,17 +1089,20 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 		String type = getVisualizationType();
 		scaleFactors.put(type, new Vec2f(sx, sy));
 
-		// if (dimDetached.isDetached()) {
-		// dimDetached.incShift(-change.y() * .5f);
-		// final Vec2f l = getLocation();
-		// setLocation(l.x(), l.y() - change.y() * .5f);
-		// }
-		// if (recDetached.isDetached()) {
-		// recDetached.incShift(-change.x() * .5f);
-		// final Vec2f l = getLocation();
-		// setLocation(l.x() - change.x() * .5f, l.y());
-		// }
-
+		final Vec2f act = getSize();
+		Vec2f change = new_.minus(act);
+		if (dimDetached.isDetached()) {
+			dimDetached.incShift(-change.y() * .5f);
+			final Vec2f l = getLocation();
+			setLocation(l.x(), l.y() - change.y() * .5f);
+			// new_.setY(act.y());
+		}
+		if (recDetached.isDetached()) {
+			recDetached.incShift(-change.x() * .5f);
+			final Vec2f l = getLocation();
+			setLocation(l.x() - change.x() * .5f, l.y());
+			// new_.setX(act.x());
+		}
 		setSize(new_.x(), new_.y());
 		relayout();
 	}

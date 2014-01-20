@@ -176,6 +176,19 @@ public class Block extends GLElementContainer implements IGLLayout2 {
 
 		if (just != null) {
 			just.shiftBy(shiftX, shiftY);
+			for (EDimension d : just.dimensions()) {
+				d = d.opposite();
+				if (just.isDetached(d))
+					continue;
+				LinearBlock b = getBlock(just, d);
+				if (b == null) // error
+					continue;
+				float x = d.select(0, shiftX);
+				float y = d.select(shiftY, 0);
+				for (Node node : b)
+					if (node != just && !node.isDetached(d))
+						node.shiftBy(x, y);
+			}
 			realign(just);
 		} else {
 			for (Node node : nodes())
