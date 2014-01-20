@@ -23,9 +23,9 @@ import org.caleydo.view.tourguide.api.model.PathwayPerspectiveRow;
 import org.caleydo.view.tourguide.api.model.SingleIDPerspectiveRow;
 
 import v2.Node;
-import v2.NodeDragInfo;
 import v2.data.IDataValues;
 import v2.data.LabelDataValues;
+import v2.dnd.NodeDragInfo;
 
 import com.google.common.collect.ImmutableSet;
 

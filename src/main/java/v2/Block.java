@@ -14,8 +14,11 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.lang.StringUtils;
 import org.caleydo.core.data.collection.EDimension;
+import org.caleydo.core.event.EventListenerManager.ListenTo;
 import org.caleydo.core.id.IDType;
+import org.caleydo.core.util.base.Labels;
 import org.caleydo.core.util.color.Color;
 import org.caleydo.core.view.opengl.canvas.IGLMouseListener.IMouseEvent;
 import org.caleydo.core.view.opengl.layout2.GLElement;
@@ -34,8 +37,10 @@ import org.caleydo.view.domino.api.model.typed.TypedSets;
 import v2.band.Band;
 import v2.band.BandLine;
 import v2.band.BandLines;
+import v2.event.HideNodeEvent;
 
 import com.google.common.collect.Iterables;
+import com.google.common.collect.Iterators;
 import com.google.common.collect.Maps;
 
 /**
@@ -71,7 +76,7 @@ public class Block extends GLElementContainer implements IGLLayout2 {
 		assert size() == 1 && get(0) == node;
 
 		this.remove(node);
-		findParent(Domino.class).cleanupNode(node);
+		findParent(Domino.class).cleanup(node);
 		linearBlocks.clear();
 		addFirstNode(with);
 		updateBands();
@@ -472,5 +477,28 @@ public class Block extends GLElementContainer implements IGLLayout2 {
 	public void tranposedNode(Node node) {
 		replace(node, node);
 		updatedNode(node);
+	}
+
+	public void removeMe() {
+		findParent(Domino.class).removeBlock(this);
+	}
+
+	/**
+	 * @return
+	 */
+	public String getLabel() {
+		return StringUtils.join(Iterators.transform(nodes().iterator(), Labels.TO_LABEL), ", ");
+	}
+
+	/**
+	 *
+	 */
+	public void showAgain() {
+		setVisibility(EVisibility.VISIBLE);
+	}
+
+	@ListenTo(sendToMe = true)
+	private void onHideNodeEvent(HideNodeEvent event) {
+		setVisibility(EVisibility.HIDDEN);
 	}
 }

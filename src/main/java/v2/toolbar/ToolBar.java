@@ -28,9 +28,11 @@ import org.caleydo.core.view.opengl.layout2.renderer.GLRenderers;
 import org.caleydo.view.domino.api.model.graph.EDirection;
 import org.caleydo.view.domino.internal.Resources;
 
+import v2.Block;
 import v2.Domino;
 import v2.Node;
 import v2.NodeGroup;
+import v2.NodeSelections;
 
 import com.google.common.collect.Collections2;
 
@@ -108,7 +110,7 @@ public class ToolBar extends GLElementContainer {
 		 *
 		 */
 		private void createMulti() {
-			Node node = getSingleNode(selection);
+			Node node = NodeSelections.getSingleNode(selection);
 			EDimension dim = node == null ? null : node.getSingleGroupingDimension();
 
 			if (node != null) {
@@ -122,39 +124,14 @@ public class ToolBar extends GLElementContainer {
 			}
 
 			if (node == null) {
-				EDimension blockDim = isSingleBlock();
-				if (blockDim != null) {
-					addButton("Remove " + (blockDim.select("Dim", "Rec")) + " Block", Resources.ICON_DELETE_ALL);
+				Block block = NodeSelections.getSingleBlock(selection);
+				if (block != null) {
+					addButton("Remove Block", Resources.ICON_DELETE_ALL);
 				}
 			}
 		}
 
-		/**
-		 * @param selection2
-		 * @return
-		 */
-		private EDimension isSingleBlock() {
-			Node node = selection.iterator().next().getNode();
-			//
-			// for (NodeGroup group : selection) {
-			// Node n = group.getNode();
-			// if (node != n)
-			// return null;
-			// }
-			// return node;
-			// TODO Auto-generated method stub
-			return null;
-		}
 
-		private static Node getSingleNode(Set<NodeGroup> selection) {
-			Node node = selection.iterator().next().getNode();
-			for (NodeGroup group : selection) {
-				Node n = group.getNode();
-				if (node != n)
-					return null;
-			}
-			return node;
-		}
 
 		/**
 		 * @param next
@@ -246,11 +223,8 @@ public class ToolBar extends GLElementContainer {
 			case "Remove Group":
 				node.removeMe();
 				break;
-			case "Remove Dim Block":
-				node.getNode().removeBlock(EDimension.DIMENSION);
-				break;
-			case "Remove Rec Block":
-				node.getNode().removeBlock(EDimension.RECORD);
+			case "Remove Block":
+				node.getNode().getBlock().removeMe();
 				break;
 			case "Select All In Node":
 				node.getNode().selectAll();

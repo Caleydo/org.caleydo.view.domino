@@ -18,6 +18,10 @@ import org.caleydo.core.view.opengl.picking.Pick;
 import org.caleydo.view.domino.api.model.graph.EDirection;
 import org.caleydo.view.domino.internal.dnd.DragElement;
 
+import v2.dnd.ADragInfo;
+import v2.dnd.NodeDragInfo;
+import v2.dnd.NodeGroupDragInfo;
+
 /**
  * @author Samuel Gratzl
  *

@@ -3,8 +3,9 @@
  * Copyright (c) The Caleydo Team. All rights reserved.
  * Licensed under the new BSD license, available at http://caleydo.org/license
  *******************************************************************************/
-package v2;
+package v2.dnd;
 
+import v2.Node;
 import gleem.linalg.Vec2f;
 
 /**
@@ -28,11 +29,6 @@ public class NodeDragInfo extends ADragInfo {
 	 * @return the node, see {@link #node}
 	 */
 	public Node getNode() {
-		return node;
-	}
-
-	@Override
-	public Node getBaseNode() {
 		return node;
 	}
 

@@ -5,12 +5,10 @@
  *******************************************************************************/
 package v2;
 
-import java.util.HashSet;
 import java.util.Set;
 
 import org.caleydo.core.data.collection.EDimension;
 import org.caleydo.core.data.selection.SelectionType;
-import org.caleydo.core.event.EventPublisher;
 import org.caleydo.core.util.base.ILabeled;
 import org.caleydo.core.util.color.Color;
 import org.caleydo.core.view.opengl.canvas.EDetailLevel;
@@ -43,7 +41,10 @@ import org.caleydo.view.domino.api.model.typed.TypedGroupSet;
 import org.caleydo.view.domino.api.model.typed.TypedListGroup;
 import org.caleydo.view.domino.internal.ui.PickingBarrier;
 
-import v2.event.HideNodeEvent;
+import v2.dnd.ADragInfo;
+import v2.dnd.BlockDragInfo;
+import v2.dnd.NodeDragInfo;
+import v2.dnd.NodeGroupDragInfo;
 
 import com.google.common.collect.ImmutableList;
 
@@ -234,56 +235,7 @@ public class NodeGroup extends GLElementDecorator implements ILabeled, IDragGLSo
 	@Override
 	public IDragInfo startSWTDrag(IDragEvent event) {
 		final Domino domino = findDomino();
-		Set<NodeGroup> selected = domino.getSelection(SelectionType.SELECTION);
-		selected = new HashSet<>(selected);
-		selected.add(this);
-		Node single = getSingleNode(selected);
-		if (single != null) {
-			EventPublisher.trigger(new HideNodeEvent().to(single));
-			return new NodeDragInfo(event.getMousePos(), single);
-		}
-		Set<NodeGroup> s = compress(selected);
-		if (s.size() <= 1)
-			return new NodeGroupDragInfo(event.getMousePos(), this);
-		return new MultiNodeGroupDragInfo(event.getMousePos(), this, s);
-	}
-
-	private static Node getSingleNode(Set<NodeGroup> selection) {
-		if (selection.isEmpty())
-			return null;
-		Node node = selection.iterator().next().getNode();
-		for (NodeGroup group : selection) {
-			Node n = group.getNode();
-			if (node != n)
-				return null;
-		}
-		if (node.size() == selection.size()) // all of the element
-			return node;
-		return null;
-	}
-
-	/**
-	 * @param selected
-	 * @return
-	 */
-	private Set<NodeGroup> compress(Set<NodeGroup> selected) {
-		Set<NodeGroup> linked = new HashSet<>(selected.size());
-		compress(this, selected, linked, null);
-		return linked;
-	}
-
-
-	private void compress(NodeGroup n, Set<NodeGroup> selected, Set<NodeGroup> linked, EDirection commingFrom) {
-		linked.add(n);
-		selected.remove(n);
-		for (EDirection dir : EDirection.values()) {
-			if (dir == commingFrom)
-				continue;
-			NodeGroup f = n.findNeigbhor(dir, selected);
-			if (f != null) {
-				compress(f, selected, linked, dir);
-			}
-		}
+		return domino.startSWTDrag(event, this);
 	}
 
 	public NodeGroup findNeigbhor(EDirection dir, Set<NodeGroup> selected) {
@@ -304,13 +256,16 @@ public class NodeGroup extends GLElementDecorator implements ILabeled, IDragGLSo
 		}
 		if (info.getInfo() instanceof NodeDragInfo) {
 			getNode().showAgain();
+		} else if (info.getInfo() instanceof BlockDragInfo) {
+			((BlockDragInfo) info.getInfo()).getBlock().showAgain();
 		}
 
 	}
 
 	@Override
 	public GLElement createUI(IDragInfo info) {
-		findDomino().addPlaceholdersFor(parent);
+		if (info instanceof NodeDragInfo || info instanceof NodeGroupDragInfo)
+			findDomino().addPlaceholdersFor(parent);
 		if (info instanceof ADragInfo)
 			return ((ADragInfo) info).createUI(findDomino());
 		return null;

@@ -61,6 +61,9 @@ import org.caleydo.view.domino.api.model.typed.TypedSetGroup;
 
 import v2.data.IDataValues;
 import v2.data.TransposedDataValues;
+import v2.dnd.MultiNodeGroupDragInfo;
+import v2.dnd.NodeDragInfo;
+import v2.dnd.NodeGroupDragInfo;
 import v2.event.HideNodeEvent;
 
 import com.google.common.collect.Collections2;
@@ -249,12 +252,10 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 
 	@Override
 	public boolean canSWTDrop(IDnDItem item) {
-		if (!(item.getInfo() instanceof ADragInfo))
+		if (!(item.getInfo() instanceof NodeDragInfo))
 			return false;
-		ADragInfo d = (ADragInfo) item.getInfo();
-		if (d instanceof NodeGroupDragInfo)
-			return false;
-		final Node b = d.getBaseNode();
+		NodeDragInfo d = (NodeDragInfo) item.getInfo();
+		final Node b = d.getNode();
 		if (b == this || b == null)
 			return false;
 		if (has(EDimension.DIMENSION) && has(EDimension.RECORD))
@@ -611,6 +612,10 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 
 	private Block findBlock() {
 		return findParent(Block.class);
+	}
+
+	public Block getBlock() {
+		return findBlock();
 	}
 
 	/**
@@ -1000,10 +1005,8 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 	 * @param dimension
 	 * @return
 	 */
-	public void removeBlock(EDimension dim) {
-		if (!has(dim))
-			return;
-		findBlock().removeBlock(this, dim);
+	public void removeBlock() {
+		findBlock().removeMe();
 	}
 
 	/**

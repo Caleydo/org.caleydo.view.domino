@@ -3,13 +3,15 @@
  * Copyright (c) The Caleydo Team. All rights reserved.
  * Licensed under the new BSD license, available at http://caleydo.org/license
  *******************************************************************************/
-package v2;
+package v2.dnd;
 
 import gleem.linalg.Vec2f;
 
 import org.caleydo.core.view.opengl.layout2.GLElement;
 import org.caleydo.core.view.opengl.layout2.dnd.IUIDragInfo;
 import org.caleydo.view.domino.internal.dnd.DragElement;
+
+import v2.Domino;
 
 /**
  * @author Samuel Gratzl
@@ -29,8 +31,6 @@ public abstract class ADragInfo implements IUIDragInfo {
 		return mousePos;
 	}
 
-	public abstract Node getBaseNode();
-
 	protected abstract Vec2f getSize();
 
 	@Override
@@ -44,6 +44,6 @@ public abstract class ADragInfo implements IUIDragInfo {
 	 */
 	public GLElement createUI(Domino domino) {
 		Vec2f size = getSize();
-		return new DragElement(getBaseNode().getLabel(), size, domino, this);
+		return new DragElement(getLabel(), size, domino, this);
 	}
 }

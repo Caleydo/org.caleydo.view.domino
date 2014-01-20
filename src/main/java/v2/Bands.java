@@ -42,6 +42,8 @@ import org.caleydo.view.domino.spi.model.IBandRenderer.SourceTarget;
 import v2.band.Band;
 import v2.data.IDataValues;
 import v2.data.StratificationDataValue;
+import v2.dnd.ADragInfo;
+import v2.dnd.NodeDragInfo;
 
 import com.jogamp.common.util.IntIntHashMap;
 import com.jogamp.common.util.IntIntHashMap.Entry;

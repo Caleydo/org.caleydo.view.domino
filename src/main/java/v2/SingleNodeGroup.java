@@ -5,7 +5,6 @@
  *******************************************************************************/
 package v2;
 
-import org.caleydo.core.view.opengl.layout2.dnd.IDnDItem;
 
 
 /**
@@ -16,11 +15,6 @@ public class SingleNodeGroup extends NodeGroup {
 
 	public SingleNodeGroup(Node parent) {
 		super(parent);
-	}
-
-	@Override
-	public void onDropped(IDnDItem info) {
-		getNode().showAgain();
 	}
 
 	@Override

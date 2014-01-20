@@ -67,7 +67,7 @@ public abstract class ADragButton extends AGLButton implements IDragGLSource {
 
 	@Override
 	public IDragInfo startSWTDrag(IDragEvent event) {
-		return new v2.NodeDragInfo(event.getMousePos(), createNode());
+		return new v2.dnd.NodeDragInfo(event.getMousePos(), createNode());
 	}
 
 	/**

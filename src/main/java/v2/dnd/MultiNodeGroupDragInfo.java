@@ -3,13 +3,15 @@
  * Copyright (c) The Caleydo Team. All rights reserved.
  * Licensed under the new BSD license, available at http://caleydo.org/license
  *******************************************************************************/
-package v2;
+package v2.dnd;
 
 import gleem.linalg.Vec2f;
 
 import java.util.Set;
 
 import org.caleydo.core.util.base.Labels;
+
+import v2.NodeGroup;
 
 /**
  * @author Samuel Gratzl
@@ -42,11 +44,6 @@ public class MultiNodeGroupDragInfo extends ADragInfo {
 	 */
 	public NodeGroup getPrimary() {
 		return primary;
-	}
-
-	@Override
-	public Node getBaseNode() {
-		return primary.getNode();
 	}
 
 	@Override

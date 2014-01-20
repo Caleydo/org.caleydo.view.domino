@@ -8,13 +8,15 @@ package v2;
 import gleem.linalg.Vec2f;
 
 import java.awt.geom.Rectangle2D;
-import java.util.Iterator;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
 import org.caleydo.core.data.collection.EDimension;
 import org.caleydo.core.data.perspective.table.TablePerspective;
 import org.caleydo.core.data.selection.SelectionType;
+import org.caleydo.core.event.EventListenerManager.DeepScan;
+import org.caleydo.core.event.EventPublisher;
 import org.caleydo.core.view.opengl.canvas.IGLMouseListener.IMouseEvent;
 import org.caleydo.core.view.opengl.layout2.GLElement;
 import org.caleydo.core.view.opengl.layout2.GLElementContainer;
@@ -24,6 +26,7 @@ import org.caleydo.core.view.opengl.layout2.IGLElementContext;
 import org.caleydo.core.view.opengl.layout2.basic.ScrollingDecorator;
 import org.caleydo.core.view.opengl.layout2.dnd.EDnDType;
 import org.caleydo.core.view.opengl.layout2.dnd.IDnDItem;
+import org.caleydo.core.view.opengl.layout2.dnd.IDragGLSource.IDragEvent;
 import org.caleydo.core.view.opengl.layout2.dnd.IDragInfo;
 import org.caleydo.core.view.opengl.layout2.dnd.IDropGLTarget;
 import org.caleydo.core.view.opengl.layout2.geom.Rect;
@@ -40,12 +43,16 @@ import org.caleydo.view.domino.internal.dnd.TablePerspectiveRemoveDragCreator;
 
 import v2.data.Categorical2DDataDomainValues;
 import v2.data.StratificationDataValue;
+import v2.dnd.ADragInfo;
+import v2.dnd.BlockDragInfo;
+import v2.dnd.MultiNodeGroupDragInfo;
+import v2.dnd.NodeDragInfo;
+import v2.dnd.NodeGroupDragInfo;
+import v2.event.HideNodeEvent;
 import v2.toolbar.LeftToolBar;
 import v2.toolbar.ToolBar;
 
-import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.SetMultimap;
 
 /**
  * @author Samuel Gratzl
@@ -57,13 +64,14 @@ public class Domino extends GLElementContainer implements IDropGLTarget, IPickin
 	private final Blocks blocks;
 	private final ToolBar toolBar;
 	private final LeftToolBar leftToolBar;
-	private final SetMultimap<SelectionType, NodeGroup> selections = HashMultimap.create();
 	private final GLElementContainer content;
 	private SelectLayer select;
 	private DragElement currentlyDraggedVis;
 	private boolean showDebugInfos = true;
 	private boolean showMiniMap = false;
 
+	@DeepScan
+	private final NodeSelections selections = new NodeSelections();
 	/**
 	 *
 	 */
@@ -223,11 +231,14 @@ public class Domino extends GLElementContainer implements IDropGLTarget, IPickin
 			Node start = g.getPrimary().toNode();
 			Block b = dropNode(item, start);
 			rebuild(b, start, g.getPrimary(), g.getGroups(), null);
+		} else if (info instanceof BlockDragInfo) {
+			dropBlock(item, ((BlockDragInfo) info).getBlock());
 		} else {
 			Node node = Nodes.extract(item);
 			dropNode(item, node);
 		}
 	}
+
 
 	private void rebuild(Block b, Node asNode, NodeGroup act, Set<NodeGroup> items, EDirection commingFrom) {
 		items.remove(act);
@@ -246,15 +257,30 @@ public class Domino extends GLElementContainer implements IDropGLTarget, IPickin
 	private Block dropNode(IDnDItem item, Node node) {
 		removeNode(node);
 		Block b = new Block(node);
-		Vec2f pos = blocks.toRelative(item.getMousePos());
-		if (currentlyDraggedVis != null)
-			pos.add(currentlyDraggedVis.getLocation());
-		b.setLocation(pos.x(), pos.y());
+		setBlockDropPosition(item, b);
 		blocks.add(b);
+
 		removePlaceholder();
 		bands.relayout();
 		content.getParent().relayout();
 		return b;
+	}
+
+	/**
+	 * @param item
+	 * @param block
+	 */
+	private void dropBlock(IDnDItem item, Block block) {
+		setBlockDropPosition(item, block);
+		bands.relayout();
+		content.getParent().relayout();
+	}
+
+	private void setBlockDropPosition(IDnDItem item, Block b) {
+		Vec2f pos = blocks.toRelative(item.getMousePos());
+		if (currentlyDraggedVis != null)
+			pos.add(currentlyDraggedVis.getLocation());
+		b.setLocation(pos.x(), pos.y());
 	}
 
 	/**
@@ -266,23 +292,13 @@ public class Domino extends GLElementContainer implements IDropGLTarget, IPickin
 			blocks.remove(block);
 			bands.relayout();
 		}
-		cleanupNode(node);
+		cleanup(node);
 	}
 
-	public void cleanupNode(Node node) {
-		for (SelectionType type : selections.keySet()) {
-			Set<NodeGroup> c = selections.get(type);
-			boolean changed = false;
-			for (Iterator<NodeGroup> it = c.iterator(); it.hasNext();) {
-				NodeGroup g = it.next();
-				if (g.getNode() == node) {
-					it.remove();
-					changed = true;
-				}
-			}
-			if (changed)
-				toolBar.update(type);
-		}
+	public void cleanup(Node node) {
+		Set<SelectionType> changed = selections.cleanup(node);
+		for (SelectionType type : changed)
+			toolBar.update(type);
 	}
 
 	/**
@@ -311,11 +327,14 @@ public class Domino extends GLElementContainer implements IDropGLTarget, IPickin
 	@Override
 	public void onItemChanged(IDnDItem item) {
 		if (placeholders == null) {
-			if (item.getInfo() instanceof ADragInfo)
-				addPlaceholdersFor(((ADragInfo) item.getInfo()).getBaseNode());
+			if (item.getInfo() instanceof NodeDragInfo)
+				addPlaceholdersFor(((NodeDragInfo) item.getInfo()).getNode());
+			else if (item.getInfo() instanceof NodeGroupDragInfo)
+				addPlaceholdersFor(((NodeGroupDragInfo) item.getInfo()).getNode());
 			else {
 				Node node = Nodes.extract(item);
-				addPlaceholdersFor(node);
+				if (node != null)
+					addPlaceholdersFor(node);
 			}
 		}
 
@@ -357,29 +376,20 @@ public class Domino extends GLElementContainer implements IDropGLTarget, IPickin
 
 
 	public boolean isSelected(SelectionType type, NodeGroup group) {
-		return selections.get(type).contains(group);
+		return selections.isSelected(type, group);
 	}
 
 	public void select(SelectionType type, NodeGroup group, boolean additional) {
-		Set<NodeGroup> c = selections.get(type);
-		if (!additional)
-			c.clear();
-		c.add(group);
+		selections.select(type, group, additional);
 		toolBar.update(type);
 	}
 
 	public Set<NodeGroup> getSelection(SelectionType type) {
-		return selections.get(type);
+		return selections.getSelection(type);
 	}
 
 	public void clear(SelectionType type, NodeGroup group) {
-		Set<NodeGroup> c = selections.get(type);
-		boolean changed = !c.isEmpty();
-		if (group != null)
-			changed = c.remove(group);
-		else
-			c.clear();
-		if (changed)
+		if (selections.clear(type, group))
 			toolBar.update(type);
 	}
 
@@ -450,5 +460,39 @@ public class Domino extends GLElementContainer implements IDropGLTarget, IPickin
 	 */
 	public void setContentPickable(boolean pickable) {
 		blocks.setContentPickable(pickable);
+	}
+
+	/**
+	 * @param block
+	 */
+	public void removeBlock(Block block) {
+		blocks.remove(block);
+		for (SelectionType type : selections.cleanup(block))
+			toolBar.update(type);
+		updateBands();
+	}
+
+	/**
+	 * @param event
+	 * @param nodeGroup
+	 */
+	public IDragInfo startSWTDrag(IDragEvent event, NodeGroup nodeGroup) {
+		Set<NodeGroup> selected = getSelection(SelectionType.SELECTION);
+		selected = new HashSet<>(selected);
+		selected.add(nodeGroup);
+		Node single = NodeSelections.getSingleNode(selected);
+		if (single != null) {
+			EventPublisher.trigger(new HideNodeEvent().to(single));
+			return new NodeDragInfo(event.getMousePos(), single);
+		}
+		Block singleBlock = NodeSelections.getSingleBlock(selected);
+		if (singleBlock != null) {
+			EventPublisher.trigger(new HideNodeEvent().to(singleBlock));
+			return new BlockDragInfo(event.getMousePos(), singleBlock);
+		}
+		Set<NodeGroup> s = NodeSelections.compress(nodeGroup, selected);
+		if (s.size() <= 1)
+			return new NodeGroupDragInfo(event.getMousePos(), nodeGroup);
+		return new MultiNodeGroupDragInfo(event.getMousePos(), nodeGroup, s);
 	}
 }
