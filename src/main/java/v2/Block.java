@@ -177,7 +177,7 @@ public class Block extends GLElementContainer implements IGLLayout2 {
 
 		Vec2f s = just == null ? new Vec2f(100, 100) : just.getSize();
 		float shiftX = dim == 0 ? 0 : event.getWheelRotation() * sizeFactor(s.x());
-		float shiftY = rec == 0 ? 0 : event.getWheelRotation() * sizeFactor(s.x());
+		float shiftY = rec == 0 ? 0 : event.getWheelRotation() * sizeFactor(s.y());
 
 		if (just != null) {
 			just.shiftBy(shiftX, shiftY);
@@ -500,5 +500,13 @@ public class Block extends GLElementContainer implements IGLLayout2 {
 	@ListenTo(sendToMe = true)
 	private void onHideNodeEvent(HideNodeEvent event) {
 		setVisibility(EVisibility.HIDDEN);
+	}
+
+	/**
+	 *
+	 */
+	public void selectAll() {
+		for (Node n : nodes())
+			n.selectAll();
 	}
 }

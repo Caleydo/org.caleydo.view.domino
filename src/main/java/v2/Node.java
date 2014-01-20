@@ -367,12 +367,16 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 		final List<TypedListGroup> recGroups = recData.getGroups();
 
 		if (dimGroups.size() == 1 && recGroups.size() == 1) {
-			for (NodeGroup g : nodeGroups())
-				g.prepareRemoveal();
-			this.clear();
-			SingleNodeGroup single = new SingleNodeGroup(this);
-			single.setData(dimGroups.get(0), recGroups.get(0));
-			this.add(single);
+			if (this.size() == 1 && this.get(0) instanceof SingleNodeGroup) {
+				((SingleNodeGroup) this.get(0)).setData(dimGroups.get(0), recGroups.get(0));
+			} else {
+				for (NodeGroup g : nodeGroups())
+					g.prepareRemoveal();
+				this.clear();
+				SingleNodeGroup single = new SingleNodeGroup(this);
+				single.setData(dimGroups.get(0), recGroups.get(0));
+				this.add(single);
+			}
 		} else {
 			if (size() == 1) {
 				for (NodeGroup g : nodeGroups())

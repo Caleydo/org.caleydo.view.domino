@@ -110,25 +110,24 @@ public class ToolBar extends GLElementContainer {
 		 *
 		 */
 		private void createMulti() {
-			Node node = NodeSelections.getSingleNode(selection);
-			EDimension dim = node == null ? null : node.getSingleGroupingDimension();
-
-			if (node != null) {
+			Set<Node> nodes = NodeSelections.getFullNodes(selection);
+			Set<Block> blocks = NodeSelections.getFullBlocks(selection);
+			if (nodes.size() == 1) {
+				Node node = nodes.iterator().next();
+				EDimension dim = node.getSingleGroupingDimension();
 				addSingleNode(node);
-			}
 
-			if (dim != null)
-				addButton("Merge Groups", dim.select(Resources.ICON_MERGE_DIM, Resources.ICON_MERGE_REC));
-			if (node != null && node.size() == selection.size()) {
-				addButton("Remove Node", Resources.ICON_DELETE_ALL);
-			}
-
-			if (node == null) {
-				Block block = NodeSelections.getSingleBlock(selection);
-				if (block != null) {
-					addButton("Remove Block", Resources.ICON_DELETE_ALL);
+				if (dim != null)
+					addButton("Merge Groups", dim.select(Resources.ICON_MERGE_DIM, Resources.ICON_MERGE_REC));
+				if (node.size() == selection.size()) {
+					addButton("Remove Node", Resources.ICON_DELETE_ALL);
 				}
-			}
+			} else if (!nodes.isEmpty() && blocks.isEmpty()) {
+				addButton("Remove Nodes", Resources.ICON_DELETE_ALL);
+			} else if (blocks.size() == 1) {
+				addButton("Remove Block", Resources.ICON_DELETE_ALL);
+			} else if (!blocks.isEmpty())
+				addButton("Remove Blocks", Resources.ICON_DELETE_ALL);
 		}
 
 
@@ -148,6 +147,9 @@ public class ToolBar extends GLElementContainer {
 			if (node.size() > 1) {
 				addButton("Select All In Node", Resources.ICON_SELECT_ALL);
 			}
+			if (node.getBlock().size() > 1)
+				addButton("Select All In Block", Resources.ICON_SELECT_ALL);
+
 			if (group.getNeighbor(EDirection.LEFT_OF) != null || group.getNeighbor(EDirection.RIGHT_OF) != null)
 				addButton("Select Hor", Resources.ICON_SELECT_DIM);
 			if (group.getNeighbor(EDirection.ABOVE) != null || group.getNeighbor(EDirection.BELOW) != null)
@@ -217,6 +219,10 @@ public class ToolBar extends GLElementContainer {
 			case "Remove Node":
 				node.getNode().removeMe();
 				break;
+			case "Remove Nodes":
+				for (Node n : NodeSelections.getFullNodes(selection))
+					n.removeMe();
+				break;
 			case "Remove Slice":
 				node.getNode().removeSlice(selection);
 				break;
@@ -226,8 +232,15 @@ public class ToolBar extends GLElementContainer {
 			case "Remove Block":
 				node.getNode().getBlock().removeMe();
 				break;
+			case "Remove Blocks":
+				for (Block b : NodeSelections.getFullBlocks(selection))
+					b.removeMe();
+				break;
 			case "Select All In Node":
 				node.getNode().selectAll();
+				break;
+			case "Select All In Block":
+				node.getNode().getBlock().selectAll();
 				break;
 			case "Select Hor":
 				node.select(EDirection.LEFT_OF);

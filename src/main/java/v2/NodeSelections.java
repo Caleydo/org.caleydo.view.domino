@@ -5,6 +5,7 @@
  *******************************************************************************/
 package v2;
 
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
@@ -27,15 +28,27 @@ public class NodeSelections {
 	public static Node getSingleNode(Set<NodeGroup> selection) {
 		if (selection.isEmpty())
 			return null;
-		Node node = selection.iterator().next().getNode();
+		Set<Node> nodes = getFullNodes(selection);
+		if (nodes.size() == 1)
+			return nodes.iterator().next();
+		return null;
+	}
+
+	public static Set<Node> getFullNodes(Set<NodeGroup> selection) {
+		if (selection.isEmpty())
+			return Collections.emptySet();
+		Multiset<Node> nodes = HashMultiset.create();
 		for (NodeGroup group : selection) {
 			Node n = group.getNode();
-			if (node != n)
-				return null;
+			nodes.add(n);
 		}
-		if (node.size() == selection.size()) // all of the element
-			return node;
-		return null;
+		for (Iterator<Node> it = nodes.elementSet().iterator(); it.hasNext();) {
+			Node node = it.next();
+			if (node.size() != nodes.count(node)) {
+				it.remove();// not all groups
+			}
+		}
+		return nodes.elementSet();
 	}
 
 	/**
@@ -45,23 +58,30 @@ public class NodeSelections {
 	public static Block getSingleBlock(Set<NodeGroup> selection) {
 		if (selection.isEmpty())
 			return null;
-		Multiset<Node> nodes = HashMultiset.create();
-		Block block = selection.iterator().next().getNode().getBlock();
-		for (NodeGroup group : selection) {
-			Node n = group.getNode();
-			nodes.add(n);
-			Block b = n.getBlock();
-			if (b != block)
-				return null;
+		Set<Block> blocks = getFullBlocks(selection);
+		if (blocks.size() == 1)
+			return blocks.iterator().next();
+		return null;
+	}
+
+	public static Set<Block> getFullBlocks(Set<NodeGroup> selection) {
+		if (selection.isEmpty())
+			return Collections.emptySet();
+		Set<Node> nodes = getFullNodes(selection);
+		if (nodes.isEmpty())
+			return Collections.emptySet();
+		Multiset<Block> blocks = HashMultiset.create();
+		for (Node node : nodes) {
+			Block n = node.getBlock();
+			blocks.add(n);
 		}
-		if (block.size() != nodes.size())
-			return null; // missing nodes
-		// check if we have all children from all nodes
-		for (Node node : nodes.elementSet()) {
-			if (node.size() != nodes.count(node))
-				return null; // not all groups
+		for (Iterator<Block> it = blocks.elementSet().iterator(); it.hasNext();) {
+			Block block = it.next();
+			if (block.size() != blocks.count(block)) {
+				it.remove();// not all groups
+			}
 		}
-		return block;
+		return blocks.elementSet();
 	}
 
 	/**
