@@ -17,6 +17,7 @@ import org.caleydo.view.domino.api.model.typed.TypedList;
 import org.caleydo.view.domino.api.model.typed.TypedSet;
 
 import com.google.common.primitives.Floats;
+import com.jogamp.common.util.IntObjectHashMap;
 
 /**
  * @author Samuel Gratzl
@@ -28,6 +29,9 @@ public abstract class ADataDomainDataValues implements IDataValues, Function2<In
 
 	private final int dims;
 	private final int records;
+
+	private final IntObjectHashMap dimFullCompareCache = new IntObjectHashMap();
+	private final IntObjectHashMap recFullCompareCache = new IntObjectHashMap();
 
 	public ADataDomainDataValues(String label, TablePerspective t) {
 		this(label, t.getDataDomain());
@@ -112,22 +116,38 @@ public abstract class ADataDomainDataValues implements IDataValues, Function2<In
 		switch(otherData.size()) {
 		case 0 :
 			return a - b;
-		case 1: {
+		case 1:
 			Integer other = otherData.iterator().next();
 			return Floats.compare(getNormalized(dim, a, other), getNormalized(dim, b, other));
-		}
 		default:
-			// mean values
-			float a_sum = 0;
-			float b_sum = 0;
-			for (Integer other : otherData) {
-				a_sum += getNormalized(dim, a, other);
-				b_sum += getNormalized(dim, b, other);
-			}
+			//
+			float a_sum = getCached(dim, a, otherData);
+			float b_sum = getCached(dim, b, otherData);
 			return Floats.compare(a_sum, b_sum);
 		}
 	}
 
+
+	private float getCached(EDimension dim, int a, TypedSet otherData) {
+		IntObjectHashMap cache = dim.select(dimFullCompareCache, recFullCompareCache);
+		int size = getDefaultGroups(dim.opposite()).size();
+		if (otherData.size() != size)
+			return sum(dim, a, otherData);
+		if (cache.containsKey(a))
+			return (Float) cache.get(a);
+		float sum = sum(dim, a, otherData);
+		cache.put(a, sum);
+		return sum;
+	}
+
+	private float sum(EDimension dim, int a, TypedSet otherData) {
+		// mean values
+		float a_sum = 0;
+		for (Integer other : otherData) {
+			a_sum += getNormalized(dim, a, other);
+		}
+		return a_sum;
+	}
 
 	private float getNormalized(EDimension dim, int a, Integer other) {
 		if (dim.isDimension())

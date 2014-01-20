@@ -75,6 +75,11 @@ public class LabelElementFactory implements IGLElementFactory2 {
 		return null;
 	}
 
+	@Override
+	public EVisScaleType getScaleType() {
+		return EVisScaleType.DATA_DEPENDENT;
+	}
+
 	private static final class LabelElement extends PickableGLElement implements
 			MultiSelectionManagerMixin.ISelectionMixinCallback {
 

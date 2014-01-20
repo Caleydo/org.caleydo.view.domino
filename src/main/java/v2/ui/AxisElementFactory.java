@@ -104,6 +104,11 @@ public class AxisElementFactory implements IGLElementFactory2 {
 		return null;
 	}
 
+	@Override
+	public EVisScaleType getScaleType() {
+		return EVisScaleType.FIX;
+	}
+
 	private static final class AxisElement extends PickableGLElement implements
 			MultiSelectionManagerMixin.ISelectionMixinCallback, ILocator {
 

@@ -5,38 +5,24 @@
  *******************************************************************************/
 package org.caleydo.view.domino.api.model.graph;
 
-import java.util.EnumSet;
-import java.util.Set;
-
+import org.caleydo.core.view.opengl.layout2.manage.IGLElementFactory2.EVisScaleType;
 import org.caleydo.view.domino.spi.model.graph.IEdge;
 
 import com.google.common.base.Predicate;
-import com.google.common.collect.ImmutableSet;
 
 /**
  * @author Samuel Gratzl
  *
  */
-public enum EProximityMode implements Predicate<String> {
-	ATTACHED("heatmap", "labels", "hbar"),
-	DETACHED("distribution.hist", "boxandwhiskers", "kaplanmaier", "axis"),
-	FREE(
-			"distribution.pie");
+public enum EProximityMode implements Predicate<EVisScaleType> {
+	ATTACHED, DETACHED, FREE;
 
-	private final Set<String> include;
-
-	private EProximityMode(String... include) {
-		this.include = ImmutableSet.copyOf(include);
-	}
 
 	@Override
-	public boolean apply(String input) {
-		if (this == FREE)
-			return true;
-		for (EProximityMode mode : EnumSet.range(EProximityMode.ATTACHED, this))
-			if (mode.include.contains(input))
-				return true;
-		return false;
+	public boolean apply(EVisScaleType input) {
+		if (this == ATTACHED && input != EVisScaleType.DATA_DEPENDENT)
+			return false;
+		return true;
 	}
 
 	public static EProximityMode min(EProximityMode a, EProximityMode b) {

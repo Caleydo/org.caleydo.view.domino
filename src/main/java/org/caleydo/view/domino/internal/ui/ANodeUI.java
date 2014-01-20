@@ -88,7 +88,7 @@ public abstract class ANodeUI<T extends INode> extends GLElementDecorator implem
 		fill(b, dimData, recData);
 		b.put(EDetailLevel.class, EDetailLevel.HIGH);
 		ImmutableList<GLElementSupplier> extensions = GLElementFactories.getExtensions(b.build(), "domino."
-				+ getExtensionID(), node.getUIState().getProximityMode());
+				+ getExtensionID(), null, node.getUIState().getProximityMode());
 		GLElementFactorySwitcher s = new GLElementFactorySwitcher(extensions, ELazyiness.DESTROY);
 		setContent(s);
 	}
