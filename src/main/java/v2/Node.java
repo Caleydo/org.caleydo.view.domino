@@ -31,8 +31,6 @@ import org.caleydo.core.view.opengl.layout2.GLElement;
 import org.caleydo.core.view.opengl.layout2.GLElementContainer;
 import org.caleydo.core.view.opengl.layout2.GLGraphics;
 import org.caleydo.core.view.opengl.layout2.IGLElementContext;
-import org.caleydo.core.view.opengl.layout2.basic.GLButton;
-import org.caleydo.core.view.opengl.layout2.basic.GLButton.ISelectionCallback;
 import org.caleydo.core.view.opengl.layout2.dnd.EDnDType;
 import org.caleydo.core.view.opengl.layout2.dnd.IDnDItem;
 import org.caleydo.core.view.opengl.layout2.dnd.IDragInfo;
@@ -40,7 +38,6 @@ import org.caleydo.core.view.opengl.layout2.dnd.IDropGLTarget;
 import org.caleydo.core.view.opengl.layout2.geom.Rect;
 import org.caleydo.core.view.opengl.layout2.layout.IGLLayout2;
 import org.caleydo.core.view.opengl.layout2.layout.IGLLayoutElement;
-import org.caleydo.core.view.opengl.layout2.manage.ButtonBarBuilder;
 import org.caleydo.core.view.opengl.layout2.manage.GLElementFactories.GLElementSupplier;
 import org.caleydo.core.view.opengl.layout2.manage.GLElementFactorySwitcher;
 import org.caleydo.core.view.opengl.layout2.manage.GLLocation;
@@ -1052,32 +1049,42 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 		return g.getSwitcher().getActiveId();
 	}
 
+	public void setVisualizationType(String id) {
+		boolean anyChange = false;
+		int active = findVisTypeIndex(id);
+		if (active < 0) // invalid type
+			return;
+		visualizationType = id;
+		for (NodeGroup g : nodeGroups()) {
+			GLElementFactorySwitcher s = g.getSwitcher();
+			anyChange = anyChange || s.getActive() != active;
+			s.setActive(active);
+		}
+		if (!anyChange && size() > 1)
+			return;
+		updateSize();
+		relayout();
+		findBlock().updatedNode(Node.this);
+	}
+
 	/**
+	 * @param id
 	 * @return
 	 */
-	public ButtonBarBuilder createSwitchButtonBarBuilder() {
+	private int findVisTypeIndex(String id) {
 		NodeGroup g = (NodeGroup) get(0);
-		ButtonBarBuilder b = g.getSwitcher().createButtonBarBuilder();
-		b.customCallback(new ISelectionCallback() {
-			@Override
-			public void onSelectionChanged(GLButton button, boolean selected) {
-				int active = button.getPickingObjectId();
-				visualizationType = button.getLayoutDataAs(GLElementSupplier.class, null).getId();
+		int i = 0;
+		for (GLElementSupplier s : g.getSwitcher()) {
+			if (s.getId().equals(id))
+				return i;
+			i++;
+		}
+		return -1;
+	}
 
-				boolean anyChange = false;
-				for (NodeGroup g : nodeGroups()) {
-					GLElementFactorySwitcher s = g.getSwitcher();
-					anyChange = anyChange || s.getActive() != active;
-					s.setActive(active);
-				}
-				if (!anyChange && size() > 1)
-					return;
-				updateSize();
-				relayout();
-				findBlock().updatedNode(Node.this);
-			}
-		});
-		return b;
+	public GLElementFactorySwitcher getRepresentableSwitcher() {
+		NodeGroup g = (NodeGroup) get(0);
+		return g.getSwitcher();
 	}
 
 	/**

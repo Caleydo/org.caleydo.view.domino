@@ -6,6 +6,9 @@
 package v2.toolbar;
 
 import java.net.URL;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -18,12 +21,15 @@ import org.caleydo.core.view.opengl.layout.Column.VAlign;
 import org.caleydo.core.view.opengl.layout2.GLElement;
 import org.caleydo.core.view.opengl.layout2.GLElementContainer;
 import org.caleydo.core.view.opengl.layout2.basic.GLButton;
+import org.caleydo.core.view.opengl.layout2.basic.GLButton.ISelectionCallback;
 import org.caleydo.core.view.opengl.layout2.layout.GLLayouts;
 import org.caleydo.core.view.opengl.layout2.layout.GLPadding;
 import org.caleydo.core.view.opengl.layout2.layout.IGLLayout2;
 import org.caleydo.core.view.opengl.layout2.layout.IGLLayoutElement;
 import org.caleydo.core.view.opengl.layout2.manage.ButtonBarBuilder;
 import org.caleydo.core.view.opengl.layout2.manage.ButtonBarBuilder.EButtonBarLayout;
+import org.caleydo.core.view.opengl.layout2.manage.GLElementFactories.GLElementSupplier;
+import org.caleydo.core.view.opengl.layout2.manage.GLElementFactorySwitcher;
 import org.caleydo.core.view.opengl.layout2.renderer.GLRenderers;
 import org.caleydo.view.domino.api.model.graph.EDirection;
 import org.caleydo.view.domino.internal.Resources;
@@ -34,6 +40,7 @@ import v2.Node;
 import v2.NodeGroup;
 import v2.NodeSelections;
 
+import com.google.common.base.Predicates;
 import com.google.common.collect.Collections2;
 
 /**
@@ -123,14 +130,63 @@ public class ToolBar extends GLElementContainer {
 					addButton("Remove Node", Resources.ICON_DELETE_ALL);
 				}
 			} else if (!nodes.isEmpty() && blocks.isEmpty()) {
+				addMultiNodes(nodes);
 				addButton("Remove Nodes", Resources.ICON_DELETE_ALL);
-			} else if (blocks.size() == 1) {
-				addButton("Remove Block", Resources.ICON_DELETE_ALL);
-			} else if (!blocks.isEmpty())
-				addButton("Remove Blocks", Resources.ICON_DELETE_ALL);
+			} else if (!blocks.isEmpty()) {
+				addMultiNodes(nodes);
+				if (areAllSingleBlocks(blocks)) {
+					outer: for (EDimension dim : EDimension.values()) {
+						for (Block block : blocks)
+							if (!((Node) block.get(0)).has(dim))
+								continue outer;
+						if (dim.isHorizontal())
+							addButton("Sort Dims", Resources.ICON_SORT_DIM);
+						else
+							addButton("Sort Recs", Resources.ICON_SORT_REC);
+					}
+					addButton("Transpose Blocks", Resources.ICON_TRANSPOSE);
+				}
+				if (blocks.size() == 1)
+					addButton("Remove Block", Resources.ICON_DELETE);
+				else
+					addButton("Remove Blocks", Resources.ICON_DELETE_ALL);
+			}
 		}
 
+		/**
+		 * @param blocks
+		 * @return
+		 */
+		private static boolean areAllSingleBlocks(Set<Block> blocks) {
+			for (Block b : blocks)
+				if (b.size() != 1)
+					return false;
+			return true;
+		}
 
+		private void addMultiNodes(Set<Node> nodes) {
+			final GLElementFactorySwitcher switcher = nodes.iterator().next().getRepresentableSwitcher();
+			ButtonBarBuilder b = switcher.createButtonBarBuilder();
+			b.layoutAs(EButtonBarLayout.SLIDE_DOWN);
+			if (nodes.size() > 1) {
+				final Set<String> ids = getIds(switcher);
+				for (Node node : nodes) {
+					ids.retainAll(getIds(node.getRepresentableSwitcher()));
+				}
+				if (ids.isEmpty())
+					return;
+				b.filterBy(Predicates.in(ids));
+			}
+			b.customCallback(new ChangeVisTypeTo(nodes));
+			this.add(b.build());
+		}
+
+		private Set<String> getIds(final GLElementFactorySwitcher switcher) {
+			final Set<String> ids = new HashSet<>();
+			for (GLElementSupplier s : switcher)
+				ids.add(s.getId());
+			return ids;
+		}
 
 		/**
 		 * @param next
@@ -182,9 +238,7 @@ public class ToolBar extends GLElementContainer {
 				addButton("Transpose", Resources.ICON_TRANSPOSE);
 			}
 
-			ButtonBarBuilder b = node.createSwitchButtonBarBuilder();
-			b.layoutAs(EButtonBarLayout.SLIDE_DOWN);
-			this.add(b.build());
+			addMultiNodes(Collections.singleton(node));
 
 		}
 
@@ -207,8 +261,18 @@ public class ToolBar extends GLElementContainer {
 			case "Sort Dim":
 				node.getNode().sortByMe(EDimension.DIMENSION);
 				break;
+			case "Sort Dims":
+				for (Block b : NodeSelections.getFullBlocks(selection)) {
+					((Node) b.get(0)).sortByMe(EDimension.DIMENSION);
+				}
+				break;
 			case "Sort Rec":
 				node.getNode().sortByMe(EDimension.RECORD);
+				break;
+			case "Sort Recs":
+				for (Block b : NodeSelections.getFullBlocks(selection)) {
+					((Node) b.get(0)).sortByMe(EDimension.RECORD);
+				}
 				break;
 			case "Limit Dim":
 				node.getNode().limitToMe(EDimension.DIMENSION);
@@ -256,6 +320,11 @@ public class ToolBar extends GLElementContainer {
 			case "Transpose":
 				node.getNode().transpose();
 				break;
+			case "Transpose Blocks":
+				for (Block b : NodeSelections.getFullBlocks(selection)) {
+					((Node) b.get(0)).transposeMe();
+				}
+				break;
 			}
 		}
 
@@ -269,6 +338,31 @@ public class ToolBar extends GLElementContainer {
 			b.setRenderer(GLRenderers.fillImage(iconSortDim));
 			b.setTooltip(string);
 			this.add(b);
+		}
+
+	}
+
+	private static class ChangeVisTypeTo implements ISelectionCallback {
+		private final Collection<Node> nodes;
+
+		/**
+		 * @param node
+		 */
+		public ChangeVisTypeTo(Node node) {
+			this(Collections.singleton(node));
+		}
+
+		/**
+		 * @param singleton
+		 */
+		public ChangeVisTypeTo(Collection<Node> nodes) {
+			this.nodes = nodes;
+		}
+
+		@Override
+		public void onSelectionChanged(GLButton button, boolean selected) {
+			for (Node node : nodes)
+				node.setVisualizationType(button.getLayoutDataAs(GLElementSupplier.class, null).getId());
 		}
 
 	}
