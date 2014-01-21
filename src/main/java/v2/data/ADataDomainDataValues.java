@@ -178,6 +178,6 @@ public abstract class ADataDomainDataValues implements IDataValues, Function2<In
 
 	@Override
 	public boolean apply(String input) {
-		return !"labels".equals(input);
+		return !"labels".equals(input) && !"distribution.bar".equals(input);
 	}
 }

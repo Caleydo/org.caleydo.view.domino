@@ -82,6 +82,7 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 	static final float BORDER = 2;
 
 	private Node[] neighbors = new Node[4];
+	private float[] offsets = new float[4];
 
 	private final String label;
 	IDataValues data;
@@ -112,6 +113,7 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 
 	private boolean mouseOver;
 
+
 	public Node(IDataValues data) {
 		this(null, data, data.getLabel(), data.getDefaultGroups(EDimension.DIMENSION), data
 				.getDefaultGroups(EDimension.RECORD));
@@ -129,8 +131,6 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 		init();
 	}
 
-
-
 	public Node(Node origin, IDataValues data, String label, TypedGroupSet dimGroups, TypedGroupSet recGroups) {
 		this.origin = origin;
 		this.visualizationType = origin == null ? null : origin.visualizationType;
@@ -143,6 +143,13 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 		// guessShift(dimGroups.size(), recGroups.size());
 		setData(fixList(dimGroups), fixList(recGroups));
 		init();
+	}
+
+	/**
+	 * @return the origin, see {@link #origin}
+	 */
+	public Node getOrigin() {
+		return origin;
 	}
 
 	private void copyScaleFactors(Node clone) {
@@ -211,6 +218,8 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 
 	@Override
 	protected void renderImpl(GLGraphics g, float w, float h) {
+		g.color(Color.WHITE).fillRect(0, 0, w, h);
+
 		final Block b = findBlock();
 		g.lineWidth(2);
 		g.color(has(EDimension.DIMENSION) ? b.getStateColor(this, EDimension.DIMENSION) : Color.BLACK);
@@ -431,7 +440,7 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 		}
 
 		if (context != null) {
-			updateSize();
+			updateSize(true);
 			relayout();
 		}
 	}
@@ -443,15 +452,29 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 	@Override
 	protected void init(IGLElementContext context) {
 		super.init(context);
-		updateSize();
+		updateSize(false);
 		dimDetached.init(context);
 		recDetached.init(context);
 	}
 
 
-	private void updateSize() {
-		Vec2f size = fixSize(scaleSize(originalSize()));
-		setSize(size.x(), size.y());
+	private void updateSize(boolean adaptDetached) {
+		Vec2f new_ = fixSize(scaleSize(originalSize()));
+		final Vec2f act = getSize();
+		Vec2f change = new_.minus(act);
+		if (dimDetached.isDetached()) {
+			dimDetached.incShift(-change.y() * .5f);
+			final Vec2f l = getLocation();
+			setLocation(l.x(), l.y() - change.y() * .5f);
+			// new_.setY(act.y());
+		}
+		if (recDetached.isDetached()) {
+			recDetached.incShift(-change.x() * .5f);
+			final Vec2f l = getLocation();
+			setLocation(l.x() - change.x() * .5f, l.y());
+			// new_.setX(act.x());
+		}
+		setSize(new_.x(), new_.y());
 	}
 
 	private static Vec2f fixSize(Vec2f size) {
@@ -1060,7 +1083,7 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 	/**
 	 * @return
 	 */
-	private String getVisualizationType() {
+	public String getVisualizationType() {
 		NodeGroup g = (NodeGroup) get(0);
 		return g.getSwitcher().getActiveId();
 	}
@@ -1078,7 +1101,7 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 		}
 		if (!anyChange && size() > 1)
 			return;
-		updateSize();
+		updateSize(true);
 		relayout();
 		findBlock().updatedNode(Node.this);
 	}
@@ -1156,16 +1179,27 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 			r.x(r.x() - recDetached.getShift());
 			r.width(r.width() + recDetached.getShift() * 2);
 		}
+
+		r.x(r.x() - offsets[EDirection.LEFT_OF.ordinal()]);
+		r.y(r.y() - offsets[EDirection.ABOVE.ordinal()]);
+		r.width(r.width() + offsets[EDirection.LEFT_OF.ordinal()] + offsets[EDirection.RIGHT_OF.ordinal()]);
+		r.height(r.height() + offsets[EDirection.ABOVE.ordinal()] + offsets[EDirection.BELOW.ordinal()]);
+
 		return r;
 	}
 
 	/**
-	 * @param f
+	 * @param x
 	 * @param y
 	 * @param width
 	 * @param height
 	 */
 	public void setDetachedBounds(float x, float y, float w, float h) {
+		x += offsets[EDirection.LEFT_OF.ordinal()];
+		y += offsets[EDirection.ABOVE.ordinal()];
+		w -= offsets[EDirection.LEFT_OF.ordinal()] + offsets[EDirection.RIGHT_OF.ordinal()];
+		h -= offsets[EDirection.ABOVE.ordinal()] + offsets[EDirection.BELOW.ordinal()];
+
 		Vec2f size = getSize();
 		if (dimDetached.isDetached()) {
 			x += 50;
@@ -1222,5 +1256,28 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 	 */
 	public Color getColor() {
 		return data.getColor();
+	}
+
+	/**
+	 * @param dir
+	 * @param i
+	 */
+	public void setOffset(EDirection dir, float offset) {
+		float bak = offsets[dir.ordinal()];
+		offsets[dir.ordinal()] = offset;
+		if (bak == offset)
+			return;
+		if (dir.isHorizontal())
+			shiftLocation(offset-bak, 0);
+		else
+			shiftLocation(0,offset-bak);
+		Block b = findBlock();
+		if (b != null)
+			b.updatedNode(this);
+	}
+
+	public void shiftLocation(float x, float y) {
+		Vec2f l = getLocation();
+		setLocation(l.x()+x, l.y()+y);
 	}
 }

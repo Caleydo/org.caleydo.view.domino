@@ -71,9 +71,14 @@ public class DetachedAdapter implements MultiSelectionManagerMixin.ISelectionMix
 	 *            setter, see {@link isDetached}
 	 */
 	public void setDetached(boolean isDetached) {
+		if (this.isDetached == isDetached)
+			return;
 		this.isDetached = isDetached;
-		if (!isDetached)
+		if (!isDetached) {
 			shift = 0;
+			left = null;
+			right = null;
+		}
 	}
 
 	/**

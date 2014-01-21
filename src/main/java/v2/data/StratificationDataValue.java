@@ -182,7 +182,7 @@ public class StratificationDataValue implements IDataValues, Function2<Integer, 
 
 	@Override
 	public boolean apply(String input) {
-		return !"labels".equals(input);
+		return !"labels".equals(input) && !"distribution.bar".equals(input);
 	}
 
 }

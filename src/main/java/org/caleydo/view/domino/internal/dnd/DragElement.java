@@ -129,6 +129,7 @@ public class DragElement extends GLElement implements IGLRenderer {
 	 * @param size
 	 */
 	public void stickTo(Vec2f targetAbsoluteLoc, Vec2f targetSize, Vec2f hintSizes) {
+		setVisibility(EVisibility.VISIBLE);
 		this.hintSizes = hintSizes;
 		if (targetSize == null)
 			targetSize = initialSize;

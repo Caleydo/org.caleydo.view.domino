@@ -55,6 +55,7 @@ public class LinearBlock extends AbstractCollection<Node> {
 	private MultiTypedList data;
 
 	public LinearBlock(EDimension dim, Node node) {
+		node.setDetached(dim, false);
 		this.dim = dim;
 		this.nodes.add(node);
 		this.sortCriteria.add(node);
@@ -72,9 +73,9 @@ public class LinearBlock extends AbstractCollection<Node> {
 		Rectangle2D r = null;
 		for (Node elem : nodes) {
 			if (r == null) {
-				r = elem.getRectangleBounds();
+				r = elem.getDetachedRectBounds().asRectangle2D();
 			} else
-				Rectangle2D.union(r, elem.getRectangleBounds(), r);
+				Rectangle2D.union(r, elem.getDetachedRectBounds().asRectangle2D(), r);
 		}
 		return r;
 	}

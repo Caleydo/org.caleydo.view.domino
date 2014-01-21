@@ -353,15 +353,10 @@ public class Domino extends GLElementContainer implements IDropGLTarget, IPickin
 	 * @param transpose
 	 * @param detached
 	 */
-	public void placeAt(Node neighbor, EDirection dir, Node node, boolean transpose, boolean detached) {
+	public void placeAt(Node neighbor, EDirection dir, Node node, boolean detached) {
 		removeNode(node);
 		Block block = getBlock(neighbor);
-		if (transpose) {
-			node.transposeMe();
-		}
 		block.addNode(neighbor, dir, node, detached);
-		removePlaceholder();
-		bands.relayout();
 	}
 
 	private void removePlaceholder() {
@@ -565,6 +560,30 @@ public class Domino extends GLElementContainer implements IDropGLTarget, IPickin
 	@Override
 	public void keyReleased(IKeyEvent e) {
 
+	}
+
+	/**
+	 * @param neighbor
+	 */
+	public void removePreview(Node node) {
+		removeNode(node);
+		removePlaceholder();
+		bands.relayout();
+	}
+
+	/**
+	 * @param dir
+	 * @param preview
+	 */
+	public void persistPreview(EDirection dir, Node preview) {
+		preview.setOffset(dir, 0);
+		removePlaceholder();
+		bands.relayout();
+	}
+
+	public void addPreview(Node neighbor, EDirection dir, Node preview, boolean detached, float offset) {
+		preview.setOffset(dir.opposite(), offset);
+		placeAt(neighbor, dir, preview, detached);
 	}
 
 }

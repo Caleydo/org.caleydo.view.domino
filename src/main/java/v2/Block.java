@@ -99,6 +99,23 @@ public class Block extends GLElementContainer implements IGLLayout2 {
 			linearBlocks.add(new LinearBlock(other, node));
 		realign(neighbor);
 		updateBlock();
+		shiftBlock(dir, node);
+	}
+
+	private void shiftBlock(EDirection dir, Node node) {
+		Vec2f loc = getLocation();
+		if (dir == EDirection.LEFT_OF)
+			setLocation(loc.x() - node.getDetachedRectBounds().width(), loc.y());
+		else if (dir == EDirection.ABOVE)
+			setLocation(loc.x(), loc.y() - node.getDetachedRectBounds().height());
+	}
+
+	private void shiftRemoveBlock(Node node, EDimension dim) {
+		Vec2f loc = getLocation();
+		if (dim.isHorizontal())
+			setLocation(loc.x() + node.getDetachedRectBounds().width(), loc.y());
+		else
+			setLocation(loc.x(), loc.y() + node.getDetachedRectBounds().height());
 	}
 
 	public void realign(Node startPoint) {
@@ -225,9 +242,9 @@ public class Block extends GLElementContainer implements IGLLayout2 {
 		Vec2f offset = new Vec2f(Float.POSITIVE_INFINITY, Float.POSITIVE_INFINITY);
 		for (Node n : nodes()) {
 			Vec2f l = n.getLocation();
-			if (l.x() < offset.x())
+			if (l.x() < offset.x() && !n.isDetached(EDimension.RECORD))
 				offset.setX(l.x());
-			if (l.y() < offset.y())
+			if (l.y() < offset.y() && !n.isDetached(EDimension.DIMENSION))
 				offset.setY(l.y());
 		}
 		if (offset.x() == 0 && offset.y() == 0)
@@ -261,9 +278,10 @@ public class Block extends GLElementContainer implements IGLLayout2 {
 					linearBlocks.remove(block);
 				else {
 					int index = block.remove(node);
-					if (index == 0)
+					if (index == 0) {
 						realign(block.get(0));
-					else
+						shiftRemoveBlock(node, dim);
+					} else
 						realign(block.get(index - 1));
 				}
 			}
