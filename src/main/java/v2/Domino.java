@@ -15,6 +15,7 @@ import java.util.Set;
 import org.caleydo.core.data.selection.SelectionType;
 import org.caleydo.core.event.EventListenerManager.DeepScan;
 import org.caleydo.core.event.EventPublisher;
+import org.caleydo.core.util.color.Color;
 import org.caleydo.core.view.opengl.canvas.IGLMouseListener.IMouseEvent;
 import org.caleydo.core.view.opengl.layout2.GLElement;
 import org.caleydo.core.view.opengl.layout2.GLElementContainer;
@@ -214,7 +215,7 @@ public class Domino extends GLElementContainer implements IDropGLTarget, IPickin
 			Block b = dropNode(item, start);
 			rebuild(b, start, g.getPrimary(), g.getGroups(), null);
 		} else if (info instanceof BlockDragInfo) {
-			dropBlock(item, ((BlockDragInfo) info).getBlock());
+			dropBlocks(item, ((BlockDragInfo) info).getStart(), ((BlockDragInfo) info).getBlocks());
 		} else {
 			Node node = Nodes.extract(item);
 			dropNode(item, node);
@@ -252,8 +253,20 @@ public class Domino extends GLElementContainer implements IDropGLTarget, IPickin
 	 * @param item
 	 * @param block
 	 */
-	private void dropBlock(IDnDItem item, Block block) {
-		setBlockDropPosition(item, block);
+	private void dropBlocks(IDnDItem item, Block start, Set<Block> blocks) {
+		if (blocks.size() == 1)
+			setBlockDropPosition(item, start);
+		else {
+			Vec2f old = start.getLocation();
+			setBlockDropPosition(item, start);
+			Vec2f change = old.minus(start.getLocation());
+			for (Block b : blocks) {
+				if (b == start)
+					continue;
+				Vec2f loc = b.getLocation();
+				b.setLocation(loc.x() - change.x(), loc.y() - change.y());
+			}
+		}
 		bands.relayout();
 		content.getParent().relayout();
 	}
@@ -382,9 +395,36 @@ public class Domino extends GLElementContainer implements IDropGLTarget, IPickin
 		if (showMiniMap) {
 			g.incZ();
 			g.save().move(w * 0.8f - 10, h * 0.8f - 10);
-			blocks.renderMiniMap(g, w * 0.2f, h * 0.2f);
+			renderMiniMap(g, w * 0.2f, h * 0.2f);
+
 			g.restore();
 			g.decZ();
+		}
+	}
+
+	private void renderMiniMap(GLGraphics g, float w, float h) {
+		g.color(Color.WHITE).fillRect(0, 0, w, h);
+		g.color(Color.BLACK).drawRect(0, 0, w, h);
+		Vec2f size = getSize();
+		computeMiniMapFactor(g, size, w, h);
+
+		blocks.renderMiniMap(g);
+		bands.renderMiniMap(g);
+
+		final ScrollingDecorator s = (ScrollingDecorator) content.getParent();
+		if (s != null) {
+			Rect clip = s.getClipingArea();
+			g.color(Color.BLACK).drawRect(clip.x(), clip.y(), clip.width(), clip.height());
+		}
+	}
+
+	private void computeMiniMapFactor(GLGraphics g, Vec2f size, float w, float h) {
+		float wi = w / size.x();
+		float hi = h / size.y();
+		if (wi < hi) {
+			g.move(0, (h - size.y() * wi) * 0.5f).gl.glScalef(wi, wi, 1);
+		} else {
+			g.move((w - size.x() * hi) * 0.5f, 0).gl.glScalef(hi, hi, 1);
 		}
 	}
 
@@ -467,10 +507,11 @@ public class Domino extends GLElementContainer implements IDropGLTarget, IPickin
 			EventPublisher.trigger(new HideNodeEvent().to(single));
 			return new NodeDragInfo(event.getMousePos(), single);
 		}
-		Block singleBlock = NodeSelections.getSingleBlock(selected);
-		if (singleBlock != null) {
-			EventPublisher.trigger(new HideNodeEvent().to(singleBlock));
-			return new BlockDragInfo(event.getMousePos(), singleBlock);
+		Set<Block> blocks = NodeSelections.getFullBlocks(selected);
+		if (!blocks.isEmpty()) {
+			for (Block block : blocks)
+				EventPublisher.trigger(new HideNodeEvent().to(block));
+			return new BlockDragInfo(event.getMousePos(), blocks, nodeGroup.getNode().getBlock());
 		}
 		Set<NodeGroup> s = NodeSelections.compress(nodeGroup, selected);
 		if (s.size() <= 1)

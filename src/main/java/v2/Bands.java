@@ -248,6 +248,15 @@ public class Bands extends GLElement implements MultiSelectionManagerMixin.ISele
 		g.restore();
 	}
 
+	public void renderMiniMap(GLGraphics g) {
+		Vec2f loc = getAbsoluteLocation();
+		g.save().move(-loc.x(), -loc.y());
+		for (Band edge : routes) {
+			edge.renderMiniMap(g);
+		}
+		g.restore();
+	}
+
 	@Override
 	protected void renderPickImpl(GLGraphics g, float w, float h) {
 		g.color(Color.BLUE);

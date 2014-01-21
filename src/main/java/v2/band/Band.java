@@ -194,6 +194,11 @@ public class Band implements ILabeled {
 			g.drawPath(base);
 		}
 
+		void renderMiniMap(GLGraphics g) {
+			g.color(color.r, color.g, color.b, 0.5f);
+			g.fillPolygon(base);
+		}
+
 		protected abstract void renderSelection(GLGraphics g, IBandHost host);
 
 	}
@@ -347,6 +352,13 @@ public class Band implements ILabeled {
 			g.incZ(z - g.z());
 			break;
 		}
+	}
+
+	/**
+	 * @param g
+	 */
+	public void renderMiniMap(GLGraphics g) {
+		overviewRoute.renderMiniMap(g);
 	}
 
 	@Override

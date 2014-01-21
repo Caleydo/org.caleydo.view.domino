@@ -13,15 +13,17 @@ import org.caleydo.core.view.opengl.layout2.GLElement;
 import org.caleydo.core.view.opengl.layout2.GLGraphics;
 import org.caleydo.core.view.opengl.layout2.IGLElementContext;
 import org.caleydo.core.view.opengl.layout2.dnd.IDragInfo;
+import org.caleydo.core.view.opengl.layout2.renderer.IGLRenderer;
 
 import v2.Domino;
-import v2.Node;
+
+import com.google.common.base.Objects;
 
 /**
  * @author Samuel Gratzl
  *
  */
-public class DragElement extends GLElement {
+public class DragElement extends GLElement implements IGLRenderer {
 
 	private final String label;
 
@@ -39,17 +41,21 @@ public class DragElement extends GLElement {
 
 	private Vec2f hintSizes;
 
+	public DragElement(String label, Vec2f size, Domino domino, IDragInfo info) {
+		this(label, size, domino, info, null);
+	}
+
 	/**
 	 * @param label
 	 * @param info
 	 */
-	public DragElement(String label, Vec2f size, Domino domino, IDragInfo info) {
+	public DragElement(String label, Vec2f size, Domino domino, IDragInfo info, IGLRenderer renderer) {
 		this.label = label;
 		this.domino = domino;
 		this.info = info;
-		size = Node.initialSize(size.x(), size.y());
 		this.initialSize = size;
 		setSize(size.x(), size.y());
+		setRenderer(Objects.firstNonNull(renderer, this));
 	}
 
 	/**
@@ -93,12 +99,17 @@ public class DragElement extends GLElement {
 	}
 
 	@Override
-	protected void renderImpl(GLGraphics g, float w, float h) {
+	public void render(GLGraphics g, float w, float h, GLElement parent) {
 		float ri = Math.min(5, Math.min(w, h) * 0.45f);
 		g.color(1, 1, 1, 0.75f).fillRoundedRect(0, 0, w, h, ri);
 		g.color(Color.BLACK).drawRoundedRect(0, 0, w, h, ri);
 		float hi = Math.min(h, 12);
 		g.drawText(label, -100, (h - hi) * 0.5f, w + 200, hi, VAlign.CENTER);
+	}
+
+	@Override
+	protected void renderImpl(GLGraphics g, float w, float h) {
+		super.renderImpl(g, w, h);
 
 		if (hintSizes != null) {
 			g.lineStippled(true);
@@ -111,7 +122,6 @@ public class DragElement extends GLElement {
 			g.lineStippled(false);
 		}
 
-		super.renderImpl(g, w, h);
 	}
 
 	/**

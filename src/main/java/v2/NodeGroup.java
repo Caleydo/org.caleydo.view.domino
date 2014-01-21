@@ -257,7 +257,8 @@ public class NodeGroup extends GLElementDecorator implements ILabeled, IDragGLSo
 		if (info.getInfo() instanceof NodeDragInfo) {
 			getNode().showAgain();
 		} else if (info.getInfo() instanceof BlockDragInfo) {
-			((BlockDragInfo) info.getInfo()).getBlock().showAgain();
+			for (Block block : ((BlockDragInfo) info.getInfo()).getBlocks())
+				block.showAgain();
 		}
 
 	}
