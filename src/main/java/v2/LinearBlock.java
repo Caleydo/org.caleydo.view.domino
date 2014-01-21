@@ -35,6 +35,8 @@ import org.caleydo.view.domino.api.model.typed.TypedSet;
 import org.caleydo.view.domino.api.model.typed.TypedSetGroup;
 import org.caleydo.view.domino.api.model.typed.TypedSets;
 
+import v2.data.VisualizationTypeOracle;
+
 import com.google.common.base.Function;
 import com.google.common.collect.Collections2;
 import com.google.common.collect.ImmutableList;
@@ -60,9 +62,19 @@ public class LinearBlock extends AbstractCollection<Node> {
 		this.nodes.add(node);
 		this.sortCriteria.add(node);
 		this.dataSelection = node;
+		this.stratified = stratifyByDefault(node);
 		update();
 		apply();
 		updateNeighbors();
+	}
+
+	/**
+	 * @param node
+	 * @return
+	 */
+	private boolean stratifyByDefault(Node node) {
+		String type = node.getVisualizationType();
+		return VisualizationTypeOracle.stratifyByDefault(type);
 	}
 
 	public boolean isStratisfied() {

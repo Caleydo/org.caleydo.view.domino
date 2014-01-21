@@ -5,7 +5,9 @@
  *******************************************************************************/
 package org.caleydo.view.domino.api.model.graph;
 
+import org.caleydo.core.view.opengl.layout2.manage.GLElementFactories;
 import org.caleydo.core.view.opengl.layout2.manage.IGLElementFactory2.EVisScaleType;
+import org.caleydo.core.view.opengl.layout2.manage.IGLElementMetaData;
 import org.caleydo.view.domino.spi.model.graph.IEdge;
 
 import com.google.common.base.Predicate;
@@ -14,15 +16,24 @@ import com.google.common.base.Predicate;
  * @author Samuel Gratzl
  *
  */
-public enum EProximityMode implements Predicate<EVisScaleType> {
+public enum EProximityMode implements Predicate<String> {
 	ATTACHED, DETACHED, FREE;
 
 
 	@Override
-	public boolean apply(EVisScaleType input) {
-		if (this == ATTACHED && input != EVisScaleType.DATA_DEPENDENT)
+	public boolean apply(String input) {
+		if (this == ATTACHED && getScaleType(input) != EVisScaleType.DATA_DEPENDENT)
 			return false;
 		return true;
+	}
+
+	/**
+	 * @param input
+	 * @return
+	 */
+	private EVisScaleType getScaleType(String input) {
+		IGLElementMetaData m = GLElementFactories.getMetaData(input);
+		return m == null ? EVisScaleType.FIX : m.getScaleType();
 	}
 
 	public static EProximityMode min(EProximityMode a, EProximityMode b) {

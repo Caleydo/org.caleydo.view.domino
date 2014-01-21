@@ -46,6 +46,7 @@ import v2.dnd.BlockDragInfo;
 import v2.dnd.NodeDragInfo;
 import v2.dnd.NodeGroupDragInfo;
 
+import com.google.common.base.Predicates;
 import com.google.common.collect.ImmutableList;
 
 /**
@@ -94,7 +95,7 @@ public class NodeGroup extends GLElementDecorator implements ILabeled, IDragGLSo
 		b.set("heatmap.blurNotSelected");
 		b.set("heatmap.forceTextures");
 		ImmutableList<GLElementSupplier> extensions = GLElementFactories.getExtensions(b.build(), "domino."
-				+ parent.data.getExtensionID(), parent.data, parent.getProximityMode());
+				+ parent.data.getExtensionID(), Predicates.and(parent.data, parent.getProximityMode()));
 		GLElementFactorySwitcher s = new GLElementFactorySwitcher(extensions, ELazyiness.DESTROY);
 		parent.selectDefaultVisualization(s);
 		barrier.setContent(s);

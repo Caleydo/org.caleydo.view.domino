@@ -34,6 +34,7 @@ import org.caleydo.view.domino.api.model.typed.TypedGroupList;
 
 import v2.band.ABand;
 import v2.band.BandFactory;
+import v2.data.VisualizationTypeOracle;
 import v2.event.HideNodeEvent;
 
 import com.google.common.collect.Iterables;
@@ -165,6 +166,30 @@ public class Block extends GLElementContainer implements IGLLayout2 {
 		updateBands();
 		shiftToZero();
 		updateSize();
+
+		// autoStratify(node);
+	}
+
+	/**
+	 * @param node
+	 */
+	private void autoStratify(Node node) {
+		if (this.size() != 1) // just in single case
+			return;
+		if (!VisualizationTypeOracle.stratifyByDefault(node.getVisualizationType()))
+			return;
+		for (EDimension dim : EDimension.values()) {
+			if (!node.has(dim))
+				continue;
+			LinearBlock b = getBlock(node, dim.opposite());
+			if (b == null)
+				continue;
+			if (b.isStratisfied())
+				continue;
+			if (node.getGroups(dim).getGroups().size() <= 1)
+				continue;
+			sortBy(node, dim);
+		}
 	}
 
 	/**

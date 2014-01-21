@@ -1084,8 +1084,11 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 	 * @return
 	 */
 	public String getVisualizationType() {
+		if (isEmpty())
+			return null;
 		NodeGroup g = (NodeGroup) get(0);
-		return g.getSwitcher().getActiveId();
+		final GLElementFactorySwitcher s = g.getSwitcher();
+		return s == null ? null : s.getActiveId();
 	}
 
 	public void setVisualizationType(String id) {
