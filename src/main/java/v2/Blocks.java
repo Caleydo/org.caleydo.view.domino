@@ -108,7 +108,7 @@ public class Blocks extends GLElementContainer implements IHasMinSize {
 			current.stickTo(null, null, null);
 		else {
 			Vec2f pos = toAbsolute(stickTo.getFirst().xy());
-			current.stickTo(pos, stickTo.getFirst().wh(), stickTo.getSecond());
+			current.stickTo(pos, stickTo.getFirst().size(), stickTo.getSecond());
 		}
 	}
 

@@ -5,8 +5,8 @@
  *******************************************************************************/
 package v2.data;
 
+import org.caleydo.core.view.opengl.layout2.manage.EVisScaleType;
 import org.caleydo.core.view.opengl.layout2.manage.GLElementFactories;
-import org.caleydo.core.view.opengl.layout2.manage.IGLElementFactory2.EVisScaleType;
 import org.caleydo.core.view.opengl.layout2.manage.IGLElementMetaData;
 
 /**

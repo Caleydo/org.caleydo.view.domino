@@ -5,8 +5,8 @@
  *******************************************************************************/
 package org.caleydo.view.domino.api.model.graph;
 
+import org.caleydo.core.view.opengl.layout2.manage.EVisScaleType;
 import org.caleydo.core.view.opengl.layout2.manage.GLElementFactories;
-import org.caleydo.core.view.opengl.layout2.manage.IGLElementFactory2.EVisScaleType;
 import org.caleydo.core.view.opengl.layout2.manage.IGLElementMetaData;
 import org.caleydo.view.domino.spi.model.graph.IEdge;
 

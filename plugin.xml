@@ -65,12 +65,14 @@
       <factory
             factory="v2.ui.LabelElementFactory"
             icon="resources/icons/icon.png"
-            name="Labels">
+            name="Labels"
+            scaleType="dataDependent">
       </factory>
       <factory
             factory="v2.ui.AxisElementFactory"
             icon="resources/icons/icon.png"
-            name="Axis">
+            name="Axis"
+            scaleType="fix">
       </factory>
    </extension>
 </plugin>
