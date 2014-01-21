@@ -71,4 +71,9 @@ public class LabelDataValues implements IDataValues {
 	public Color getColor() {
 		return Color.LIGHT_GRAY;
 	}
+
+	@Override
+	public boolean apply(String input) {
+		return true;
+	}
 }

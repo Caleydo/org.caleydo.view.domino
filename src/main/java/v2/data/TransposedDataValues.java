@@ -66,4 +66,9 @@ public class TransposedDataValues implements IDataValues {
 	public Color getColor() {
 		return wrappee.getColor();
 	}
+
+	@Override
+	public boolean apply(String input) {
+		return wrappee.apply(input);
+	}
 }

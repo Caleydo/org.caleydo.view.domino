@@ -180,4 +180,9 @@ public class StratificationDataValue implements IDataValues, Function2<Integer, 
 		return Color.LIGHT_RED;
 	}
 
+	@Override
+	public boolean apply(String input) {
+		return !"labels".equals(input);
+	}
+
 }

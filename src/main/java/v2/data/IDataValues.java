@@ -16,11 +16,13 @@ import org.caleydo.view.domino.api.model.typed.TypedGroupSet;
 import org.caleydo.view.domino.api.model.typed.TypedListGroup;
 import org.caleydo.view.domino.api.model.typed.TypedSet;
 
+import com.google.common.base.Predicate;
+
 /**
  * @author Samuel Gratzl
  *
  */
-public interface IDataValues extends ILabeled, IColored {
+public interface IDataValues extends ILabeled, IColored, Predicate<String> {
 
 	TypedGroupSet getDefaultGroups(EDimension dim);
 
@@ -39,4 +41,10 @@ public interface IDataValues extends ILabeled, IColored {
 	void fill(Builder b, TypedListGroup dimData, TypedListGroup recData);
 
 	Collection<String> getDefaultVisualization(EProximityMode mode);
+
+	/**
+	 * filter for extension ids
+	 */
+	@Override
+	boolean apply(String input);
 }

@@ -175,4 +175,9 @@ public abstract class ADataDomainDataValues implements IDataValues, Function2<In
 	public Color getColor() {
 		return d.getColor();
 	}
+
+	@Override
+	public boolean apply(String input) {
+		return !"labels".equals(input);
+	}
 }
