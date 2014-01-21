@@ -8,7 +8,7 @@ package v2;
 import org.caleydo.core.view.opengl.layout2.manage.GLLocation;
 import org.caleydo.core.view.opengl.layout2.manage.GLLocation.ILocator;
 
-import v2.band.Band.EBandMode;
+import v2.band.EBandMode;
 
 /**
  * @author Samuel Gratzl

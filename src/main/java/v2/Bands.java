@@ -39,7 +39,7 @@ import org.caleydo.view.domino.api.model.typed.TypedSet;
 import org.caleydo.view.domino.spi.model.IBandRenderer.IBandHost;
 import org.caleydo.view.domino.spi.model.IBandRenderer.SourceTarget;
 
-import v2.band.Band;
+import v2.band.ABand;
 import v2.data.IDataValues;
 import v2.data.StratificationDataValue;
 import v2.dnd.ADragInfo;
@@ -60,7 +60,7 @@ public class Bands extends GLElement implements MultiSelectionManagerMixin.ISele
 	private final MultiSelectionManagerMixin selections = new MultiSelectionManagerMixin(this);
 
 
-	private final List<Band> routes = new ArrayList<>();
+	private final List<ABand> routes = new ArrayList<>();
 
 	private PickingPool pickingPool;
 	private final IntIntHashMap pickingOffsets = new IntIntHashMap();
@@ -86,7 +86,7 @@ public class Bands extends GLElement implements MultiSelectionManagerMixin.ISele
 		}
 
 		// collected the bounds check what we have to stubify
-		for (Band band : routes) {
+		for (ABand band : routes) {
 			for (Rectangle2D bound : bounds) {
 				if (band.intersects(bound)) {
 					band.stubify();
@@ -121,7 +121,7 @@ public class Bands extends GLElement implements MultiSelectionManagerMixin.ISele
 	@Override
 	public String getLabel(Pick pick) {
 		int[] split = split(pick.getObjectID());
-		Band route = getRoute(split[0]);
+		ABand route = getRoute(split[0]);
 		if (route == null)
 			return "";
 		return route.getLabel(split[1]);
@@ -167,7 +167,7 @@ public class Bands extends GLElement implements MultiSelectionManagerMixin.ISele
 	@Override
 	public IDragInfo startSWTDrag(IDragEvent event) {
 		int[] split = split(currentDragPicking);
-		Band route = getRoute(split[0]);
+		ABand route = getRoute(split[0]);
 		TypedSet ids = route.getIds(SourceTarget.SOURCE, split[1]);
 		IDataValues v = new StratificationDataValue(route.getLabel(),ids,route.getDimension(SourceTarget.SOURCE));
 		return new NodeDragInfo(event.getMousePos(), new Node(v));
@@ -192,11 +192,11 @@ public class Bands extends GLElement implements MultiSelectionManagerMixin.ISele
 	 * @param route
 	 * @param type
 	 */
-	private void clear(Band route, int subIndex, SelectionType type) {
+	private void clear(ABand route, int subIndex, SelectionType type) {
 		if (route == null)
 			return;
 		for (SourceTarget st : SourceTarget.values()) {
-			SelectionManager manager = selections.get(route.getIds(st, subIndex).getIdType());
+			SelectionManager manager = selections.get(route.getIdType(st));
 			if (manager == null)
 				return;
 			manager.clearSelection(type);
@@ -211,11 +211,11 @@ public class Bands extends GLElement implements MultiSelectionManagerMixin.ISele
 	 * @param clear
 	 *            whether to clear before
 	 */
-	private void select(Band route, int subIndex, SelectionType type, boolean clear) {
+	private void select(ABand route, int subIndex, SelectionType type, boolean clear) {
 		if (route == null)
 			return;
 		for (SourceTarget st : SourceTarget.values()) {
-			SelectionManager manager = getOrCreate(route.getIdType(st, subIndex));
+			SelectionManager manager = getOrCreate(route.getIdType(st));
 			if (clear)
 				manager.clearSelection(type);
 			manager.addToType(type, route.getIds(st, subIndex));
@@ -228,7 +228,7 @@ public class Bands extends GLElement implements MultiSelectionManagerMixin.ISele
 	 * @param objectID
 	 * @return
 	 */
-	private Band getRoute(int index) {
+	private ABand getRoute(int index) {
 		if (index < 0 || index >= routes.size())
 			return null;
 		return routes.get(index);
@@ -240,7 +240,7 @@ public class Bands extends GLElement implements MultiSelectionManagerMixin.ISele
 		Vec2f loc = getAbsoluteLocation();
 		g.save().move(-loc.x(), -loc.y());
 		float z = g.z();
-		for (Band edge : routes) {
+		for (ABand edge : routes) {
 			g.incZ(0.002f);
 			edge.render(g, w, h, this);
 		}
@@ -251,7 +251,7 @@ public class Bands extends GLElement implements MultiSelectionManagerMixin.ISele
 	public void renderMiniMap(GLGraphics g) {
 		Vec2f loc = getAbsoluteLocation();
 		g.save().move(-loc.x(), -loc.y());
-		for (Band edge : routes) {
+		for (ABand edge : routes) {
 			edge.renderMiniMap(g);
 		}
 		g.restore();

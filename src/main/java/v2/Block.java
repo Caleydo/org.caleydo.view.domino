@@ -30,13 +30,10 @@ import org.caleydo.core.view.opengl.layout2.layout.AGLLayoutElement;
 import org.caleydo.core.view.opengl.layout2.layout.IGLLayout2;
 import org.caleydo.core.view.opengl.layout2.layout.IGLLayoutElement;
 import org.caleydo.view.domino.api.model.graph.EDirection;
-import org.caleydo.view.domino.api.model.typed.MultiTypedSet;
 import org.caleydo.view.domino.api.model.typed.TypedGroupList;
-import org.caleydo.view.domino.api.model.typed.TypedSets;
 
-import v2.band.Band;
-import v2.band.BandLine;
-import v2.band.BandLines;
+import v2.band.ABand;
+import v2.band.BandFactory;
 import v2.event.HideNodeEvent;
 
 import com.google.common.collect.Iterables;
@@ -366,7 +363,7 @@ public class Block extends GLElementContainer implements IGLLayout2 {
 	 * @param subList
 	 * @param routes
 	 */
-	public void createBandsTo(List<Block> blocks, List<Band> routes) {
+	public void createBandsTo(List<Block> blocks, List<ABand> routes) {
 		for (LinearBlock lblock : linearBlocks) {
 			for (Block block : blocks) {
 				for (LinearBlock rblock : block.linearBlocks) {
@@ -379,27 +376,26 @@ public class Block extends GLElementContainer implements IGLLayout2 {
 	}
 
 
-	private void createRoute(Block a, LinearBlock la, Block b, LinearBlock lb, List<Band> routes) {
+	private void createRoute(Block a, LinearBlock la, Block b, LinearBlock lb, List<ABand> routes) {
 		TypedGroupList sData = la.getData(true);
 		TypedGroupList tData = lb.getData(false);
-		MultiTypedSet shared = TypedSets.intersect(sData.asSet(), tData.asSet());
-		if (shared.isEmpty())
-			return;
 
 		Rect ra = a.getAbsoluteBounds(la);
 		Rect rb = b.getAbsoluteBounds(lb);
 
-		BandLine line = BandLines.create(ra, la.getDim(), rb, lb.getDim());
-		if (line == null)
-			return;
-
 		String label = la.getNode(true).getLabel() + " x " + lb.getNode(false).getLabel();
 
-		Band band = new Band(line, label, shared, sData, tData, la.getNodeLocator(true), lb.getNodeLocator(false), la
-				.getDim().opposite(), lb.getDim()
-				.opposite());
+		final INodeLocator sNodeLocator = la.getNodeLocator(true);
+		final INodeLocator tNodeLocator = lb.getNodeLocator(false);
+		final EDimension sDir = la.getDim().opposite();
+		final EDimension tDir = lb.getDim().opposite();
+
+		ABand band = BandFactory.create(label, sData, tData, ra, rb, sNodeLocator, tNodeLocator, sDir, tDir);
+		if (band == null)
+			return;
 		routes.add(band);
 	}
+
 
 	/**
 	 * @param la

@@ -27,18 +27,15 @@ import org.caleydo.core.view.opengl.picking.IPickingLabelProvider;
 import org.caleydo.core.view.opengl.picking.IPickingListener;
 import org.caleydo.core.view.opengl.picking.Pick;
 import org.caleydo.core.view.opengl.picking.PickingListenerComposite;
-import org.caleydo.view.domino.api.model.typed.MultiTypedSet;
 import org.caleydo.view.domino.api.model.typed.TypedGroupList;
 import org.caleydo.view.domino.api.model.typed.TypedID;
 import org.caleydo.view.domino.api.model.typed.TypedList;
 import org.caleydo.view.domino.api.model.typed.TypedSet;
-import org.caleydo.view.domino.api.model.typed.TypedSets;
 import org.caleydo.view.domino.spi.model.IBandRenderer.IBandHost;
 import org.caleydo.view.domino.spi.model.IBandRenderer.SourceTarget;
 
-import v2.band.Band;
-import v2.band.BandLine;
-import v2.band.BandLines;
+import v2.band.ABand;
+import v2.band.BandFactory;
 
 import com.jogamp.common.util.IntIntHashMap;
 import com.jogamp.common.util.IntIntHashMap.Entry;
@@ -55,8 +52,8 @@ public class DetachedAdapter implements MultiSelectionManagerMixin.ISelectionMix
 	private PickingPool pickingPool;
 	private final IntIntHashMap pickingOffsets = new IntIntHashMap();
 
-	private Band left;
-	private Band right;
+	private ABand left;
+	private ABand right;
 
 	private final Node host;
 	private final EDimension dim;
@@ -131,30 +128,24 @@ public class DetachedAdapter implements MultiSelectionManagerMixin.ISelectionMix
 	 * @param host2
 	 * @return
 	 */
-	private Band create(Node s, Node t) {
+	private ABand create(Node s, Node t) {
 		EDimension d = dim.opposite();
 		TypedGroupList sData = s.getData(d);
 		TypedGroupList tData = t.getData(d);
 
-		MultiTypedSet shared = TypedSets.intersect(sData.asSet(), tData.asSet());
-
 		Rect ra = s.getRectBounds();
 		Rect rb = t.getRectBounds();
-
-		BandLine line = BandLines.create(ra, dim, rb, dim);
-		if (line == null)
-			return null;
-
 		String label = s.getLabel() + " x " + s.getLabel();
+		final INodeLocator sNodeLocator = s.getNodeLocator(d);
+		final INodeLocator tNodeLocator = t.getNodeLocator(d);
 
-		Band band = new Band(line, label, shared, sData, tData, s.getNodeLocator(d), t.getNodeLocator(d), d.opposite(),
-				d.opposite());
+		ABand band = BandFactory.create(label, sData, tData, ra, rb, sNodeLocator, tNodeLocator, d, d);
 		return band;
 	}
 	@Override
 	public String getLabel(Pick pick) {
 		int[] split = split(pick.getObjectID());
-		Band route = getRoute(split[0]);
+		ABand route = getRoute(split[0]);
 		if (route == null)
 			return "";
 		return route.getLabel(split[1]);
@@ -204,11 +195,11 @@ public class DetachedAdapter implements MultiSelectionManagerMixin.ISelectionMix
 	 * @param clear
 	 *            whether to clear before
 	 */
-	private void select(Band route, int subIndex, SelectionType type, boolean clear) {
+	private void select(ABand route, int subIndex, SelectionType type, boolean clear) {
 		if (route == null)
 			return;
 		for (SourceTarget st : SourceTarget.values()) {
-			SelectionManager manager = getOrCreate(route.getIdType(st, subIndex));
+			SelectionManager manager = getOrCreate(route.getIdType(st));
 			if (clear)
 				manager.clearSelection(type);
 			manager.addToType(type, route.getIds(st, subIndex));
@@ -217,11 +208,11 @@ public class DetachedAdapter implements MultiSelectionManagerMixin.ISelectionMix
 		host.repaint();
 	}
 
-	private void clear(Band route, int subIndex, SelectionType type) {
+	private void clear(ABand route, int subIndex, SelectionType type) {
 		if (route == null)
 			return;
 		for (SourceTarget st : SourceTarget.values()) {
-			SelectionManager manager = selections.get(route.getIds(st, subIndex).getIdType());
+			SelectionManager manager = selections.get(route.getIdType(st));
 			if (manager == null)
 				return;
 			manager.clearSelection(type);
@@ -232,7 +223,7 @@ public class DetachedAdapter implements MultiSelectionManagerMixin.ISelectionMix
 	 * @param objectID
 	 * @return
 	 */
-	private Band getRoute(int index) {
+	private ABand getRoute(int index) {
 		if (index == 1 || left == null)
 			return right;
 		return left;

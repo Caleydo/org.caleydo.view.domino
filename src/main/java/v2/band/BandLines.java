@@ -39,22 +39,13 @@ public class BandLines {
 	}
 
 	private static Pair<List<Vec2f>, List<Vec2f>> createImpl(Rect a, EDimension aDim, Rect b, EDimension bDim) {
-		if (aDim == bDim) {
-			if (aDim == EDimension.RECORD) {
-				Pair<List<Vec2f>, List<Vec2f>> r = createParallel(rot90(a), rot90(b));
-				if (r != null)
-					return Pair.make(rot90(r.getFirst()), rot90(r.getSecond()));
-				return null;
-			} else {
-				return createParallel(a, b);
-			}
-		} else {
-			if (aDim == EDimension.RECORD) {
-				Pair<List<Vec2f>, List<Vec2f>> r = createRotated(rot90(a), rot90(b));
+		if (aDim == EDimension.RECORD) {
+			Pair<List<Vec2f>, List<Vec2f>> r = createParallel(rot90(a), rot90(b));
+			if (r != null)
 				return Pair.make(rot90(r.getFirst()), rot90(r.getSecond()));
-			} else {
-				return createRotated(a, b);
-			}
+			return null;
+		} else {
+			return createParallel(a, b);
 		}
 	}
 
@@ -68,11 +59,6 @@ public class BandLines {
 			}
 		}
 		return null;
-	}
-
-	private static Pair<List<Vec2f>, List<Vec2f>> createRotated(Rect s, Rect t) {
-		// FIXME dimension -> record
-		return b(shifted(s.x2y(), t.x2y()), shifted(s.x2y2(), t.xy()));
 	}
 
 	private static Pair<List<Vec2f>, List<Vec2f>> createHorizontal(Rect s, Rect t) {
