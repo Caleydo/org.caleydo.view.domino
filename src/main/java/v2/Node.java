@@ -27,6 +27,7 @@ import org.caleydo.core.util.base.Labels;
 import org.caleydo.core.util.collection.Pair;
 import org.caleydo.core.util.color.Color;
 import org.caleydo.core.view.opengl.canvas.IGLMouseListener.IMouseEvent;
+import org.caleydo.core.view.opengl.layout.Column.VAlign;
 import org.caleydo.core.view.opengl.layout2.GLElement;
 import org.caleydo.core.view.opengl.layout2.GLElementContainer;
 import org.caleydo.core.view.opengl.layout2.GLGraphics;
@@ -109,6 +110,8 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 
 	private boolean dirtyBands;
 
+	private boolean mouseOver;
+
 	public Node(IDataValues data) {
 		this(null, data, data.getLabel(), data.getDefaultGroups(EDimension.DIMENSION), data
 				.getDefaultGroups(EDimension.RECORD));
@@ -121,15 +124,12 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 		this.visualizationType = clone.visualizationType;
 		this.dimGroups = clone.dimGroups;
 		this.recGroups = clone.recGroups;
-		copyScaleFactory(clone);
+		copyScaleFactors(clone);
 		setData(clone.dimData, clone.recData);
 		init();
 	}
 
-	private void copyScaleFactory(Node clone) {
-		for (Map.Entry<String, Vec2f> entry : clone.scaleFactors.entrySet())
-			this.scaleFactors.put(entry.getKey(), entry.getValue().copy());
-	}
+
 
 	public Node(Node origin, IDataValues data, String label, TypedGroupSet dimGroups, TypedGroupSet recGroups) {
 		this.origin = origin;
@@ -139,10 +139,15 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 		this.dimGroups = dimGroups;
 		this.recGroups = recGroups;
 		if (origin != null)
-			copyScaleFactory(origin);
+			copyScaleFactors(origin);
 		// guessShift(dimGroups.size(), recGroups.size());
 		setData(fixList(dimGroups), fixList(recGroups));
 		init();
+	}
+
+	private void copyScaleFactors(Node clone) {
+		for (Map.Entry<String, Vec2f> entry : clone.scaleFactors.entrySet())
+			this.scaleFactors.put(entry.getKey(), entry.getValue().copy());
 	}
 
 	public boolean isDetached(EDimension dim) {
@@ -213,11 +218,18 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 		g.color(has(EDimension.RECORD) ? b.getStateColor(this, EDimension.RECORD) : Color.BLACK);
 		g.drawLine(0, 0, 0, h).drawLine(w, 0, w, h);
 		g.lineWidth(1);
+
+		if (mouseOver) {
+			g.drawText(b.getStateString(this, EDimension.RECORD), 0, -12, w - 2, 10, VAlign.RIGHT);
+			g.drawText(b.getStateString(this, EDimension.DIMENSION), w + 2, h - 12, 100, 10);
+		}
+
 		super.renderImpl(g, w, h);
 
 		// render detached bands
 		dimDetached.renderImpl(g, w, h);
 		recDetached.renderImpl(g, w, h);
+
 	}
 
 	@Override
@@ -234,10 +246,14 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 		switch (pick.getPickingMode()) {
 		case MOUSE_OVER:
 			context.getMouseLayer().addDropTarget(this);
+			mouseOver = true;
+			repaint();
 			break;
 		case MOUSE_OUT:
 			context.getMouseLayer().removeDropTarget(this);
 			highlightDropArea = false;
+			mouseOver = false;
+			repaint();
 			break;
 		case MOUSE_WHEEL:
 			findBlock().zoom((IMouseEvent) pick, this);

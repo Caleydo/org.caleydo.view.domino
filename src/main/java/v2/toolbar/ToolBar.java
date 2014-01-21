@@ -133,7 +133,6 @@ public class ToolBar extends GLElementContainer {
 				addMultiNodes(nodes);
 				addButton("Remove Nodes", Resources.ICON_DELETE_ALL);
 			} else if (!blocks.isEmpty()) {
-				addMultiNodes(nodes);
 				if (areAllSingleBlocks(blocks)) {
 					outer: for (EDimension dim : EDimension.values()) {
 						for (Block block : blocks)
@@ -146,6 +145,7 @@ public class ToolBar extends GLElementContainer {
 					}
 					addButton("Transpose Blocks", Resources.ICON_TRANSPOSE);
 				}
+				addMultiNodes(nodes);
 				if (blocks.size() == 1)
 					addButton("Remove Block", Resources.ICON_DELETE);
 				else
@@ -322,7 +322,7 @@ public class ToolBar extends GLElementContainer {
 				break;
 			case "Transpose Blocks":
 				for (Block b : NodeSelections.getFullBlocks(selection)) {
-					((Node) b.get(0)).transposeMe();
+					((Node) b.get(0)).transpose();
 				}
 				break;
 			}

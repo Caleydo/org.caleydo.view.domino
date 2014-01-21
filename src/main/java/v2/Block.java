@@ -76,7 +76,8 @@ public class Block extends GLElementContainer implements IGLLayout2 {
 		assert size() == 1 && get(0) == node;
 
 		this.remove(node);
-		findParent(Domino.class).cleanup(node);
+		if (node != with)
+			findParent(Domino.class).cleanup(node);
 		linearBlocks.clear();
 		addFirstNode(with);
 		updateBands();
@@ -447,6 +448,13 @@ public class Block extends GLElementContainer implements IGLLayout2 {
 		if (block == null)
 			return Color.BLACK;
 		return block.getStateColor(node);
+	}
+
+	public String getStateString(Node node, EDimension dim) {
+		LinearBlock block = getBlock(node, dim.opposite());
+		if (block == null)
+			return "";
+		return block.getStateString(node);
 	}
 
 	/**

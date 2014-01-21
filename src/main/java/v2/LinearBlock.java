@@ -439,6 +439,20 @@ public class LinearBlock extends AbstractCollection<Node> {
 		return c;
 	}
 
+	public String getStateString(Node node) {
+		int index = sortCriteria.indexOf(node);
+		boolean limited = dataSelection == node;
+		boolean stratified = index == 0 && isStratisfied();
+		StringBuilder b = new StringBuilder();
+		if (index >= 0)
+			b.append(index + 1);
+		if (stratified)
+			b.append("*");
+		if (limited)
+			b.append("F");
+		return b.toString();
+	}
+
 	/**
 	 * @param startPoint
 	 */
