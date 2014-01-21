@@ -36,14 +36,12 @@ import org.caleydo.core.view.opengl.picking.PickingListenerComposite;
 import org.caleydo.view.domino.api.model.typed.TypedID;
 import org.caleydo.view.domino.api.model.typed.TypedList;
 import org.caleydo.view.domino.api.model.typed.TypedSet;
+import org.caleydo.view.domino.internal.dnd.SetDragInfo;
 import org.caleydo.view.domino.spi.model.IBandRenderer.IBandHost;
 import org.caleydo.view.domino.spi.model.IBandRenderer.SourceTarget;
 
 import v2.band.ABand;
-import v2.data.IDataValues;
-import v2.data.StratificationDataValue;
 import v2.dnd.ADragInfo;
-import v2.dnd.NodeDragInfo;
 
 import com.jogamp.common.util.IntIntHashMap;
 import com.jogamp.common.util.IntIntHashMap.Entry;
@@ -169,8 +167,7 @@ public class Bands extends GLElement implements MultiSelectionManagerMixin.ISele
 		int[] split = split(currentDragPicking);
 		ABand route = getRoute(split[0]);
 		TypedSet ids = route.getIds(SourceTarget.SOURCE, split[1]);
-		IDataValues v = new StratificationDataValue(route.getLabel(),ids,route.getDimension(SourceTarget.SOURCE));
-		return new NodeDragInfo(event.getMousePos(), new Node(v));
+		return new SetDragInfo(route.getLabel(), ids, route.getDimension(SourceTarget.SOURCE));
 	}
 
 	/**

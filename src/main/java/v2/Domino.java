@@ -343,6 +343,8 @@ public class Domino extends GLElementContainer implements IDropGLTarget, IPickin
 
 	@Override
 	public EDnDType defaultSWTDnDType(IDnDItem item) {
+		if (item.getInfo() instanceof NodeGroupDragInfo)
+			return EDnDType.COPY;
 		return EDnDType.MOVE;
 	}
 

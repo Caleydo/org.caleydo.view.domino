@@ -155,7 +155,7 @@ public class Placeholder extends PickableGLElement implements IDropGLTarget, IPi
 				return;
 			dropNode(preview);
 		}
-		if (preview == null)
+		if (preview == null || preview.getRepresentableSwitcher() == null)
 			return;
 		int index = toIndex(relative);
 		List<GLElementSupplier> l = Lists.newArrayList(preview.getRepresentableSwitcher());

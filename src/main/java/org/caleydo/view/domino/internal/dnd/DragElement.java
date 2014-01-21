@@ -13,6 +13,7 @@ import org.caleydo.core.view.opengl.layout2.GLElement;
 import org.caleydo.core.view.opengl.layout2.GLGraphics;
 import org.caleydo.core.view.opengl.layout2.IGLElementContext;
 import org.caleydo.core.view.opengl.layout2.dnd.IDragInfo;
+import org.caleydo.core.view.opengl.layout2.layout.GLLayouts;
 import org.caleydo.core.view.opengl.layout2.renderer.IGLRenderer;
 
 import v2.Domino;
@@ -53,9 +54,20 @@ public class DragElement extends GLElement implements IGLRenderer {
 		this.label = label;
 		this.domino = domino;
 		this.info = info;
+		size = fixSize(size);
 		this.initialSize = size;
 		setSize(size.x(), size.y());
 		setRenderer(Objects.firstNonNull(renderer, this));
+	}
+
+	/**
+	 * @param size
+	 * @return
+	 */
+	private Vec2f fixSize(Vec2f size) {
+		float x = GLLayouts.defaultValue(size.x(), 100);
+		float y = GLLayouts.defaultValue(size.y(), 100);
+		return new Vec2f(x,y);
 	}
 
 	/**
