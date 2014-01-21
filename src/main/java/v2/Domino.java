@@ -16,6 +16,7 @@ import org.caleydo.core.data.selection.SelectionType;
 import org.caleydo.core.event.EventListenerManager.DeepScan;
 import org.caleydo.core.event.EventPublisher;
 import org.caleydo.core.util.color.Color;
+import org.caleydo.core.view.opengl.canvas.IGLKeyListener;
 import org.caleydo.core.view.opengl.canvas.IGLMouseListener.IMouseEvent;
 import org.caleydo.core.view.opengl.layout2.GLElement;
 import org.caleydo.core.view.opengl.layout2.GLElementContainer;
@@ -54,7 +55,7 @@ import com.google.common.collect.ImmutableList;
  * @author Samuel Gratzl
  *
  */
-public class Domino extends GLElementContainer implements IDropGLTarget, IPickingListener, IGLLayout2 {
+public class Domino extends GLElementContainer implements IDropGLTarget, IPickingListener, IGLLayout2, IGLKeyListener {
 	private GLElementContainer placeholders;
 	private final Bands bands;
 	private final Blocks blocks;
@@ -518,4 +519,52 @@ public class Domino extends GLElementContainer implements IDropGLTarget, IPickin
 			return new NodeGroupDragInfo(event.getMousePos(), nodeGroup);
 		return new MultiNodeGroupDragInfo(event.getMousePos(), nodeGroup, s);
 	}
+
+	/**
+	 * @param leftOf
+	 */
+	private void moveSelection(EDirection dir, float factor) {
+		Set<NodeGroup> selected = getSelection(SelectionType.SELECTION);
+		if (selected.isEmpty())
+			return;
+		Set<Block> blocks = NodeSelections.getFullBlocks(selected);
+		if (blocks.isEmpty())
+			return;
+		Vec2f change;
+		switch(dir) {
+		case ABOVE: change = new Vec2f(0,-20); break;
+		case BELOW: change = new Vec2f(0,20); break;
+		case LEFT_OF: change = new Vec2f(-20,0); break;
+		case RIGHT_OF: change = new Vec2f(+20,0); break;
+		default:
+			throw new IllegalStateException();
+		}
+		change.scale(factor);
+		for (Block block : blocks) {
+			Vec2f l = block.getLocation().plus(change);
+			block.setLocation(Math.max(l.x(), 0), Math.max(l.y(), 0));
+		}
+
+		bands.relayout();
+		content.getParent().relayout();
+	}
+
+	@Override
+	public void keyPressed(IKeyEvent e) {
+		float f = e.isAltDown() ? 2 : e.isControlDown() ? 0.5f : 1.f;
+		if (e.isKey(ESpecialKey.LEFT))
+			moveSelection(EDirection.LEFT_OF, f);
+		else if (e.isKey(ESpecialKey.RIGHT))
+			moveSelection(EDirection.RIGHT_OF, f);
+		else if (e.isKey(ESpecialKey.UP))
+			moveSelection(EDirection.ABOVE, f);
+		else if (e.isKey(ESpecialKey.DOWN))
+			moveSelection(EDirection.BELOW, f);
+	}
+
+	@Override
+	public void keyReleased(IKeyEvent e) {
+
+	}
+
 }

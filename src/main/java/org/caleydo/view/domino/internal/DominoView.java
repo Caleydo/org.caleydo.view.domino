@@ -6,12 +6,17 @@
 package org.caleydo.view.domino.internal;
 import java.util.List;
 
+import javax.media.opengl.GLAutoDrawable;
+
 import org.caleydo.core.data.datadomain.DataSupportDefinitions;
 import org.caleydo.core.data.datadomain.IDataSupportDefinition;
 import org.caleydo.core.data.perspective.table.TablePerspective;
+import org.caleydo.core.event.EventListenerManager.DeepScan;
 import org.caleydo.core.event.EventListenerManager.ListenTo;
 import org.caleydo.core.serialize.ASerializedView;
+import org.caleydo.core.view.opengl.canvas.GLThreadListenerWrapper;
 import org.caleydo.core.view.opengl.canvas.IGLCanvas;
+import org.caleydo.core.view.opengl.canvas.IGLKeyListener;
 import org.caleydo.core.view.opengl.layout2.GLElement;
 import org.caleydo.core.view.opengl.layout2.GLElementDecorator;
 import org.caleydo.core.view.opengl.layout2.basic.ScrollingDecorator;
@@ -34,9 +39,26 @@ public class DominoView extends AMultiTablePerspectiveElementView {
 
 	private final Domino domino;
 
+	@DeepScan
+	private final IGLKeyListener keyAdapter;
+
 	public DominoView(IGLCanvas glCanvas) {
 		super(glCanvas, VIEW_TYPE, VIEW_NAME);
 		domino = new Domino();
+
+		keyAdapter = GLThreadListenerWrapper.wrap(domino);
+	}
+
+	@Override
+	public void init(GLAutoDrawable drawable) {
+		super.init(drawable);
+		canvas.addKeyListener(keyAdapter);
+	}
+
+	@Override
+	public void dispose(GLAutoDrawable drawable) {
+		super.dispose(drawable);
+		canvas.removeKeyListener(keyAdapter);
 	}
 
 	@Override
