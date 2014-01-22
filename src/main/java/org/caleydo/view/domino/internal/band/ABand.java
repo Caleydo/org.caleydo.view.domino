@@ -46,9 +46,11 @@ public abstract class ABand implements ILabeled {
 	protected final EDimension sDim;
 	protected final EDimension tDim;
 
+	private final String identifier;
+
 	public ABand(MultiTypedSet shared, TypedGroupList sData, TypedGroupList tData,
 			INodeLocator sLocator, INodeLocator tLocator, EDimension sDim,
-			EDimension tDim) {
+ EDimension tDim, String identifier) {
 		this.shared = shared;
 		this.sData = sData;
 		this.tData = tData;
@@ -56,6 +58,18 @@ public abstract class ABand implements ILabeled {
 		this.tLocator = tLocator;
 		this.sDim = sDim;
 		this.tDim = tDim;
+		this.identifier = identifier;
+	}
+
+	/**
+	 * @return the identifier, see {@link #identifier}
+	 */
+	public String getIdentifier() {
+		return identifier;
+	}
+
+	public void initFrom(ABand band) {
+		this.mode = band.mode;
 	}
 
 	/**

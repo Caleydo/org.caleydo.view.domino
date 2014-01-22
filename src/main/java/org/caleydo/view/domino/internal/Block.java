@@ -432,12 +432,26 @@ public class Block extends GLElementContainer implements IGLLayout2 {
 		final EDimension sDir = la.getDim().opposite();
 		final EDimension tDir = lb.getDim().opposite();
 
-		ABand band = BandFactory.create(label, sData, tData, ra, rb, sNodeLocator, tNodeLocator, sDir, tDir);
+		String id = toId(la.getNode(true), lb.getNode(false));
+		ABand band = BandFactory.create(label, sData, tData, ra, rb, sNodeLocator, tNodeLocator, sDir, tDir, id);
 		if (band == null)
 			return;
 		routes.add(band);
 	}
 
+
+	/**
+	 * @param node
+	 * @param node2
+	 * @return
+	 */
+	private static String toId(Node a, Node b) {
+		int ai = a.hashCode();
+		int bi = b.hashCode();
+		if (ai < bi)
+			return ai + "X" + bi;
+		return bi + "X" + ai;
+	}
 
 	/**
 	 * @param la

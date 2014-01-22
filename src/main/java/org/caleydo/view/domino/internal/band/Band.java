@@ -51,8 +51,8 @@ public class Band extends ABand {
 
 	public Band(BandLine band, String label, MultiTypedSet shared, TypedGroupList sData, TypedGroupList tData,
 			INodeLocator sLocator, INodeLocator tLocator, EDimension sDim,
-			EDimension tDim) {
-		super(shared, sData, tData, sLocator, tLocator, sDim, tDim);
+ EDimension tDim, String identifier) {
+		super(shared, sData, tData, sLocator, tLocator, sDim, tDim, identifier);
 		this.band = band;
 
 		{

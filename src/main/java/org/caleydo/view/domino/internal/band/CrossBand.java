@@ -46,8 +46,8 @@ public class CrossBand extends ABand {
 	private Vec2f sLoc, tLoc;
 
 	public CrossBand(String label, MultiTypedSet shared, TypedGroupList sData, TypedGroupList tData,
-			INodeLocator sLocator, INodeLocator tLocator, Vec2f s, Vec2f t) {
-		super(shared, sData, tData, sLocator, tLocator, EDimension.RECORD, EDimension.DIMENSION);
+			INodeLocator sLocator, INodeLocator tLocator, Vec2f s, Vec2f t, String identifier) {
+		super(shared, sData, tData, sLocator, tLocator, EDimension.RECORD, EDimension.DIMENSION, identifier);
 
 		this.sLoc = s;
 		this.tLoc = t;

@@ -34,7 +34,6 @@ import org.caleydo.view.domino.api.model.typed.TypedSet;
 import org.caleydo.view.domino.internal.band.ABand;
 import org.caleydo.view.domino.internal.band.BandFactory;
 import org.caleydo.view.domino.internal.band.IBandHost;
-import org.caleydo.view.domino.internal.band.IBandHost.SourceTarget;
 
 import com.jogamp.common.util.IntIntHashMap;
 import com.jogamp.common.util.IntIntHashMap.Entry;
@@ -117,12 +116,18 @@ public class DetachedAdapter implements MultiSelectionManagerMixin.ISelectionMix
 		if (!isDetached)
 			return;
 		if (left != null && !left.isDetached(dim)) {
+			ABand bak = this.left;
 			this.left = create(left, host);
+			if (bak != null && this.left != null)
+				this.left.initFrom(bak);
 		} else
 			this.left = null;
-		if (right != null)
+		if (right != null) {
+			ABand bak = this.left;
 			this.right = create(host, right);
-		else
+			if (bak != null && this.right != null)
+				this.right.initFrom(bak);
+		} else
 			this.right = null;
 
 	}
@@ -142,8 +147,8 @@ public class DetachedAdapter implements MultiSelectionManagerMixin.ISelectionMix
 		String label = s.getLabel() + " x " + s.getLabel();
 		final INodeLocator sNodeLocator = s.getNodeLocator(d);
 		final INodeLocator tNodeLocator = t.getNodeLocator(d);
-
-		ABand band = BandFactory.create(label, sData, tData, ra, rb, sNodeLocator, tNodeLocator, d, d);
+		String id = s.hashCode() + "D" + t.hashCode();
+		ABand band = BandFactory.create(label, sData, tData, ra, rb, sNodeLocator, tNodeLocator, d, d, id);
 		return band;
 	}
 	@Override

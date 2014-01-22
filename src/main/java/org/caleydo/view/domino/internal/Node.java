@@ -271,6 +271,8 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 			float ratio = dim.select(l) / dim.select(size);
 			index = Math.min((int) (ratio * c), c - 1);
 		}
+		if (index < 0)
+			return null;
 		return ESetOperation.values()[index];
 	}
 

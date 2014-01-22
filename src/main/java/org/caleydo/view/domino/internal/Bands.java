@@ -14,6 +14,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.caleydo.core.data.selection.MultiSelectionManagerMixin;
@@ -42,6 +43,9 @@ import org.caleydo.view.domino.internal.band.IBandHost;
 import org.caleydo.view.domino.internal.dnd.ADragInfo;
 import org.caleydo.view.domino.internal.dnd.SetDragInfo;
 
+import com.google.common.base.Function;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Maps;
 import com.jogamp.common.util.IntIntHashMap;
 import com.jogamp.common.util.IntIntHashMap.Entry;
 
@@ -69,6 +73,12 @@ public class Bands extends GLElement implements MultiSelectionManagerMixin.ISele
 	}
 
 	public void update() {
+		Map<String, ABand> bak = Maps.uniqueIndex(routes, new Function<ABand, String>() {
+			@Override
+			public String apply(ABand input) {
+				return input.getIdentifier();
+			}
+		});
 		routes.clear();
 		Domino domino = findParent(Domino.class);
 		List<Block> blocks = domino.getBlocks();
@@ -92,6 +102,9 @@ public class Bands extends GLElement implements MultiSelectionManagerMixin.ISele
 						it.remove();
 					break;
 				}
+			}
+			if (bak.containsKey(band.getIdentifier())) {
+				band.initFrom(bak.get(band.getIdentifier()));
 			}
 		}
 		pickingBandPool.ensure(0, routes.size());

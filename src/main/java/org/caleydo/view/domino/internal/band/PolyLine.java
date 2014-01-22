@@ -129,4 +129,15 @@ public class PolyLine extends AbstractList<Vec2f> {
 		return percentages;
 	}
 
+	/**
+	 * @return
+	 */
+	public boolean isInvalid() {
+		for (Vec2f p : points) {
+			if (Float.isNaN(p.x()) || Float.isNaN(p.y()))
+				return true;
+		}
+		return false;
+	}
+
 }

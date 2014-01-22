@@ -22,7 +22,7 @@ public class BandFactory {
 
 	public static ABand create(String label, TypedGroupList sData, TypedGroupList tData, Rect ra, Rect rb,
 			final INodeLocator sNodeLocator, final INodeLocator tNodeLocator, final EDimension sDim,
-			final EDimension tDim) {
+			final EDimension tDim, String identifier) {
 		MultiTypedSet shared = TypedSets.intersect(sData.asSet(), tData.asSet());
 		if (shared.isEmpty())
 			return null;
@@ -30,13 +30,15 @@ public class BandFactory {
 			BandLine line = BandLines.create(ra, sDim.opposite(), rb, tDim.opposite());
 			if (line == null)
 				return null;
-			return new Band(line, label, shared, sData, tData, sNodeLocator, tNodeLocator, sDim, tDim);
+			if (line.isInvalid())
+				return null;
+			return new Band(line, label, shared, sData, tData, sNodeLocator, tNodeLocator, sDim, tDim, identifier);
 		} else {
 			// cross
 			if (sDim == EDimension.RECORD) {
 				Vec2f s = ra.x2y();
 				Vec2f t = rb.xy();
-				return new CrossBand(label, shared, sData, tData, sNodeLocator, tNodeLocator, s, t);
+				return new CrossBand(label, shared, sData, tData, sNodeLocator, tNodeLocator, s, t, identifier);
 			}
 		}
 		return null;

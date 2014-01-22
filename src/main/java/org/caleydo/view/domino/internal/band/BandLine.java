@@ -37,6 +37,21 @@ public class BandLine {
 	/**
 	 * @return
 	 */
+	public boolean isInvalid() {
+		if (top.isInvalid())
+			return true;
+		if (bottom.isInvalid())
+			return true;
+		for (Vec2f p : connectionLines) {
+			if (Float.isNaN(p.x()) || Float.isNaN(p.y()))
+				return true;
+		}
+		return false;
+	}
+
+	/**
+	 * @return
+	 */
 	public BandLine asStubified() {
 		if (stubified)
 			return this;
