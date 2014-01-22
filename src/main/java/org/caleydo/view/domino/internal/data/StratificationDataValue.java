@@ -52,6 +52,13 @@ public class StratificationDataValue implements IDataValues, Function2<Integer, 
 		this.groups = TypedGroupSet.createUngrouped(data);
 	}
 
+	public StratificationDataValue(String label, TypedGroupSet data, EDimension main) {
+		this.main = main;
+		this.label = label;
+		this.singleGroup = TypedGroupSet.createUngrouped(TypedCollections.INVALID_SINGLETON_SET);
+		this.groups = data;
+	}
+
 
 	@Override
 	public String getExtensionID() {

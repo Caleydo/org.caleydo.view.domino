@@ -94,7 +94,12 @@ public final class TypedGroups {
 	 * @return
 	 */
 	public static TypedGroupSet union(ITypedGroupCollection a, TypedGroupList b) {
+		// convert to the primary one??
+		// FIXME FIXME
+		if (a.getIdType() != b.getIdType())
+			System.err.println("NOT WORKING, as it is at most all of a");
 		TypedGroupSet base = a.asSet();
+
 		IIDTypeMapper<Integer, Integer> mapper = MappingCaches.findMapper(b.getIdType(), a.getIdType());
 		if (mapper == null)
 			return base;
