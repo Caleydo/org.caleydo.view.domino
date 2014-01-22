@@ -504,15 +504,16 @@ public class Block extends GLElementContainer implements IGLLayout2 {
 
 	/**
 	 * @param r
+	 * @param selections
 	 */
-	public void selectByBounds(Rectangle2D r) {
+	public void selectByBounds(Rectangle2D r, NodeSelections selections) {
 		r = (Rectangle2D) r.clone(); // local copy
 
 		Vec2f l = getLocation(); // to relative coordinates;
 		r = new Rectangle2D.Double(r.getX() - l.x(), r.getY() - l.y(), r.getWidth(), r.getHeight());
 		for (Node node : nodes()) {
 			if (node.getRectangleBounds().intersects(r)) {
-				node.selectByBounds(r);
+				node.selectByBounds(r, selections);
 			}
 		}
 	}

@@ -15,6 +15,7 @@ import java.util.Set;
 import org.apache.commons.lang.StringUtils;
 import org.caleydo.core.data.collection.EDimension;
 import org.caleydo.core.data.selection.SelectionType;
+import org.caleydo.core.util.base.ICallback;
 import org.caleydo.core.util.base.Labels;
 import org.caleydo.core.util.color.Color;
 import org.caleydo.core.view.opengl.layout.Column.VAlign;
@@ -33,7 +34,6 @@ import org.caleydo.core.view.opengl.layout2.manage.GLElementFactorySwitcher;
 import org.caleydo.core.view.opengl.layout2.renderer.GLRenderers;
 import org.caleydo.view.domino.api.model.graph.EDirection;
 import org.caleydo.view.domino.internal.Block;
-import org.caleydo.view.domino.internal.Domino;
 import org.caleydo.view.domino.internal.Node;
 import org.caleydo.view.domino.internal.NodeGroup;
 import org.caleydo.view.domino.internal.NodeSelections;
@@ -46,30 +46,34 @@ import com.google.common.collect.Collections2;
  * @author Samuel Gratzl
  *
  */
-public class ToolBar extends GLElementContainer {
+public class ToolBar extends GLElementContainer implements ICallback<SelectionType> {
 
 	private final GLElement label;
 	private Tools tools;
+	private NodeSelections selections;
 
 	/**
+	 * @param selections
 	 *
 	 */
-	public ToolBar() {
+	public ToolBar(NodeSelections selections) {
 		super(GLLayouts.flowHorizontal(2));
+		this.selections = selections;
+		this.selections.onSelectionChanges(this);
 		this.label = new GLElement();
 		this.add(label);
 		setRenderer(GLRenderers.fillRect(Color.LIGHT_BLUE));
 	}
 
-	/**
-	 * @param type
-	 */
-	public void update(SelectionType type) {
-		Domino domino = findParent(Domino.class);
+	@Override
+	public void on(SelectionType type) {
+		Set<NodeGroup> s = selections.getSelection(type);
 		if (type == SelectionType.MOUSE_OVER) {
-			updateLabel(domino.getSelection(type));
+			if (s.isEmpty())
+				s = selections.getSelection(SelectionType.SELECTION);
+			updateLabel(s);
 		} else if (type == SelectionType.SELECTION) {
-			updateTools(domino.getSelection(type));
+			updateTools(s);
 		}
 	}
 
@@ -199,7 +203,7 @@ public class ToolBar extends GLElementContainer {
 			else
 				addButton("Remove Node", Resources.ICON_DELETE_ALL);
 
-			if (node.size() > 1) {
+			if (node.groupCount() > 1) {
 				addButton("Select All In Node", Resources.ICON_SELECT_ALL);
 			}
 			if (node.getBlock().size() > 1)
@@ -343,13 +347,6 @@ public class ToolBar extends GLElementContainer {
 
 	private static class ChangeVisTypeTo implements ISelectionCallback {
 		private final Collection<Node> nodes;
-
-		/**
-		 * @param node
-		 */
-		public ChangeVisTypeTo(Node node) {
-			this(Collections.singleton(node));
-		}
 
 		/**
 		 * @param singleton

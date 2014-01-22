@@ -5,16 +5,23 @@
  *******************************************************************************/
 package org.caleydo.view.domino.internal;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
 
+import org.caleydo.core.data.selection.SelectionCommand;
 import org.caleydo.core.data.selection.SelectionType;
+import org.caleydo.core.event.EventListenerManager.ListenTo;
+import org.caleydo.core.event.data.SelectionCommandEvent;
+import org.caleydo.core.util.base.ICallback;
 import org.caleydo.view.domino.api.model.graph.EDirection;
 
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.HashMultiset;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Multiset;
 import com.google.common.collect.SetMultimap;
 
@@ -24,6 +31,103 @@ import com.google.common.collect.SetMultimap;
  */
 public class NodeSelections {
 	private final SetMultimap<SelectionType, NodeGroup> selections = HashMultimap.create();
+
+	private Collection<ICallback<SelectionType>> selectionChanges = new ArrayList<>();
+
+	public void onSelectionChanges(ICallback<SelectionType> callback) {
+		this.selectionChanges.add(callback);
+	}
+
+	public void removeOnSelectionChanges(ICallback<SelectionType> callback) {
+		this.selectionChanges.remove(callback);
+	}
+
+	private void fire(SelectionType type) {
+		for (ICallback<SelectionType> c : selectionChanges)
+			c.on(type);
+	}
+
+	public boolean isSelected(SelectionType type, NodeGroup group) {
+		return selections.get(type).contains(group);
+	}
+
+	public void select(SelectionType type, NodeGroup group, boolean additional) {
+		Set<NodeGroup> c = selections.get(type);
+		if (!additional)
+			c.clear();
+		c.add(group);
+		fire(type);
+	}
+
+	public Set<NodeGroup> getSelection(SelectionType type) {
+		return selections.get(type);
+	}
+
+	public void cleanup(Node node) {
+		for (SelectionType type : selections.keySet()) {
+			Set<NodeGroup> c = selections.get(type);
+			boolean changed = false;
+			for (Iterator<NodeGroup> it = c.iterator(); it.hasNext();) {
+				NodeGroup g = it.next();
+				if (g.getNode() == node) {
+					it.remove();
+					changed = true;
+				}
+			}
+			if (changed)
+				fire(type);
+		}
+	}
+
+	public void cleanup(Block block) {
+		for (SelectionType type : selections.keySet()) {
+			Set<NodeGroup> c = selections.get(type);
+			boolean changed = false;
+			for (Iterator<NodeGroup> it = c.iterator(); it.hasNext();) {
+				NodeGroup g = it.next();
+				if (block.containsNode(g.getNode())) {
+					it.remove();
+					changed = true;
+				}
+			}
+			if (changed)
+				fire(type);
+		}
+	}
+
+
+
+	public boolean clear(SelectionType type, NodeGroup group) {
+		Set<NodeGroup> c = selections.get(type);
+		boolean changed = !c.isEmpty();
+		if (group != null)
+			changed = c.remove(group);
+		else
+			c.clear();
+		if (changed)
+			fire(type);
+		return changed;
+	}
+
+	@ListenTo
+	private void on(SelectionCommandEvent event) {
+		if (event.getSender() == this)
+			return;
+		SelectionCommand cmd = event.getSelectionCommand();
+
+		switch (cmd.getSelectionCommandType()) {
+		case CLEAR:
+			clear(cmd.getSelectionType(), null);
+			break;
+		case CLEAR_ALL:
+		case RESET:
+			ImmutableSet<SelectionType> toSend = ImmutableSet.copyOf(selections.keySet());
+			selections.clear();
+			for (SelectionType t : toSend)
+				fire(t);
+			break;
+		}
+	}
 
 	public static Node getSingleNode(Set<NodeGroup> selection) {
 		if (selection.isEmpty())
@@ -44,7 +148,8 @@ public class NodeSelections {
 		}
 		for (Iterator<Node> it = nodes.elementSet().iterator(); it.hasNext();) {
 			Node node = it.next();
-			if (node.size() != nodes.count(node)) {
+			final int expected = node.groupCount();
+			if (expected != nodes.count(node)) {
 				it.remove();// not all groups
 			}
 		}
@@ -105,66 +210,5 @@ public class NodeSelections {
 				compress(f, selected, linked, dir);
 			}
 		}
-	}
-
-	public Set<SelectionType> cleanup(Node node) {
-		Set<SelectionType> r = new HashSet<>(2);
-		for (SelectionType type : selections.keySet()) {
-			Set<NodeGroup> c = selections.get(type);
-			boolean changed = false;
-			for (Iterator<NodeGroup> it = c.iterator(); it.hasNext();) {
-				NodeGroup g = it.next();
-				if (g.getNode() == node) {
-					it.remove();
-					changed = true;
-				}
-			}
-			if (changed)
-				r.add(type);
-		}
-		return r;
-	}
-
-	public Set<SelectionType> cleanup(Block block) {
-		Set<SelectionType> r = new HashSet<>(2);
-		for (SelectionType type : selections.keySet()) {
-			Set<NodeGroup> c = selections.get(type);
-			boolean changed = false;
-			for (Iterator<NodeGroup> it = c.iterator(); it.hasNext();) {
-				NodeGroup g = it.next();
-				if (block.containsNode(g.getNode())) {
-					it.remove();
-					changed = true;
-				}
-			}
-			if (changed)
-				r.add(type);
-		}
-		return r;
-	}
-
-	public boolean isSelected(SelectionType type, NodeGroup group) {
-		return selections.get(type).contains(group);
-	}
-
-	public void select(SelectionType type, NodeGroup group, boolean additional) {
-		Set<NodeGroup> c = selections.get(type);
-		if (!additional)
-			c.clear();
-		c.add(group);
-	}
-
-	public Set<NodeGroup> getSelection(SelectionType type) {
-		return selections.get(type);
-	}
-
-	public boolean clear(SelectionType type, NodeGroup group) {
-		Set<NodeGroup> c = selections.get(type);
-		boolean changed = !c.isEmpty();
-		if (group != null)
-			changed = c.remove(group);
-		else
-			c.clear();
-		return changed;
 	}
 }

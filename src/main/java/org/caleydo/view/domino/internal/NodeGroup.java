@@ -54,7 +54,6 @@ import com.google.common.collect.ImmutableList;
  */
 public class NodeGroup extends GLElementDecorator implements ILabeled, IDragGLSource, IPickingListener {
 	private final Node parent;
-
 	private final NodeGroup[] neighbors = new NodeGroup[4];
 	private TypedListGroup dimData;
 	private TypedListGroup recData;
@@ -62,8 +61,7 @@ public class NodeGroup extends GLElementDecorator implements ILabeled, IDragGLSo
 	private final PickingBarrier barrier;
 	private boolean armed;
 
-
-	public NodeGroup(Node parent) {
+	NodeGroup(Node parent) {
 		this.parent = parent;
 		setVisibility(EVisibility.PICKABLE);
 		onPick(this);
@@ -87,9 +85,10 @@ public class NodeGroup extends GLElementDecorator implements ILabeled, IDragGLSo
 		if (context == null)
 			return;
 		Builder b = GLElementFactoryContext.builder();
+		final Node parent = getNode();
 		parent.data.fill(b, dimData, recData);
 		// if free high else medium
-		b.put(EDetailLevel.class, getNode().getProximityMode() == EProximityMode.FREE ? EDetailLevel.HIGH
+		b.put(EDetailLevel.class, parent.getProximityMode() == EProximityMode.FREE ? EDetailLevel.HIGH
 				: EDetailLevel.MEDIUM);
 		b.set("heatmap.blurNotSelected");
 		b.set("heatmap.forceTextures");
@@ -115,7 +114,7 @@ public class NodeGroup extends GLElementDecorator implements ILabeled, IDragGLSo
 
 	@Override
 	public void pick(Pick pick) {
-		final Domino domino = findDomino();
+		final NodeSelections domino = findDomino().getSelections();
 		switch (pick.getPickingMode()) {
 		case MOUSE_OVER:
 			if (!barrier.isPickable())
@@ -152,7 +151,7 @@ public class NodeGroup extends GLElementDecorator implements ILabeled, IDragGLSo
 	}
 
 	public void selectMe() {
-		final Domino domino = findDomino();
+		final NodeSelections domino = findDomino().getSelections();
 		if (!domino.isSelected(SelectionType.SELECTION, this))
 			domino.select(SelectionType.SELECTION, this, true);
 		repaint();
@@ -183,7 +182,7 @@ public class NodeGroup extends GLElementDecorator implements ILabeled, IDragGLSo
 	@Override
 	public String getLabel() {
 		StringBuilder b = new StringBuilder();
-		b.append(parent.getLabel());
+		b.append(getNode().getLabel());
 		boolean isDim = !TypedGroups.isUngrouped(dimData);
 		boolean isRec = !TypedGroups.isUngrouped(recData);
 		if (isDim && !isRec)
@@ -204,10 +203,11 @@ public class NodeGroup extends GLElementDecorator implements ILabeled, IDragGLSo
 		// Color c = recData.getColor();
 		// g.color(c).fillRect(0, 0, w, h);
 		final Domino domino = findDomino();
+		NodeSelections selections = domino.getSelections();
 		g.lineWidth(2);
-		if (domino.isSelected(SelectionType.SELECTION, this))
+		if (selections.isSelected(SelectionType.SELECTION, this))
 			g.color(SelectionType.SELECTION.getColor());
-		else if (domino.isSelected(SelectionType.MOUSE_OVER, this))
+		else if (selections.isSelected(SelectionType.MOUSE_OVER, this))
 			g.color(SelectionType.MOUSE_OVER.getColor());
 		else
 			g.color(Color.BLACK).lineWidth(1);
@@ -252,7 +252,7 @@ public class NodeGroup extends GLElementDecorator implements ILabeled, IDragGLSo
 	@Override
 	public void onDropped(IDnDItem info) {
 		if (info.getType() == EDnDType.MOVE && info.getInfo() instanceof NodeGroupDragInfo) {
-			parent.removeGroup(this);
+			getNode().removeGroup(this);
 		}
 		if (info.getInfo() instanceof NodeDragInfo) {
 			getNode().showAgain();
@@ -266,7 +266,7 @@ public class NodeGroup extends GLElementDecorator implements ILabeled, IDragGLSo
 	@Override
 	public GLElement createUI(IDragInfo info) {
 		if (info instanceof NodeDragInfo || info instanceof NodeGroupDragInfo)
-			findDomino().addPlaceholdersFor(parent);
+			findDomino().addPlaceholdersFor(getNode());
 		if (info instanceof ADragInfo)
 			return ((ADragInfo) info).createUI(findDomino());
 		return null;
@@ -283,6 +283,7 @@ public class NodeGroup extends GLElementDecorator implements ILabeled, IDragGLSo
 	 * @return
 	 */
 	public Node toNode() {
+		final Node parent = getNode();
 		Node n = new Node(parent, parent.data, getLabel(), new TypedGroupSet(dimData.asSet()), new TypedGroupSet(
 				recData.asSet()));
 		return n;
@@ -307,11 +308,16 @@ public class NodeGroup extends GLElementDecorator implements ILabeled, IDragGLSo
 	 *
 	 */
 	public void prepareRemoveal() {
+		barrier.setContent(null);
+		this.dimData = null;
+		this.recData = null;
+
 		Domino d = findDomino();
 		if (d == null)
 			return;
-		d.clear(SelectionType.MOUSE_OVER, null);
-		d.clear(SelectionType.SELECTION, this);
+		d.getSelections().clear(SelectionType.MOUSE_OVER, null);
+		d.getSelections().clear(SelectionType.SELECTION, this);
+
 	}
 
 	public void select(EDirection dir) {
@@ -335,5 +341,12 @@ public class NodeGroup extends GLElementDecorator implements ILabeled, IDragGLSo
 	 */
 	public GLElement createVisParameter() {
 		return getSwitcher().createParameter();
+	}
+
+	/**
+	 *
+	 */
+	public void reset() {
+
 	}
 }

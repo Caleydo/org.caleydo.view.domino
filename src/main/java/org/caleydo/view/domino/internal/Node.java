@@ -389,54 +389,40 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 		final List<TypedListGroup> dimGroups = dimData.getGroups();
 		final List<TypedListGroup> recGroups = recData.getGroups();
 
-		if (dimGroups.size() == 1 && recGroups.size() == 1) {
-			if (this.size() == 1 && this.get(0) instanceof SingleNodeGroup) {
-				((SingleNodeGroup) this.get(0)).setData(dimGroups.get(0), recGroups.get(0));
-			} else {
-				for (NodeGroup g : nodeGroups())
-					g.prepareRemoveal();
-				this.clear();
-				SingleNodeGroup single = new SingleNodeGroup(this);
-				single.setData(dimGroups.get(0), recGroups.get(0));
-				this.add(single);
-			}
-		} else {
-			if (size() == 1) {
-				for (NodeGroup g : nodeGroups())
-					g.prepareRemoveal();
-				this.clear();// maybe was a single
-			}
-
-			int n = 0;
-			List<NodeGroup> left = new ArrayList<>();
-			for (TypedListGroup dimGroup : dimGroups) {
-				NodeGroup above = null;
-				int i = 0;
-				for (TypedListGroup recGroup : recGroups) {
-					final NodeGroup child = getOrCreate(n);
-					n++;
-					child.setData(dimGroup, recGroup);
-					child.setNeighbor(EDirection.NORTH, above);
-					if (above != null)
-						above.setNeighbor(EDirection.SOUTH, child);
-					above = child;
-					if (left.size() > i) {
-						left.get(i).setNeighbor(EDirection.EAST, child);
-						child.setNeighbor(EDirection.WEST, left.get(i));
-					}
-					if (i < left.size())
-						left.set(i++, child);
-					else
-						left.add(i++, child);
-
+		int n = 0;
+		List<NodeGroup> left = new ArrayList<>();
+		for (TypedListGroup dimGroup : dimGroups) {
+			NodeGroup above = null;
+			int i = 0;
+			for (TypedListGroup recGroup : recGroups) {
+				final NodeGroup child = getOrCreate(n);
+				child.setVisibility(EVisibility.PICKABLE);
+				n++;
+				child.setData(dimGroup, recGroup);
+				child.setNeighbor(EDirection.NORTH, above);
+				if (above != null)
+					above.setNeighbor(EDirection.SOUTH, child);
+				above = child;
+				if (left.size() > i) {
+					left.get(i).setNeighbor(EDirection.EAST, child);
+					child.setNeighbor(EDirection.WEST, left.get(i));
 				}
-			}
+				if (i < left.size())
+					left.set(i++, child);
+				else
+					left.add(i++, child);
 
-			{
-				final List<GLElement> subList = this.asList().subList(n, size());
-				for (NodeGroup g : Iterables.filter(subList, NodeGroup.class))
+			}
+		}
+
+		{
+			final List<GLElement> subList = this.asList().subList(n, size());
+			if (!subList.isEmpty()) {
+				for (NodeGroup g : Iterables.filter(subList, NodeGroup.class)) {
 					g.prepareRemoveal();
-				subList.clear(); // clear rest
+					g.setVisibility(EVisibility.NONE);
+				}
+				// subList.clear(); // don't clear just hide
 			}
 		}
 
@@ -447,7 +433,8 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 	}
 
 	private Iterable<NodeGroup> nodeGroups() {
-		return Iterables.filter(this, NodeGroup.class);
+		// all visible node groups
+		return Iterables.filter(Iterables.filter(this, EVisibility.PICKABLE), NodeGroup.class);
 	}
 
 	@Override
@@ -631,8 +618,17 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 	}
 
 	public boolean canRemoveGroup(NodeGroup nodeGroup) {
+		if (this.groupCount() == 1)
+			return false;
 		EDimension dim = getSingleGroupingDimension();
 		return (dim != null);
+	}
+
+	/**
+	 * @return
+	 */
+	public int groupCount() {
+		return Iterables.size(nodeGroups());
 	}
 
 	/**
@@ -1030,8 +1026,9 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 
 	/**
 	 * @param r
+	 * @param selections
 	 */
-	public void selectByBounds(Rectangle2D r) {
+	public void selectByBounds(Rectangle2D r, NodeSelections selections) {
 		Vec2f l = getLocation();
 		r = new Rectangle2D.Double(r.getX() - l.x(), r.getY() - l.y(), r.getWidth(), r.getHeight());
 		for (NodeGroup node : nodeGroups()) {
@@ -1103,7 +1100,7 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 			anyChange = anyChange || s.getActive() != active;
 			s.setActive(active);
 		}
-		if (!anyChange && size() > 1)
+		if (!anyChange && groupCount() > 1)
 			return;
 		updateSize(true);
 		relayout();

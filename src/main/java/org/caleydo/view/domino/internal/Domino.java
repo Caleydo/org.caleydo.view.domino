@@ -68,13 +68,14 @@ public class Domino extends GLElementContainer implements IDropGLTarget, IPickin
 
 	@DeepScan
 	private final NodeSelections selections = new NodeSelections();
+
 	/**
 	 *
 	 */
 	public Domino() {
 		setLayout(this);
 
-		this.toolBar = new ToolBar();
+		this.toolBar = new ToolBar(selections);
 		this.toolBar.setSize(-1, 24);
 		this.add(toolBar);
 
@@ -169,7 +170,7 @@ public class Domino extends GLElementContainer implements IDropGLTarget, IPickin
 			break;
 		case DRAGGED:
 			if (pick.isDoDragging() && this.select != null) {
-				this.select.dragTo(pick.getDx(), pick.getDy(), ((IMouseEvent)pick).isCtrlDown());
+				this.select.dragTo(pick.getDx(), pick.getDy(), ((IMouseEvent) pick).isCtrlDown());
 			}
 			break;
 		case MOUSE_RELEASED:
@@ -221,7 +222,6 @@ public class Domino extends GLElementContainer implements IDropGLTarget, IPickin
 			dropNode(item, node);
 		}
 	}
-
 
 	private void rebuild(Block b, Node asNode, NodeGroup act, Set<NodeGroup> items, EDirection commingFrom) {
 		items.remove(act);
@@ -291,9 +291,7 @@ public class Domino extends GLElementContainer implements IDropGLTarget, IPickin
 	}
 
 	public void cleanup(Node node) {
-		Set<SelectionType> changed = selections.cleanup(node);
-		for (SelectionType type : changed)
-			toolBar.update(type);
+		selections.cleanup(node);
 	}
 
 	/**
@@ -339,7 +337,6 @@ public class Domino extends GLElementContainer implements IDropGLTarget, IPickin
 		}
 	}
 
-
 	@Override
 	public EDnDType defaultSWTDnDType(IDnDItem item) {
 		if (item.getInfo() instanceof NodeGroupDragInfo)
@@ -365,24 +362,11 @@ public class Domino extends GLElementContainer implements IDropGLTarget, IPickin
 		placeholders = null;
 	}
 
-
-
-	public boolean isSelected(SelectionType type, NodeGroup group) {
-		return selections.isSelected(type, group);
-	}
-
-	public void select(SelectionType type, NodeGroup group, boolean additional) {
-		selections.select(type, group, additional);
-		toolBar.update(type);
-	}
-
-	public Set<NodeGroup> getSelection(SelectionType type) {
-		return selections.getSelection(type);
-	}
-
-	public void clear(SelectionType type, NodeGroup group) {
-		if (selections.clear(type, group))
-			toolBar.update(type);
+	/**
+	 * @return the selections, see {@link #selections}
+	 */
+	public NodeSelections getSelections() {
+		return selections;
 	}
 
 	@Override
@@ -438,12 +422,12 @@ public class Domino extends GLElementContainer implements IDropGLTarget, IPickin
 	 */
 	public void selectByBounds(Rect rect, boolean clear) {
 		if (clear)
-			clear(SelectionType.SELECTION, null);
+			selections.clear(SelectionType.SELECTION, null);
 
 		Rectangle2D r = rect.asRectangle2D();
 		for (Block block : blocks.getBlocks()) {
 			if (block.getRectangleBounds().intersects(r)) {
-				block.selectByBounds(r);
+				block.selectByBounds(r, selections);
 			}
 		}
 	}
@@ -486,8 +470,7 @@ public class Domino extends GLElementContainer implements IDropGLTarget, IPickin
 	 */
 	public void removeBlock(Block block) {
 		blocks.remove(block);
-		for (SelectionType type : selections.cleanup(block))
-			toolBar.update(type);
+		selections.cleanup(block);
 		updateBands();
 	}
 
@@ -496,7 +479,7 @@ public class Domino extends GLElementContainer implements IDropGLTarget, IPickin
 	 * @param nodeGroup
 	 */
 	public IDragInfo startSWTDrag(IDragEvent event, NodeGroup nodeGroup) {
-		Set<NodeGroup> selected = getSelection(SelectionType.SELECTION);
+		Set<NodeGroup> selected = selections.getSelection(SelectionType.SELECTION);
 		selected = new HashSet<>(selected);
 		selected.add(nodeGroup);
 		Node single = NodeSelections.getSingleNode(selected);
@@ -520,18 +503,26 @@ public class Domino extends GLElementContainer implements IDropGLTarget, IPickin
 	 * @param leftOf
 	 */
 	private void moveSelection(EDirection dir, float factor) {
-		Set<NodeGroup> selected = getSelection(SelectionType.SELECTION);
+		Set<NodeGroup> selected = selections.getSelection(SelectionType.SELECTION);
 		if (selected.isEmpty())
 			return;
 		Set<Block> blocks = NodeSelections.getFullBlocks(selected);
 		if (blocks.isEmpty())
 			return;
 		Vec2f change;
-		switch(dir) {
-		case NORTH: change = new Vec2f(0,-20); break;
-		case SOUTH: change = new Vec2f(0,20); break;
-		case WEST: change = new Vec2f(-20,0); break;
-		case EAST: change = new Vec2f(+20,0); break;
+		switch (dir) {
+		case NORTH:
+			change = new Vec2f(0, -20);
+			break;
+		case SOUTH:
+			change = new Vec2f(0, 20);
+			break;
+		case WEST:
+			change = new Vec2f(-20, 0);
+			break;
+		case EAST:
+			change = new Vec2f(+20, 0);
+			break;
 		default:
 			throw new IllegalStateException();
 		}

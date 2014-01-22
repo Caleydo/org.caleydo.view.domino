@@ -7,16 +7,16 @@ package org.caleydo.view.domino.internal;
 
 import gleem.linalg.Vec2f;
 
-import javax.media.opengl.GL2;
-
 import org.caleydo.core.util.color.Color;
 import org.caleydo.core.view.opengl.layout2.GLElement;
 import org.caleydo.core.view.opengl.layout2.GLGraphics;
 import org.caleydo.core.view.opengl.layout2.geom.Rect;
 
 /**
+ * renders and handles a selection rectangle
+ * 
  * @author Samuel Gratzl
- *
+ * 
  */
 public class SelectLayer extends GLElement {
 
@@ -32,11 +32,10 @@ public class SelectLayer extends GLElement {
 
 	@Override
 	protected void renderImpl(GLGraphics g, float w, float h) {
-		g.gl.glLineStipple(4, (short) 0xAAAA);
-		g.gl.glEnable(GL2.GL_LINE_STIPPLE);
+		g.lineStippled(4, 0xAAAA);
 		Rect r = unifyRect();
 		g.color(Color.LIGHT_GRAY).drawRect(r.x(), r.y(), r.width(), r.height());
-		g.gl.glDisable(GL2.GL_LINE_STIPPLE);
+		g.lineStippled(false);
 		super.renderImpl(g, w, h);
 	}
 
