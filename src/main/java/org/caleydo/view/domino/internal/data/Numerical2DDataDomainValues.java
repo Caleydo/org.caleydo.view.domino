@@ -37,9 +37,9 @@ public class Numerical2DDataDomainValues extends ADataDomainDataValues {
 	 */
 	public Numerical2DDataDomainValues(TablePerspective t) {
 		super(t.getDataDomain().getLabel(), t);
-		Pair<TypedGroupSet, TypedGroupSet> r = extractGroups(t);
-		this.recGroups = r.getSecond();
-		this.dimGroups = r.getFirst();
+		// Pair<TypedGroupSet, TypedGroupSet> r = extractGroups(t);
+		this.recGroups = TypedGroupSet.createUngrouped(TypedSet.of(t.getRecordPerspective().getVirtualArray()));
+		this.dimGroups = TypedGroupSet.createUngrouped(TypedSet.of(t.getDimensionPerspective().getVirtualArray()));
 	}
 
 	@Override
