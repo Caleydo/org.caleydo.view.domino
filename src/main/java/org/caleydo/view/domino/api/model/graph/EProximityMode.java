@@ -8,7 +8,6 @@ package org.caleydo.view.domino.api.model.graph;
 import org.caleydo.core.view.opengl.layout2.manage.EVisScaleType;
 import org.caleydo.core.view.opengl.layout2.manage.GLElementFactories;
 import org.caleydo.core.view.opengl.layout2.manage.IGLElementMetaData;
-import org.caleydo.view.domino.spi.model.graph.IEdge;
 
 import com.google.common.base.Predicate;
 
@@ -38,13 +37,5 @@ public enum EProximityMode implements Predicate<String> {
 
 	public static EProximityMode min(EProximityMode a, EProximityMode b) {
 		return a.ordinal() < b.ordinal() ? a : b;
-	}
-
-	public static EProximityMode min(Iterable<IEdge> edges) {
-		EProximityMode m = EProximityMode.FREE;
-		for (IEdge edge : edges) {
-			m = min(m, edge.asMode());
-		}
-		return m;
 	}
 }
