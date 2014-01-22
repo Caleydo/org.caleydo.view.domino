@@ -9,13 +9,12 @@ import org.caleydo.core.gui.SimpleAction;
 import org.caleydo.core.gui.SimpleEventAction;
 import org.caleydo.view.domino.internal.Resources;
 import org.caleydo.view.domino.internal.event.ToggleHeaderAlwaysEvent;
+import org.caleydo.view.domino.internal.event.ToggleShowMiniMapEvent;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.ActionContributionItem;
 import org.eclipse.jface.action.IMenuCreator;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Menu;
-
-import v2.event.ToggleShowMiniMapEvent;
 
 /**
  * different settings regarding the presentation of crossword

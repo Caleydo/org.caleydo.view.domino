@@ -15,8 +15,7 @@ import org.caleydo.core.view.opengl.layout2.IGLElementContext;
 import org.caleydo.core.view.opengl.layout2.dnd.IDragInfo;
 import org.caleydo.core.view.opengl.layout2.layout.GLLayouts;
 import org.caleydo.core.view.opengl.layout2.renderer.IGLRenderer;
-
-import v2.Domino;
+import org.caleydo.view.domino.internal.Domino;
 
 import com.google.common.base.Objects;
 

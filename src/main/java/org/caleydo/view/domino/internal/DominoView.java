@@ -22,10 +22,8 @@ import org.caleydo.core.view.opengl.layout2.GLElementDecorator;
 import org.caleydo.core.view.opengl.layout2.basic.ScrollingDecorator;
 import org.caleydo.core.view.opengl.layout2.view.AMultiTablePerspectiveElementView;
 import org.caleydo.view.domino.internal.event.ToggleHeaderAlwaysEvent;
+import org.caleydo.view.domino.internal.event.ToggleShowMiniMapEvent;
 import org.caleydo.view.domino.internal.serial.SerializedDominoView;
-
-import v2.Domino;
-import v2.event.ToggleShowMiniMapEvent;
 
 /**
  * basic view based on {@link GLElement} with a {@link AMultiTablePerspectiveElementView}

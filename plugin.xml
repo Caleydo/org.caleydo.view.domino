@@ -63,13 +63,13 @@
    <extension
          point="org.caleydo.ui.GLElementFactory">
       <factory
-            factory="v2.ui.LabelElementFactory"
+            factory="org.caleydo.view.domino.internal.ui.LabelElementFactory"
             icon="resources/icons/icon.png"
             name="Labels"
             scaleType="dataDependent">
       </factory>
       <factory
-            factory="v2.ui.AxisElementFactory"
+            factory="org.caleydo.view.domino.internal.ui.AxisElementFactory"
             icon="resources/icons/icon.png"
             name="Axis"
             scaleType="fix">

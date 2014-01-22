@@ -13,6 +13,10 @@ import org.caleydo.core.view.opengl.layout2.dnd.IDnDItem;
 import org.caleydo.core.view.opengl.layout2.dnd.IDragGLSource;
 import org.caleydo.core.view.opengl.layout2.dnd.IDragInfo;
 import org.caleydo.view.domino.api.model.typed.TypedSet;
+import org.caleydo.view.domino.internal.Node;
+import org.caleydo.view.domino.internal.data.IDataValues;
+import org.caleydo.view.domino.internal.data.LabelDataValues;
+import org.caleydo.view.domino.internal.dnd.NodeDragInfo;
 import org.caleydo.view.domino.internal.dnd.PerspectiveDragInfo;
 import org.caleydo.view.domino.internal.dnd.SetDragInfo;
 import org.caleydo.view.domino.internal.dnd.TablePerspectiveDragInfo;
@@ -21,11 +25,6 @@ import org.caleydo.view.tourguide.api.model.IPerspectiveScoreRow;
 import org.caleydo.view.tourguide.api.model.ITablePerspectiveScoreRow;
 import org.caleydo.view.tourguide.api.model.PathwayPerspectiveRow;
 import org.caleydo.view.tourguide.api.model.SingleIDPerspectiveRow;
-
-import v2.Node;
-import v2.data.IDataValues;
-import v2.data.LabelDataValues;
-import v2.dnd.NodeDragInfo;
 
 import com.google.common.collect.ImmutableSet;
 

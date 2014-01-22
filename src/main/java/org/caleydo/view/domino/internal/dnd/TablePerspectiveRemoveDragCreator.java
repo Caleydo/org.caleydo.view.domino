@@ -11,8 +11,7 @@ import org.caleydo.core.data.perspective.table.TablePerspective;
 import org.caleydo.core.view.opengl.layout2.GLElement;
 import org.caleydo.core.view.opengl.layout2.dnd.IDragInfo;
 import org.caleydo.core.view.opengl.layout2.dnd.IRemoteDragInfoUICreator;
-
-import v2.Domino;
+import org.caleydo.view.domino.internal.Domino;
 
 /**
  * @author Samuel Gratzl
