@@ -50,12 +50,14 @@ import org.caleydo.view.domino.api.model.typed.ITypedComparator;
 import org.caleydo.view.domino.api.model.typed.TypedCollections;
 import org.caleydo.view.domino.api.model.typed.TypedGroupList;
 import org.caleydo.view.domino.api.model.typed.TypedGroupSet;
+import org.caleydo.view.domino.api.model.typed.TypedGroups;
 import org.caleydo.view.domino.api.model.typed.TypedList;
 import org.caleydo.view.domino.api.model.typed.TypedListGroup;
 import org.caleydo.view.domino.api.model.typed.TypedSet;
 import org.caleydo.view.domino.api.model.typed.TypedSetGroup;
 import org.caleydo.view.domino.internal.data.IDataValues;
 import org.caleydo.view.domino.internal.data.TransposedDataValues;
+import org.caleydo.view.domino.internal.dnd.DragElement;
 import org.caleydo.view.domino.internal.dnd.NodeDragInfo;
 import org.caleydo.view.domino.internal.dnd.NodeGroupDragInfo;
 import org.caleydo.view.domino.internal.event.HideNodeEvent;
@@ -388,6 +390,13 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 			this.dropSetOperation = type;
 			repaint();
 		}
+		final Domino domino = findParent(Domino.class);
+		if (domino == null)
+			return;
+		DragElement current = domino.getCurrentlyDraggedVis();
+		if (current == null)
+			return;
+		current.setVisibility(EVisibility.HIDDEN);
 	}
 
 	@Override
@@ -407,12 +416,17 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 			dropNode(g.getGroup().toNode(), mousePos);
 		} else if (info instanceof NodeDragInfo) {
 			NodeDragInfo g = (NodeDragInfo) info;
-			dropNode(item.getType() == EDnDType.COPY ? new Node(g.getNode()) : g.getNode(), mousePos);
+			Node n = g.getNode();
+			if (item.getType() == EDnDType.COPY)
+				n = new Node(n);
+			dropNode(n, mousePos);
 		} else {
 			Node node = Nodes.extract(item);
 			if (node != null)
 				dropNode(node, mousePos);
 		}
+		dropSetOperation = null;
+		repaint();
 	}
 
 	public Set<EDimension> dimensions() {
@@ -436,18 +450,18 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 		domino.removeNode(node);
 		EDimension dim = getSingleGroupingDimension();
 		final ESetOperation type = toSetType(mousePos);
-		TypedGroupList a = getData(dim);
+		TypedGroupSet a = getUnderlyingData(dim);
 		TypedGroupList b = node.getData(dim);
 		TypedGroupSet r;
 		switch (type) {
 		case INTERSECTION:
-			r = NodeOperations.intersect(a, b);
+			r = TypedGroups.intersect(a, b);
 			break;
 		case UNION:
-			r = NodeOperations.union(a, b);
+			r = TypedGroups.union(a, b);
 			break;
 		case DIFFERENCE:
-			r = NodeOperations.difference(a, b);
+			r = TypedGroups.difference(a, b);
 			break;
 		default:
 			throw new IllegalStateException();
@@ -901,7 +915,7 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 		return get(dim).getIdType();
 	}
 
-	public TypedGroupSet getGroups(EDimension dim) {
+	public TypedGroupSet getUnderlyingData(EDimension dim) {
 		return dim.select(dimGroups, recGroups);
 	}
 
@@ -916,7 +930,7 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 		if (!hasA && !hasB)
 			return 0;
 		// check groups
-		TypedGroupSet groups = getGroups(dim);
+		TypedGroupSet groups = getUnderlyingData(dim);
 		int groupA = indexOf(groups, a);
 		int groupB = indexOf(groups, b);
 		if ((r = Integer.compare(groupA, groupB)) != 0)

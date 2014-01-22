@@ -269,11 +269,11 @@ public class LinearBlock extends AbstractCollection<Node> {
 	 * @return
 	 */
 	private MultiTypedSet intersectSome() {
-		TypedSet dataSelection = this.dataSelection.getGroups(dim.opposite());
+		TypedSet dataSelection = this.dataSelection.getUnderlyingData(dim.opposite());
 		Collection<TypedSet> all = Collections2.transform(nodes, new Function<Node, TypedSet>() {
 			@Override
 			public TypedSet apply(Node input) {
-				return input.getGroups(dim.opposite());
+				return input.getUnderlyingData(dim.opposite());
 			}
 		});
 		MultiTypedSet intersect = TypedSets.intersect(dataSelection);
@@ -284,7 +284,7 @@ public class LinearBlock extends AbstractCollection<Node> {
 		Collection<TypedSet> sets = Collections2.transform(nodes, new Function<Node, TypedSet>() {
 			@Override
 			public TypedSet apply(Node input) {
-				return input.getGroups(dim.opposite());
+				return input.getUnderlyingData(dim.opposite());
 			}
 		});
 		return TypedSets.unionDeep(sets.toArray(new TypedSet[0]));
@@ -320,7 +320,7 @@ public class LinearBlock extends AbstractCollection<Node> {
 		final Node sortedBy = sortCriteria.get(0);
 		final Node selected = dataSelection;
 
-		List<TypedSetGroup> groups = sortedBy.getGroups(dim.opposite()).getGroups();
+		List<TypedSetGroup> groups = sortedBy.getUnderlyingData(dim.opposite()).getGroups();
 		if (selected == sortedBy) // 1:1 mapping
 			return groups;
 		List<ITypedGroup> g = new ArrayList<>(groups.size() + 1);

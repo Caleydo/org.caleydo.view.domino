@@ -17,7 +17,7 @@ import com.google.common.collect.Lists;
  * @author Samuel Gratzl
  *
  */
-public class TypedGroupSet extends TypedSet {
+public class TypedGroupSet extends TypedSet implements ITypedGroupCollection {
 	private final List<TypedSetGroup> groups;
 
 	public TypedGroupSet(List<TypedSetGroup> groups) {

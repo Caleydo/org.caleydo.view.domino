@@ -22,7 +22,7 @@ import com.google.common.collect.Sets;
  * @author Samuel Gratzl
  *
  */
-public class TypedGroupList extends TypedList {
+public class TypedGroupList extends TypedList implements ITypedGroupCollection {
 	private final List<TypedListGroup> groups;
 
 	public TypedGroupList(List<TypedListGroup> groups) {
@@ -84,6 +84,7 @@ public class TypedGroupList extends TypedList {
 	/**
 	 * @return the groups, see {@link #groups}
 	 */
+	@Override
 	public List<TypedListGroup> getGroups() {
 		return groups;
 	}

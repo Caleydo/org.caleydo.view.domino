@@ -185,7 +185,7 @@ public class Block extends GLElementContainer implements IGLLayout2 {
 				continue;
 			if (b.isStratisfied())
 				continue;
-			if (node.getGroups(dim).getGroups().size() <= 1)
+			if (node.getUnderlyingData(dim).getGroups().size() <= 1)
 				continue;
 			sortBy(node, dim);
 		}
