@@ -21,7 +21,6 @@ import org.caleydo.core.data.collection.EDimension;
 import org.caleydo.core.event.EventListenerManager.DeepScan;
 import org.caleydo.core.event.EventListenerManager.ListenTo;
 import org.caleydo.core.id.IDType;
-import org.caleydo.core.id.IIDTypeMapper;
 import org.caleydo.core.util.base.ILabeled;
 import org.caleydo.core.util.base.Labels;
 import org.caleydo.core.util.collection.Pair;
@@ -48,7 +47,6 @@ import org.caleydo.core.view.opengl.picking.Pick;
 import org.caleydo.view.domino.api.model.graph.EDirection;
 import org.caleydo.view.domino.api.model.graph.EProximityMode;
 import org.caleydo.view.domino.api.model.typed.ITypedComparator;
-import org.caleydo.view.domino.api.model.typed.MappingCaches;
 import org.caleydo.view.domino.api.model.typed.TypedCollections;
 import org.caleydo.view.domino.api.model.typed.TypedGroupList;
 import org.caleydo.view.domino.api.model.typed.TypedGroupSet;
@@ -58,7 +56,6 @@ import org.caleydo.view.domino.api.model.typed.TypedSet;
 import org.caleydo.view.domino.api.model.typed.TypedSetGroup;
 import org.caleydo.view.domino.internal.data.IDataValues;
 import org.caleydo.view.domino.internal.data.TransposedDataValues;
-import org.caleydo.view.domino.internal.dnd.MultiNodeGroupDragInfo;
 import org.caleydo.view.domino.internal.dnd.NodeDragInfo;
 import org.caleydo.view.domino.internal.dnd.NodeGroupDragInfo;
 import org.caleydo.view.domino.internal.event.HideNodeEvent;
@@ -80,10 +77,11 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 
 	static final float BORDER = 2;
 
-	private Node[] neighbors = new Node[4];
+	private final Node origin;
+	private final Node[] neighbors = new Node[4];
 	private float[] offsets = new float[4];
-
 	private final String label;
+
 	IDataValues data;
 
 	private TypedGroupList dimData;
@@ -102,9 +100,8 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 	// else local factor
 	private final Map<String, Vec2f> scaleFactors = new HashMap<>();
 
-	private boolean highlightDropArea;
+	private ESetOperation dropSetOperation = null;
 
-	private final Node origin;
 
 	private String visualizationType;
 
@@ -232,12 +229,94 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 			g.drawText(b.getStateString(this, EDimension.DIMENSION), w + 2, h - 12, 100, 10);
 		}
 
-		super.renderImpl(g, w, h);
+		if (dropSetOperation == null) {
+			super.renderImpl(g, w, h);
+		} else
+			renderDropHints(g, w, h);
 
 		// render detached bands
 		dimDetached.renderImpl(g, w, h);
 		recDetached.renderImpl(g, w, h);
 
+
+	}
+
+	private void renderDropHints(GLGraphics g, float w, float h) {
+		if (useRectDropHint(w, h)) {
+			renderRectDropHints(g, w, h);
+		} else {
+			renderLinearDropHints(g, w, h, getSingleGroupingDimension());
+		}
+	}
+
+	private static boolean useRectDropHint(float w, float h) {
+		float aspectRatio = w / h;
+		return 0.95f <= aspectRatio && aspectRatio <= 1.05f;
+	}
+
+	private final ESetOperation toSetType(Vec2f l) {
+		Vec2f size = getSize();
+		final int c = ESetOperation.values().length;
+		int index;
+		if (useRectDropHint(size.x(),size.y())) {
+			final int rows = (int) Math.sqrt(c + c % 2);
+			final int cols = (int) Math.ceil(c / (float) rows);
+			int row = Math.min((int) ((l.y() / size.y()) * rows), rows - 1);
+			int col = Math.min((int) ((l.x() / size.x()) * cols), cols - 1);
+			index = Math.min(row * cols + col, c - 1);
+		} else {
+			EDimension dim = getSingleGroupingDimension();
+			float ratio = dim.select(l) / dim.select(size);
+			index = Math.min((int) (ratio * c), c - 1);
+		}
+		return ESetOperation.values()[index];
+	}
+
+	private void renderLinearDropHints(GLGraphics g, float w, float h, EDimension dim) {
+		ESetOperation[] vs = ESetOperation.values();
+		if (dim.isHorizontal()) {
+			float wi = w / vs.length;
+			float hi = Math.min(h * 0.8f, wi);
+			for (int i = 0; i < vs.length; ++i) {
+				final float x = i * wi + (wi - hi) * 0.5f;
+				final ESetOperation op = vs[i];
+				g.fillImage(op.toIcon(), x, (h - hi) * 0.5f, hi, hi);
+				if (op == dropSetOperation)
+					g.color(Color.BLACK).drawRoundedRect(x, (h - hi) * 0.5f, hi, hi, 5);
+			}
+		} else {
+			float hi = h / vs.length; // union double
+			float wi = Math.min(w * 0.8f, hi);
+			for (int i = 0; i < vs.length; ++i) {
+				final float y = i * hi + (hi - wi) * 0.5f;
+				final ESetOperation op = vs[i];
+				g.fillImage(op.toIcon(), (w - wi) * 0.5f, y, wi, wi);
+				if (op == dropSetOperation)
+					g.color(Color.BLACK).drawRoundedRect((w - wi) * 0.5f, y, wi, wi, 5);
+			}
+		}
+	}
+
+	private void renderRectDropHints(GLGraphics g, float w, float h) {
+		ESetOperation[] vs = ESetOperation.values();
+		int rows = (int) Math.sqrt(vs.length + vs.length % 2);
+		int cols = (int) Math.ceil(vs.length / (float) rows);
+		int k = 0;
+		float wi = w / cols;
+		float hi = h / rows;
+		float si = Math.min(wi * 0.8f, hi * 0.8f);
+		outer: for (int j = 0; j < rows; ++j) {
+			float y = j * hi + (hi - si) * 0.5f;
+			for (int i = 0; i < cols; ++i) {
+				ESetOperation op = vs[k++];
+				float x = i * wi + (wi - si) * 0.5f;
+				g.fillImage(op.toIcon(), x, y, si, si);
+				if (op == dropSetOperation)
+					g.color(Color.BLACK).drawRoundedRect(x, y, si, si, 5);
+				if (k >= vs.length)
+					break outer;
+			}
+		}
 	}
 
 	@Override
@@ -259,7 +338,7 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 			break;
 		case MOUSE_OUT:
 			context.getMouseLayer().removeDropTarget(this);
-			highlightDropArea = false;
+			dropSetOperation = null;
 			mouseOver = false;
 			repaint();
 			break;
@@ -273,13 +352,13 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 
 	@Override
 	public boolean canSWTDrop(IDnDItem item) {
-		if (!(item.getInfo() instanceof NodeDragInfo))
-			return false;
-		NodeDragInfo d = (NodeDragInfo) item.getInfo();
-		final Node b = d.getNode();
-		if (b == this || b == null)
-			return false;
 		if (has(EDimension.DIMENSION) && has(EDimension.RECORD))
+			return false;
+		Node b = toNode(item);
+		if (b == this || b == null
+				|| (item.getInfo() instanceof NodeDragInfo && ((NodeDragInfo) item.getInfo()).getNode() == this))
+			return false;
+		if (b.has(EDimension.DIMENSION) && b.has(EDimension.RECORD))
 			return false;
 		for (EDimension dim : EDimension.values())
 			if (!getIdType(dim).getIDCategory().isOfCategory(b.getIdType(dim)))
@@ -287,10 +366,26 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 		return true;
 	}
 
+	/**
+	 * @param item
+	 * @return
+	 */
+	private Node toNode(IDnDItem item) {
+		IDragInfo info = item.getInfo();
+		if (info instanceof NodeDragInfo)
+			return ((NodeDragInfo) info).getNode();
+		else if (info instanceof NodeGroupDragInfo)
+			return ((NodeGroupDragInfo) info).getNode();
+		else if (Nodes.canExtract(item))
+			return Nodes.extract(item);
+		return null;
+	}
+
 	@Override
 	public void onItemChanged(IDnDItem item) {
-		if (!highlightDropArea) {
-			highlightDropArea = true;
+		final ESetOperation type = toSetType(toRelative(item.getMousePos()));
+		if (this.dropSetOperation != type) {
+			this.dropSetOperation = type;
 			repaint();
 		}
 	}
@@ -313,11 +408,10 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 		} else if (info instanceof NodeDragInfo) {
 			NodeDragInfo g = (NodeDragInfo) info;
 			dropNode(item.getType() == EDnDType.COPY ? new Node(g.getNode()) : g.getNode(), mousePos);
-		} else if (info instanceof MultiNodeGroupDragInfo) {
-			// won't work
 		} else {
 			Node node = Nodes.extract(item);
-			dropNode(node, mousePos);
+			if (node != null)
+				dropNode(node, mousePos);
 		}
 	}
 
@@ -341,15 +435,28 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 		Domino domino = findParent(Domino.class);
 		domino.removeNode(node);
 		EDimension dim = getSingleGroupingDimension();
-		TypedGroupList m = node.getData(dim);
-		integrate(m, toSetType(mousePos.y(), getSize().y()));
-
+		final ESetOperation type = toSetType(mousePos);
+		TypedGroupList a = getData(dim);
+		TypedGroupList b = node.getData(dim);
+		TypedGroupSet r;
+		switch (type) {
+		case INTERSECTION:
+			r = NodeOperations.intersect(a, b);
+			break;
+		case UNION:
+			r = NodeOperations.union(a, b);
+			break;
+		case DIFFERENCE:
+			r = NodeOperations.difference(a, b);
+			break;
+		default:
+			throw new IllegalStateException();
+		}
+		setUnderlyingData(dim, r);
+		triggerResort(dim);
 	}
 
-	private final ESetOperation toSetType(float v, float total) {
-		// TODO Auto-generated method stub
-		return ESetOperation.OR;
-	}
+
 
 	public void removeMe() {
 		Domino domino = findParent(Domino.class);
@@ -508,26 +615,6 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 		return r;
 	}
 
-	public void integrate(TypedGroupList group, ESetOperation setOperation) {
-		EDimension dim = getSingleGroupingDimension();
-		if (dim == null)
-			return;
-		IIDTypeMapper<Integer, Integer> mapper = MappingCaches.findMapper(group.getIdType(), getIdType(dim));
-		if (mapper == null)
-			return;
-
-		List<TypedListGroup> d = new ArrayList<>(getData(dim).getGroups());
-		for (TypedListGroup g : group.getGroups()) {
-			final TypedListGroup group2 = new TypedSetGroup(mapper.apply(group), mapper.getTarget(), g.getLabel(),
-					g.getColor()).asList();
-			d.add(group2);
-		}
-
-		TypedGroupList l = new TypedGroupList(d);
-		setGroups(dim, l.asSet());
-		triggerResort(dim);
-	}
-
 	public void merge(Collection<NodeGroup> groups) {
 		if (groups.size() < 2)
 			return;
@@ -550,7 +637,7 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 				Collections2.transform(r, Labels.TO_LABEL), ", "), mixColors(r));
 		d.add(mg.asList());
 		TypedGroupList l = new TypedGroupList(d);
-		setGroups(dim, l.asSet());
+		setUnderlyingData(dim, l.asSet());
 		triggerResort(dim);
 	}
 
@@ -613,7 +700,7 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 		}
 
 		TypedGroupList l = new TypedGroupList(d);
-		setGroups(dim, l.asSet());
+		setUnderlyingData(dim, l.asSet());
 		triggerResort(dim);
 	}
 
@@ -635,7 +722,7 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 	 * @param dim
 	 * @param l
 	 */
-	private void setGroups(EDimension dim, TypedGroupSet data) {
+	private void setUnderlyingData(EDimension dim, TypedGroupSet data) {
 		if (dim.isDimension())
 			dimGroups = data;
 		else
@@ -655,12 +742,6 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 		return findBlock();
 	}
 
-	/**
-	 * @return
-	 */
-	private Iterable<NodeGroup> groups() {
-		return nodeGroups();
-	}
 	/**
 	 * @param n
 	 * @return
@@ -919,7 +1000,7 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 	 * @param pickable
 	 */
 	public void setContentPickable(boolean pickable) {
-		for (NodeGroup g : groups()) {
+		for (NodeGroup g : nodeGroups()) {
 			g.setContentPickable(pickable);
 		}
 	}

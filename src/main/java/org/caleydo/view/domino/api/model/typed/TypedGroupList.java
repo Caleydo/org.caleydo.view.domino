@@ -9,12 +9,14 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 
+import org.caleydo.view.domino.api.model.typed.util.BitSetSet;
 import org.caleydo.view.domino.api.model.typed.util.ConcatedList;
 
-import com.google.common.base.Function;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Sets;
 
 /**
  * @author Samuel Gratzl
@@ -40,13 +42,20 @@ public class TypedGroupList extends TypedList {
 
 	@Override
 	public TypedGroupSet asSet() {
-		return new TypedGroupSet(ImmutableList.copyOf(Lists.transform(groups,
-				new Function<TypedListGroup, TypedSetGroup>() {
-					@Override
-					public TypedSetGroup apply(TypedListGroup input) {
-						return input.asSet();
-					}
-				})));
+		//more difficult to convert a group to a set, since duplicates in different groups may occur
+		Set<Integer> acc = new BitSetSet();
+		List<TypedSetGroup> groups = new ArrayList<>();
+		for(TypedListGroup g : getGroups()) {
+			TypedSetGroup s = g.asSet();
+			if (!acc.isEmpty()) {
+				s = new TypedSetGroup(ImmutableSet.copyOf(Sets.difference(s, acc)), s.getIdType(),s.getLabel(),s.getColor());
+			}
+			if (s.isEmpty())
+				continue;
+			acc.addAll(s);
+			groups.add(s);
+		}
+		return new TypedGroupSet(groups);
 	}
 
 	/**

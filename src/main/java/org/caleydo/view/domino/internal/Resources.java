@@ -61,6 +61,10 @@ public class Resources {
 
 	public static final URL ICON_TRANSPOSE = icon("transform_rotate.png");
 
+	public static final URL ICON_SET_UNION = icon("setop_union.png");
+	public static final URL ICON_SET_INTERSECT = icon("setop_intersection.png");
+	public static final URL ICON_SET_DIFFERENCE = icon("setop_diff.png");
+
 	/**
 	 * @param string
 	 * @return

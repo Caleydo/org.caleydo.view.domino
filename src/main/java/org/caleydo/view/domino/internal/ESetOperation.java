@@ -5,10 +5,24 @@
  *******************************************************************************/
 package org.caleydo.view.domino.internal;
 
+import java.net.URL;
+
 /**
  * @author Samuel Gratzl
  *
  */
 public enum ESetOperation {
-	AND, OR, XOR
+	INTERSECTION, UNION, DIFFERENCE;
+
+	public URL toIcon() {
+		switch (this) {
+		case INTERSECTION:
+			return Resources.ICON_SET_INTERSECT;
+		case UNION:
+			return Resources.ICON_SET_UNION;
+		case DIFFERENCE:
+			return Resources.ICON_SET_DIFFERENCE;
+		}
+		throw new IllegalStateException();
+	}
 }
