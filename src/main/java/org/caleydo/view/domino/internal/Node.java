@@ -56,6 +56,7 @@ import org.caleydo.view.domino.api.model.typed.TypedListGroup;
 import org.caleydo.view.domino.api.model.typed.TypedSet;
 import org.caleydo.view.domino.api.model.typed.TypedSetGroup;
 import org.caleydo.view.domino.internal.data.IDataValues;
+import org.caleydo.view.domino.internal.data.StratificationDataValue;
 import org.caleydo.view.domino.internal.data.TransposedDataValues;
 import org.caleydo.view.domino.internal.dnd.DragElement;
 import org.caleydo.view.domino.internal.dnd.NodeDragInfo;
@@ -406,9 +407,7 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 
 	@Override
 	public EDnDType defaultSWTDnDType(IDnDItem item) {
-		if (item.getInfo() instanceof NodeGroupDragInfo)
-			return EDnDType.COPY;
-		return EDnDType.MOVE;
+		return EDnDType.COPY;
 	}
 
 	@Override
@@ -418,17 +417,17 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 		IDragInfo info = item.getInfo();
 		if (info instanceof NodeGroupDragInfo) {
 			NodeGroupDragInfo g = (NodeGroupDragInfo) info;
-			dropNode(g.getGroup().toNode(), mousePos);
+			mergeNode(g.getGroup().toNode(), mousePos);
 		} else if (info instanceof NodeDragInfo) {
 			NodeDragInfo g = (NodeDragInfo) info;
 			Node n = g.getNode();
 			if (item.getType() == EDnDType.COPY)
 				n = new Node(n);
-			dropNode(n, mousePos);
+			mergeNode(n, mousePos);
 		} else {
 			Node node = Nodes.extract(item);
 			if (node != null)
-				dropNode(node, mousePos);
+				mergeNode(node, mousePos);
 		}
 		dropSetOperation = null;
 		repaint();
@@ -450,7 +449,7 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 	 * @param node
 	 * @param mousePos
 	 */
-	private void dropNode(Node node, Vec2f mousePos) {
+	private void mergeNode(Node node, Vec2f mousePos) {
 		Domino domino = findParent(Domino.class);
 		domino.removeNode(node);
 		EDimension dim = getSingleGroupingDimension();
@@ -464,6 +463,8 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 			break;
 		case UNION:
 			r = TypedGroups.union(a, b);
+			// we need a new data as we have the super set
+			this.data = new StratificationDataValue(getLabel(), r, dim);
 			break;
 		case DIFFERENCE:
 			r = TypedGroups.difference(a, b);
@@ -959,6 +960,9 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 		};
 	}
 
+	public void stratifyByMe(EDimension dim) {
+		findBlock().stratifyBy(this, dim);
+	}
 	public void sortByMe(EDimension dim) {
 		findBlock().sortBy(this, dim);
 	}

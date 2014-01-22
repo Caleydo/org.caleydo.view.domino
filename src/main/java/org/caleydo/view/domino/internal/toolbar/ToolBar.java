@@ -141,10 +141,13 @@ public class ToolBar extends GLElementContainer implements ICallback<SelectionTy
 						for (Block block : blocks)
 							if (!((Node) block.get(0)).has(dim))
 								continue outer;
-						if (dim.isHorizontal())
+						if (dim.isHorizontal()) {
 							addButton("Sort Dims", Resources.ICON_SORT_DIM);
-						else
+							addButton("Stratify Dims", Resources.ICON_SORT_DIM);
+						} else {
 							addButton("Sort Recs", Resources.ICON_SORT_REC);
+							addButton("Stratify Recs", Resources.ICON_SORT_REC);
+						}
 					}
 					addButton("Transpose Blocks", Resources.ICON_TRANSPOSE);
 				}
@@ -225,9 +228,11 @@ public class ToolBar extends GLElementContainer implements ICallback<SelectionTy
 		private void addSingleNode(Node node) {
 			if (node.has(EDimension.DIMENSION)) {
 				addButton("Sort Dim", Resources.ICON_SORT_DIM);
+				addButton("Stratify Dim", Resources.ICON_SORT_DIM);
 			}
 			if (node.has(EDimension.RECORD)) {
 				addButton("Sort Rec", Resources.ICON_SORT_REC);
+				addButton("Stratify Rec", Resources.ICON_SORT_REC);
 			}
 			final boolean recAlone = node.isAlone(EDimension.RECORD);
 			if (node.has(EDimension.DIMENSION) && !recAlone) {
@@ -260,28 +265,29 @@ public class ToolBar extends GLElementContainer implements ICallback<SelectionTy
 		@Override
 		public void onSelectionChanged(GLButton button, boolean selected) {
 			NodeGroup node = selection.iterator().next();
+			EDimension dim = EDimension.get(button.getTooltip().contains("Dim"));
 			switch (button.getTooltip()) {
 			case "Sort Dim":
-				node.getNode().sortByMe(EDimension.DIMENSION);
+			case "Sort Rec":
+				node.getNode().sortByMe(dim);
 				break;
 			case "Sort Dims":
-				for (Block b : NodeSelections.getFullBlocks(selection)) {
-					((Node) b.get(0)).sortByMe(EDimension.DIMENSION);
-				}
-				break;
-			case "Sort Rec":
-				node.getNode().sortByMe(EDimension.RECORD);
-				break;
 			case "Sort Recs":
-				for (Block b : NodeSelections.getFullBlocks(selection)) {
-					((Node) b.get(0)).sortByMe(EDimension.RECORD);
-				}
+				for (Block b : NodeSelections.getFullBlocks(selection))
+					((Node) b.get(0)).sortByMe(dim);
+				break;
+			case "Stratify Dim":
+			case "Stratify Rec":
+				node.getNode().stratifyByMe(dim);
+				break;
+			case "Stratify Dims":
+			case "Stratify Recs":
+				for (Block b : NodeSelections.getFullBlocks(selection))
+					((Node) b.get(0)).stratifyByMe(dim);
 				break;
 			case "Limit Dim":
-				node.getNode().limitToMe(EDimension.DIMENSION);
-				break;
 			case "Limit Rec":
-				node.getNode().limitToMe(EDimension.RECORD);
+				node.getNode().limitToMe(dim);
 				break;
 			case "Remove Node":
 				node.getNode().removeMe();
@@ -324,9 +330,8 @@ public class ToolBar extends GLElementContainer implements ICallback<SelectionTy
 				node.getNode().transpose();
 				break;
 			case "Transpose Blocks":
-				for (Block b : NodeSelections.getFullBlocks(selection)) {
+				for (Block b : NodeSelections.getFullBlocks(selection))
 					((Node) b.get(0)).transpose();
-				}
 				break;
 			}
 		}

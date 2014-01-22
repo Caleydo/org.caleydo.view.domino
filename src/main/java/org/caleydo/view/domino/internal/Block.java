@@ -385,13 +385,21 @@ public class Block extends GLElementContainer implements IGLLayout2 {
 	 * @param node
 	 * @param dim
 	 */
-	public void sortBy(Node node, EDimension dim) {
+	public void sortByImpl(Node node, EDimension dim, boolean forceStratify) {
 		LinearBlock block = getBlock(node, dim.opposite());
 		if (block == null)
 			return;
-		block.sortBy(node);
+		block.sortBy(node, forceStratify);
 		realign(node);
 		updateBlock();
+	}
+
+	public void sortBy(Node node, EDimension dim) {
+		sortByImpl(node, dim, false);
+	}
+
+	public void stratifyBy(Node node, EDimension dim) {
+		sortByImpl(node, dim, true);
 	}
 
 	public void limitTo(Node node, EDimension dim) {

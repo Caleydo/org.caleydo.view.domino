@@ -93,30 +93,53 @@ public final class TypedGroups {
 	 * @param b
 	 * @return
 	 */
-	public static TypedGroupSet union(ITypedGroupCollection a, TypedGroupList b) {
-		// convert to the primary one??
-		// FIXME FIXME
-		if (a.getIdType() != b.getIdType())
-			System.err.println("NOT WORKING, as it is at most all of a");
-		TypedGroupSet base = a.asSet();
+	public static TypedGroupSet union(ITypedGroupCollection a, ITypedGroupCollection b) {
+		if (a.isEmpty())
+			return b.asSet();
+		if (b.isEmpty())
+			return a.asSet();
+		if (a.getIdType() == b.getIdType()) {
+			TypedGroupSet base = a.asSet();
+			Set<Integer> acc = new BitSetSet();
+			acc.addAll(base);
+			List<TypedSetGroup> groups = new ArrayList<>(base.getGroups());
 
-		IIDTypeMapper<Integer, Integer> mapper = MappingCaches.findMapper(b.getIdType(), a.getIdType());
-		if (mapper == null)
-			return base;
+			for (ITypedGroup g : b.getGroups()) {
+				Set<Integer> ids = g.asSet();
+				ids = ImmutableSet.copyOf(Sets.difference(ids, acc));
+				if (ids.isEmpty())
+					continue;
+				acc.addAll(ids);
+				groups.add(new TypedSetGroup(ids, a.getIdType(), g.getLabel(), g.getColor()));
+			}
+			return asSet(groups, a.getIdType());
+		} else {
+			// map both to primary to ensure both can be represented
+			final IDType target = a.getIdType().getIDCategory().getPrimaryMappingType();
 
-		Set<Integer> acc = new BitSetSet();
-		acc.addAll(base);
-		List<TypedSetGroup> groups = new ArrayList<>(base.getGroups());
+			Set<Integer> acc = new BitSetSet();
+			List<TypedSetGroup> groups = new ArrayList<>();
 
-		for (TypedListGroup g : b.getGroups()) {
-			Set<Integer> ids = mapper.apply(g);
-			ids = ImmutableSet.copyOf(Sets.difference(ids, acc));
-			if (ids.isEmpty())
-				continue;
-			acc.addAll(ids);
-			groups.add(new TypedSetGroup(ids, a.getIdType(), g.getLabel(), g.getColor()));
+			IIDTypeMapper<Integer, Integer> mapper = MappingCaches.findMapper(a.getIdType(), target);
+			for (ITypedGroup g : a.getGroups()) {
+				Set<Integer> ids = mapper.apply(g);
+				ids = acc.isEmpty() ? ids : ImmutableSet.copyOf(Sets.difference(ids, acc));
+				if (ids.isEmpty())
+					continue;
+				acc.addAll(ids);
+				groups.add(new TypedSetGroup(ids, target, g.getLabel(), g.getColor()));
+			}
+			mapper = MappingCaches.findMapper(b.getIdType(), target);
+			for (ITypedGroup g : b.getGroups()) {
+				Set<Integer> ids = mapper.apply(g);
+				ids = acc.isEmpty() ? ids : ImmutableSet.copyOf(Sets.difference(ids, acc));
+				if (ids.isEmpty())
+					continue;
+				acc.addAll(ids);
+				groups.add(new TypedSetGroup(ids, target, g.getLabel(), g.getColor()));
+			}
+			return asSet(groups, target);
 		}
-		return asSet(groups, a.getIdType());
 	}
 
 	/**

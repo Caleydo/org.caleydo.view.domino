@@ -390,8 +390,9 @@ public class LinearBlock extends AbstractCollection<Node> {
 
 	/**
 	 * @param node
+	 * @param forceStratify
 	 */
-	public boolean sortBy(Node node) {
+	public boolean sortBy(Node node, boolean forceStratify) {
 		if (nodes.size() == 1) {
 			this.stratified = !this.stratified;
 			update();
@@ -401,7 +402,9 @@ public class LinearBlock extends AbstractCollection<Node> {
 		int index = sortCriteria.indexOf(node);
 		if (index == 0 && stratified) {
 			stratified = false;
-		} else if (index == 0)
+		} else if (index == 0 && forceStratify)
+			stratified = true;
+		else if (index == 0)
 			sortCriteria.remove(index);
 		if (index != 0) {
 			sortCriteria.add(0, node);
