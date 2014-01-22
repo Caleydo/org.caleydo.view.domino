@@ -17,6 +17,6 @@ public class VisualizationTypeOracle {
 
 	public static boolean stratifyByDefault(String visualizationType) {
 		IGLElementMetaData metaData = GLElementFactories.getMetaData(visualizationType);
-		return metaData != null && metaData.getScaleType() == EVisScaleType.DATA_DEPENDENT;
+		return metaData != null && metaData.getScaleType() == EVisScaleType.DATADEPENDENT;
 	}
 }

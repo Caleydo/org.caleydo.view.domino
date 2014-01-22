@@ -3,7 +3,7 @@
  * Copyright (c) The Caleydo Team. All rights reserved.
  * Licensed under the new BSD license, available at http://caleydo.org/license
  *******************************************************************************/
-package org.caleydo.view.domino.internal.tourguide.vis;
+package org.caleydo.view.domino.internal.tourguide.ui;
 
 import java.util.Comparator;
 import java.util.Set;

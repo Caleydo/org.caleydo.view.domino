@@ -3,7 +3,7 @@
  * Copyright (c) The Caleydo Team. All rights reserved.
  * Licensed under the new BSD license, available at http://caleydo.org/license
  *******************************************************************************/
-package org.caleydo.view.domino.internal.util;
+package org.caleydo.view.domino.api.model.typed.util;
 
 import java.util.AbstractSet;
 import java.util.BitSet;
@@ -35,6 +35,17 @@ public class BitSetSet extends AbstractSet<Integer> {
 	 */
 	public BitSetSet(BitSet bitSet) {
 		this.bitSet = bitSet;
+	}
+
+	/**
+	 * @param per
+	 * @return
+	 */
+	public static BitSetSet of(Iterable<Integer> it) {
+		BitSetSet r = new BitSetSet();
+		for (Integer id : it)
+			r.add(id);
+		return r;
 	}
 
 	@Override
@@ -78,6 +89,7 @@ public class BitSetSet extends AbstractSet<Integer> {
 		return bitSet;
 	}
 
+
 	@Override
 	public Iterator<Integer> iterator() {
 		return new Iterator<Integer>() {
@@ -106,5 +118,4 @@ public class BitSetSet extends AbstractSet<Integer> {
 	public int size() {
 		return bitSet.cardinality();
 	}
-
 }

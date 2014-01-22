@@ -24,7 +24,7 @@ public enum EProximityMode implements Predicate<String> {
 	 */
 	@Override
 	public boolean apply(String input) {
-		if (this == ATTACHED && getScaleType(input) != EVisScaleType.DATA_DEPENDENT)
+		if (this == ATTACHED && getScaleType(input) != EVisScaleType.DATADEPENDENT)
 			return false;
 		return true;
 	}

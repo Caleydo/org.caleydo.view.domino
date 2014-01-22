@@ -25,7 +25,7 @@ import org.caleydo.view.domino.api.model.typed.TypedGroupSet;
 import org.caleydo.view.domino.api.model.typed.TypedListGroup;
 import org.caleydo.view.domino.api.model.typed.TypedSet;
 import org.caleydo.view.domino.api.model.typed.TypedSetGroup;
-import org.caleydo.view.domino.internal.util.BitSetSet;
+import org.caleydo.view.domino.api.model.typed.util.BitSetSet;
 
 import com.google.common.base.Function;
 import com.google.common.collect.ImmutableSet;

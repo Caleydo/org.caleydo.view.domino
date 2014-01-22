@@ -23,7 +23,7 @@ import org.caleydo.core.view.opengl.layout2.layout.IGLLayoutElement;
 import org.caleydo.core.view.opengl.layout2.renderer.GLRenderers;
 import org.caleydo.view.domino.internal.Domino;
 import org.caleydo.view.domino.internal.Resources;
-import org.caleydo.view.domino.internal.tourguide.vis.EntityTypeSelector;
+import org.caleydo.view.domino.internal.tourguide.ui.EntityTypeSelector;
 import org.caleydo.view.domino.internal.ui.DragLabelButton;
 import org.caleydo.view.domino.internal.ui.DragSelectionButton;
 

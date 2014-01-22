@@ -16,7 +16,7 @@ import java.util.Set;
 
 import org.caleydo.core.data.virtualarray.VirtualArray;
 import org.caleydo.core.id.IDType;
-import org.caleydo.view.domino.internal.util.BitSetSet;
+import org.caleydo.view.domino.api.model.typed.util.BitSetSet;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
@@ -46,7 +46,7 @@ public class TypedSet extends AbstractSet<Integer> implements ITypedCollection {
 	}
 
 	public static TypedSet of(VirtualArray per) {
-		return new TypedSet(ImmutableSet.copyOf(per), per.getIdType());
+		return new TypedSet(BitSetSet.of(per), per.getIdType());
 	}
 
 	@Override

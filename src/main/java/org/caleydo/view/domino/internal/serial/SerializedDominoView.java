@@ -10,7 +10,7 @@ import javax.xml.bind.annotation.XmlType;
 
 import org.caleydo.core.serialize.ASerializedMultiTablePerspectiveBasedView;
 import org.caleydo.core.view.IMultiTablePerspectiveBasedView;
-import org.caleydo.view.domino.internal.DominoView;
+import org.caleydo.view.domino.internal.plugin.DominoView;
 
 /**
  *

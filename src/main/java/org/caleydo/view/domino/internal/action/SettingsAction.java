@@ -8,7 +8,7 @@ package org.caleydo.view.domino.internal.action;
 import org.caleydo.core.gui.SimpleAction;
 import org.caleydo.core.gui.SimpleEventAction;
 import org.caleydo.view.domino.internal.Resources;
-import org.caleydo.view.domino.internal.event.ToggleHeaderAlwaysEvent;
+import org.caleydo.view.domino.internal.event.ToggleShowDebugInfosEvent;
 import org.caleydo.view.domino.internal.event.ToggleShowMiniMapEvent;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.ActionContributionItem;
@@ -54,7 +54,7 @@ public class SettingsAction extends SimpleAction implements IMenuCreator {
 
 		addActionToMenu(menu, new SimpleEventAction("Show/Hide Debug Infos",
  "resources/icons/text_large_cap.png", Resources
-						.getResourceLoader(), new ToggleHeaderAlwaysEvent()
+						.getResourceLoader(), new ToggleShowDebugInfosEvent()
 						.to(receiver).from(this)));
 
 		addActionToMenu(menu, new SimpleEventAction("Show/Hide Mini Map", "resources/icons/text_large_cap.png",

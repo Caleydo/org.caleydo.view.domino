@@ -3,7 +3,7 @@
  * Copyright (c) The Caleydo Team. All rights reserved.
  * Licensed under the new BSD license, available at http://caleydo.org/license
  ******************************************************************************/
-package org.caleydo.view.domino.internal;
+package org.caleydo.view.domino.internal.plugin;
 import java.util.List;
 
 import javax.media.opengl.GLAutoDrawable;
@@ -21,7 +21,8 @@ import org.caleydo.core.view.opengl.layout2.GLElement;
 import org.caleydo.core.view.opengl.layout2.GLElementDecorator;
 import org.caleydo.core.view.opengl.layout2.basic.ScrollingDecorator;
 import org.caleydo.core.view.opengl.layout2.view.AMultiTablePerspectiveElementView;
-import org.caleydo.view.domino.internal.event.ToggleHeaderAlwaysEvent;
+import org.caleydo.view.domino.internal.Domino;
+import org.caleydo.view.domino.internal.event.ToggleShowDebugInfosEvent;
 import org.caleydo.view.domino.internal.event.ToggleShowMiniMapEvent;
 import org.caleydo.view.domino.internal.serial.SerializedDominoView;
 
@@ -82,7 +83,7 @@ public class DominoView extends AMultiTablePerspectiveElementView {
 	}
 
 	@ListenTo(sendToMe = true)
-	private void on(ToggleHeaderAlwaysEvent event) {
+	private void on(ToggleShowDebugInfosEvent event) {
 		domino.setShowDebugInfos(!domino.isShowDebugInfos());
 	}
 

@@ -10,6 +10,7 @@ import java.net.URL;
 import org.caleydo.data.loader.ResourceLoader;
 import org.caleydo.data.loader.ResourceLocators;
 import org.caleydo.data.loader.ResourceLocators.IResourceLocator;
+import org.caleydo.view.domino.internal.plugin.Activator;
 
 /**
  * @author Samuel Gratzl

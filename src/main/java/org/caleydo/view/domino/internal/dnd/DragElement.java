@@ -35,10 +35,6 @@ public class DragElement extends GLElement implements IGLRenderer {
 
 	private Vec2f targetAbsoluteLoc;
 
-	private float vertLength;
-
-	private float horLength;
-
 	private Vec2f hintSizes;
 
 	public DragElement(String label, Vec2f size, Domino domino, IDragInfo info) {

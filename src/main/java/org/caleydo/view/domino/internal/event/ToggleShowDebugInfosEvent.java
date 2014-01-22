@@ -11,6 +11,6 @@ import org.caleydo.core.event.ADirectedEvent;
  * @author Samuel Gratzl
  *
  */
-public class ToggleHeaderAlwaysEvent extends ADirectedEvent {
+public class ToggleShowDebugInfosEvent extends ADirectedEvent {
 
 }

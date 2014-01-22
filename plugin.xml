@@ -5,7 +5,7 @@
          point="org.eclipse.ui.views">
       <view
             category="org.caleydo.core.views"
-            class="org.caleydo.view.domino.internal.DominoViewPart"
+            class="org.caleydo.view.domino.internal.plugin.DominoViewPart"
             icon="resources/icons/icon.png"
             id="org.caleydo.view.domino"
             name="Domino">
@@ -25,7 +25,7 @@
    <extension
          point="org.eclipse.ui.commands">
       <command
-            defaultHandler="org.caleydo.view.domino.internal.OpenViewHandler"
+            defaultHandler="org.caleydo.view.domino.internal.plugin.OpenViewHandler"
             id="org.caleydo.view.domino.command.open"
             name="Domino">
       </command>

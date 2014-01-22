@@ -15,8 +15,10 @@ import org.caleydo.core.view.opengl.picking.Pick;
 import org.caleydo.view.domino.internal.Node;
 
 /**
+ * a button which can be dragged
+ * 
  * @author Samuel Gratzl
- *
+ * 
  */
 public abstract class ADragButton extends AGLButton implements IDragGLSource {
 	@Override

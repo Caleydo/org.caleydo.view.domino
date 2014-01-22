@@ -222,65 +222,6 @@ public class TypedSets {
 		return new_;
 	}
 
-	public static void main(String[] args) {
-		final IDCategory cat = IDCategory.registerCategory("test");
-		final IDType a = IDType.registerType("A", cat, EDataType.INTEGER);
-		final IDType b = IDType.registerType("B", cat, EDataType.INTEGER);
-		final IDType c = IDType.registerType("C", cat, EDataType.INTEGER);
-		cat.setHumanReadableIDType(a);
-		final int bA = 1;
-		final int bB = 2;
-		final int bC = 3;
-		final int bD = 4;
-		final int bE = 5;
-		final int bF = 6;
-		final IDMappingManager manager = IDMappingManagerRegistry.get().getIDMappingManager(cat);
-		// 1:1
-		// MappingType a2b = manager.createMap(a, b, false, false);
-		// MappingType b2a = manager.createMap(b, a, false, false);
-		// manager.addMapping(a2b, 2, bA);
-		// manager.addMapping(a2b, 3, bB);
-		// manager.addMapping(b2a, bA, 2);
-		// manager.addMapping(b2a, bB, 3);
-		// 1:n
-		// MappingType a2b = manager.createMap(a, b, true, false);
-		// MappingType b2a = manager.createMap(b, a, false, false);
-		// manager.addMapping(a2b, 2, bB);
-		// manager.addMapping(a2b, 2, bC);
-		// manager.addMapping(a2b, 3, bE);
-		// manager.addMapping(b2a, bB, 2);
-		// manager.addMapping(b2a, bC, 2);
-		// manager.addMapping(b2a, bE, 3);
-
-		// n:m
-		MappingType a2b = manager.createMap(a, b, true, false);
-		MappingType b2a = manager.createMap(b, a, true, false);
-		manager.addMapping(a2b, 2, bB);
-		manager.addMapping(a2b, 2, bC);
-		manager.addMapping(a2b, 3, bB);
-		manager.addMapping(a2b, 3, bE);
-		manager.addMapping(a2b, 4, bC);
-		manager.addMapping(a2b, 5, bE);
-		manager.addMapping(a2b, 5, bF);
-		manager.addMapping(a2b, 6, bE);
-		manager.addMapping(b2a, bB, 2);
-		manager.addMapping(b2a, bB, 3);
-		manager.addMapping(b2a, bC, 2);
-		manager.addMapping(b2a, bC, 4);
-		manager.addMapping(b2a, bE, 3);
-		manager.addMapping(b2a, bE, 5);
-		manager.addMapping(b2a, bE, 6);
-		manager.addMapping(b2a, bF, 5);
-
-		TypedSet a_s = new TypedSet(ImmutableSet.of(1, 2, 3), a);
-		TypedSet b_s = new TypedSet(ImmutableSet.of(bB, bC, bD), b);
-
-		MultiTypedSet union = union(a_s, b_s);
-		System.out.println(union);
-		MultiTypedSet intersection = intersect(a_s, b_s);
-		System.out.println(intersection);
-	}
-
 	/**
 	 * compress the sets such that one idtype occurs only ones
 	 *
@@ -478,5 +419,63 @@ public class TypedSets {
 		return new TypedList(RepeatingList.repeat(INVALID_ID, in.size()), target);
 	}
 
+	public static void main(String[] args) {
+		final IDCategory cat = IDCategory.registerCategory("test");
+		final IDType a = IDType.registerType("A", cat, EDataType.INTEGER);
+		final IDType b = IDType.registerType("B", cat, EDataType.INTEGER);
+		final IDType c = IDType.registerType("C", cat, EDataType.INTEGER);
+		cat.setHumanReadableIDType(a);
+		final int bA = 1;
+		final int bB = 2;
+		final int bC = 3;
+		final int bD = 4;
+		final int bE = 5;
+		final int bF = 6;
+		final IDMappingManager manager = IDMappingManagerRegistry.get().getIDMappingManager(cat);
+		// 1:1
+		// MappingType a2b = manager.createMap(a, b, false, false);
+		// MappingType b2a = manager.createMap(b, a, false, false);
+		// manager.addMapping(a2b, 2, bA);
+		// manager.addMapping(a2b, 3, bB);
+		// manager.addMapping(b2a, bA, 2);
+		// manager.addMapping(b2a, bB, 3);
+		// 1:n
+		// MappingType a2b = manager.createMap(a, b, true, false);
+		// MappingType b2a = manager.createMap(b, a, false, false);
+		// manager.addMapping(a2b, 2, bB);
+		// manager.addMapping(a2b, 2, bC);
+		// manager.addMapping(a2b, 3, bE);
+		// manager.addMapping(b2a, bB, 2);
+		// manager.addMapping(b2a, bC, 2);
+		// manager.addMapping(b2a, bE, 3);
+
+		// n:m
+		MappingType a2b = manager.createMap(a, b, true, false);
+		MappingType b2a = manager.createMap(b, a, true, false);
+		manager.addMapping(a2b, 2, bB);
+		manager.addMapping(a2b, 2, bC);
+		manager.addMapping(a2b, 3, bB);
+		manager.addMapping(a2b, 3, bE);
+		manager.addMapping(a2b, 4, bC);
+		manager.addMapping(a2b, 5, bE);
+		manager.addMapping(a2b, 5, bF);
+		manager.addMapping(a2b, 6, bE);
+		manager.addMapping(b2a, bB, 2);
+		manager.addMapping(b2a, bB, 3);
+		manager.addMapping(b2a, bC, 2);
+		manager.addMapping(b2a, bC, 4);
+		manager.addMapping(b2a, bE, 3);
+		manager.addMapping(b2a, bE, 5);
+		manager.addMapping(b2a, bE, 6);
+		manager.addMapping(b2a, bF, 5);
+
+		TypedSet a_s = new TypedSet(ImmutableSet.of(1, 2, 3), a);
+		TypedSet b_s = new TypedSet(ImmutableSet.of(bB, bC, bD), b);
+
+		MultiTypedSet union = union(a_s, b_s);
+		System.out.println(union);
+		MultiTypedSet intersection = intersect(a_s, b_s);
+		System.out.println(intersection);
+	}
 
 }

@@ -16,7 +16,7 @@ import org.caleydo.core.data.datadomain.DataSupportDefinitions;
 import org.caleydo.core.data.datadomain.IDataDomain;
 import org.caleydo.core.id.IDCategory;
 import org.caleydo.core.view.opengl.layout2.renderer.GLRenderers;
-import org.caleydo.view.domino.internal.tourguide.vis.EntityTypeSelector;
+import org.caleydo.view.domino.internal.tourguide.ui.EntityTypeSelector;
 import org.caleydo.view.tourguide.api.adapter.ATourGuideDataMode;
 import org.caleydo.view.tourguide.api.model.ADataDomainQuery;
 import org.caleydo.view.tourguide.api.model.AScoreRow;

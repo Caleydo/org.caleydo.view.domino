@@ -8,14 +8,14 @@ package org.caleydo.view.domino.internal.dnd;
 import gleem.linalg.Vec2f;
 
 import org.caleydo.core.view.opengl.layout2.GLElement;
-import org.caleydo.core.view.opengl.layout2.dnd.IUIDragInfo;
+import org.caleydo.core.view.opengl.layout2.dnd.IDragInfo;
 import org.caleydo.view.domino.internal.Domino;
 
 /**
  * @author Samuel Gratzl
  *
  */
-public abstract class ADragInfo implements IUIDragInfo {
+public abstract class ADragInfo implements IDragInfo {
 	private final Vec2f mousePos;
 
 	public ADragInfo(Vec2f mousePos) {
@@ -31,10 +31,6 @@ public abstract class ADragInfo implements IUIDragInfo {
 
 	protected abstract Vec2f getSize();
 
-	@Override
-	public GLElement createUI() {
-		return null;
-	}
 
 	/**
 	 * @param findDomino
