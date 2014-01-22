@@ -18,6 +18,7 @@ import java.util.Set;
 import org.caleydo.core.id.IDType;
 import org.caleydo.core.id.IIDTypeMapper;
 import org.caleydo.core.util.collection.Pair;
+import org.caleydo.view.domino.api.model.typed.util.RepeatingList;
 
 import com.google.common.base.Function;
 import com.google.common.base.Functions;
@@ -75,7 +76,7 @@ public class MultiTypedSet extends AbstractSet<int[]> implements IMultiTypedColl
 	public TypedList sliceList(IDType idType) {
 		int index = index(idType);
 		if (index < 0)
-			return new TypedList(new RepeatingList<Integer>(INVALID_ID, size()), idType);
+			return new TypedList(RepeatingList.repeat(INVALID_ID, size()), idType);
 		return new TypedList(ImmutableList.copyOf(Collections2.transform(ids, slice(index))), idType);
 	}
 

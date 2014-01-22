@@ -10,10 +10,10 @@ import java.util.Collection;
 import org.caleydo.core.id.IDType;
 
 /**
- * a multi typed collection is a collection, which already multiple types per id exists stored in a set of arrays
- *
+ * a multi typed collection is a collection, which multiple types per id exists stored in a set of arrays
+ * 
  * @author Samuel Gratzl
- *
+ * 
  */
 public interface IMultiTypedCollection extends Collection<int[]> {
 

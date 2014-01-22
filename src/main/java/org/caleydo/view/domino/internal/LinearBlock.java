@@ -26,14 +26,15 @@ import org.caleydo.view.domino.api.model.typed.ITypedComparator;
 import org.caleydo.view.domino.api.model.typed.ITypedGroup;
 import org.caleydo.view.domino.api.model.typed.MultiTypedList;
 import org.caleydo.view.domino.api.model.typed.MultiTypedSet;
-import org.caleydo.view.domino.api.model.typed.RepeatingList;
 import org.caleydo.view.domino.api.model.typed.TypedCollections;
 import org.caleydo.view.domino.api.model.typed.TypedGroupList;
+import org.caleydo.view.domino.api.model.typed.TypedGroups;
 import org.caleydo.view.domino.api.model.typed.TypedList;
 import org.caleydo.view.domino.api.model.typed.TypedListGroup;
 import org.caleydo.view.domino.api.model.typed.TypedSet;
 import org.caleydo.view.domino.api.model.typed.TypedSetGroup;
 import org.caleydo.view.domino.api.model.typed.TypedSets;
+import org.caleydo.view.domino.api.model.typed.util.RepeatingList;
 import org.caleydo.view.domino.internal.data.VisualizationTypeOracle;
 
 import com.google.common.base.Function;
@@ -334,7 +335,7 @@ public class LinearBlock extends AbstractCollection<Node> {
 				if ((bak + groups.size()) == sum) { // no extra elems
 					g.add(group);
 				} else { // have repeating elements
-					g.add(new TypedListGroup(new RepeatingList<>(TypedCollections.INVALID_ID, sum - bak), group
+					g.add(new TypedListGroup(RepeatingList.repeat(TypedCollections.INVALID_ID, sum - bak), group
 							.getIdType(), group.getLabel(), group.getColor()));
 				}
 			}
@@ -351,7 +352,7 @@ public class LinearBlock extends AbstractCollection<Node> {
 				if ((bak + groups.size()) == sum) { // no extra elems
 					g.add(group);
 				} else { // have repeating or less elements
-					g.add(new TypedListGroup(new RepeatingList<>(TypedCollections.INVALID_ID, sum - bak), group
+					g.add(new TypedListGroup(RepeatingList.repeat(TypedCollections.INVALID_ID, sum - bak), group
 							.getIdType(), group.getLabel(), group.getColor()));
 				}
 			}
@@ -362,11 +363,11 @@ public class LinearBlock extends AbstractCollection<Node> {
 	}
 
 	private static ITypedGroup ungrouped(int size) {
-		return TypedGroupList.createUngroupedGroup(TypedCollections.INVALID_IDTYPE, size);
+		return TypedGroups.createUngroupedGroup(TypedCollections.INVALID_IDTYPE, size);
 	}
 
 	private static ITypedGroup unmapped(int size) {
-		return TypedGroupList.createUnmappedGroup(TypedCollections.INVALID_IDTYPE, size);
+		return TypedGroups.createUnmappedGroup(TypedCollections.INVALID_IDTYPE, size);
 	}
 
 

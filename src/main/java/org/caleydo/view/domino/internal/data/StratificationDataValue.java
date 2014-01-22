@@ -7,7 +7,6 @@ package org.caleydo.view.domino.internal.data;
 
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 
 import org.caleydo.core.data.collection.EDimension;
@@ -19,7 +18,6 @@ import org.caleydo.core.util.function.Function2;
 import org.caleydo.core.view.opengl.layout2.manage.GLElementFactoryContext.Builder;
 import org.caleydo.view.domino.api.model.graph.EProximityMode;
 import org.caleydo.view.domino.api.model.typed.TypedCollections;
-import org.caleydo.view.domino.api.model.typed.TypedGroupList;
 import org.caleydo.view.domino.api.model.typed.TypedGroupSet;
 import org.caleydo.view.domino.api.model.typed.TypedListGroup;
 import org.caleydo.view.domino.api.model.typed.TypedSet;
@@ -43,17 +41,15 @@ public class StratificationDataValue implements IDataValues, Function2<Integer, 
 	public StratificationDataValue(Perspective data, EDimension dim, Integer referenceId) {
 		this.main = dim;
 		this.label = data.getLabel();
-		this.singleGroup = new TypedGroupSet(TypedGroupList.createUngroupedGroup(new TypedSet(Collections
-				.singleton(TypedCollections.INVALID_ID), TypedCollections.INVALID_IDTYPE)));
+		this.singleGroup = TypedGroupSet.createUngrouped(TypedCollections.INVALID_SINGLETON_SET);
 		this.groups = new TypedGroupSet(Utils.extractSetGroups(data, referenceId, dim));
 	}
 
 	public StratificationDataValue(String label, TypedSet data, EDimension main) {
 		this.main = main;
 		this.label = label;
-		this.singleGroup = new TypedGroupSet(TypedGroupList.createUngroupedGroup(new TypedSet(Collections
-				.singleton(TypedCollections.INVALID_ID), TypedCollections.INVALID_IDTYPE)));
-		this.groups = new TypedGroupSet(TypedGroupList.createUngroupedGroup(data));
+		this.singleGroup = TypedGroupSet.createUngrouped(TypedCollections.INVALID_SINGLETON_SET);
+		this.groups = TypedGroupSet.createUngrouped(data);
 	}
 
 

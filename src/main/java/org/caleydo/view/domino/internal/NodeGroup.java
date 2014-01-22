@@ -36,8 +36,8 @@ import org.caleydo.core.view.opengl.picking.IPickingListener;
 import org.caleydo.core.view.opengl.picking.Pick;
 import org.caleydo.view.domino.api.model.graph.EDirection;
 import org.caleydo.view.domino.api.model.graph.EProximityMode;
-import org.caleydo.view.domino.api.model.typed.TypedGroupList;
 import org.caleydo.view.domino.api.model.typed.TypedGroupSet;
+import org.caleydo.view.domino.api.model.typed.TypedGroups;
 import org.caleydo.view.domino.api.model.typed.TypedListGroup;
 import org.caleydo.view.domino.internal.dnd.ADragInfo;
 import org.caleydo.view.domino.internal.dnd.BlockDragInfo;
@@ -184,8 +184,8 @@ public class NodeGroup extends GLElementDecorator implements ILabeled, IDragGLSo
 	public String getLabel() {
 		StringBuilder b = new StringBuilder();
 		b.append(parent.getLabel());
-		boolean isDim = !TypedGroupList.isUngrouped(dimData);
-		boolean isRec = !TypedGroupList.isUngrouped(recData);
+		boolean isDim = !TypedGroups.isUngrouped(dimData);
+		boolean isRec = !TypedGroups.isUngrouped(recData);
 		if (isDim && !isRec)
 			b.append(" ").append(dimData.getLabel());
 		else if (isRec && !isDim) {

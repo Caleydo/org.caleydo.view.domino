@@ -52,6 +52,10 @@ public class TypedGroupSet extends TypedSet {
 		return groups;
 	}
 
+	public static TypedGroupSet createUngrouped(TypedSet set) {
+		return new TypedGroupSet(TypedGroups.createUngroupedGroup(set));
+	}
+
 	@Override
 	public int hashCode() {
 		final int prime = 31;

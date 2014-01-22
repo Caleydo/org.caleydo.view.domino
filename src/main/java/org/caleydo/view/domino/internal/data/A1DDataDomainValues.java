@@ -5,19 +5,15 @@
  *******************************************************************************/
 package org.caleydo.view.domino.internal.data;
 
-import java.util.Collections;
-
 import org.caleydo.core.data.collection.EDimension;
 import org.caleydo.core.data.perspective.table.TablePerspective;
 import org.caleydo.core.data.perspective.variable.Perspective;
 import org.caleydo.core.view.opengl.layout2.manage.GLElementFactoryContext.Builder;
 import org.caleydo.view.domino.api.model.typed.TypedCollections;
-import org.caleydo.view.domino.api.model.typed.TypedGroupList;
 import org.caleydo.view.domino.api.model.typed.TypedGroupSet;
 import org.caleydo.view.domino.api.model.typed.TypedID;
 import org.caleydo.view.domino.api.model.typed.TypedList;
 import org.caleydo.view.domino.api.model.typed.TypedListGroup;
-import org.caleydo.view.domino.api.model.typed.TypedSet;
 
 /**
  * @author Samuel Gratzl
@@ -39,8 +35,8 @@ public abstract class A1DDataDomainValues extends ADataDomainDataValues {
 		this.id = new TypedID(o.getVirtualArray().get(0), o.getIdType());
 		this.main = main;
 
-		this.singleGroup = new TypedGroupSet(TypedGroupList.createUngroupedGroup(new TypedSet(Collections
-				.singleton(id.getId()), TypedCollections.INVALID_IDTYPE)));
+		this.singleGroup = TypedGroupSet.createUngrouped(TypedCollections.singleton(id.getId(),
+				TypedCollections.INVALID_IDTYPE));
 	}
 
 	protected abstract TypedGroupSet getGroups();

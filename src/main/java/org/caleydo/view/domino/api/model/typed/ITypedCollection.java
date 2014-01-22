@@ -7,9 +7,13 @@ package org.caleydo.view.domino.api.model.typed;
 
 import java.util.Collection;
 
+import org.caleydo.core.id.IDType;
+
 /**
+ * a {@link ITypedCollection} is a collection of integer combined with their {@link IDType}
+ * 
  * @author Samuel Gratzl
- *
+ * 
  */
 public interface ITypedCollection extends Collection<Integer>, IHasIDType {
 

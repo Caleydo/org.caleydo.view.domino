@@ -17,15 +17,15 @@ import com.google.common.cache.LoadingCache;
 
 /**
  * mapping cache utilities
- * 
+ *
  * @author Samuel Gratzl
- * 
+ *
  */
 public class MappingCaches {
 
 	/**
-	 * create a mapping cache for converting to a fix source or targets asssert that source or target is null
-	 *
+	 * create a mapping cache for converting to a fix source or targets assert that source or target is null
+	 * 
 	 * @param source
 	 * @param target
 	 * @return

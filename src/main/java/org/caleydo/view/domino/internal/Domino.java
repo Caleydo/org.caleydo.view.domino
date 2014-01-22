@@ -528,10 +528,10 @@ public class Domino extends GLElementContainer implements IDropGLTarget, IPickin
 			return;
 		Vec2f change;
 		switch(dir) {
-		case ABOVE: change = new Vec2f(0,-20); break;
-		case BELOW: change = new Vec2f(0,20); break;
-		case LEFT_OF: change = new Vec2f(-20,0); break;
-		case RIGHT_OF: change = new Vec2f(+20,0); break;
+		case NORTH: change = new Vec2f(0,-20); break;
+		case SOUTH: change = new Vec2f(0,20); break;
+		case WEST: change = new Vec2f(-20,0); break;
+		case EAST: change = new Vec2f(+20,0); break;
 		default:
 			throw new IllegalStateException();
 		}
@@ -549,13 +549,13 @@ public class Domino extends GLElementContainer implements IDropGLTarget, IPickin
 	public void keyPressed(IKeyEvent e) {
 		float f = e.isAltDown() ? 2 : e.isControlDown() ? 0.5f : 1.f;
 		if (e.isKey(ESpecialKey.LEFT))
-			moveSelection(EDirection.LEFT_OF, f);
+			moveSelection(EDirection.WEST, f);
 		else if (e.isKey(ESpecialKey.RIGHT))
-			moveSelection(EDirection.RIGHT_OF, f);
+			moveSelection(EDirection.EAST, f);
 		else if (e.isKey(ESpecialKey.UP))
-			moveSelection(EDirection.ABOVE, f);
+			moveSelection(EDirection.NORTH, f);
 		else if (e.isKey(ESpecialKey.DOWN))
-			moveSelection(EDirection.BELOW, f);
+			moveSelection(EDirection.SOUTH, f);
 	}
 
 	@Override

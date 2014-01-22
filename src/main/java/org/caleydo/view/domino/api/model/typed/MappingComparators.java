@@ -26,12 +26,24 @@ import com.google.common.collect.ImmutableMap.Builder;
  */
 public class MappingComparators {
 
-
+	/**
+	 * combine multiple {@link ITypedComparator} to a single one for inhomogenous {@link TypedID}s
+	 *
+	 * @param comparators
+	 * @return
+	 */
 	public static Comparator<TypedID> of(ITypedComparator... comparators) {
 		return new Complex(comparators);
 	}
 
-	public static Comparator<Integer> of(IDType idType, ITypedComparator... comparators) {
+	/**
+	 * combine multiple {@link ITypedComparator} to a single one, which requires one of the given type
+	 *
+	 * @param idType
+	 * @param comparators
+	 * @return
+	 */
+	public static ITypedComparator of(IDType idType, ITypedComparator... comparators) {
 		return new Single(idType, comparators);
 	}
 
@@ -116,7 +128,7 @@ public class MappingComparators {
 		}
 	}
 
-	private static final class Single implements Comparator<Integer> {
+	private static final class Single implements ITypedComparator {
 		private final ITypedComparator[] comparators;
 		private final LoadingCache<IDType, IIDTypeMapper<Integer, Integer>> cache;
 		private final IDType source;
@@ -128,6 +140,11 @@ public class MappingComparators {
 			this.source = idType;
 			this.comparators = comparators;
 			cache = MappingCaches.create(idType, null);
+		}
+
+		@Override
+		public IDType getIdType() {
+			return source;
 		}
 
 		@Override

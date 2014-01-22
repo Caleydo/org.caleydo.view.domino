@@ -10,8 +10,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
-import org.caleydo.core.id.IDType;
-import org.caleydo.core.util.color.Color;
+import org.caleydo.view.domino.api.model.typed.util.ConcatedList;
 
 import com.google.common.base.Function;
 import com.google.common.collect.ImmutableList;
@@ -22,9 +21,6 @@ import com.google.common.collect.Lists;
  *
  */
 public class TypedGroupList extends TypedList {
-	private static final String UNMAPPED = "Unmapped";
-	private static final String UNGROUPED = "Ungrouped";
-
 	private final List<TypedListGroup> groups;
 
 	public TypedGroupList(List<TypedListGroup> groups) {
@@ -69,33 +65,7 @@ public class TypedGroupList extends TypedList {
 	}
 
 	public static TypedGroupList createUngrouped(TypedList list) {
-		return create(list, Collections.singletonList(new TypedListGroup(list, UNGROUPED, Color.NEUTRAL_GREY)));
-	}
-
-	public static TypedListGroup createUnmappedGroup(IDType idType, int size) {
-		return new TypedListGroup(new TypedList(new RepeatingList<>(TypedCollections.INVALID_ID, size), idType),
-				UNMAPPED, Color.NEUTRAL_GREY);
-	}
-
-	public static TypedListGroup createUngroupedGroup(IDType idType, int size) {
-		return new TypedListGroup(new TypedList(new RepeatingList<>(TypedCollections.INVALID_ID, size), idType),
-				UNGROUPED, Color.NEUTRAL_GREY);
-	}
-
-	public static TypedListGroup createUngroupedGroup(TypedList list) {
-		return new TypedListGroup(list, UNGROUPED, Color.NEUTRAL_GREY);
-	}
-
-	public static TypedSetGroup createUngroupedGroup(TypedSet set) {
-		return new TypedSetGroup(set, UNGROUPED, Color.NEUTRAL_GREY);
-	}
-
-	public static boolean isUngrouped(ITypedGroup group) {
-		return group.getLabel() == UNGROUPED;
-	}
-
-	public static boolean isUnmapped(ITypedGroup group) {
-		return group.getLabel() == UNMAPPED;
+		return create(list, Collections.singletonList(TypedGroups.createUngroupedGroup(list)));
 	}
 
 	public static TypedGroupList create(TypedList list, List<? extends ITypedGroup> groups) {

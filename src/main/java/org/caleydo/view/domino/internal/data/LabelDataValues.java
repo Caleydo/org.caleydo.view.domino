@@ -13,12 +13,10 @@ import org.caleydo.core.id.IDCategory;
 import org.caleydo.core.util.color.Color;
 import org.caleydo.core.view.opengl.layout2.manage.GLElementFactoryContext.Builder;
 import org.caleydo.view.domino.api.model.graph.EProximityMode;
-import org.caleydo.view.domino.api.model.typed.TypedGroupList;
+import org.caleydo.view.domino.api.model.typed.TypedCollections;
 import org.caleydo.view.domino.api.model.typed.TypedGroupSet;
 import org.caleydo.view.domino.api.model.typed.TypedListGroup;
 import org.caleydo.view.domino.api.model.typed.TypedSet;
-
-import com.google.common.collect.ImmutableSet;
 
 /**
  * @author Samuel Gratzl
@@ -30,8 +28,7 @@ public class LabelDataValues implements IDataValues {
 
 	public LabelDataValues(IDCategory category) {
 		this.category = category;
-		data = new TypedGroupSet(TypedGroupList.createUngroupedGroup(new TypedSet(ImmutableSet.<Integer> of(), category
-				.getPrimaryMappingType())));
+		data = TypedGroupSet.createUngrouped(TypedCollections.empty(category.getPrimaryMappingType()));
 	}
 
 	@Override

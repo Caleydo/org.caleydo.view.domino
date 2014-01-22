@@ -3,7 +3,7 @@
  * Copyright (c) The Caleydo Team. All rights reserved.
  * Licensed under the new BSD license, available at http://caleydo.org/license
  *******************************************************************************/
-package org.caleydo.view.domino.api.model.typed;
+package org.caleydo.view.domino.api.model.typed.util;
 
 import java.util.AbstractList;
 import java.util.Arrays;

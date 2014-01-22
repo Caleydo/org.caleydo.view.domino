@@ -416,13 +416,13 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 					final NodeGroup child = getOrCreate(n);
 					n++;
 					child.setData(dimGroup, recGroup);
-					child.setNeighbor(EDirection.ABOVE, above);
+					child.setNeighbor(EDirection.NORTH, above);
 					if (above != null)
-						above.setNeighbor(EDirection.BELOW, child);
+						above.setNeighbor(EDirection.SOUTH, child);
 					above = child;
 					if (left.size() > i) {
-						left.get(i).setNeighbor(EDirection.RIGHT_OF, child);
-						child.setNeighbor(EDirection.LEFT_OF, left.get(i));
+						left.get(i).setNeighbor(EDirection.EAST, child);
+						child.setNeighbor(EDirection.WEST, left.get(i));
 					}
 					if (i < left.size())
 						left.set(i++, child);
@@ -742,22 +742,22 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 		int shift = 1;
 		int size;
 		switch (dir) {
-		case LEFT_OF:
+		case WEST:
 			offset = 0;
 			shift = 1;
 			size = rGroups;
 			break;
-		case RIGHT_OF:
+		case EAST:
 			offset = (dGroups - 1) * rGroups;
 			shift = 1;
 			size = rGroups;
 			break;
-		case ABOVE:
+		case NORTH:
 			offset = 0;
 			shift = rGroups;
 			size = dGroups;
 			break;
-		case BELOW:
+		case SOUTH:
 			offset = rGroups - 1;
 			shift = rGroups;
 			size = dGroups;
@@ -1184,10 +1184,10 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 			r.width(r.width() + recDetached.getShift() * 2);
 		}
 
-		r.x(r.x() - offsets[EDirection.LEFT_OF.ordinal()]);
-		r.y(r.y() - offsets[EDirection.ABOVE.ordinal()]);
-		r.width(r.width() + offsets[EDirection.LEFT_OF.ordinal()] + offsets[EDirection.RIGHT_OF.ordinal()]);
-		r.height(r.height() + offsets[EDirection.ABOVE.ordinal()] + offsets[EDirection.BELOW.ordinal()]);
+		r.x(r.x() - offsets[EDirection.WEST.ordinal()]);
+		r.y(r.y() - offsets[EDirection.NORTH.ordinal()]);
+		r.width(r.width() + offsets[EDirection.WEST.ordinal()] + offsets[EDirection.EAST.ordinal()]);
+		r.height(r.height() + offsets[EDirection.NORTH.ordinal()] + offsets[EDirection.SOUTH.ordinal()]);
 
 		return r;
 	}
@@ -1199,10 +1199,10 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 	 * @param height
 	 */
 	public void setDetachedBounds(float x, float y, float w, float h) {
-		x += offsets[EDirection.LEFT_OF.ordinal()];
-		y += offsets[EDirection.ABOVE.ordinal()];
-		w -= offsets[EDirection.LEFT_OF.ordinal()] + offsets[EDirection.RIGHT_OF.ordinal()];
-		h -= offsets[EDirection.ABOVE.ordinal()] + offsets[EDirection.BELOW.ordinal()];
+		x += offsets[EDirection.WEST.ordinal()];
+		y += offsets[EDirection.NORTH.ordinal()];
+		w -= offsets[EDirection.WEST.ordinal()] + offsets[EDirection.EAST.ordinal()];
+		h -= offsets[EDirection.NORTH.ordinal()] + offsets[EDirection.SOUTH.ordinal()];
 
 		Vec2f size = getSize();
 		if (dimDetached.isDetached()) {

@@ -15,7 +15,7 @@ import com.google.common.collect.Ordering;
  * @author Samuel Gratzl
  *
  */
-public class TypedComparator implements ITypedComparator {
+class TypedComparator implements ITypedComparator {
 	public static final Comparator<Integer> NATURAL = Ordering.natural();
 	private final IDType idType;
 	private final Comparator<Integer> c;

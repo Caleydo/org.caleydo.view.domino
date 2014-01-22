@@ -15,7 +15,6 @@ import org.caleydo.core.util.collection.Pair;
 import org.caleydo.core.util.color.Color;
 import org.caleydo.core.view.opengl.layout2.manage.GLElementFactoryContext.Builder;
 import org.caleydo.view.domino.api.model.graph.EProximityMode;
-import org.caleydo.view.domino.api.model.typed.TypedGroupList;
 import org.caleydo.view.domino.api.model.typed.TypedGroupSet;
 import org.caleydo.view.domino.api.model.typed.TypedListGroup;
 import org.caleydo.view.domino.api.model.typed.TypedSet;
@@ -77,7 +76,7 @@ public class Numerical2DDataDomainValues extends ADataDomainDataValues {
 
 	private TypedGroupSet resolve(Set<Integer> invalid, TypedSet d) {
 		if (invalid.isEmpty())
-			return new TypedGroupSet(TypedGroupList.createUngroupedGroup(d));
+			return TypedGroupSet.createUngrouped(d);
 
 		TypedSetGroup normal = new TypedSetGroup(new TypedSet(ImmutableSet.copyOf(Sets.difference(d, invalid)),
 				d.getIdType()), "Normal", getDataDomain().getColor());

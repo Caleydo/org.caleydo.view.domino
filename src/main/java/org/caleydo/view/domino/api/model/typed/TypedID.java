@@ -14,10 +14,10 @@ import org.caleydo.core.id.IDType;
 import com.google.common.base.Function;
 
 /**
- * a typed id is an integer id along with their idtype
- *
+ * a typed id is an integer id along with its idtype
+ * 
  * @author Samuel Gratzl
- *
+ * 
  */
 public class TypedID implements IHasIDType {
 	public static final Function<TypedID, Integer> TO_ID = new Function<TypedID, Integer>() {

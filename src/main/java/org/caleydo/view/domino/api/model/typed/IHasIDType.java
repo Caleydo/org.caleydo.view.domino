@@ -8,8 +8,10 @@ package org.caleydo.view.domino.api.model.typed;
 import org.caleydo.core.id.IDType;
 
 /**
+ * an item which has an {@link IDType}
+ * 
  * @author Samuel Gratzl
- *
+ * 
  */
 public interface IHasIDType {
 	IDType getIdType();

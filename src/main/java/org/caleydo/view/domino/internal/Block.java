@@ -104,9 +104,9 @@ public class Block extends GLElementContainer implements IGLLayout2 {
 
 	private void shiftBlock(EDirection dir, Node node) {
 		Vec2f loc = getLocation();
-		if (dir == EDirection.LEFT_OF)
+		if (dir == EDirection.WEST)
 			setLocation(loc.x() - node.getDetachedRectBounds().width(), loc.y());
-		else if (dir == EDirection.ABOVE)
+		else if (dir == EDirection.NORTH)
 			setLocation(loc.x(), loc.y() - node.getDetachedRectBounds().height());
 	}
 

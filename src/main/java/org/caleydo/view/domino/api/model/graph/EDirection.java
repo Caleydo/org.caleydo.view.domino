@@ -16,7 +16,7 @@ import com.google.common.collect.Sets;
  *
  */
 public enum EDirection {
-	ABOVE, LEFT_OF, BELOW, RIGHT_OF;
+	NORTH, WEST, SOUTH, EAST;
 
 	public EDimension asDim() {
 		return EDimension.get(isHorizontal());
@@ -26,7 +26,7 @@ public enum EDirection {
 	 * @return
 	 */
 	public boolean isHorizontal() {
-		return this == LEFT_OF || this == RIGHT_OF;
+		return this == WEST || this == EAST;
 	}
 
 	public boolean isVertical() {
@@ -46,7 +46,7 @@ public enum EDirection {
 	}
 
 	public boolean isPrimaryDirection() {
-		return this == LEFT_OF || this == ABOVE;
+		return this == WEST || this == NORTH;
 	}
 
 	/**
@@ -55,13 +55,13 @@ public enum EDirection {
 	 */
 	public int asInt(EDimension dim) {
 		switch (this) {
-		case ABOVE:
+		case NORTH:
 			return dim.select(0, -1);
-		case BELOW:
+		case SOUTH:
 			return dim.select(0, 1);
-		case LEFT_OF:
+		case WEST:
 			return dim.select(-1, 0);
-		case RIGHT_OF:
+		case EAST:
 			return dim.select(1, 0);
 		}
 		throw new IllegalStateException();
@@ -72,9 +72,9 @@ public enum EDirection {
 	 */
 	public static ImmutableSet<EDirection> get(EDimension dim) {
 		if (dim.isHorizontal())
-			return Sets.immutableEnumSet(EDirection.LEFT_OF, EDirection.RIGHT_OF);
+			return Sets.immutableEnumSet(EDirection.WEST, EDirection.EAST);
 		else
-			return Sets.immutableEnumSet(EDirection.ABOVE, EDirection.BELOW);
+			return Sets.immutableEnumSet(EDirection.NORTH, EDirection.SOUTH);
 	}
 
 	/**
@@ -82,9 +82,9 @@ public enum EDirection {
 	 */
 	public static EDirection getPrimary(EDimension dim) {
 		if (dim.isHorizontal())
-			return EDirection.LEFT_OF;
+			return EDirection.WEST;
 		else
-			return EDirection.ABOVE;
+			return EDirection.NORTH;
 	}
 
 	public static Function<EDirection,EDirection> TO_OPPOSITE = new Function<EDirection,EDirection>() {

@@ -27,6 +27,7 @@ import org.caleydo.core.id.IDType;
 import org.caleydo.core.id.IIDTypeMapper;
 import org.caleydo.core.id.MappingType;
 import org.caleydo.core.util.collection.Pair;
+import org.caleydo.view.domino.api.model.typed.util.RepeatingList;
 
 import com.google.common.base.Function;
 import com.google.common.cache.LoadingCache;
@@ -314,8 +315,8 @@ public class TypedSets {
 		TypedSet act = sets[act_i];
 		final int l = sets.length;
 		List<Iterator<Set<Integer>>> mapped = new ArrayList<>(l);
-		final RepeatingList<Set<Integer>> invalidList = new RepeatingList<Set<Integer>>(
-				Collections.<Integer> emptySet(), act.size());
+		final RepeatingList<Set<Integer>> invalidList = RepeatingList.repeat(Collections.<Integer> emptySet(),
+				act.size());
 		for(int i = 0; i < l; ++i) {
 			TypedSet s = sets[i];
 			IIDTypeMapper<Integer, Integer> m = cache.getUnchecked(Pair.make(act.getIdType(), s.getIdType()));
@@ -474,7 +475,7 @@ public class TypedSets {
 	}
 
 	private static TypedList allInvalid(List<TypedID> in, IDType target) {
-		return new TypedList(new RepeatingList<Integer>(INVALID_ID, in.size()), target);
+		return new TypedList(RepeatingList.repeat(INVALID_ID, in.size()), target);
 	}
 
 

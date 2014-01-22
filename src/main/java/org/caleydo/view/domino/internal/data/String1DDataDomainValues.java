@@ -14,7 +14,6 @@ import org.caleydo.core.data.perspective.table.TablePerspective;
 import org.caleydo.core.data.perspective.variable.Perspective;
 import org.caleydo.core.view.opengl.layout2.manage.GLElementFactoryContext.Builder;
 import org.caleydo.view.domino.api.model.graph.EProximityMode;
-import org.caleydo.view.domino.api.model.typed.TypedGroupList;
 import org.caleydo.view.domino.api.model.typed.TypedGroupSet;
 import org.caleydo.view.domino.api.model.typed.TypedListGroup;
 import org.caleydo.view.domino.api.model.typed.TypedSet;
@@ -31,7 +30,7 @@ public class String1DDataDomainValues extends A1DDataDomainValues {
 	public String1DDataDomainValues(TablePerspective data, EDimension main) {
 		super(data, main);
 		Perspective p = main.select(data.getDimensionPerspective(), data.getRecordPerspective());
-		this.groups = new TypedGroupSet(TypedGroupList.createUngroupedGroup(TypedSet.of(p.getVirtualArray())));
+		this.groups = TypedGroupSet.createUngrouped(TypedSet.of(p.getVirtualArray()));
 	}
 
 	@Override

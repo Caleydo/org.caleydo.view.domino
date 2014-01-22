@@ -75,4 +75,17 @@ public class TypedSetGroup extends TypedSet implements ITypedGroup {
 		return Objects.equals(color, other.color) && Objects.equals(label, other.label);
 	}
 
+	@Override
+	public String toString() {
+		StringBuilder builder = new StringBuilder();
+		builder.append("TypedSetGroup [label=");
+		builder.append(label);
+		builder.append(", color=");
+		builder.append(color);
+		builder.append(", toString()=");
+		builder.append(super.toString());
+		builder.append("]");
+		return builder.toString();
+	}
+
 }

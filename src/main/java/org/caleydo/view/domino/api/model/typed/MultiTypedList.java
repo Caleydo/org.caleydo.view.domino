@@ -13,6 +13,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import org.caleydo.core.id.IDType;
+import org.caleydo.view.domino.api.model.typed.util.RepeatingList;
 
 import com.google.common.base.Function;
 import com.google.common.base.Functions;
@@ -22,8 +23,10 @@ import com.google.common.collect.Iterators;
 import com.google.common.collect.Lists;
 
 /**
+ * a {@link IMultiTypedCollection} with an underlying list
+ * 
  * @author Samuel Gratzl
- *
+ * 
  */
 public class MultiTypedList extends AbstractList<int[]> implements IMultiTypedCollection {
 	private final IDType[] idTypes;

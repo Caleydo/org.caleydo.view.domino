@@ -21,7 +21,6 @@ import org.caleydo.core.util.function.IDoubleList;
 import org.caleydo.core.util.function.MappedDoubleList;
 import org.caleydo.core.view.opengl.layout2.manage.GLElementFactoryContext.Builder;
 import org.caleydo.view.domino.api.model.graph.EProximityMode;
-import org.caleydo.view.domino.api.model.typed.TypedGroupList;
 import org.caleydo.view.domino.api.model.typed.TypedGroupSet;
 import org.caleydo.view.domino.api.model.typed.TypedListGroup;
 import org.caleydo.view.domino.api.model.typed.TypedSet;
@@ -61,7 +60,7 @@ public class Numerical1DDataDomainValues extends A1DDataDomainValues {
 				invalid.add(id);
 		}
 		if (invalid.isEmpty())
-			return new TypedGroupSet(TypedGroupList.createUngroupedGroup(d));
+			return TypedGroupSet.createUngrouped(d);
 
 		TypedSetGroup normal = new TypedSetGroup(new TypedSet(ImmutableSet.copyOf(Sets.difference(d, invalid)),
 				d.getIdType()), "Normal", getDataDomain().getColor());

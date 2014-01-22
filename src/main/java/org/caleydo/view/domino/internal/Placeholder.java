@@ -59,16 +59,16 @@ public class Placeholder extends PickableGLElement implements IDropGLTarget, IPi
 		final float offset = detachedOffset;
 		this.offset = offset + c;
 		switch (dir) {
-		case ABOVE:
+		case NORTH:
 			setBounds(loc.x(), loc.y() - c - offset, size.x(), c);
 			break;
-		case BELOW:
+		case SOUTH:
 			setBounds(loc.x(), loc.y() + size.y() + offset, size.x(), c);
 			break;
-		case LEFT_OF:
+		case WEST:
 			setBounds(loc.x() - c - offset, loc.y(), c, size.y());
 			break;
-		case RIGHT_OF:
+		case EAST:
 			setBounds(loc.x() + size.x() + offset, loc.y(), c, size.y());
 			break;
 		}

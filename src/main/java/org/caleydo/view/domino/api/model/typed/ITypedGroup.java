@@ -6,12 +6,13 @@
 package org.caleydo.view.domino.api.model.typed;
 
 import org.caleydo.core.util.base.ILabeled;
-import org.caleydo.core.util.color.Color;
+import org.caleydo.core.view.opengl.util.gleem.IColored;
 
 /**
+ * a {@link ITypedCollection} with name and color
+ *
  * @author Samuel Gratzl
  *
  */
-public interface ITypedGroup extends ILabeled, ITypedCollection {
-	Color getColor();
+public interface ITypedGroup extends ILabeled, ITypedCollection, IColored {
 }

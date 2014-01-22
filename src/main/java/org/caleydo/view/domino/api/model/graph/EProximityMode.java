@@ -19,6 +19,9 @@ public enum EProximityMode implements Predicate<String> {
 	ATTACHED, DETACHED, FREE;
 
 
+	/**
+	 * predicate for a visualization type selector
+	 */
 	@Override
 	public boolean apply(String input) {
 		if (this == ATTACHED && getScaleType(input) != EVisScaleType.DATA_DEPENDENT)

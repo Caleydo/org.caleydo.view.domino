@@ -205,9 +205,9 @@ public class ToolBar extends GLElementContainer {
 			if (node.getBlock().size() > 1)
 				addButton("Select All In Block", Resources.ICON_SELECT_ALL);
 
-			if (group.getNeighbor(EDirection.LEFT_OF) != null || group.getNeighbor(EDirection.RIGHT_OF) != null)
+			if (group.getNeighbor(EDirection.WEST) != null || group.getNeighbor(EDirection.EAST) != null)
 				addButton("Select Hor", Resources.ICON_SELECT_DIM);
-			if (group.getNeighbor(EDirection.ABOVE) != null || group.getNeighbor(EDirection.BELOW) != null)
+			if (group.getNeighbor(EDirection.NORTH) != null || group.getNeighbor(EDirection.SOUTH) != null)
 				addButton("Select Ver", Resources.ICON_SELECT_REC);
 
 			GLElement parameter = group.createVisParameter();
@@ -306,12 +306,12 @@ public class ToolBar extends GLElementContainer {
 				node.getNode().getBlock().selectAll();
 				break;
 			case "Select Hor":
-				node.select(EDirection.LEFT_OF);
-				node.select(EDirection.RIGHT_OF);
+				node.select(EDirection.WEST);
+				node.select(EDirection.EAST);
 				break;
 			case "Select Ver":
-				node.select(EDirection.ABOVE);
-				node.select(EDirection.BELOW);
+				node.select(EDirection.NORTH);
+				node.select(EDirection.SOUTH);
 				break;
 			case "Merge Groups":
 				node.getNode().merge(selection);

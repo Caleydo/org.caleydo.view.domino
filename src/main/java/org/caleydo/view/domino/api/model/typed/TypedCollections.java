@@ -6,6 +6,7 @@
 package org.caleydo.view.domino.api.model.typed;
 
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.Set;
 
 import org.caleydo.core.data.collection.EDataType;
@@ -14,16 +15,22 @@ import org.caleydo.core.id.IDType;
 import org.caleydo.core.id.IIDTypeMapper;
 
 import com.google.common.base.Function;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 
 /**
+ * utilities for {@link ITypedCollection}
+ *
  * @author Samuel Gratzl
  *
  */
-public class TypedCollections {
+public final class TypedCollections {
 	public static final IDType INVALID_IDTYPE;
 
 	public static final TypedSet INVALID_SET;
 	public static final TypedList INVALID_LIST;
+	public static final TypedSet INVALID_SINGLETON_SET;
+	public static final TypedList INVALID_SINGLETON_LIST;
 	public static final TypedGroupList INVALID_GROUP_LIST;
 	public static final ITypedComparator NATURAL_ORDER;
 
@@ -39,8 +46,10 @@ public class TypedCollections {
 	static {
 		INVALID_IDTYPE = IDType.registerType("INVALID",
 				IDCategory.registerInternalCategory("INVALID"), EDataType.STRING);
-		INVALID_SET = new TypedSet(Collections.<Integer> emptySet(), INVALID_IDTYPE);
-		INVALID_LIST = new TypedList(Collections.<Integer> emptyList(), INVALID_IDTYPE);
+		INVALID_SET = new TypedSet(ImmutableSet.<Integer> of(), INVALID_IDTYPE);
+		INVALID_LIST = new TypedList(ImmutableList.<Integer> of(), INVALID_IDTYPE);
+		INVALID_SINGLETON_SET = new TypedSet(ImmutableSet.<Integer> of(INVALID_ID), INVALID_IDTYPE);
+		INVALID_SINGLETON_LIST = new TypedList(ImmutableList.<Integer> of(INVALID_ID), INVALID_IDTYPE);
 		NATURAL_ORDER = new TypedComparator(TypedComparator.NATURAL, INVALID_IDTYPE);
 		INVALID_GROUP_LIST = TypedGroupList.createUngrouped(INVALID_LIST);
 	}
@@ -55,7 +64,7 @@ public class TypedCollections {
 	};
 
 	public static boolean isInvalid(IHasIDType col) {
-		return isInvalid(col.getIdType());
+		return col != null && isInvalid(col.getIdType());
 	}
 	public static boolean isInvalid(IDType idType) {
 		return idType.equals(INVALID_IDTYPE);
@@ -74,11 +83,39 @@ public class TypedCollections {
 	 * @param singleID
 	 */
 	public static TypedList singletonList(TypedID singleID) {
-		return new TypedList(Collections.singletonList(singleID.getId()), singleID.getIdType());
+		return singletonList(singleID.getId(), singleID.getIdType());
+	}
+
+	public static TypedList singletonList(Integer id, IDType idType) {
+		if (INVALID_ID.equals(id) && isInvalid(idType))
+			return INVALID_SINGLETON_LIST;
+		return new TypedList(Collections.singletonList(id), idType);
 	}
 
 	public static TypedSet singleton(TypedID singleID) {
-		return new TypedSet(Collections.singleton(singleID.getId()), singleID.getIdType());
+		return singleton(singleID.getId(), singleID.getIdType());
+	}
+
+	public static TypedSet singleton(Integer id, IDType idType) {
+		if (INVALID_ID.equals(id) && isInvalid(idType))
+			return INVALID_SINGLETON_SET;
+		return new TypedSet(Collections.singleton(id), idType);
+	}
+
+	public static TypedSet empty(IDType idType) {
+		if (isInvalid(idType))
+			return INVALID_SET;
+		return new TypedSet(ImmutableSet.<Integer> of(), idType);
+	}
+
+	public static TypedList emptyList(IDType idType) {
+		if (isInvalid(idType))
+			return INVALID_LIST;
+		return new TypedList(ImmutableList.<Integer> of(), idType);
+	}
+
+	public static ITypedComparator wrap(Comparator<Integer> c, IDType idType) {
+		return new TypedComparator(c, idType);
 	}
 
 }
