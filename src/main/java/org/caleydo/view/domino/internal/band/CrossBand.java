@@ -29,8 +29,7 @@ import org.caleydo.view.domino.api.model.typed.TypedListGroup;
 import org.caleydo.view.domino.api.model.typed.TypedSet;
 import org.caleydo.view.domino.api.model.typed.TypedSets;
 import org.caleydo.view.domino.internal.INodeLocator;
-import org.caleydo.view.domino.spi.model.IBandRenderer.IBandHost;
-import org.caleydo.view.domino.spi.model.IBandRenderer.SourceTarget;
+import org.caleydo.view.domino.internal.band.IBandHost.SourceTarget;
 
 import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.ImmutableMultimap.Builder;
@@ -66,9 +65,9 @@ public class CrossBand extends ABand {
 	}
 
 	@Override
-	public void stubify() {
+	public boolean stubify() {
 		// TODO Auto-generated method stub
-
+		return false;
 	}
 
 	@Override

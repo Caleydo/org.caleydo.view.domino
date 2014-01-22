@@ -22,8 +22,7 @@ import org.caleydo.view.domino.api.model.typed.MultiTypedSet;
 import org.caleydo.view.domino.api.model.typed.TypedGroupList;
 import org.caleydo.view.domino.api.model.typed.TypedSet;
 import org.caleydo.view.domino.internal.INodeLocator;
-import org.caleydo.view.domino.spi.model.IBandRenderer.IBandHost;
-import org.caleydo.view.domino.spi.model.IBandRenderer.SourceTarget;
+import org.caleydo.view.domino.internal.band.IBandHost.SourceTarget;
 
 /**
  * @author Samuel Gratzl
@@ -62,7 +61,7 @@ public abstract class ABand implements ILabeled {
 	/**
 	 *
 	 */
-	public abstract void stubify();
+	public abstract boolean stubify();
 
 	protected void updateBand(INodeLocator sLocator, INodeLocator tLocator) {
 		this.sLocator = sLocator;

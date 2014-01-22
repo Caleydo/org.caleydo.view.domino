@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
@@ -37,10 +38,9 @@ import org.caleydo.view.domino.api.model.typed.TypedID;
 import org.caleydo.view.domino.api.model.typed.TypedList;
 import org.caleydo.view.domino.api.model.typed.TypedSet;
 import org.caleydo.view.domino.internal.band.ABand;
+import org.caleydo.view.domino.internal.band.IBandHost;
 import org.caleydo.view.domino.internal.dnd.ADragInfo;
 import org.caleydo.view.domino.internal.dnd.SetDragInfo;
-import org.caleydo.view.domino.spi.model.IBandRenderer.IBandHost;
-import org.caleydo.view.domino.spi.model.IBandRenderer.SourceTarget;
 
 import com.jogamp.common.util.IntIntHashMap;
 import com.jogamp.common.util.IntIntHashMap.Entry;
@@ -59,7 +59,8 @@ public class Bands extends GLElement implements MultiSelectionManagerMixin.ISele
 
 	private final List<ABand> routes = new ArrayList<>();
 
-	private PickingPool pickingPool;
+	private PickingPool pickingBandDetailPool;
+	private PickingPool pickingBandPool;
 	private final IntIntHashMap pickingOffsets = new IntIntHashMap();
 
 	private int currentDragPicking;
@@ -83,14 +84,17 @@ public class Bands extends GLElement implements MultiSelectionManagerMixin.ISele
 		}
 
 		// collected the bounds check what we have to stubify
-		for (ABand band : routes) {
+		for (Iterator<ABand> it = routes.iterator(); it.hasNext();) {
+			ABand band = it.next();
 			for (Rectangle2D bound : bounds) {
 				if (band.intersects(bound)) {
-					band.stubify();
+					if (!band.stubify())
+						it.remove();
 					break;
 				}
 			}
 		}
+		pickingBandPool.ensure(0, routes.size());
 
 	}
 
@@ -104,20 +108,44 @@ public class Bands extends GLElement implements MultiSelectionManagerMixin.ISele
 	@Override
 	protected void init(IGLElementContext context) {
 		super.init(context);
-		pickingPool = new PickingPool(context, PickingListenerComposite.concat(this, context.getSWTLayer()
+		pickingBandDetailPool = new PickingPool(context, PickingListenerComposite.concat(this, context.getSWTLayer()
 				.createTooltip(this)));
+		pickingBandPool = new PickingPool(context, new IPickingListener() {
+			@Override
+			public void pick(Pick pick) {
+				onBandPick(pick);
+			}
+		});
+	}
+
+	/**
+	 * @param pick
+	 */
+	protected void onBandPick(Pick pick) {
+		switch (pick.getPickingMode()) {
+		case RIGHT_CLICKED:
+			getRoute(pick.getObjectID()).changeLevel(!((IMouseEvent) pick).isCtrlDown()); // FIXME
+			repaint();
+			break;
+		default:
+			break;
+		}
 	}
 
 	@Override
 	protected void takeDown() {
-		pickingPool.clear();
-		pickingPool = null;
+		pickingBandDetailPool.clear();
+		pickingBandDetailPool = null;
+		pickingBandPool.clear();
+		pickingBandPool = null;
 		super.takeDown();
 	}
 
 	@Override
 	public String getLabel(Pick pick) {
 		int[] split = split(pick.getObjectID());
+		if (split == null)
+			return "";
 		ABand route = getRoute(split[0]);
 		if (route == null)
 			return "";
@@ -127,6 +155,8 @@ public class Bands extends GLElement implements MultiSelectionManagerMixin.ISele
 	@Override
 	public void pick(Pick pick) {
 		int[] split = split(pick.getObjectID());
+		if (split == null)
+			return;
 		switch (pick.getPickingMode()) {
 		case CLICKED:
 			select(getRoute(split[0]), split[1], SelectionType.SELECTION, !((IMouseEvent) pick).isCtrlDown());
@@ -139,10 +169,6 @@ public class Bands extends GLElement implements MultiSelectionManagerMixin.ISele
 		case MOUSE_OUT:
 			context.getMouseLayer().removeDragSource(this);
 			clear(getRoute(split[0]), split[1], SelectionType.MOUSE_OVER);
-			break;
-		case RIGHT_CLICKED:
-			getRoute(split[0]).changeLevel(!((IMouseEvent) pick).isCtrlDown()); // FIXME
-			repaint();
 			break;
 		default:
 			break;
@@ -164,6 +190,8 @@ public class Bands extends GLElement implements MultiSelectionManagerMixin.ISele
 	@Override
 	public IDragInfo startSWTDrag(IDragEvent event) {
 		int[] split = split(currentDragPicking);
+		if (split == null)
+			return null;
 		ABand route = getRoute(split[0]);
 		TypedSet ids = route.getIds(SourceTarget.SOURCE, split[1]);
 		return new SetDragInfo(route.getLabel(), ids, route.getDimension(SourceTarget.SOURCE));
@@ -180,7 +208,8 @@ public class Bands extends GLElement implements MultiSelectionManagerMixin.ISele
 				break;
 			last = entry;
 		}
-		assert last != null;
+		if (last == null)
+			return null;
 		return new int[] { last.key, objectID - last.value };
 	}
 
@@ -267,7 +296,11 @@ public class Bands extends GLElement implements MultiSelectionManagerMixin.ISele
 			pickingOffsets.clear();
 			for (int i = 0; i < routes.size(); i++) {
 				pickingOffsets.put(i, j);
-				j = routes.get(i).renderPick(g, w, h, this, pickingPool, j);
+				final ABand band = routes.get(i);
+				g.pushName(pickingBandPool.get(i));
+				band.renderMiniMap(g);
+				j = band.renderPick(g, w, h, this, pickingBandDetailPool, j);
+				g.popName();
 			}
 			g.restore();
 			g.incZ(-0.05f);

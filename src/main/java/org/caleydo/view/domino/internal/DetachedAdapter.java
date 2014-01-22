@@ -33,8 +33,8 @@ import org.caleydo.view.domino.api.model.typed.TypedList;
 import org.caleydo.view.domino.api.model.typed.TypedSet;
 import org.caleydo.view.domino.internal.band.ABand;
 import org.caleydo.view.domino.internal.band.BandFactory;
-import org.caleydo.view.domino.spi.model.IBandRenderer.IBandHost;
-import org.caleydo.view.domino.spi.model.IBandRenderer.SourceTarget;
+import org.caleydo.view.domino.internal.band.IBandHost;
+import org.caleydo.view.domino.internal.band.IBandHost.SourceTarget;
 
 import com.jogamp.common.util.IntIntHashMap;
 import com.jogamp.common.util.IntIntHashMap.Entry;
