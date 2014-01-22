@@ -74,5 +74,11 @@
             name="Axis"
             scaleType="fix">
       </factory>
+      <factory
+            factory="org.caleydo.view.domino.internal.ui.Info1ElementFactory"
+            icon="resources/icons/icon.png"
+            name="1D Infos"
+            scaleType="fix">
+      </factory>
    </extension>
 </plugin>

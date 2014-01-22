@@ -44,7 +44,6 @@ import org.caleydo.view.domino.internal.dnd.ADragInfo;
 import org.caleydo.view.domino.internal.dnd.SetDragInfo;
 
 import com.google.common.base.Function;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
 import com.jogamp.common.util.IntIntHashMap;
 import com.jogamp.common.util.IntIntHashMap.Entry;
@@ -311,7 +310,9 @@ public class Bands extends GLElement implements MultiSelectionManagerMixin.ISele
 				pickingOffsets.put(i, j);
 				final ABand band = routes.get(i);
 				g.pushName(pickingBandPool.get(i));
+				g.incZ(-0.01f);
 				band.renderMiniMap(g);
+				g.incZ(0.01f);
 				j = band.renderPick(g, w, h, this, pickingBandDetailPool, j);
 				g.popName();
 			}

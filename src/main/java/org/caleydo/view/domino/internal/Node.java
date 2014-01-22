@@ -244,30 +244,33 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 	}
 
 	private void renderDropHints(GLGraphics g, float w, float h) {
-		if (useRectDropHint(w, h)) {
+		EDimension dim = getLinearDimension(w, h);
+		if (dim == null) {
 			renderRectDropHints(g, w, h);
 		} else {
-			renderLinearDropHints(g, w, h, getSingleGroupingDimension());
+			renderLinearDropHints(g, w, h, dim);
 		}
 	}
 
-	private static boolean useRectDropHint(float w, float h) {
+	private static EDimension getLinearDimension(float w, float h) {
 		float aspectRatio = w / h;
-		return 0.95f <= aspectRatio && aspectRatio <= 1.05f;
+		if (0.95f <= aspectRatio && aspectRatio <= 1.05f)
+			return null;
+		return EDimension.get(w > h);
 	}
 
 	private final ESetOperation toSetType(Vec2f l) {
 		Vec2f size = getSize();
 		final int c = ESetOperation.values().length;
 		int index;
-		if (useRectDropHint(size.x(),size.y())) {
+		EDimension dim = getLinearDimension(size.x(), size.y());
+		if (dim == null) {
 			final int rows = (int) Math.sqrt(c + c % 2);
 			final int cols = (int) Math.ceil(c / (float) rows);
 			int row = Math.min((int) ((l.y() / size.y()) * rows), rows - 1);
 			int col = Math.min((int) ((l.x() / size.x()) * cols), cols - 1);
 			index = Math.min(row * cols + col, c - 1);
 		} else {
-			EDimension dim = getSingleGroupingDimension();
 			float ratio = dim.select(l) / dim.select(size);
 			index = Math.min((int) (ratio * c), c - 1);
 		}
