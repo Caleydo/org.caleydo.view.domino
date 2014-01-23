@@ -290,6 +290,7 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 			for (int i = 0; i < vs.length; ++i) {
 				final float x = i * wi + (wi - hi) * 0.5f;
 				final ESetOperation op = vs[i];
+				Placeholder.renderDropZone(g, i * wi, 0, wi, h, Color.LIGHT_GRAY);
 				g.fillImage(op.toIcon(), x, (h - hi) * 0.5f, hi, hi);
 				if (op == dropSetOperation)
 					g.color(Color.BLACK).drawRoundedRect(x, (h - hi) * 0.5f, hi, hi, 5);
@@ -300,6 +301,7 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 			for (int i = 0; i < vs.length; ++i) {
 				final float y = i * hi + (hi - wi) * 0.5f;
 				final ESetOperation op = vs[i];
+				Placeholder.renderDropZone(g, 0, i * hi, w, hi, Color.LIGHT_GRAY);
 				g.fillImage(op.toIcon(), (w - wi) * 0.5f, y, wi, wi);
 				if (op == dropSetOperation)
 					g.color(Color.BLACK).drawRoundedRect((w - wi) * 0.5f, y, wi, wi, 5);
@@ -320,6 +322,7 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 			for (int i = 0; i < cols; ++i) {
 				ESetOperation op = vs[k++];
 				float x = i * wi + (wi - si) * 0.5f;
+				Placeholder.renderDropZone(g, i * wi, j * hi, wi, hi, Color.LIGHT_GRAY);
 				g.fillImage(op.toIcon(), x, y, si, si);
 				if (op == dropSetOperation)
 					g.color(Color.BLACK).drawRoundedRect(x, y, si, si, 5);

@@ -9,6 +9,10 @@ import gleem.linalg.Vec2f;
 
 import java.util.List;
 
+import javax.media.opengl.GL;
+import javax.media.opengl.GL2;
+import javax.media.opengl.GL2GL3;
+
 import org.caleydo.core.data.collection.EDimension;
 import org.caleydo.core.util.color.Color;
 import org.caleydo.core.view.opengl.layout2.GLGraphics;
@@ -30,6 +34,7 @@ import org.caleydo.view.domino.internal.dnd.NodeGroupDragInfo;
 
 import com.google.common.collect.Iterators;
 import com.google.common.collect.Lists;
+import com.jogamp.opengl.util.texture.Texture;
 
 /**
  * @author Samuel Gratzl
@@ -212,8 +217,7 @@ public class Placeholder extends PickableGLElement implements IDropGLTarget, IPi
 
 	@Override
 	protected void renderImpl(GLGraphics g, float w, float h) {
-		renderPlaceholder(g, 0, 0, w, h, isDetached ? Color.LIGHT_BLUE : Color.LIGHT_GRAY);
-
+		final Color c = isDetached ? Color.LIGHT_BLUE : Color.LIGHT_GRAY;
 		if (preview != null) {
 			final GLElementFactorySwitcher switcher = preview.getRepresentableSwitcher();
 			List<GLElementSupplier> l = Lists.newArrayList(switcher);
@@ -223,6 +227,7 @@ public class Placeholder extends PickableGLElement implements IDropGLTarget, IPi
 				for (int i = 0; i < l.size(); ++i) {
 					final GLElementSupplier item = l.get(i);
 					final float x = w * 0.1f + wi * i + (wi - hi) * 0.5f;
+					renderDropZone(g, w * 0.1f + wi * i, 0, wi, h, c);
 					g.fillImage(item.getIcon(), x, (h - hi) * 0.5f, hi, hi);
 					if (switcher.getActiveSupplier() == item)
 						g.color(Color.BLACK).drawRoundedRect(x, (h - hi) * 0.5f, hi, hi, 5);
@@ -233,17 +238,44 @@ public class Placeholder extends PickableGLElement implements IDropGLTarget, IPi
 				for (int i = 0; i < l.size(); ++i) {
 					final GLElementSupplier item = l.get(i);
 					final float y = h * 0.1f + hi * i + (hi - wi) * 0.5f;
+					renderDropZone(g, 0, h * 0.1f + hi * i, w, hi, c);
 					g.fillImage(item.getIcon(), (w - wi) * 0.5f, y, wi, wi);
 					if (switcher.getActiveSupplier() == item)
 						g.color(Color.BLACK).drawRoundedRect((w - wi) * 0.5f, y, wi, wi, 5);
 				}
 			}
+		} else {
+			renderDropZone(g, 0, 0, w, h, c);
 		}
 	}
 
-	private static void renderPlaceholder(GLGraphics g, float x, float y, float w, float h, Color c) {
+	static void renderDropZone(GLGraphics g, float x, float y, float w, float h, Color c) {
 		g.color(c);
 		g.fillRoundedRect(x, y, w, h, 5);
+		{
+			GL2 gl = g.gl;
+			gl.glPushAttrib(GL2.GL_TEXTURE_BIT);
+			Texture tex = g.getTexture(Resources.ICON_HATCHING);
+			tex.enable(gl);
+			tex.bind(gl);
+			gl.glTexParameterf(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_WRAP_S, GL.GL_REPEAT);
+			gl.glTexParameterf(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_WRAP_T, GL.GL_REPEAT);
+
+			g.color(Color.WHITE);
+			gl.glBegin(GL2GL3.GL_QUADS);
+			gl.glTexCoord2f(0, 0);
+			gl.glVertex3f(x, y, g.z());
+			gl.glTexCoord2f(w / 32, 0);
+			gl.glVertex3f(x + w, y, g.z());
+			gl.glTexCoord2f(w / 32, h / 32);
+			gl.glVertex3f(x + w, y + h, g.z());
+			gl.glTexCoord2f(0, h / 32);
+			gl.glVertex3f(x, y + h, g.z());
+			gl.glEnd();
+
+			tex.disable(gl);
+			gl.glPopAttrib();
+		}
 		g.lineStippled(true).lineWidth(2);
 		g.color(Color.GRAY).drawRoundedRect(x, y, w, h, 5);
 		g.lineStippled(false).lineWidth(1);

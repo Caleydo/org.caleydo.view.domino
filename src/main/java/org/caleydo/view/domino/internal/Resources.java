@@ -67,6 +67,7 @@ public class Resources {
 
 	public static final URL ICON_MISSING = icon("missing.png");
 	public static final URL ICON_FOCUS = icon("focus.png");
+	public static final URL ICON_HATCHING = icon("hatching.png");
 
 	/**
 	 * @param string
