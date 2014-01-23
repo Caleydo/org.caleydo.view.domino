@@ -113,6 +113,8 @@ public class NodeGroup extends GLElementDecorator implements ILabeled, IDragGLSo
 	@Override
 	public void pick(Pick pick) {
 		final NodeSelections domino = findDomino().getSelections();
+		IMouseEvent event = (IMouseEvent) pick;
+		boolean ctrl = event.isCtrlDown();
 		switch (pick.getPickingMode()) {
 		case MOUSE_OVER:
 			if (!barrier.isPickable())
@@ -132,8 +134,6 @@ public class NodeGroup extends GLElementDecorator implements ILabeled, IDragGLSo
 			break;
 		case MOUSE_RELEASED:
 			if (armed) {
-				IMouseEvent event = (IMouseEvent) pick;
-				boolean ctrl = event.isCtrlDown();
 				if (domino.isSelected(SelectionType.SELECTION, this))
 					domino.clear(SelectionType.SELECTION, ctrl ? this : null);
 				else
@@ -144,6 +144,12 @@ public class NodeGroup extends GLElementDecorator implements ILabeled, IDragGLSo
 			break;
 		case DOUBLE_CLICKED:
 			getNode().selectAll();
+			break;
+		case RIGHT_CLICKED:
+			if (!domino.isSelected(SelectionType.SELECTION, this))
+				domino.select(SelectionType.SELECTION, this, ctrl);
+			repaint();
+			context.getSWTLayer().showContextMenu(findDomino().getToolBar().asContextMenu());
 			break;
 		default:
 			break;

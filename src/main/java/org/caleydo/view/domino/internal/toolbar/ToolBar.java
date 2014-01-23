@@ -6,21 +6,29 @@
 package org.caleydo.view.domino.internal.toolbar;
 
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 
 import org.apache.commons.lang.StringUtils;
 import org.caleydo.core.data.collection.EDimension;
 import org.caleydo.core.data.selection.SelectionType;
+import org.caleydo.core.event.ADirectedEvent;
+import org.caleydo.core.event.EventListenerManager.ListenTo;
 import org.caleydo.core.util.base.ICallback;
 import org.caleydo.core.util.base.Labels;
 import org.caleydo.core.util.color.Color;
+import org.caleydo.core.view.contextmenu.AContextMenuItem;
+import org.caleydo.core.view.contextmenu.GenericContextMenuItem;
+import org.caleydo.core.view.contextmenu.item.SeparatorMenuItem;
 import org.caleydo.core.view.opengl.layout.Column.VAlign;
 import org.caleydo.core.view.opengl.layout2.GLElement;
 import org.caleydo.core.view.opengl.layout2.GLElementContainer;
+import org.caleydo.core.view.opengl.layout2.GLGraphics;
 import org.caleydo.core.view.opengl.layout2.basic.GLButton;
 import org.caleydo.core.view.opengl.layout2.basic.GLButton.ISelectionCallback;
 import org.caleydo.core.view.opengl.layout2.layout.GLLayouts;
@@ -32,6 +40,7 @@ import org.caleydo.core.view.opengl.layout2.manage.ButtonBarBuilder.EButtonBarLa
 import org.caleydo.core.view.opengl.layout2.manage.GLElementFactories.GLElementSupplier;
 import org.caleydo.core.view.opengl.layout2.manage.GLElementFactorySwitcher;
 import org.caleydo.core.view.opengl.layout2.renderer.GLRenderers;
+import org.caleydo.core.view.opengl.layout2.renderer.IGLRenderer;
 import org.caleydo.view.domino.api.model.graph.EDirection;
 import org.caleydo.view.domino.internal.Block;
 import org.caleydo.view.domino.internal.Node;
@@ -98,6 +107,10 @@ public class ToolBar extends GLElementContainer implements ICallback<SelectionTy
 		label.setRenderer(GLRenderers.drawText(StringUtils.join(Collections2.transform(selection, Labels.TO_LABEL),
 				", "),
 				VAlign.LEFT, new GLPadding(2, 4)));
+	}
+
+	public List<AContextMenuItem> asContextMenu() {
+		return tools == null ? Collections.<AContextMenuItem> emptyList() : tools.asContextMenu();
 	}
 
 	private static class Tools extends GLElementContainer implements GLButton.ISelectionCallback, IGLLayout2 {
@@ -346,9 +359,56 @@ public class ToolBar extends GLElementContainer implements ICallback<SelectionTy
 		private void addButton(String string, URL iconSortDim) {
 			GLButton b = new GLButton();
 			b.setCallback(this);
-			b.setRenderer(GLRenderers.fillImage(iconSortDim));
+			b.setRenderer(new ImageRenderer(iconSortDim));
 			b.setTooltip(string);
 			this.add(b);
+		}
+
+		/**
+		 * tries to convert the contained buttons to context menu items, that trigger {@link TriggerButtonEvent} events
+		 *
+		 * @param receiver
+		 *            event receiver
+		 * @param locator
+		 *            loader to load the image for a button
+		 * @return
+		 */
+		public List<AContextMenuItem> asContextMenu() {
+			List<AContextMenuItem> items = new ArrayList<>(size());
+			for (GLElement elem : this) {
+				if (elem instanceof GLButton) {
+					items.add(asItem((GLButton) elem));
+				} else {
+					items.add(SeparatorMenuItem.INSTANCE);
+				}
+			}
+			return items;
+		}
+
+		private AContextMenuItem asItem(GLButton elem) {
+			String label = Objects.toString(elem.getTooltip(), elem.toString());
+			ADirectedEvent event = new TriggerButtonEvent(elem).to(this);
+			AContextMenuItem item = new GenericContextMenuItem(label, event);
+			// if (elem.getMode() == EButtonMode.CHECKBOX) {
+			// item.setType(EContextMenuType.CHECK);
+			// item.setState(elem.isSelected());
+			// }
+			URL imagePath = toImagePath(elem.isSelected() ? elem.getSelectedRenderer() : elem.getRenderer());
+			item.setImageURL(imagePath);
+			return item;
+		}
+
+		@ListenTo(sendToMe = true)
+		private void onTriggerButton(TriggerButtonEvent event) {
+			GLButton b = event.getButton();
+			b.setSelected(!b.isSelected());
+		}
+
+		private URL toImagePath(IGLRenderer renderer) {
+			if (renderer instanceof ImageRenderer) {
+				return ((ImageRenderer) renderer).image;
+			}
+			return null;
 		}
 
 	}
@@ -369,5 +429,19 @@ public class ToolBar extends GLElementContainer implements ICallback<SelectionTy
 				node.setVisualizationType(button.getLayoutDataAs(GLElementSupplier.class, null).getId());
 		}
 
+	}
+
+
+	private static class ImageRenderer implements IGLRenderer {
+		private final URL image;
+
+		public ImageRenderer(URL image) {
+			this.image = image;
+		}
+
+		@Override
+		public void render(GLGraphics g, float w, float h, GLElement parent) {
+			g.fillImage(image, 0, 0, w, h);
+		}
 	}
 }

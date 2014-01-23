@@ -137,6 +137,13 @@ public class Domino extends GLElementContainer implements IDropGLTarget, IPickin
 	}
 
 	/**
+	 * @return the toolBar, see {@link #toolBar}
+	 */
+	public ToolBar getToolBar() {
+		return toolBar;
+	}
+
+	/**
 	 * @return the showDebugInfos, see {@link #showDebugInfos}
 	 */
 	public boolean isShowDebugInfos() {
