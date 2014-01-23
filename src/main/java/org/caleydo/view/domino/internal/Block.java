@@ -211,12 +211,11 @@ public class Block extends GLElementContainer implements IGLLayout2 {
 	 * @param event
 	 */
 	public void zoom(IMouseEvent event, Node just) {
-		int dim = toDirection(event, EDimension.DIMENSION);
-		int rec = toDirection(event, EDimension.RECORD);
 
 		Vec2f s = just == null ? new Vec2f(100, 100) : just.getSize();
-		float shiftX = dim == 0 ? 0 : event.getWheelRotation() * sizeFactor(s.x());
-		float shiftY = rec == 0 ? 0 : event.getWheelRotation() * sizeFactor(s.y());
+		Vec2f shift = ScaleLogic.shiftLogic(event, s);
+		float shiftX = shift.x();
+		float shiftY = shift.y();
 
 		if (just != null) {
 			just.shiftBy(shiftX, shiftY);
@@ -243,21 +242,6 @@ public class Block extends GLElementContainer implements IGLLayout2 {
 		updateBlock();
 		updateBands();
 	}
-
-	/**
-	 * @param x
-	 * @return
-	 */
-	private int sizeFactor(float x) {
-		if (x < 100)
-			return 5;
-		if (x < 500)
-			return 10;
-		if (x < 1000)
-			return 20;
-		return 50;
-	}
-
 
 	/**
 	 *
@@ -475,20 +459,7 @@ public class Block extends GLElementContainer implements IGLLayout2 {
 		return a.getIDCategory().isOfCategory(b);
 	}
 
-	/**
-	 * convert a {@link IMouseEvent} to a direction information
-	 *
-	 * @param event
-	 * @param dim
-	 * @return -1 smaller, +1 larger, and 0 nothing
-	 */
-	private static int toDirection(IMouseEvent event, EDimension dim) {
-		final int w = event.getWheelRotation();
-		if (w == 0)
-			return 0;
-		int factor = w > 0 ? 1 : -1;
-		return event.isCtrlDown() || dim.select(event.isAltDown(), event.isShiftDown()) ? factor : 0;
-	}
+
 
 	/**
 	 * @param pickable

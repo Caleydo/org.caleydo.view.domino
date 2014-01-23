@@ -22,6 +22,7 @@ import org.caleydo.core.view.opengl.layout2.manage.GLElementFactoryContext.Build
 import org.caleydo.view.domino.api.model.graph.EProximityMode;
 import org.caleydo.view.domino.api.model.typed.TypedCollections;
 import org.caleydo.view.domino.api.model.typed.TypedGroupSet;
+import org.caleydo.view.domino.api.model.typed.TypedList;
 import org.caleydo.view.domino.api.model.typed.TypedListGroup;
 import org.caleydo.view.domino.api.model.typed.TypedSet;
 import org.caleydo.view.domino.api.model.typed.TypedSetGroup;
@@ -77,7 +78,7 @@ public class StratificationDataValue implements IDataValues, Function2<Integer, 
 	}
 
 	@Override
-	public void fill(Builder b, TypedListGroup dimData, TypedListGroup recData) {
+	public void fill(Builder b, TypedList dimData, TypedList recData) {
 		b.put("heatmap.dimensions", dimData);
 		b.put("heatmap.dimensions.idType", dimData.getIdType());
 		b.put("heatmap.records", recData);
@@ -90,8 +91,8 @@ public class StratificationDataValue implements IDataValues, Function2<Integer, 
 
 		final EDimension dir = swapped ? main.opposite() : main;
 		b.put(EDimension.class, dir);
-		final TypedListGroup data = dir.select(dimData, recData);
-		b.put(TypedListGroup.class, data);
+		final TypedList data = dir.select(dimData, recData);
+		b.put(TypedList.class, data);
 		b.put("data",data);
 		b.put("idType",data.getIdType());
 		b.put(IDType.class, data.getIdType());
@@ -115,7 +116,7 @@ public class StratificationDataValue implements IDataValues, Function2<Integer, 
 	 * @param data
 	 * @return
 	 */
-	private Histogram createHist(TypedListGroup data) {
+	private Histogram createHist(TypedList data) {
 		Histogram h = new Histogram(groups().size());
 		for (Integer id : data) {
 			int index = indexOf(id);
@@ -127,7 +128,7 @@ public class StratificationDataValue implements IDataValues, Function2<Integer, 
 		return h;
 	}
 
-	protected Color[] getHistColors(Histogram hist, TypedListGroup data) {
+	protected Color[] getHistColors(Histogram hist, TypedList data) {
 		Color[] r = new Color[groups().size()];
 		int i = 0;
 		for (TypedSetGroup s : groups()) {
@@ -136,7 +137,7 @@ public class StratificationDataValue implements IDataValues, Function2<Integer, 
 		return r;
 	}
 
-	protected String[] getHistLabels(Histogram hist, TypedListGroup data) {
+	protected String[] getHistLabels(Histogram hist, TypedList data) {
 		String[] r = new String[groups().size()];
 		int i = 0;
 		for (TypedSetGroup s : groups()) {

@@ -15,7 +15,7 @@ import org.caleydo.core.view.opengl.layout2.manage.GLElementFactoryContext.Build
 import org.caleydo.view.domino.api.model.graph.EProximityMode;
 import org.caleydo.view.domino.api.model.typed.TypedCollections;
 import org.caleydo.view.domino.api.model.typed.TypedGroupSet;
-import org.caleydo.view.domino.api.model.typed.TypedListGroup;
+import org.caleydo.view.domino.api.model.typed.TypedList;
 import org.caleydo.view.domino.api.model.typed.TypedSet;
 
 /**
@@ -52,10 +52,10 @@ public class LabelDataValues implements IDataValues {
 	}
 
 	@Override
-	public void fill(Builder b, TypedListGroup dimData, TypedListGroup recData) {
-		TypedListGroup g = dimData.isEmpty() ? recData : dimData;
+	public void fill(Builder b, TypedList dimData, TypedList recData) {
+		TypedList g = dimData.isEmpty() ? recData : dimData;
 		EDimension dim = EDimension.get(g == dimData);
-		b.put(TypedListGroup.class, g);
+		b.put(TypedList.class, g);
 		b.put(EDimension.class, dim);
 	}
 

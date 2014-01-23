@@ -12,7 +12,7 @@ import org.caleydo.core.util.color.Color;
 import org.caleydo.core.view.opengl.layout2.manage.GLElementFactoryContext.Builder;
 import org.caleydo.view.domino.api.model.graph.EProximityMode;
 import org.caleydo.view.domino.api.model.typed.TypedGroupSet;
-import org.caleydo.view.domino.api.model.typed.TypedListGroup;
+import org.caleydo.view.domino.api.model.typed.TypedList;
 import org.caleydo.view.domino.api.model.typed.TypedSet;
 
 /**
@@ -53,7 +53,7 @@ public class TransposedDataValues implements IDataValues {
 	}
 
 	@Override
-	public void fill(Builder b, TypedListGroup dimData, TypedListGroup recData) {
+	public void fill(Builder b, TypedList dimData, TypedList recData) {
 		wrappee.fill(b, dimData, recData);
 	}
 

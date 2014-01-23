@@ -81,7 +81,7 @@ public class NodeGroup extends GLElementDecorator implements ILabeled, IDragGLSo
 			build();
 	}
 
-	public void build() {
+	private void build() {
 		if (context == null)
 			return;
 		Builder b = GLElementFactoryContext.builder();

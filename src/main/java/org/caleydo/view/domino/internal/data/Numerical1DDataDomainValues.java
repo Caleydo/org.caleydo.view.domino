@@ -22,7 +22,7 @@ import org.caleydo.core.util.function.MappedDoubleList;
 import org.caleydo.core.view.opengl.layout2.manage.GLElementFactoryContext.Builder;
 import org.caleydo.view.domino.api.model.graph.EProximityMode;
 import org.caleydo.view.domino.api.model.typed.TypedGroupSet;
-import org.caleydo.view.domino.api.model.typed.TypedListGroup;
+import org.caleydo.view.domino.api.model.typed.TypedList;
 import org.caleydo.view.domino.api.model.typed.TypedSet;
 import org.caleydo.view.domino.api.model.typed.TypedSetGroup;
 import org.caleydo.view.domino.api.model.typed.util.BitSetSet;
@@ -87,7 +87,7 @@ public class Numerical1DDataDomainValues extends A1DDataDomainValues {
 		return super.apply(input) && !"distribution.pie".equals(input);
 	}
 
-	protected Histogram createHist(TypedListGroup data) {
+	protected Histogram createHist(TypedList data) {
 		final int bins = (int) Math.sqrt(data.size());
 		Histogram h = new Histogram(bins);
 		for (Integer id : data) {
@@ -106,7 +106,7 @@ public class Numerical1DDataDomainValues extends A1DDataDomainValues {
 		return h;
 	}
 
-	protected Color[] getHistColors(Histogram hist, TypedListGroup data) {
+	protected Color[] getHistColors(Histogram hist, TypedList data) {
 		Color[] r = new Color[hist.size()];
 		float f = 1.f / (r.length - 1);
 		for (int i = 0; i < r.length; ++i) {
@@ -115,7 +115,7 @@ public class Numerical1DDataDomainValues extends A1DDataDomainValues {
 		return r;
 	}
 
-	protected String[] getHistLabels(Histogram hist, TypedListGroup data) {
+	protected String[] getHistLabels(Histogram hist, TypedList data) {
 		String[] r = new String[hist.size()];
 		for (int i = 0; i < r.length; ++i) {
 			r[i] = "Bin " + (i + 1);
@@ -124,7 +124,7 @@ public class Numerical1DDataDomainValues extends A1DDataDomainValues {
 	}
 
 	@Override
-	protected void fill(Builder b, TypedListGroup data) {
+	protected void fill(Builder b, TypedList data) {
 		super.fill(b, data);
 		final Histogram hist = createHist(data);
 		b.put(Histogram.class, hist);

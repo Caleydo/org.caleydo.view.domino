@@ -15,6 +15,7 @@ import org.caleydo.core.data.perspective.variable.Perspective;
 import org.caleydo.core.view.opengl.layout2.manage.GLElementFactoryContext.Builder;
 import org.caleydo.view.domino.api.model.graph.EProximityMode;
 import org.caleydo.view.domino.api.model.typed.TypedGroupSet;
+import org.caleydo.view.domino.api.model.typed.TypedList;
 import org.caleydo.view.domino.api.model.typed.TypedListGroup;
 import org.caleydo.view.domino.api.model.typed.TypedSet;
 
@@ -49,10 +50,10 @@ public class String1DDataDomainValues extends A1DDataDomainValues {
 	}
 
 	@Override
-	public void fill(Builder b, TypedListGroup dimData, TypedListGroup recData) {
+	public void fill(Builder b, TypedList dimData, TypedList recData) {
 		super.fill(b, dimData, recData);
 
-		TypedListGroup data = main.select(dimData, recData);
+		TypedList data = main.select(dimData, recData);
 		boolean transposed = data.getIdType() == this.singleGroup.getIdType();
 		if (transposed) {
 			data = main.opposite().select(dimData, recData);

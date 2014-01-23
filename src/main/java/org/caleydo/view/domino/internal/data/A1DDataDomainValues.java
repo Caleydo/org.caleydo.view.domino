@@ -13,7 +13,6 @@ import org.caleydo.view.domino.api.model.typed.TypedCollections;
 import org.caleydo.view.domino.api.model.typed.TypedGroupSet;
 import org.caleydo.view.domino.api.model.typed.TypedID;
 import org.caleydo.view.domino.api.model.typed.TypedList;
-import org.caleydo.view.domino.api.model.typed.TypedListGroup;
 
 /**
  * @author Samuel Gratzl
@@ -49,9 +48,9 @@ public abstract class A1DDataDomainValues extends ADataDomainDataValues {
 	}
 
 	@Override
-	public void fill(Builder b, TypedListGroup dimData, TypedListGroup recData) {
+	public void fill(Builder b, TypedList dimData, TypedList recData) {
 		EDimension dim = main;
-		TypedListGroup data = main.select(dimData, recData);
+		TypedList data = main.select(dimData, recData);
 		boolean transposed = data.getIdType() == this.singleGroup.getIdType();
 		if (transposed) {
 			dim = dim.opposite();
@@ -67,8 +66,8 @@ public abstract class A1DDataDomainValues extends ADataDomainDataValues {
 	 * @param b
 	 * @param data
 	 */
-	protected void fill(Builder b, TypedListGroup data) {
-		b.put(TypedListGroup.class, data);
+	protected void fill(Builder b, TypedList data) {
+		b.put(TypedList.class, data);
 		b.put("idType", data.getIdType());
 	}
 

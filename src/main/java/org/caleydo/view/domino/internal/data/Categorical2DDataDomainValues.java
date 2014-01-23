@@ -21,7 +21,7 @@ import org.caleydo.core.util.collection.Pair;
 import org.caleydo.core.view.opengl.layout2.manage.GLElementFactoryContext.Builder;
 import org.caleydo.view.domino.api.model.graph.EProximityMode;
 import org.caleydo.view.domino.api.model.typed.TypedGroupSet;
-import org.caleydo.view.domino.api.model.typed.TypedListGroup;
+import org.caleydo.view.domino.api.model.typed.TypedList;
 import org.caleydo.view.domino.api.model.typed.TypedSet;
 import org.caleydo.view.domino.api.model.typed.TypedSetGroup;
 
@@ -56,7 +56,7 @@ public class Categorical2DDataDomainValues extends ADataDomainDataValues {
 	}
 
 	@Override
-	public void fill(Builder b, TypedListGroup dimData, TypedListGroup recData) {
+	public void fill(Builder b, TypedList dimData, TypedList recData) {
 		super.fillHeatMap(b, dimData, recData);
 	}
 	/**

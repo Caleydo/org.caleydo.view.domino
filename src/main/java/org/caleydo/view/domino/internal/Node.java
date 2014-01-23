@@ -31,6 +31,7 @@ import org.caleydo.core.view.opengl.layout2.GLElement;
 import org.caleydo.core.view.opengl.layout2.GLElementContainer;
 import org.caleydo.core.view.opengl.layout2.GLGraphics;
 import org.caleydo.core.view.opengl.layout2.IGLElementContext;
+import org.caleydo.core.view.opengl.layout2.IPopupLayer;
 import org.caleydo.core.view.opengl.layout2.dnd.EDnDType;
 import org.caleydo.core.view.opengl.layout2.dnd.IDnDItem;
 import org.caleydo.core.view.opengl.layout2.dnd.IDragInfo;
@@ -88,10 +89,10 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 	IDataValues data;
 
 	private TypedGroupList dimData;
-	private TypedGroupSet dimGroups;
+	private TypedGroupSet dimUnderlying;
 
 	private TypedGroupList recData;
-	private TypedGroupSet recGroups;
+	private TypedGroupSet recUnderlying;
 
 	@DeepScan
 	private DetachedAdapter dimDetached = new DetachedAdapter(this, EDimension.DIMENSION);
@@ -123,8 +124,8 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 		this.data = clone.data;
 		this.label = clone.label;
 		this.visualizationType = clone.visualizationType;
-		this.dimGroups = clone.dimGroups;
-		this.recGroups = clone.recGroups;
+		this.dimUnderlying = clone.dimUnderlying;
+		this.recUnderlying = clone.recUnderlying;
 		copyScaleFactors(clone);
 		setData(clone.dimData, clone.recData);
 		init();
@@ -135,8 +136,8 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 		this.visualizationType = origin == null ? null : origin.visualizationType;
 		this.data = data;
 		this.label = label;
-		this.dimGroups = dimGroups;
-		this.recGroups = recGroups;
+		this.dimUnderlying = dimGroups;
+		this.recUnderlying = recGroups;
 		if (origin != null)
 			copyScaleFactors(origin);
 		// guessShift(dimGroups.size(), recGroups.size());
@@ -744,9 +745,9 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 	 */
 	private void setUnderlyingData(EDimension dim, TypedGroupSet data) {
 		if (dim.isDimension())
-			dimGroups = data;
+			dimUnderlying = data;
 		else
-			recGroups = data;
+			recUnderlying = data;
 
 	}
 
@@ -910,7 +911,7 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 	}
 
 	public TypedSet get(EDimension dim) {
-		return dim.select(this.dimGroups, this.recGroups);
+		return dim.select(this.dimUnderlying, this.recUnderlying);
 	}
 
 	/**
@@ -922,7 +923,7 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 	}
 
 	public TypedGroupSet getUnderlyingData(EDimension dim) {
-		return dim.select(dimGroups, recGroups);
+		return dim.select(dimUnderlying, recUnderlying);
 	}
 
 	public int compare(EDimension dim, int a, int b) {
@@ -1091,9 +1092,9 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 	public Node transposeMe() {
 		this.data = TransposedDataValues.transpose(data);
 
-		TypedGroupSet g = recGroups;
-		this.recGroups = dimGroups;
-		this.dimGroups = g;
+		TypedGroupSet g = recUnderlying;
+		this.recUnderlying = dimUnderlying;
+		this.dimUnderlying = g;
 		TypedGroupList t = this.recData;
 		this.recData = dimData;
 		this.dimData = t;
@@ -1384,5 +1385,33 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 	public void shiftLocation(float x, float y) {
 		Vec2f l = getLocation();
 		setLocation(l.x()+x, l.y()+y);
+	}
+
+	/**
+	 *
+	 */
+	public void showInFocus() {
+		IPopupLayer popup = context.getPopupLayer();
+		FocusOverlay overlay = new FocusOverlay(this);
+		Vec2f size = overlay.getPreferredSize();
+		Vec2f total = popup.getSize();
+		Rect bounds = focusBounds(size, total);
+		popup.show(overlay, bounds);
+	}
+	private static Rect focusBounds(Vec2f size, Vec2f total) {
+		Vec2f avail = total.times(0.8f);
+
+		float wi = avail.x() / size.x();
+		float hi = avail.y() / size.y();
+		Vec2f target;
+		if (wi < hi) {
+			target = size.times(wi);
+		} else {
+			target = size.times(hi);
+		}
+
+		float w = target.x();
+		float h = target.y();
+		return new Rect((total.x() - w) * 0.5f, (total.y() - h) * 0.5f, w, h);
 	}
 }

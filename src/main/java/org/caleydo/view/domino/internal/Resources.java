@@ -65,6 +65,8 @@ public class Resources {
 	public static final URL ICON_SET_INTERSECT = icon("setop_intersection.png");
 	public static final URL ICON_SET_DIFFERENCE = icon("setop_diff.png");
 
+	public static final URL ICON_MISSING = icon("missing.png");
+
 	/**
 	 * @param string
 	 * @return

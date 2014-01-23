@@ -17,7 +17,7 @@ import org.caleydo.core.util.color.Color;
 import org.caleydo.core.view.opengl.layout2.manage.GLElementFactoryContext.Builder;
 import org.caleydo.view.domino.api.model.graph.EProximityMode;
 import org.caleydo.view.domino.api.model.typed.TypedGroupSet;
-import org.caleydo.view.domino.api.model.typed.TypedListGroup;
+import org.caleydo.view.domino.api.model.typed.TypedList;
 import org.caleydo.view.domino.api.model.typed.TypedSetGroup;
 import org.caleydo.view.domino.internal.util.Utils;
 
@@ -60,7 +60,7 @@ public class Categorical1DDataDomainValues extends A1DDataDomainValues {
 	 * @param data
 	 * @return
 	 */
-	protected Histogram createHist(TypedListGroup data) {
+	protected Histogram createHist(TypedList data) {
 		Histogram h = new Histogram(groups().size());
 		for (Integer id : data) {
 			int index = indexOf(id);
@@ -73,7 +73,7 @@ public class Categorical1DDataDomainValues extends A1DDataDomainValues {
 	}
 
 	@Override
-	protected void fill(Builder b, TypedListGroup data) {
+	protected void fill(Builder b, TypedList data) {
 		super.fill(b, data);
 		final Histogram hist = createHist(data);
 		b.put(Histogram.class, hist);
@@ -81,7 +81,7 @@ public class Categorical1DDataDomainValues extends A1DDataDomainValues {
 		b.put("distribution.labels", getHistLabels(hist, data));
 	}
 
-	protected Color[] getHistColors(Histogram hist, TypedListGroup data) {
+	protected Color[] getHistColors(Histogram hist, TypedList data) {
 		Color[] r = new Color[groups().size()];
 		int i = 0;
 		for (TypedSetGroup s : groups()) {
@@ -90,7 +90,7 @@ public class Categorical1DDataDomainValues extends A1DDataDomainValues {
 		return r;
 	}
 
-	protected String[] getHistLabels(Histogram hist, TypedListGroup data) {
+	protected String[] getHistLabels(Histogram hist, TypedList data) {
 		String[] r = new String[groups().size()];
 		int i = 0;
 		for (TypedSetGroup s : groups()) {
