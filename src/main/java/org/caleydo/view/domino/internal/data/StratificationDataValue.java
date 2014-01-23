@@ -11,7 +11,10 @@ import java.util.List;
 
 import org.caleydo.core.data.collection.EDimension;
 import org.caleydo.core.data.collection.Histogram;
+import org.caleydo.core.data.datadomain.IDataDomain;
 import org.caleydo.core.data.perspective.variable.Perspective;
+import org.caleydo.core.event.EventPublisher;
+import org.caleydo.core.event.data.DataSetSelectedEvent;
 import org.caleydo.core.id.IDType;
 import org.caleydo.core.util.color.Color;
 import org.caleydo.core.util.function.Function2;
@@ -31,6 +34,7 @@ import com.google.common.base.Function;
  *
  */
 public class StratificationDataValue implements IDataValues, Function2<Integer, Integer, Color> {
+	private final IDataDomain reference;
 	private final String label;
 	private final EDimension main;
 
@@ -43,6 +47,7 @@ public class StratificationDataValue implements IDataValues, Function2<Integer, 
 		this.label = data.getLabel();
 		this.singleGroup = TypedGroupSet.createUngrouped(TypedCollections.INVALID_SINGLETON_SET);
 		this.groups = new TypedGroupSet(Utils.extractSetGroups(data, referenceId, dim));
+		this.reference = data.getDataDomain();
 	}
 
 	public StratificationDataValue(String label, TypedSet data, EDimension main) {
@@ -50,6 +55,7 @@ public class StratificationDataValue implements IDataValues, Function2<Integer, 
 		this.label = label;
 		this.singleGroup = TypedGroupSet.createUngrouped(TypedCollections.INVALID_SINGLETON_SET);
 		this.groups = TypedGroupSet.createUngrouped(data);
+		this.reference = null;
 	}
 
 	public StratificationDataValue(String label, TypedGroupSet data, EDimension main) {
@@ -57,6 +63,7 @@ public class StratificationDataValue implements IDataValues, Function2<Integer, 
 		this.label = label;
 		this.singleGroup = TypedGroupSet.createUngrouped(TypedCollections.INVALID_SINGLETON_SET);
 		this.groups = data;
+		this.reference = null;
 	}
 
 
@@ -186,6 +193,12 @@ public class StratificationDataValue implements IDataValues, Function2<Integer, 
 	@Override
 	public boolean apply(String input) {
 		return !"labels".equals(input) && !"distribution.bar".equals(input);
+	}
+
+	@Override
+	public void onSelectionChanged(boolean selected) {
+		if (selected && reference != null)
+			EventPublisher.trigger(new DataSetSelectedEvent(reference));
 	}
 
 }

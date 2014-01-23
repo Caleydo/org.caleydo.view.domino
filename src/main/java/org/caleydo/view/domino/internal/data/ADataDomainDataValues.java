@@ -9,6 +9,8 @@ import org.caleydo.core.data.collection.EDimension;
 import org.caleydo.core.data.collection.table.Table;
 import org.caleydo.core.data.datadomain.ATableBasedDataDomain;
 import org.caleydo.core.data.perspective.table.TablePerspective;
+import org.caleydo.core.event.EventPublisher;
+import org.caleydo.core.event.data.DataSetSelectedEvent;
 import org.caleydo.core.id.IDType;
 import org.caleydo.core.util.color.Color;
 import org.caleydo.core.util.function.Function2;
@@ -179,5 +181,11 @@ public abstract class ADataDomainDataValues implements IDataValues, Function2<In
 	@Override
 	public boolean apply(String input) {
 		return !"labels".equals(input) && !"distribution.bar".equals(input);
+	}
+
+	@Override
+	public void onSelectionChanged(boolean selected) {
+		if (selected)
+			EventPublisher.trigger(new DataSetSelectedEvent(d));
 	}
 }

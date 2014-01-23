@@ -73,4 +73,9 @@ public class LabelDataValues implements IDataValues {
 	public boolean apply(String input) {
 		return true;
 	}
+
+	@Override
+	public void onSelectionChanged(boolean selected) {
+
+	}
 }

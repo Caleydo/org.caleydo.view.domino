@@ -15,6 +15,7 @@ import java.util.Set;
 import org.caleydo.core.data.selection.SelectionType;
 import org.caleydo.core.event.EventListenerManager.DeepScan;
 import org.caleydo.core.event.EventPublisher;
+import org.caleydo.core.util.base.ICallback;
 import org.caleydo.core.util.color.Color;
 import org.caleydo.core.view.opengl.canvas.IGLKeyListener;
 import org.caleydo.core.view.opengl.canvas.IGLMouseListener.IMouseEvent;
@@ -108,6 +109,14 @@ public class Domino extends GLElementContainer implements IDropGLTarget, IPickin
 		this.bands.setzDelta(0.01f);
 		this.bands.onPick(this);
 		content.add(this.bands);
+
+		selections.onSelectionChanges(new ICallback<SelectionType>() {
+			@Override
+			public void on(SelectionType data) {
+				NodeDataItem.update(selections.getSelection(SelectionType.MOUSE_OVER),
+						selections.getSelection(SelectionType.SELECTION));
+			}
+		});
 	}
 
 	@Override

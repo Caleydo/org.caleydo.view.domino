@@ -71,4 +71,9 @@ public class TransposedDataValues implements IDataValues {
 	public boolean apply(String input) {
 		return wrappee.apply(input);
 	}
+
+	@Override
+	public void onSelectionChanged(boolean selected) {
+		wrappee.onSelectionChanged(selected);
+	}
 }

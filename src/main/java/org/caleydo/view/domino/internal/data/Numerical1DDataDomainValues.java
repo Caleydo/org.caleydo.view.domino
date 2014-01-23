@@ -82,6 +82,11 @@ public class Numerical1DDataDomainValues extends A1DDataDomainValues {
 		return Arrays.asList("boxandwhiskers", "kaplanmaier", "heatmap");
 	}
 
+	@Override
+	public boolean apply(String input) {
+		return super.apply(input) && !"distribution.pie".equals(input);
+	}
+
 	protected Histogram createHist(TypedListGroup data) {
 		final int bins = (int) Math.sqrt(data.size());
 		Histogram h = new Histogram(bins);

@@ -52,7 +52,10 @@ public class BitSetSet extends AbstractSet<Integer> {
 	public boolean contains(Object o) {
 		if (!(o instanceof Integer))
 			return false;
-		return bitSet.get(((Integer) o).intValue());
+		final int i = ((Integer) o).intValue();
+		if (i < 0)
+			return false;
+		return bitSet.get(i);
 	}
 
 	@Override

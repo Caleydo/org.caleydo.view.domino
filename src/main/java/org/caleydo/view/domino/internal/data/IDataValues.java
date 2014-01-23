@@ -47,4 +47,6 @@ public interface IDataValues extends ILabeled, IColored, Predicate<String> {
 	 */
 	@Override
 	boolean apply(String input);
+
+	void onSelectionChanged(boolean selected);
 }

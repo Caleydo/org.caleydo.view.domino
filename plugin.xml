@@ -81,4 +81,11 @@
             scaleType="fix">
       </factory>
    </extension>
+   <extension
+         point="org.caleydo.view.info.DataSetItem">
+      <item
+            class="org.caleydo.view.domino.internal.NodeDataItem"
+            order="35">
+      </item>
+   </extension>
 </plugin>

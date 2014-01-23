@@ -120,11 +120,13 @@ public class NodeGroup extends GLElementDecorator implements ILabeled, IDragGLSo
 			if (!barrier.isPickable())
 				context.getMouseLayer().addDragSource(this);
 			domino.select(SelectionType.MOUSE_OVER, this, false);
+			getNode().data.onSelectionChanged(true);
 			repaint();
 			break;
 		case MOUSE_OUT:
 			context.getMouseLayer().removeDragSource(this);
 			domino.clear(SelectionType.MOUSE_OVER, null);
+			getNode().data.onSelectionChanged(false);
 			repaint();
 			break;
 		case CLICKED:
