@@ -228,19 +228,19 @@ public class ToolBar extends GLElementContainer implements ICallback<SelectionTy
 		private void addSingleNode(Node node) {
 			if (node.has(EDimension.DIMENSION)) {
 				addButton("Sort Dim", Resources.ICON_SORT_DIM);
-				addButton("Stratify Dim", Resources.ICON_MISSING);
+				addButton("Stratify Dim", Resources.ICON_STRATIFY_DIM);
 			}
 			if (node.has(EDimension.RECORD)) {
 				addButton("Sort Rec", Resources.ICON_SORT_REC);
-				addButton("Stratify Rec", Resources.ICON_MISSING);
+				addButton("Stratify Rec", Resources.ICON_STRATIFY_REC);
 			}
 			final boolean recAlone = node.isAlone(EDimension.RECORD);
 			if (node.has(EDimension.DIMENSION) && !recAlone) {
-				addButton("Limit Dim", Resources.ICON_MISSING);
+				addButton("Limit Dim", Resources.ICON_LIMIT_DATA_DIM);
 			}
 			final boolean dimAlone = node.isAlone(EDimension.DIMENSION);
 			if (node.has(EDimension.RECORD) && !dimAlone) {
-				addButton("Limit Rec", Resources.ICON_MISSING);
+				addButton("Limit Rec", Resources.ICON_LIMIT_DATA_REC);
 			}
 			if (recAlone && dimAlone) {
 				addButton("Transpose", Resources.ICON_TRANSPOSE);
@@ -248,7 +248,7 @@ public class ToolBar extends GLElementContainer implements ICallback<SelectionTy
 
 			addMultiNodes(Collections.singleton(node));
 
-			addButton("Open Details", Resources.ICON_MISSING);
+			addButton("Open Details", Resources.ICON_FOCUS);
 		}
 
 		@Override

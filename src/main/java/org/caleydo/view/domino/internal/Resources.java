@@ -46,18 +46,18 @@ public class Resources {
 	public static final URL ICON_STRATIFY_REC = icon("category.png");
 	public static final URL ICON_DELETE = icon("cross.png");
 	public static final URL ICON_DELETE_ALL = icon("cross_all.png");
-	public static final URL ICON_MERGE_REC = icon("category_group_select.png");
-	public static final URL ICON_MERGE_DIM = icon("category_group_select_dim.png");
-	public static final URL ICON_LIMIT_DATA_DIM = icon("award_star_gold_1.png");
-	public static final URL ICON_LIMIT_DATA_REC = icon("award_star_gold_1.png");
+	public static final URL ICON_MERGE_REC = icon("merge.png");
+	public static final URL ICON_MERGE_DIM = icon("merge_dim.png");
+	public static final URL ICON_LIMIT_DATA_DIM = icon("limit_dim.png");
+	public static final URL ICON_LIMIT_DATA_REC = icon("limit.png");
 
 	public static final URL ICON_STATE_MOVE = icon("transform_move.png");
 	public static final URL ICON_STATE_SELECT = icon("select.png");
 
-	public static final URL ICON_SELECT_REC = icon("layer_resize_replicate_h.png");
-	public static final URL ICON_SELECT_DIM = icon("layer_resize_replicate_v.png");
+	public static final URL ICON_SELECT_REC = icon("select_rec.png");
+	public static final URL ICON_SELECT_DIM = icon("select_dim.png");
 
-	public static final URL ICON_SELECT_ALL = icon("layer_resize.png");
+	public static final URL ICON_SELECT_ALL = icon("selectAll.png");
 
 	public static final URL ICON_TRANSPOSE = icon("transform_rotate.png");
 
@@ -66,6 +66,7 @@ public class Resources {
 	public static final URL ICON_SET_DIFFERENCE = icon("setop_diff.png");
 
 	public static final URL ICON_MISSING = icon("missing.png");
+	public static final URL ICON_FOCUS = icon("focus.png");
 
 	/**
 	 * @param string

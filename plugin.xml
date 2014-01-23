@@ -64,19 +64,19 @@
          point="org.caleydo.ui.GLElementFactory">
       <factory
             factory="org.caleydo.view.domino.internal.ui.LabelElementFactory"
-            icon="resources/icons/icon.png"
+            icon="resources/icons/icon_infos.png"
             name="Labels"
             scaleType="dataDependent">
       </factory>
       <factory
             factory="org.caleydo.view.domino.internal.ui.AxisElementFactory"
-            icon="resources/icons/icon.png"
+            icon="resources/icons/icon_axis.png"
             name="Axis"
             scaleType="fix">
       </factory>
       <factory
             factory="org.caleydo.view.domino.internal.ui.Info1ElementFactory"
-            icon="resources/icons/icon.png"
+            icon="resources/icons/icon_infos.png"
             name="1D Infos"
             scaleType="fix">
       </factory>
