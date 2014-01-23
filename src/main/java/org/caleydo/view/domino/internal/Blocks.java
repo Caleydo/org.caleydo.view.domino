@@ -78,8 +78,18 @@ public class Blocks extends GLElementContainer implements IHasMinSize {
 				w = bounds.width();
 				x_hint = bounds.y() - pos.y();
 			}
+			if (Float.isNaN(x) && inRange(pos.x(), bounds.x2())) { // near enough
+				x = bounds.x2(); // set it as target pos
+				w = bounds.width();
+				x_hint = bounds.y() - pos.y();
+			}
 			if (inRange(pos.y(), bounds.y())) { // near enough
 				y = bounds.y();
+				h = bounds.height();
+				y_hint = bounds.x() - pos.x();
+			}
+			if (inRange(pos.y(), bounds.y2())) { // near enough
+				y = bounds.y2();
 				h = bounds.height();
 				y_hint = bounds.x() - pos.x();
 			}
