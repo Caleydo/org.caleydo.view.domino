@@ -477,7 +477,7 @@ public class Block extends GLElementContainer implements IGLLayout2 {
 	public Color getStateColor(Node node, EDimension dim) {
 		LinearBlock block = getBlock(node, dim.opposite());
 		if (block == null)
-			return Color.BLACK;
+			return Color.WHITE;
 		return block.getStateColor(node);
 	}
 

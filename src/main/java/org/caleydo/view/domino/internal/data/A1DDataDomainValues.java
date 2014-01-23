@@ -8,6 +8,7 @@ package org.caleydo.view.domino.internal.data;
 import org.caleydo.core.data.collection.EDimension;
 import org.caleydo.core.data.perspective.table.TablePerspective;
 import org.caleydo.core.data.perspective.variable.Perspective;
+import org.caleydo.core.id.IDType;
 import org.caleydo.core.view.opengl.layout2.manage.GLElementFactoryContext.Builder;
 import org.caleydo.view.domino.api.model.typed.TypedCollections;
 import org.caleydo.view.domino.api.model.typed.TypedGroupSet;
@@ -68,6 +69,7 @@ public abstract class A1DDataDomainValues extends ADataDomainDataValues {
 	 */
 	protected void fill(Builder b, TypedList data) {
 		b.put(TypedList.class, data);
+		b.put(IDType.class, data.getIdType());
 		b.put("idType", data.getIdType());
 	}
 

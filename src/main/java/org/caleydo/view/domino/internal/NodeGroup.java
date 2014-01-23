@@ -10,7 +10,6 @@ import java.util.Set;
 import org.caleydo.core.data.collection.EDimension;
 import org.caleydo.core.data.selection.SelectionType;
 import org.caleydo.core.util.base.ILabeled;
-import org.caleydo.core.util.color.Color;
 import org.caleydo.core.view.opengl.canvas.EDetailLevel;
 import org.caleydo.core.view.opengl.canvas.IGLMouseListener.IMouseEvent;
 import org.caleydo.core.view.opengl.layout.Column.VAlign;
@@ -30,7 +29,6 @@ import org.caleydo.core.view.opengl.layout2.manage.GLElementFactoryContext;
 import org.caleydo.core.view.opengl.layout2.manage.GLElementFactoryContext.Builder;
 import org.caleydo.core.view.opengl.layout2.manage.GLElementFactorySwitcher;
 import org.caleydo.core.view.opengl.layout2.manage.GLElementFactorySwitcher.ELazyiness;
-import org.caleydo.core.view.opengl.layout2.manage.GLLocation;
 import org.caleydo.core.view.opengl.layout2.manage.GLLocation.ILocator;
 import org.caleydo.core.view.opengl.picking.IPickingListener;
 import org.caleydo.core.view.opengl.picking.Pick;
@@ -71,7 +69,7 @@ public class NodeGroup extends GLElementDecorator implements ILabeled, IDragGLSo
 
 	@Override
 	protected void layoutContent(IGLLayoutElement content, float w, float h, int deltaTimeMs) {
-		content.setBounds(Node.BORDER, Node.BORDER, w - Node.BORDER * 2, h - Node.BORDER * 2);
+		content.setBounds(0, 0, w, h);
 	}
 
 	@Override
@@ -205,21 +203,21 @@ public class NodeGroup extends GLElementDecorator implements ILabeled, IDragGLSo
 		// Color c = recData.getColor();
 		// g.color(c).fillRect(0, 0, w, h);
 		final Domino domino = findDomino();
-		NodeSelections selections = domino.getSelections();
-		g.lineWidth(2);
-		if (selections.isSelected(SelectionType.SELECTION, this))
-			g.color(SelectionType.SELECTION.getColor());
-		else if (selections.isSelected(SelectionType.MOUSE_OVER, this))
-			g.color(SelectionType.MOUSE_OVER.getColor());
-		else
-			g.color(Color.BLACK).lineWidth(1);
-		g.drawRect(0, 0, w, h);
-		g.lineWidth(1);
 
 		if (domino.isShowDebugInfos()) {
 			g.drawText(getLabel(), -100, h * 0.5f - 5, w + 200, 10, VAlign.CENTER);
 		}
 		super.renderImpl(g, w, h);
+
+		NodeSelections selections = domino.getSelections();
+		g.lineWidth(3);
+		if (selections.isSelected(SelectionType.SELECTION, this))
+			g.color(SelectionType.SELECTION.getColor()).drawRect(0, 0, w, h);
+		else if (selections.isSelected(SelectionType.MOUSE_OVER, this))
+			g.color(SelectionType.MOUSE_OVER.getColor()).drawRect(0, 0, w, h);
+		g.lineWidth(1);
+
+
 	}
 
 	/**
@@ -335,7 +333,7 @@ public class NodeGroup extends GLElementDecorator implements ILabeled, IDragGLSo
 
 	public ILocator getLocator(final EDimension dim) {
 		ILocator desc = getDesc(dim);
-		return GLLocation.shift(desc, Node.BORDER);
+		return desc;
 	}
 
 	/**

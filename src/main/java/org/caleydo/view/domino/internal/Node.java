@@ -222,9 +222,10 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 
 		final Block b = findBlock();
 		g.lineWidth(2);
-		g.color(has(EDimension.DIMENSION) ? b.getStateColor(this, EDimension.DIMENSION) : Color.BLACK);
+		g.color(0.90f); // has(EDimension.DIMENSION) ? b.getStateColor(this, EDimension.DIMENSION) :
+									// Color.BLACK);
 		g.drawLine(0, 0, w, 0).drawLine(0, h, w, h);
-		g.color(has(EDimension.RECORD) ? b.getStateColor(this, EDimension.RECORD) : Color.BLACK);
+		g.color(0.90f); // has(EDimension.RECORD) ? b.getStateColor(this, EDimension.RECORD) : Color.BLACK);
 		g.drawLine(0, 0, 0, h).drawLine(w, 0, w, h);
 		g.lineWidth(1);
 

@@ -144,6 +144,7 @@ public class Numerical1DDataDomainValues extends A1DDataDomainValues {
 		b.put("min", stats.getMin());
 		b.put("max", stats.getMax());
 		b.put(IDoubleList.class, list);
+		// b.set("kaplanmaier.fillCurve");
 	}
 
 	@Override
