@@ -484,8 +484,6 @@ public class LinearBlock extends AbstractCollection<Node> {
 				renderVerticalText(g, node.getLabel(), b.x(), b.y(), b.width(), textSize);
 			}
 		}
-		if (nodes.size() == 1)
-			return;
 		if (dim.isHorizontal()) {
 			Node last = getNode(false);
 			Rect b = last.getRectBounds();

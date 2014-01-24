@@ -96,7 +96,8 @@ public class Info1ElementFactory implements IGLElementFactory2 {
 			int mouseOvers = Sets.intersection(s, manager.getElements(SelectionType.MOUSE_OVER)).size();
 			lines.add(String.format("#mouse overs: %d (%.2f%%)", mouseOvers, mouseOvers * 100 / (float) s.size()));
 
-			g.drawText(lines, 0, 0, w, h - 4, 1, VAlign.LEFT, ETextStyle.PLAIN);
+			float hi = Math.min(h - 4, lines.size() * 18);
+			g.drawText(lines, 0, 0, w, hi, 1, VAlign.LEFT, ETextStyle.PLAIN);
 
 			super.renderImpl(g, w, h);
 		}

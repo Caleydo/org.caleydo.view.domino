@@ -116,7 +116,7 @@ public class FocusOverlay extends GLElementContainer implements IPickingListener
 		GLElementDimensionDesc rec = switcher.getActiveDesc(EDimension.RECORD);
 		double w = dim.size(dimSize) + shiftX;
 		double h = rec.size(recSize) + shiftY;
-		w = Math.max(20, w);
+		w = Math.max(100, w);
 		h = Math.max(20, h);
 		return new Vec2f((float) w, (float) h);
 	}
