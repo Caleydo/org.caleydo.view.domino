@@ -46,6 +46,7 @@ import org.caleydo.view.domino.internal.dnd.NodeDragInfo;
 import org.caleydo.view.domino.internal.dnd.NodeGroupDragInfo;
 import org.caleydo.view.domino.internal.dnd.TablePerspectiveRemoveDragCreator;
 import org.caleydo.view.domino.internal.event.HideNodeEvent;
+import org.caleydo.view.domino.internal.toolbar.DynamicToolBar;
 import org.caleydo.view.domino.internal.toolbar.LeftToolBar;
 import org.caleydo.view.domino.internal.toolbar.ToolBar;
 
@@ -120,6 +121,9 @@ public class Domino extends GLElementContainer implements IDropGLTarget, IPickin
 						selections.getSelection(SelectionType.SELECTION));
 			}
 		});
+
+		DynamicToolBar dynToolBar = new DynamicToolBar(selections);
+		content.add(dynToolBar);
 	}
 
 	@Override
