@@ -9,6 +9,7 @@ import gleem.linalg.Vec2f;
 
 import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.BitSet;
 import java.util.Collection;
 import java.util.Collections;
@@ -22,6 +23,7 @@ import org.caleydo.core.data.selection.SelectionManager;
 import org.caleydo.core.data.selection.SelectionType;
 import org.caleydo.core.event.EventListenerManager.DeepScan;
 import org.caleydo.core.id.IDType;
+import org.caleydo.core.util.collection.Pair;
 import org.caleydo.core.util.color.Color;
 import org.caleydo.core.view.opengl.canvas.IGLMouseListener.IMouseEvent;
 import org.caleydo.core.view.opengl.layout2.GLElement;
@@ -60,7 +62,7 @@ public class Bands extends GLElement implements MultiSelectionManagerMixin.ISele
 	private final MultiSelectionManagerMixin selections = new MultiSelectionManagerMixin(this);
 
 
-	private final List<ABand> routes = new ArrayList<>();
+	private final List<ABand> bands = new ArrayList<>();
 
 	private PickingPool pickingBandDetailPool;
 	private PickingPool pickingBandPool;
@@ -72,13 +74,13 @@ public class Bands extends GLElement implements MultiSelectionManagerMixin.ISele
 	}
 
 	public void update() {
-		Map<String, ABand> bak = Maps.uniqueIndex(routes, new Function<ABand, String>() {
+		Map<String, ABand> bak = Maps.uniqueIndex(bands, new Function<ABand, String>() {
 			@Override
 			public String apply(ABand input) {
 				return input.getIdentifier();
 			}
 		});
-		routes.clear();
+		bands.clear();
 		Domino domino = findParent(Domino.class);
 		List<Block> blocks = domino.getBlocks();
 		final int length = blocks.size();
@@ -87,13 +89,13 @@ public class Bands extends GLElement implements MultiSelectionManagerMixin.ISele
 		Collection<Rectangle2D> bounds = new ArrayList<>();
 		for (int i = 0; i < length; ++i) {
 			final Block block = blocks.get(i);
-			block.createBandsTo(blocks.subList(i + 1, length), routes);
+			block.createBandsTo(blocks.subList(i + 1, length), bands);
 			for (LinearBlock b : block.getLinearBlocks())
-				bounds.add(block.getAbsoluteBounds(b).asRectangle2D());
+				bounds.add(shrink(block.getAbsoluteBounds(b).asRectangle2D()));
 		}
 
 		// collected the bounds check what we have to stubify
-		for (Iterator<ABand> it = routes.iterator(); it.hasNext();) {
+		for (Iterator<ABand> it = bands.iterator(); it.hasNext();) {
 			ABand band = it.next();
 			for (Rectangle2D bound : bounds) {
 				if (band.intersects(bound)) {
@@ -106,7 +108,7 @@ public class Bands extends GLElement implements MultiSelectionManagerMixin.ISele
 				band.initFrom(bak.get(band.getIdentifier()));
 			}
 		}
-		pickingBandPool.ensure(0, routes.size());
+		pickingBandPool.ensure(0, bands.size());
 
 	}
 
@@ -266,9 +268,9 @@ public class Bands extends GLElement implements MultiSelectionManagerMixin.ISele
 	 * @return
 	 */
 	private ABand getRoute(int index) {
-		if (index < 0 || index >= routes.size())
+		if (index < 0 || index >= bands.size())
 			return null;
-		return routes.get(index);
+		return bands.get(index);
 	}
 
 	@Override
@@ -277,7 +279,7 @@ public class Bands extends GLElement implements MultiSelectionManagerMixin.ISele
 		Vec2f loc = getAbsoluteLocation();
 		g.save().move(-loc.x(), -loc.y());
 		float z = g.z();
-		for (ABand edge : routes) {
+		for (ABand edge : bands) {
 			g.incZ(0.002f);
 			edge.render(g, w, h, this);
 		}
@@ -288,7 +290,7 @@ public class Bands extends GLElement implements MultiSelectionManagerMixin.ISele
 	public void renderMiniMap(GLGraphics g) {
 		Vec2f loc = getAbsoluteLocation();
 		g.save().move(-loc.x(), -loc.y());
-		for (ABand edge : routes) {
+		for (ABand edge : bands) {
 			edge.renderMiniMap(g);
 		}
 		g.restore();
@@ -306,9 +308,9 @@ public class Bands extends GLElement implements MultiSelectionManagerMixin.ISele
 			g.save().move(-loc.x(), -loc.y());
 			int j = 0;
 			pickingOffsets.clear();
-			for (int i = 0; i < routes.size(); i++) {
+			for (int i = 0; i < bands.size(); i++) {
 				pickingOffsets.put(i, j);
-				final ABand band = routes.get(i);
+				final ABand band = bands.get(i);
 				g.pushName(pickingBandPool.get(i));
 				g.incZ(-0.01f);
 				band.renderMiniMap(g);
@@ -382,5 +384,39 @@ public class Bands extends GLElement implements MultiSelectionManagerMixin.ISele
 		repaint();
 	}
 
+	/**
+	 * @param clear
+	 * @param r
+	 */
+	public void selectBandsByBounds(boolean clear, Rectangle2D r) {
+		if (clear) {
+			for (SelectionManager m : selections) {
+				m.clearSelection(SelectionType.SELECTION);
+			}
+		}
+
+		r = shrink(r);
+
+		for(ABand band : bands) {
+			Pair<TypedSet, TypedSet> intersects = band.intersectingIds(r);
+			TypedSet intersectsS = intersects.getFirst();
+			TypedSet intersectsT = intersects.getSecond();
+			for (TypedSet s : Arrays.asList(intersectsS, intersectsT)) {
+				if (s.isEmpty())
+					continue;
+				SelectionManager manager = getOrCreate(s.getIdType());
+				manager.addToType(SelectionType.SELECTION, s);
+			}
+		}
+
+		for (SelectionManager m : selections) {
+			selections.fireSelectionDelta(m);
+		}
+		repaint();
+	}
+
+	private static Rectangle2D shrink(Rectangle2D r) {
+		return new Rectangle2D.Double(r.getX() + 2, r.getY() + 2, r.getWidth() - 4, r.getHeight() - 4);
+	}
 
 }

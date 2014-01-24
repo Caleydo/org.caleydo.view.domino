@@ -265,11 +265,6 @@ public class CrossBand extends ABand {
 		return b.build();
 	}
 
-	@Override
-	public boolean intersects(Rectangle2D bound) {
-		return overview.intersects(bound);
-	}
-
 	private static class Disc implements IBandRenderAble {
 		private final String label;
 		private final Rect bounds;
@@ -353,6 +348,10 @@ public class CrossBand extends ABand {
 
 		@Override
 		public void renderRoute(GLGraphics g, IBandHost host) {
+			if (bounds.width() <= 2 && bounds.height() <= 2) {
+				renderPoint(g, host);
+				return;
+			}
 			g.color(color.r, color.g, color.b, 0.5f);
 			g.fillRect(bounds);
 
@@ -368,9 +367,33 @@ public class CrossBand extends ABand {
 							* (sS / (float) sIds.size()));
 				}
 			}
+			if (bounds.width() > 20 && bounds.height() > 20) {
+				g.color(color.darker());
+				g.drawRect(bounds.x(), bounds.y(), bounds.width(), bounds.height());
+			}
+		}
 
-			g.color(color.darker());
-			g.drawRect(bounds.x(), bounds.y(), bounds.width(), bounds.height());
+		/**
+		 * @param g
+		 * @param host
+		 */
+		private void renderPoint(GLGraphics g, IBandHost host) {
+			Color c = color;
+
+			if (!g.isPickingPass()) {
+				for (SelectionType type : SELECTION_TYPES) {
+					int sS = host.getSelected(sIds, type).size();
+					int tS = host.getSelected(tIds, type).size();
+					if (sS > 0 && tS > 0) {
+						c = type.getColor();
+						break;
+					}
+				}
+			}
+			g.color(c.r, c.g, c.b, 1.f);
+			g.pointSize(2);
+			g.drawPoint(bounds.x() + bounds.width() * 0.5f, bounds.y() + bounds.height() * 0.5f);
+			g.pointSize(1);
 		}
 
 		@Override

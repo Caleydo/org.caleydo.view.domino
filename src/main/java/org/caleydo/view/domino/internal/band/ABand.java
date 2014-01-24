@@ -16,6 +16,7 @@ import org.caleydo.core.data.collection.EDimension;
 import org.caleydo.core.data.selection.SelectionType;
 import org.caleydo.core.id.IDType;
 import org.caleydo.core.util.base.ILabeled;
+import org.caleydo.core.util.collection.Pair;
 import org.caleydo.core.util.color.Color;
 import org.caleydo.core.view.opengl.layout2.GLGraphics;
 import org.caleydo.core.view.opengl.layout2.manage.GLLocation;
@@ -34,8 +35,8 @@ import org.caleydo.view.domino.internal.band.IBandHost.SourceTarget;
 public abstract class ABand implements ILabeled {
 	protected static final Color color = new Color(180, 212, 231, 32);
 
-	protected static final List<SelectionType> SELECTION_TYPES = Arrays.asList(SelectionType.MOUSE_OVER,
-			SelectionType.SELECTION);
+	protected static final List<SelectionType> SELECTION_TYPES = Arrays.asList(SelectionType.SELECTION,
+			SelectionType.MOUSE_OVER);
 
 	protected final MultiTypedSet shared;
 
@@ -94,15 +95,16 @@ public abstract class ABand implements ILabeled {
 		return type.select(sDim, tDim);
 	}
 
-	public TypedSet intersect(Rectangle2D bounds, SourceTarget type) {
+	public Pair<TypedSet, TypedSet> intersectingIds(Rectangle2D bounds) {
 		IBandRenderAble r = overviewRoute();
 		if (!r.intersects(bounds))
-			return TypedCollections.empty(getIdType(type));
+			return Pair.make(TypedCollections.empty(getIdType(SourceTarget.SOURCE)),
+					TypedCollections.empty(getIdType(SourceTarget.TARGET)));
 
 		Iterable<? extends IBandRenderAble> l;
 		switch(mode) {
 		case OVERVIEW:
-			return r.asSet(type);
+			return Pair.make(r.asSet(SourceTarget.SOURCE), r.asSet(SourceTarget.TARGET));
 		case GROUPS:
 			l = groupRoutes();
 			break;
@@ -114,12 +116,21 @@ public abstract class ABand implements ILabeled {
 		}
 
 		Set<Integer> rs = new HashSet<>();
+		Set<Integer> rt = new HashSet<>();
 		for(IBandRenderAble ri : l) {
-			if (ri.intersects(bounds))
-				rs.addAll(ri.asSet(type));
+			if (ri.intersects(bounds)) {
+				rs.addAll(ri.asSet(SourceTarget.SOURCE));
+				rt.addAll(ri.asSet(SourceTarget.TARGET));
+			}
 		}
-		return new TypedSet(rs, getIdType(type));
+		return Pair.make(new TypedSet(rs, getIdType(SourceTarget.SOURCE)), new TypedSet(rs,
+				getIdType(SourceTarget.TARGET)));
 	}
+
+	public final boolean intersects(Rectangle2D bounds) {
+		return overviewRoute().intersects(bounds);
+	}
+
 
 	public abstract void renderMiniMap(GLGraphics g);
 
@@ -207,8 +218,6 @@ public abstract class ABand implements ILabeled {
 			return;
 		mode = EBandMode.values()[this.mode.ordinal() + (increase ? 1 : -1)];
 	}
-
-	public abstract boolean intersects(Rectangle2D bound);
 
 
 	public TypedSet getIds(SourceTarget type, int subIndex) {

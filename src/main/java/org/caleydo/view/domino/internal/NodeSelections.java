@@ -64,7 +64,7 @@ public class NodeSelections {
 	}
 
 	public void cleanup(Node node) {
-		for (SelectionType type : selections.keySet()) {
+		for (SelectionType type : ImmutableSet.copyOf(selections.keySet())) {
 			Set<NodeGroup> c = selections.get(type);
 			boolean changed = false;
 			for (Iterator<NodeGroup> it = c.iterator(); it.hasNext();) {
@@ -80,7 +80,7 @@ public class NodeSelections {
 	}
 
 	public void cleanup(Block block) {
-		for (SelectionType type : selections.keySet()) {
+		for (SelectionType type : ImmutableSet.copyOf(selections.keySet())) {
 			Set<NodeGroup> c = selections.get(type);
 			boolean changed = false;
 			for (Iterator<NodeGroup> it = c.iterator(); it.hasNext();) {

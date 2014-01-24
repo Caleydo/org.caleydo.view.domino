@@ -501,14 +501,4 @@ public class Band extends ABand {
 		}
 		return b.build();
 	}
-
-	/**
-	 * @param bound
-	 * @return
-	 */
-	@Override
-	public boolean intersects(Rectangle2D bound) {
-		return band.intersects(bound);
-	}
-
 }

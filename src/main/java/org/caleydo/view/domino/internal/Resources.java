@@ -39,6 +39,7 @@ public class Resources {
 	}
 
 	public static final URL ICON = icon("icon.png");
+	public static final URL ICON_MISSING = icon("missing.png");
 
 	public static final URL ICON_SORT_DIM = icon("sort_columns_dim.png");
 	public static final URL ICON_SORT_REC = icon("sort_columns.png");
@@ -53,6 +54,7 @@ public class Resources {
 
 	public static final URL ICON_STATE_MOVE = icon("transform_move.png");
 	public static final URL ICON_STATE_SELECT = icon("select.png");
+	public static final URL ICON_STATE_BANDS = ICON_MISSING;
 
 	public static final URL ICON_SELECT_REC = icon("select_rec.png");
 	public static final URL ICON_SELECT_DIM = icon("select_dim.png");
@@ -65,9 +67,9 @@ public class Resources {
 	public static final URL ICON_SET_INTERSECT = icon("setop_intersection.png");
 	public static final URL ICON_SET_DIFFERENCE = icon("setop_diff.png");
 
-	public static final URL ICON_MISSING = icon("missing.png");
 	public static final URL ICON_FOCUS = icon("focus.png");
 	public static final URL ICON_HATCHING = icon("hatching.png");
+
 
 	/**
 	 * @param string

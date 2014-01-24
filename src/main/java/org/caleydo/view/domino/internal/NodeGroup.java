@@ -75,6 +75,8 @@ public class NodeGroup extends GLElementDecorator implements ILabeled, IDragGLSo
 	@Override
 	protected void init(IGLElementContext context) {
 		super.init(context);
+		Domino domino = findDomino();
+		setContentPickable(domino.getTool() == EToolState.SELECT);
 		if (dimData != null && recData != null)
 			build();
 	}

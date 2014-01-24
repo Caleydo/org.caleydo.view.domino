@@ -1028,7 +1028,7 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 	 * @param pickable
 	 */
 	public void setContentPickable(boolean pickable) {
-		for (NodeGroup g : nodeGroups()) {
+		for (NodeGroup g : Iterables.filter(this, NodeGroup.class)) {
 			g.setContentPickable(pickable);
 		}
 	}

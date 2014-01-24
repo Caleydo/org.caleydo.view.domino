@@ -67,6 +67,8 @@ public class Domino extends GLElementContainer implements IDropGLTarget, IPickin
 	private boolean showDebugInfos = true;
 	private boolean showMiniMap = false;
 
+	private EToolState tool = EToolState.MOVE;
+
 	@DeepScan
 	private final NodeSelections selections = new NodeSelections();
 
@@ -437,10 +439,32 @@ public class Domino extends GLElementContainer implements IDropGLTarget, IPickin
 	 * @param clear
 	 */
 	public void selectByBounds(Rect rect, boolean clear) {
+		final Rectangle2D r = rect.asRectangle2D();
+		switch (this.tool) {
+		case MOVE:
+			selectNodesByBounds(clear, r);
+			break;
+		case SELECT:
+			selectBandsByBounds(clear, r);
+			break;
+		case BANDS:
+			break;
+		}
+
+	}
+
+	/**
+	 * @param clear
+	 * @param r
+	 */
+	private void selectBandsByBounds(boolean clear, Rectangle2D r) {
+		bands.selectBandsByBounds(clear, r);
+	}
+
+	private void selectNodesByBounds(boolean clear, final Rectangle2D r) {
 		if (clear)
 			selections.clear(SelectionType.SELECTION, null);
 
-		Rectangle2D r = rect.asRectangle2D();
 		for (Block block : blocks.getBlocks()) {
 			if (block.getRectangleBounds().intersects(r)) {
 				block.selectByBounds(r, selections);
@@ -475,10 +499,32 @@ public class Domino extends GLElementContainer implements IDropGLTarget, IPickin
 	}
 
 	/**
-	 * @param b
+	 * @param tool
+	 *            setter, see {@link tool}
 	 */
-	public void setContentPickable(boolean pickable) {
-		blocks.setContentPickable(pickable);
+	public void setTool(EToolState tool) {
+		if (this.tool == tool)
+			return;
+		this.tool = tool;
+		switch (this.tool) {
+		case MOVE:
+			blocks.setContentPickable(false);
+			break;
+		case SELECT:
+			blocks.setContentPickable(true);
+			break;
+		case BANDS:
+			// FIXME
+			blocks.setContentPickable(false);
+			break;
+		}
+	}
+
+	/**
+	 * @return the tool, see {@link #tool}
+	 */
+	public EToolState getTool() {
+		return tool;
 	}
 
 	/**
