@@ -61,6 +61,11 @@ public class Block extends GLElementContainer implements IGLLayout2 {
 		Domino domino = findParent(Domino.class);
 		if (domino.isShowDebugInfos())
 			g.color(Color.BLUE).drawRect(0, 0, w, h);
+
+		if (domino.isShowBlockLabels()) {
+			for (LinearBlock b : linearBlocks)
+				b.renderLabels(g);
+		}
 	}
 
 

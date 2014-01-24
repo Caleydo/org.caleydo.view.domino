@@ -66,28 +66,30 @@ public class NodeDataItem implements IDataSetItem {
 	 * @param mouseOvers
 	 * @param selections
 	 */
-	private void updateImpl(Set<NodeGroup> mouseOvers, Set<NodeGroup> selections) {
-		Set<NodeGroup> toShow = selections;
-		if (!mouseOvers.isEmpty()) {
-			toShow = mouseOvers;
-		}
-
-		if (toShow.isEmpty()) {
-			text.setText("No Selection");
-			return;
-		}
-		String t = StringUtils.join(Collections2.transform(toShow, Labels.TO_LABEL), "\n");
-		text.setText(t);
+	private void updateImpl(String text) {
+		this.text.setText(text);
 	}
 
 	public static void update(final Set<NodeGroup> mouseOvers, final Set<NodeGroup> selections) {
 		final NodeDataItem i = instance;
 		if (i == null)
 			return;
+		Set<NodeGroup> toShow = selections;
+		if (!mouseOvers.isEmpty()) {
+			toShow = mouseOvers;
+		}
+
+		String text;
+		if (toShow.isEmpty()) {
+			text = "No Selection";
+		} else
+			text = StringUtils.join(Collections2.transform(toShow, Labels.TO_LABEL), "\n");
+
+		final String t = text;
 		Display.getDefault().asyncExec(new Runnable() {
 			@Override
 			public void run() {
-				i.updateImpl(mouseOvers, selections);
+				i.updateImpl(t);
 			}
 		});
 	}

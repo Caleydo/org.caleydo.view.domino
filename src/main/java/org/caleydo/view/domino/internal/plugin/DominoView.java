@@ -22,6 +22,7 @@ import org.caleydo.core.view.opengl.layout2.GLElementDecorator;
 import org.caleydo.core.view.opengl.layout2.basic.ScrollingDecorator;
 import org.caleydo.core.view.opengl.layout2.view.AMultiTablePerspectiveElementView;
 import org.caleydo.view.domino.internal.Domino;
+import org.caleydo.view.domino.internal.event.ToggleShowBlockLabelsEvent;
 import org.caleydo.view.domino.internal.event.ToggleShowDebugInfosEvent;
 import org.caleydo.view.domino.internal.event.ToggleShowMiniMapEvent;
 import org.caleydo.view.domino.internal.serial.SerializedDominoView;
@@ -85,6 +86,11 @@ public class DominoView extends AMultiTablePerspectiveElementView {
 	@ListenTo(sendToMe = true)
 	private void on(ToggleShowDebugInfosEvent event) {
 		domino.setShowDebugInfos(!domino.isShowDebugInfos());
+	}
+
+	@ListenTo(sendToMe = true)
+	private void on(ToggleShowBlockLabelsEvent event) {
+		domino.setShowBlockLabels(!domino.isShowBlockLabels());
 	}
 
 	@ListenTo(sendToMe = true)

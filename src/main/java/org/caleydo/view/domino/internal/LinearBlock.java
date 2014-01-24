@@ -17,7 +17,9 @@ import java.util.Map;
 import org.caleydo.core.data.collection.EDimension;
 import org.caleydo.core.id.IDType;
 import org.caleydo.core.util.color.Color;
+import org.caleydo.core.view.opengl.layout.Column.VAlign;
 import org.caleydo.core.view.opengl.layout2.GLElement;
+import org.caleydo.core.view.opengl.layout2.GLGraphics;
 import org.caleydo.core.view.opengl.layout2.geom.Rect;
 import org.caleydo.core.view.opengl.layout2.layout.IGLLayoutElement;
 import org.caleydo.view.domino.api.model.graph.EDirection;
@@ -467,6 +469,52 @@ public class LinearBlock extends AbstractCollection<Node> {
 		if (limited)
 			b.append("F");
 		return b.toString();
+	}
+
+	public void renderLabels(GLGraphics g) {
+		final float textSize = 14;
+		// FIXME
+		for (Node node : nodes) {
+			if (node.has(dim)) // handled by another
+				continue;
+			Rect b = node.getRectBounds();
+			if (dim.isVertical()) {
+				g.drawText(node.getLabel(), b.x2() + 10, b.y() + (b.height() - textSize) * 0.5f, 400, textSize);
+			} else {
+				renderVerticalText(g, node.getLabel(), b.x(), b.y(), b.width(), textSize);
+			}
+		}
+		if (nodes.size() == 1)
+			return;
+		if (dim.isHorizontal()) {
+			Node last = getNode(false);
+			Rect b = last.getRectBounds();
+			for (NodeGroup group : sortCriteria.get(0).getGroupNeighbors(EDirection.EAST)) {
+				Rect bg = group.getRectBounds();
+				g.drawText(group.getLabel(), b.x2() + 10, b.y() + bg.y() + (bg.height() - textSize) * 0.5f, 400,
+						textSize);
+			}
+		} else {
+			Node first = getNode(true);
+			Rect b = first.getRectBounds();
+			for (NodeGroup group : sortCriteria.get(0).getGroupNeighbors(EDirection.NORTH)) {
+				Rect bg = group.getRectBounds();
+				renderVerticalText(g, group.getLabel(), b.x() + bg.x(), b.y(), bg.width(), textSize);
+			}
+		}
+	}
+
+	private static void renderVerticalText(GLGraphics g, String text, float x, float y, float w, float textSize) {
+		float tw = g.text.getTextWidth(text, textSize);
+		if (tw < w) {
+			g.drawText(text, x, y - textSize - 10, w, textSize, VAlign.CENTER);
+		} else {
+			// shift it
+			float angle = 45f; // TODO find out
+			g.save().move(x, y - textSize - 5).gl.glRotatef(-angle, 0, 0, 1);
+			g.drawText(text, 0, 0, 400, textSize);
+			g.restore();
+		}
 	}
 
 	/**

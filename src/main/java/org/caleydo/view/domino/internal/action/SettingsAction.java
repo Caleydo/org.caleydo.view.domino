@@ -8,6 +8,7 @@ package org.caleydo.view.domino.internal.action;
 import org.caleydo.core.gui.SimpleAction;
 import org.caleydo.core.gui.SimpleEventAction;
 import org.caleydo.view.domino.internal.Resources;
+import org.caleydo.view.domino.internal.event.ToggleShowBlockLabelsEvent;
 import org.caleydo.view.domino.internal.event.ToggleShowDebugInfosEvent;
 import org.caleydo.view.domino.internal.event.ToggleShowMiniMapEvent;
 import org.eclipse.jface.action.Action;
@@ -56,6 +57,8 @@ public class SettingsAction extends SimpleAction implements IMenuCreator {
  "resources/icons/text_large_cap.png", Resources
 						.getResourceLoader(), new ToggleShowDebugInfosEvent()
 						.to(receiver).from(this)));
+		addActionToMenu(menu, new SimpleEventAction("Show/Hide Block Labels", "resources/icons/text_large_cap.png",
+				Resources.getResourceLoader(), new ToggleShowBlockLabelsEvent().to(receiver).from(this)));
 
 		addActionToMenu(menu, new SimpleEventAction("Show/Hide Mini Map", "resources/icons/text_large_cap.png",
 				Resources.getResourceLoader(), new ToggleShowMiniMapEvent().to(receiver).from(this)));

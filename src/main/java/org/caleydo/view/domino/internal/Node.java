@@ -564,7 +564,7 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 		}
 	}
 
-	private Iterable<NodeGroup> nodeGroups() {
+	Iterable<NodeGroup> nodeGroups() {
 		// all visible node groups
 		return Iterables.filter(Iterables.filter(this, EVisibility.PICKABLE), NodeGroup.class);
 	}
