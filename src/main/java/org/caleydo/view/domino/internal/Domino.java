@@ -102,19 +102,19 @@ public class Domino extends GLElementContainer implements IDropGLTarget, IPickin
 		this.add(scroll);
 
 		// fakeData();
-		this.blocks = new Blocks();
+		this.blocks = new Blocks(selections);
 		scroll.setMinSizeProvider(blocks);
 		scroll.setAutoResetViewport(false);
 		blocks.setzDelta(0.1f);
 		content.add(blocks);
 
-		this.bands = new Bands();
+		this.bands = new Bands(selections);
 		this.bands.setVisibility(EVisibility.PICKABLE);
 		this.bands.setzDelta(0.01f);
 		this.bands.onPick(this);
 		content.add(this.bands);
 
-		selections.onSelectionChanges(new ICallback<SelectionType>() {
+		selections.onNodeGroupSelectionChanges(new ICallback<SelectionType>() {
 			@Override
 			public void on(SelectionType data) {
 				NodeDataItem.update(selections.getSelection(SelectionType.MOUSE_OVER),
@@ -278,8 +278,9 @@ public class Domino extends GLElementContainer implements IDropGLTarget, IPickin
 	private Block dropNode(IDnDItem item, Node node) {
 		removeNode(node);
 		Block b = new Block(node);
+		b.setTool(tool);
 		setBlockDropPosition(item, b);
-		blocks.add(b);
+		blocks.addBlock(b);
 
 		removePlaceholder();
 		bands.relayout();
@@ -344,6 +345,8 @@ public class Domino extends GLElementContainer implements IDropGLTarget, IPickin
 
 	public void addPlaceholdersFor(Node node) {
 		if (placeholders != null)
+			return;
+		if (tool == EToolState.BANDS)
 			return;
 
 		placeholders = new GLElementContainer(new ToRelativeLayout());
@@ -468,6 +471,7 @@ public class Domino extends GLElementContainer implements IDropGLTarget, IPickin
 			selectBandsByBounds(clear, r);
 			break;
 		case BANDS:
+			selectNodesByBounds(clear, r);
 			break;
 		}
 
@@ -482,12 +486,16 @@ public class Domino extends GLElementContainer implements IDropGLTarget, IPickin
 	}
 
 	private void selectNodesByBounds(boolean clear, final Rectangle2D r) {
-		if (clear)
-			selections.clear(SelectionType.SELECTION, null);
+		if (clear) {
+			if (tool == EToolState.BANDS)
+				selections.clear(SelectionType.SELECTION, (Block) null);
+			else
+				selections.clear(SelectionType.SELECTION, (NodeGroup) null);
+		}
 
 		for (Block block : blocks.getBlocks()) {
 			if (block.getRectangleBounds().intersects(r)) {
-				block.selectByBounds(r, selections);
+				block.selectByBounds(r, tool);
 			}
 		}
 	}
@@ -526,17 +534,14 @@ public class Domino extends GLElementContainer implements IDropGLTarget, IPickin
 		if (this.tool == tool)
 			return;
 		this.tool = tool;
-		switch (this.tool) {
-		case MOVE:
-			blocks.setContentPickable(false);
-			break;
-		case SELECT:
-			blocks.setContentPickable(true);
-			break;
-		case BANDS:
-			// FIXME
-			blocks.setContentPickable(false);
-			break;
+		blocks.setTool(tool);
+		bands.relayout();
+		if (tool == EToolState.BANDS) {
+			selections.clear(SelectionType.MOUSE_OVER, (NodeGroup) null);
+			selections.clear(SelectionType.SELECTION, (NodeGroup) null);
+		} else {
+			selections.clear(SelectionType.MOUSE_OVER, (Block) null);
+			selections.clear(SelectionType.SELECTION, (Block) null);
 		}
 	}
 
@@ -554,6 +559,15 @@ public class Domino extends GLElementContainer implements IDropGLTarget, IPickin
 		blocks.remove(block);
 		selections.cleanup(block);
 		updateBands();
+	}
+
+	public IDragInfo startSWTDrag(IDragEvent event, Block block) {
+		Set<Block> selected = selections.getBlockSelection(SelectionType.SELECTION);
+		selected = new HashSet<>(selected);
+		selected.add(block);
+		for (Block b : selected)
+			EventPublisher.trigger(new HideNodeEvent().to(b));
+		return new BlockDragInfo(event.getMousePos(), selected, block);
 	}
 
 	/**

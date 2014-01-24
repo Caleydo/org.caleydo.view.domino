@@ -16,7 +16,7 @@ import com.google.common.collect.Sets;
  *
  */
 public enum EDirection {
-	NORTH, WEST, SOUTH, EAST;
+	NORTH, EAST, SOUTH, WEST;
 
 	public EDimension asDim() {
 		return EDimension.get(isHorizontal());

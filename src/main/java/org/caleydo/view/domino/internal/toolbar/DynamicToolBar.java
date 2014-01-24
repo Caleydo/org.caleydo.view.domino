@@ -42,7 +42,7 @@ public class DynamicToolBar extends GLElementDecorator implements ICallback<Sele
 
 	public DynamicToolBar(NodeSelections selections) {
 		this.selections = selections;
-		this.selections.onSelectionChanges(this);
+		this.selections.onNodeGroupSelectionChanges(this);
 		setzDelta(2.f);
 		setVisibility(EVisibility.PICKABLE);
 		setPicker(null);

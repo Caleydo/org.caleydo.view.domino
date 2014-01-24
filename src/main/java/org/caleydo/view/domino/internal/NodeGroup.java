@@ -131,7 +131,7 @@ public class NodeGroup extends GLElementDecorator implements ILabeled, IDragGLSo
 			break;
 		case MOUSE_OUT:
 			context.getMouseLayer().removeDragSource(this);
-			domino.clear(SelectionType.MOUSE_OVER, null);
+			domino.clear(SelectionType.MOUSE_OVER, (NodeGroup) null);
 			getNode().data.onSelectionChanged(false);
 			repaint();
 			break;
@@ -327,7 +327,7 @@ public class NodeGroup extends GLElementDecorator implements ILabeled, IDragGLSo
 		Domino d = findDomino();
 		if (d == null)
 			return;
-		d.getSelections().clear(SelectionType.MOUSE_OVER, null);
+		d.getSelections().clear(SelectionType.MOUSE_OVER, (NodeGroup) null);
 		d.getSelections().clear(SelectionType.SELECTION, this);
 
 	}

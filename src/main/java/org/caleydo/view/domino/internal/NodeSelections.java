@@ -31,15 +31,25 @@ import com.google.common.collect.SetMultimap;
  */
 public class NodeSelections {
 	private final SetMultimap<SelectionType, NodeGroup> selections = HashMultimap.create();
+	private final SetMultimap<SelectionType, Block> blockSelections = HashMultimap.create();
 
 	private Collection<ICallback<SelectionType>> selectionChanges = new ArrayList<>();
+	private Collection<ICallback<SelectionType>> blockSelectionChanges = new ArrayList<>();
 
-	public void onSelectionChanges(ICallback<SelectionType> callback) {
+	public void onNodeGroupSelectionChanges(ICallback<SelectionType> callback) {
 		this.selectionChanges.add(callback);
 	}
 
-	public void removeOnSelectionChanges(ICallback<SelectionType> callback) {
+	public void onBlockSelectionChanges(ICallback<SelectionType> callback) {
+		this.blockSelectionChanges.add(callback);
+	}
+
+	public void removeOnNodeGroupSelectionChanges(ICallback<SelectionType> callback) {
 		this.selectionChanges.remove(callback);
+	}
+
+	public void removeOnBlockSelectionChanges(ICallback<SelectionType> callback) {
+		this.blockSelectionChanges.remove(callback);
 	}
 
 	private void fire(SelectionType type) {
@@ -47,8 +57,17 @@ public class NodeSelections {
 			c.on(type);
 	}
 
+	private void fireBlock(SelectionType type) {
+		for (ICallback<SelectionType> c : blockSelectionChanges)
+			c.on(type);
+	}
+
 	public boolean isSelected(SelectionType type, NodeGroup group) {
 		return selections.get(type).contains(group);
+	}
+
+	public boolean isSelected(SelectionType type, Block block) {
+		return blockSelections.get(type).contains(block);
 	}
 
 	public void select(SelectionType type, NodeGroup group, boolean additional) {
@@ -61,6 +80,18 @@ public class NodeSelections {
 
 	public Set<NodeGroup> getSelection(SelectionType type) {
 		return selections.get(type);
+	}
+
+	public void select(SelectionType type, Block block, boolean additional) {
+		Set<Block> c = blockSelections.get(type);
+		if (!additional)
+			c.clear();
+		c.add(block);
+		fireBlock(type);
+	}
+
+	public Set<Block> getBlockSelection(SelectionType type) {
+		return blockSelections.get(type);
 	}
 
 	public void cleanup(Node node) {
@@ -80,6 +111,11 @@ public class NodeSelections {
 	}
 
 	public void cleanup(Block block) {
+		for (SelectionType type : ImmutableSet.copyOf(blockSelections.keySet())) {
+			if (blockSelections.get(type).remove(block))
+				fireBlock(type);
+		}
+
 		for (SelectionType type : ImmutableSet.copyOf(selections.keySet())) {
 			Set<NodeGroup> c = selections.get(type);
 			boolean changed = false;
@@ -109,6 +145,18 @@ public class NodeSelections {
 		return changed;
 	}
 
+	public boolean clear(SelectionType type, Block block) {
+		Set<Block> c = blockSelections.get(type);
+		boolean changed = !c.isEmpty();
+		if (block != null)
+			changed = c.remove(block);
+		else
+			c.clear();
+		if (changed)
+			fireBlock(type);
+		return changed;
+	}
+
 	@ListenTo
 	private void on(SelectionCommandEvent event) {
 		if (event.getSender() == this)
@@ -117,11 +165,16 @@ public class NodeSelections {
 
 		switch (cmd.getSelectionCommandType()) {
 		case CLEAR:
-			clear(cmd.getSelectionType(), null);
+			clear(cmd.getSelectionType(), (NodeGroup) null);
+			clear(cmd.getSelectionType(), (Block) null);
 			break;
 		case CLEAR_ALL:
 		case RESET:
-			ImmutableSet<SelectionType> toSend = ImmutableSet.copyOf(selections.keySet());
+			ImmutableSet<SelectionType> toSend = ImmutableSet.copyOf(blockSelections.keySet());
+			blockSelections.clear();
+			for (SelectionType t : toSend)
+				fireBlock(t);
+			toSend = ImmutableSet.copyOf(selections.keySet());
 			selections.clear();
 			for (SelectionType t : toSend)
 				fire(t);

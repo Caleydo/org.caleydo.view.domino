@@ -43,7 +43,7 @@ public class ToolBar extends GLElementContainer implements ICallback<SelectionTy
 	public ToolBar(NodeSelections selections) {
 		super(GLLayouts.flowHorizontal(2));
 		this.selections = selections;
-		this.selections.onSelectionChanges(this);
+		this.selections.onNodeGroupSelectionChanges(this);
 		this.label = new GLElement();
 		this.add(label);
 		setRenderer(GLRenderers.fillRect(Color.LIGHT_BLUE));

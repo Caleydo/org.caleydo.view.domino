@@ -7,6 +7,8 @@ package org.caleydo.view.domino.internal;
 
 import gleem.linalg.Vec2f;
 
+import java.awt.Polygon;
+import java.awt.Shape;
 import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -16,6 +18,7 @@ import java.util.Map;
 
 import org.apache.commons.lang.StringUtils;
 import org.caleydo.core.data.collection.EDimension;
+import org.caleydo.core.data.selection.SelectionType;
 import org.caleydo.core.event.EventListenerManager.ListenTo;
 import org.caleydo.core.id.IDType;
 import org.caleydo.core.util.base.Labels;
@@ -25,15 +28,23 @@ import org.caleydo.core.view.opengl.layout2.GLElement;
 import org.caleydo.core.view.opengl.layout2.GLElementContainer;
 import org.caleydo.core.view.opengl.layout2.GLGraphics;
 import org.caleydo.core.view.opengl.layout2.IGLElementContext;
+import org.caleydo.core.view.opengl.layout2.dnd.IDnDItem;
+import org.caleydo.core.view.opengl.layout2.dnd.IDragGLSource;
+import org.caleydo.core.view.opengl.layout2.dnd.IDragInfo;
 import org.caleydo.core.view.opengl.layout2.geom.Rect;
 import org.caleydo.core.view.opengl.layout2.layout.AGLLayoutElement;
 import org.caleydo.core.view.opengl.layout2.layout.IGLLayout2;
 import org.caleydo.core.view.opengl.layout2.layout.IGLLayoutElement;
+import org.caleydo.core.view.opengl.picking.IPickingListener;
+import org.caleydo.core.view.opengl.picking.Pick;
+import org.caleydo.core.view.opengl.util.spline.TesselatedPolygons;
 import org.caleydo.view.domino.api.model.graph.EDirection;
 import org.caleydo.view.domino.api.model.typed.TypedGroupList;
 import org.caleydo.view.domino.internal.band.ABand;
 import org.caleydo.view.domino.internal.band.BandFactory;
 import org.caleydo.view.domino.internal.data.VisualizationTypeOracle;
+import org.caleydo.view.domino.internal.dnd.ADragInfo;
+import org.caleydo.view.domino.internal.dnd.BlockDragInfo;
 import org.caleydo.view.domino.internal.event.HideNodeEvent;
 
 import com.google.common.collect.Iterables;
@@ -45,20 +56,119 @@ import com.google.common.collect.Maps;
  * @author Samuel Gratzl
  *
  */
-public class Block extends GLElementContainer implements IGLLayout2 {
-
+public class Block extends GLElementContainer implements IGLLayout2, IPickingListener {
 	private final List<LinearBlock> linearBlocks = new ArrayList<>();
+
+	private boolean fadeOut = false;
+	private int fadeOutTime = 0;
+
+	private boolean armed;
+
+	private final IDragGLSource source = new IDragGLSource() {
+		@Override
+		public IDragInfo startSWTDrag(IDragEvent event) {
+			return findDomino().startSWTDrag(event,Block.this);
+		}
+
+		@Override
+		public void onDropped(IDnDItem info) {
+			if (info.getInfo() instanceof BlockDragInfo) {
+				for (Block block : ((BlockDragInfo) info.getInfo()).getBlocks())
+					block.showAgain();
+			}
+		}
+
+		@Override
+		public GLElement createUI(IDragInfo info) {
+			if (info instanceof ADragInfo)
+				return ((ADragInfo) info).createUI(findDomino());
+			return null;
+		}
+	};
 
 	public Block(Node node) {
 		setLayout(this);
 		node.setLocation(0, 0);
 		addFirstNode(node);
+
+		onPick(this);
+	}
+
+
+	@Override
+	public void pick(Pick pick) {
+		final NodeSelections domino = findDomino().getSelections();
+		IMouseEvent event = (IMouseEvent) pick;
+		boolean ctrl = event.isCtrlDown();
+		switch (pick.getPickingMode()) {
+		case MOUSE_OVER:
+			domino.select(SelectionType.MOUSE_OVER, this, false);
+			context.getMouseLayer().addDragSource(source);
+			repaint();
+			break;
+		case MOUSE_OUT:
+			domino.clear(SelectionType.MOUSE_OVER, (Block) null);
+			context.getMouseLayer().removeDragSource(source);
+			repaint();
+			break;
+		case CLICKED:
+			armed = true;
+			break;
+		case MOUSE_RELEASED:
+			if (armed) {
+				if (domino.isSelected(SelectionType.SELECTION, this))
+					domino.clear(SelectionType.SELECTION, ctrl ? this : null);
+				else
+					domino.select(SelectionType.SELECTION, this, ctrl);
+				repaint();
+				armed = false;
+			}
+			break;
+		default:
+			break;
+		}
+	}
+
+	Domino findDomino() {
+		return findParent(Domino.class);
+	}
+
+	@Override
+	protected void takeDown() {
+		context.getMouseLayer().removeDragSource(source);
+		super.takeDown();
+	}
+
+	/**
+	 * @param fadeOut
+	 *            setter, see {@link fadeOut}
+	 */
+	public void setFadeOut(boolean fadeOut) {
+		if (this.fadeOut == fadeOut)
+			return;
+		this.fadeOut = fadeOut;
+		if (fadeOut)
+			this.fadeOutTime = 300;
+		repaint();
+	}
+
+	@Override
+	public void layout(int deltaTimeMs) {
+		if (fadeOutTime > 0) {
+			fadeOutTime -= deltaTimeMs;
+			repaint();
+		}
+		super.layout(deltaTimeMs);
 	}
 
 	@Override
 	protected void renderImpl(GLGraphics g, float w, float h) {
+		Collection<Vec2f> outline = getOutline();
+		g.color(Color.WHITE).fillPolygon(TesselatedPolygons.polygon2(outline));
+
 		super.renderImpl(g, w, h);
-		Domino domino = findParent(Domino.class);
+		Domino domino = findDomino();
+
 		if (domino.isShowDebugInfos())
 			g.color(Color.BLUE).drawRect(0, 0, w, h);
 
@@ -66,6 +176,127 @@ public class Block extends GLElementContainer implements IGLLayout2 {
 			for (LinearBlock b : linearBlocks)
 				b.renderLabels(g);
 		}
+
+		NodeSelections selections = domino.getSelections();
+		if (selections.isSelected(SelectionType.SELECTION, this))
+			g.color(SelectionType.SELECTION.getColor()).lineWidth(3);
+		else if (selections.isSelected(SelectionType.MOUSE_OVER, this))
+			g.color(SelectionType.MOUSE_OVER.getColor()).lineWidth(3);
+		else
+			g.color(Color.LIGHT_GRAY);
+		g.incZ().drawPath(getOutline(), true).decZ();
+		g.lineWidth(1);
+
+		if (fadeOut) {
+			fadeOutElements(g, w, h);
+		}
+	}
+
+	/**
+	 * @return
+	 */
+	private Collection<Vec2f> getOutline() {
+		Collection<Vec2f> r = new ArrayList<>(3);
+		// if (this.size() == 1) {
+		// Rect b = get(0).getRectBounds();
+		// r.add(b.xy());
+		// r.add(b.x2y());
+		// r.add(b.x2y2());
+		// r.add(b.xy2());
+		// return r;
+		// }
+		// if (linearBlocks.size() == 1) {
+		// LinearBlock b = linearBlocks.get(0);
+		// Rect r1 = b.getNode(true).getRectBounds();
+		// Rect r2 = b.getNode(false).getRectBounds();
+		// r.add(r1.xy());
+		// if (b.getDim().isHorizontal())
+		// r.add(r1.x2y());
+		// else
+		// r.add(r2.x2y());
+		// r.add(r2.x2y2());
+		// r.add(r2.xy2());
+		// return r;
+		// }
+
+		Node start = nodes().iterator().next();
+		// search for a start point
+		while (start.getNeighbor(EDirection.NORTH) != null)
+			start = start.getNeighbor(EDirection.NORTH);
+		while (start.getNeighbor(EDirection.WEST) != null)
+			start = start.getNeighbor(EDirection.WEST);
+
+		EDirection act = EDirection.EAST;
+		Node actN = start;
+		follow(actN, act, start, r);
+		return r;
+	}
+
+	/**
+	 * follow along the nodes neighbors to get the outline
+	 *
+	 * @param node
+	 * @param dir
+	 * @param start
+	 * @param r
+	 */
+	private static void follow(Node node, EDirection dir, Node start, Collection<Vec2f> r) {
+		Node next = node.getNeighbor(dir);
+		if (node == start && dir == EDirection.EAST && !r.isEmpty()) // starting point
+			return;
+		if (next == null) { // no neighbor change direction
+			r.add(corner(node.getRectBounds(), dir));
+			follow(node, dir.rot90(), start, r);
+		} else if (next.getNeighbor(dir.opposite().rot90()) != null) {
+			r.add(corner(node.getRectBounds(), dir));
+			follow(next.getNeighbor(dir.opposite().rot90()), dir.opposite().rot90(), start, r);
+		} else {
+			follow(next, dir, start, r);
+		}
+	}
+
+	/**
+	 * @param rectBounds
+	 * @param dir
+	 * @return
+	 */
+	private static Vec2f corner(Rect r, EDirection dir) {
+		switch (dir) {
+		case EAST:
+			return r.x2y();
+		case NORTH:
+			return r.xy();
+		case SOUTH:
+			return r.x2y2();
+		case WEST:
+			return r.xy2();
+		}
+		throw new IllegalStateException();
+	}
+
+	private Shape getOutlineShape() {
+		if (this.size() == 1)
+			return get(0).getRectangleBounds();
+		if (linearBlocks.size() == 1) {
+			LinearBlock b = linearBlocks.get(0);
+			Rect r1 = b.getNode(true).getRectBounds();
+			Rect r2 = b.getNode(false).getRectBounds();
+			Rectangle2D.Float r = new Rectangle2D.Float();
+			Rectangle2D.union(r1.asRectangle2D(), r2.asRectangle2D(), r);
+			return r;
+		}
+		Collection<Vec2f> outline = getOutline();
+		Polygon r = new Polygon();
+		for (Vec2f p : outline)
+			r.addPoint((int) p.x(), (int) p.y());
+		return r;
+	}
+
+	private void fadeOutElements(GLGraphics g, float w, float h) {
+		final float alpha = 1 - (Math.max(0, fadeOutTime) / 300.f);
+		g.color(1, 1, 1, Math.min(alpha, 0.8f));
+
+		g.incZ(3).fillPolygon(TesselatedPolygons.polygon2(getOutline())).incZ(-3);
 	}
 
 
@@ -79,7 +310,7 @@ public class Block extends GLElementContainer implements IGLLayout2 {
 
 		this.remove(node);
 		if (node != with)
-			findParent(Domino.class).cleanup(node);
+			findDomino().cleanup(node);
 		linearBlocks.clear();
 		addFirstNode(with);
 		updateBands();
@@ -367,7 +598,7 @@ public class Block extends GLElementContainer implements IGLLayout2 {
 	private void updateBands() {
 		for (Node n : nodes())
 			n.updateBands();
-		findParent(Domino.class).updateBands();
+		findDomino().updateBands();
 	}
 
 	/**
@@ -502,16 +733,24 @@ public class Block extends GLElementContainer implements IGLLayout2 {
 
 	/**
 	 * @param r
-	 * @param selections
 	 */
-	public void selectByBounds(Rectangle2D r, NodeSelections selections) {
+	public void selectByBounds(Rectangle2D r, EToolState tool) {
 		r = (Rectangle2D) r.clone(); // local copy
 
 		Vec2f l = getLocation(); // to relative coordinates;
 		r = new Rectangle2D.Double(r.getX() - l.x(), r.getY() - l.y(), r.getWidth(), r.getHeight());
-		for (Node node : nodes()) {
-			if (node.getRectangleBounds().intersects(r)) {
-				node.selectByBounds(r, selections);
+		if (tool == EToolState.BANDS) {
+			if (getOutlineShape().intersects(r)) {
+				final NodeSelections domino = findDomino().getSelections();
+				if (!domino.isSelected(SelectionType.SELECTION, this))
+					domino.select(SelectionType.SELECTION, this, true);
+				repaint();
+			}
+		} else {
+			for (Node node : nodes()) {
+				if (node.getRectangleBounds().intersects(r)) {
+					node.selectByBounds(r);
+				}
 			}
 		}
 	}
@@ -525,7 +764,7 @@ public class Block extends GLElementContainer implements IGLLayout2 {
 	}
 
 	public void removeMe() {
-		findParent(Domino.class).removeBlock(this);
+		findDomino().removeBlock(this);
 	}
 
 	/**
@@ -539,11 +778,12 @@ public class Block extends GLElementContainer implements IGLLayout2 {
 	 *
 	 */
 	public void showAgain() {
-		setVisibility(EVisibility.VISIBLE);
+		setVisibility(EVisibility.PICKABLE);
 	}
 
 	@ListenTo(sendToMe = true)
 	private void onHideNodeEvent(HideNodeEvent event) {
+		context.getMouseLayer().removeDragSource(source);
 		setVisibility(EVisibility.HIDDEN);
 	}
 
@@ -553,5 +793,24 @@ public class Block extends GLElementContainer implements IGLLayout2 {
 	public void selectAll() {
 		for (Node n : nodes())
 			n.selectAll();
+	}
+
+	/**
+	 * @param tool
+	 */
+	public void setTool(EToolState tool) {
+		switch (tool) {
+		case BANDS:
+			for (Node n : nodes()) {
+				n.setVisibility(EVisibility.VISIBLE);
+			}
+			break;
+		default:
+			for (Node n : nodes()) {
+				n.setVisibility(EVisibility.PICKABLE);
+				n.setContentPickable(tool == EToolState.SELECT);
+			}
+		}
+		setVisibility(tool == EToolState.BANDS ? EVisibility.PICKABLE : EVisibility.VISIBLE);
 	}
 }

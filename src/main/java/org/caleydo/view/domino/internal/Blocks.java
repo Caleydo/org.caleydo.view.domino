@@ -8,7 +8,10 @@ package org.caleydo.view.domino.internal;
 import gleem.linalg.Vec2f;
 
 import java.awt.geom.Rectangle2D;
+import java.util.Set;
 
+import org.caleydo.core.data.selection.SelectionType;
+import org.caleydo.core.util.base.ICallback;
 import org.caleydo.core.util.collection.Pair;
 import org.caleydo.core.view.opengl.canvas.IGLMouseListener.IMouseEvent;
 import org.caleydo.core.view.opengl.layout2.GLElement;
@@ -24,15 +27,46 @@ import com.google.common.collect.Iterables;
  * @author Samuel Gratzl
  *
  */
-public class Blocks extends GLElementContainer implements IHasMinSize {
+public class Blocks extends GLElementContainer implements IHasMinSize, ICallback<SelectionType> {
+
+	public Blocks(NodeSelections selections) {
+		selections.onBlockSelectionChanges(this);
+	}
+
+	@Override
+	public void on(SelectionType data) {
+		final Domino domino = findParent(Domino.class);
+		if (data == SelectionType.SELECTION && domino.getTool() == EToolState.BANDS) {
+			Set<Block> s = domino.getSelections().getBlockSelection(SelectionType.SELECTION);
+			if (s.size() < 2) {
+				for (Block b : getBlocks())
+					b.setFadeOut(false);
+			} else {
+				for (Block b : getBlocks())
+					b.setFadeOut(!s.contains(b));
+			}
+		}
+	}
+
+	public void addBlock(Block b) {
+		this.add(b);
+		final Domino domino = findParent(Domino.class);
+		if (domino.getTool() == EToolState.BANDS) {
+			Set<Block> s = domino.getSelections().getBlockSelection(SelectionType.SELECTION);
+			b.setFadeOut(s.size() >= 2 && !s.contains(b));
+		}
+	}
 
 	public Iterable<Block> getBlocks() {
 		return Iterables.filter(this, Block.class);
 	}
 
-	public void setContentPickable(boolean pickable) {
+	/**
+	 * @param tool
+	 */
+	public void setTool(EToolState tool) {
 		for (Block b : getBlocks()) {
-			b.setContentPickable(pickable);
+			b.setTool(tool);
 		}
 	}
 
@@ -132,6 +166,4 @@ public class Blocks extends GLElementContainer implements IHasMinSize {
 			}
 		}
 	}
-
-
 }

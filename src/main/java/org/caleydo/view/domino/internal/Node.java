@@ -218,17 +218,7 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 
 	@Override
 	protected void renderImpl(GLGraphics g, float w, float h) {
-		g.color(Color.WHITE).fillRect(0, 0, w, h);
-
 		final Block b = findBlock();
-		g.lineWidth(2);
-		g.color(0.90f); // has(EDimension.DIMENSION) ? b.getStateColor(this, EDimension.DIMENSION) :
-									// Color.BLACK);
-		g.drawLine(0, 0, w, 0).drawLine(0, h, w, h);
-		g.color(0.90f); // has(EDimension.RECORD) ? b.getStateColor(this, EDimension.RECORD) : Color.BLACK);
-		g.drawLine(0, 0, 0, h).drawLine(w, 0, w, h);
-		g.lineWidth(1);
-
 		if (mouseOver) {
 			g.drawText(b.getStateString(this, EDimension.RECORD), 0, -12, w - 2, 10, VAlign.RIGHT);
 			g.drawText(b.getStateString(this, EDimension.DIMENSION), w + 2, h - 12, 100, 10);
@@ -242,8 +232,6 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 		// render detached bands
 		dimDetached.renderImpl(g, w, h);
 		recDetached.renderImpl(g, w, h);
-
-
 	}
 
 	private void renderDropHints(GLGraphics g, float w, float h) {
@@ -334,6 +322,8 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 
 	@Override
 	protected void renderPickImpl(GLGraphics g, float w, float h) {
+		if (getVisibility() != EVisibility.PICKABLE)
+			return;
 		super.renderPickImpl(g, w, h);
 
 		// render detached bands
@@ -607,8 +597,8 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 		float[] xi = getSizes(EDimension.DIMENSION);
 		float[] yi = getSizes(EDimension.RECORD);
 
-		float w = BORDER * 2 + sum(xi);
-		float h = BORDER * 2 + sum(yi);
+		float w = sum(xi);
+		float h = sum(yi);
 		return new Vec2f(w, h);
 	}
 
@@ -880,13 +870,13 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 			int deltaTimeMs) {
 		float[] dims = getSizes(EDimension.DIMENSION);
 		float[] recs = getSizes(EDimension.RECORD);
-		float fw = (w - BORDER * 2) / sum(dims);
-		float fh = (h - BORDER * 2) / sum(recs);
+		float fw = (w) / sum(dims);
+		float fh = (h) / sum(recs);
 
 		int k = 0;
-		float x = BORDER;
+		float x = 0;
 		for (int i = 0; i < dims.length; ++i) {
-			float y = BORDER;
+			float y = 0;
 			float wi = dims[i] * fw;
 			for (int j = 0; j < recs.length; ++j) {
 				float hi = recs[j] * fh;
@@ -1135,9 +1125,8 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 
 	/**
 	 * @param r
-	 * @param selections
 	 */
-	public void selectByBounds(Rectangle2D r, NodeSelections selections) {
+	public void selectByBounds(Rectangle2D r) {
 		Vec2f l = getLocation();
 		r = new Rectangle2D.Double(r.getX() - l.x(), r.getY() - l.y(), r.getWidth(), r.getHeight());
 		for (NodeGroup node : nodeGroups()) {

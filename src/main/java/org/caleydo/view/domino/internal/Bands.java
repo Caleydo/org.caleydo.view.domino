@@ -23,6 +23,7 @@ import org.caleydo.core.data.selection.SelectionManager;
 import org.caleydo.core.data.selection.SelectionType;
 import org.caleydo.core.event.EventListenerManager.DeepScan;
 import org.caleydo.core.id.IDType;
+import org.caleydo.core.util.base.ICallback;
 import org.caleydo.core.util.collection.Pair;
 import org.caleydo.core.util.color.Color;
 import org.caleydo.core.view.opengl.canvas.IGLMouseListener.IMouseEvent;
@@ -46,6 +47,7 @@ import org.caleydo.view.domino.internal.dnd.ADragInfo;
 import org.caleydo.view.domino.internal.dnd.SetDragInfo;
 
 import com.google.common.base.Function;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
 import com.jogamp.common.util.IntIntHashMap;
 import com.jogamp.common.util.IntIntHashMap.Entry;
@@ -57,7 +59,7 @@ import com.jogamp.common.util.IntIntHashMap.Entry;
  *
  */
 public class Bands extends GLElement implements MultiSelectionManagerMixin.ISelectionMixinCallback, IBandHost,
-		IPickingListener, IPickingLabelProvider, IDragGLSource {
+		IPickingListener, IPickingLabelProvider, IDragGLSource, ICallback<SelectionType> {
 	@DeepScan
 	private final MultiSelectionManagerMixin selections = new MultiSelectionManagerMixin(this);
 
@@ -70,7 +72,15 @@ public class Bands extends GLElement implements MultiSelectionManagerMixin.ISele
 
 	private int currentDragPicking;
 
-	public Bands() {
+	public Bands(NodeSelections selections) {
+		selections.onBlockSelectionChanges(this);
+	}
+
+	@Override
+	public void on(SelectionType data) {
+		if (data == SelectionType.SELECTION && findParent(Domino.class).getTool() == EToolState.BANDS)
+			relayout();
+
 	}
 
 	public void update() {
@@ -82,7 +92,16 @@ public class Bands extends GLElement implements MultiSelectionManagerMixin.ISele
 		});
 		bands.clear();
 		Domino domino = findParent(Domino.class);
-		List<Block> blocks = domino.getBlocks();
+		EToolState tool = domino.getTool();
+		List<Block> blocks;
+		if (tool != EToolState.BANDS)
+			blocks = domino.getBlocks();
+		else {
+			blocks = ImmutableList.copyOf(domino.getSelections().getBlockSelection(SelectionType.SELECTION));
+			if (blocks.size() < 2) // less than 2 -> show all bands
+				blocks = domino.getBlocks();
+		}
+
 		final int length = blocks.size();
 
 		// create bands
@@ -95,17 +114,19 @@ public class Bands extends GLElement implements MultiSelectionManagerMixin.ISele
 		}
 
 		// collected the bounds check what we have to stubify
-		for (Iterator<ABand> it = bands.iterator(); it.hasNext();) {
-			ABand band = it.next();
-			for (Rectangle2D bound : bounds) {
-				if (band.intersects(bound)) {
-					if (!band.stubify())
+		if (tool != EToolState.BANDS) {
+			outer: for (Iterator<ABand> it = bands.iterator(); it.hasNext();) {
+				ABand band = it.next();
+				for (Rectangle2D bound : bounds) {
+					if (band.intersects(bound)) {
+						// if (!band.stubify())
 						it.remove();
-					break;
+						continue outer;
+					}
 				}
-			}
-			if (bak.containsKey(band.getIdentifier())) {
-				band.initFrom(bak.get(band.getIdentifier()));
+				if (bak.containsKey(band.getIdentifier())) {
+					band.initFrom(bak.get(band.getIdentifier()));
+				}
 			}
 		}
 		pickingBandPool.ensure(0, bands.size());
