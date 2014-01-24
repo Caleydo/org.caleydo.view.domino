@@ -60,7 +60,7 @@ public class Band extends ABand {
 			TypedSet tShared = shared.slice(tData.getIdType());
 			float sr = ((float) sShared.size()) / sData.size();
 			float tr = ((float) tShared.size()) / tData.size();
-			this.overviewRoute = new DataRoute(label, 0, sr, 0, tr, sShared, tShared);
+			this.overviewRoute = new DataRoute(label, 0, sr, 0, tr, sShared, tShared, true);
 		}
 	}
 
@@ -89,13 +89,15 @@ public class Band extends ABand {
 		private final String rlabel;
 		protected final float s1, s2, t1, t2;
 		protected IBandArea base;
+		private final boolean outlines;
 
-		public ADataRoute(String label, float s1, float s2, float t1, float t2) {
+		public ADataRoute(String label, float s1, float s2, float t1, float t2, boolean outlines) {
 			this.rlabel = label;
 			this.s1 = s1;
 			this.t1 = t1;
 			this.s2 = s2;
 			this.t2 = t2;
+			this.outlines = outlines;
 			this.base = band.computeArea(s1, s2, t1, t2);
 		}
 
@@ -114,19 +116,21 @@ public class Band extends ABand {
 
 		@Override
 		public void renderRoute(GLGraphics g, IBandHost host) {
-			g.color(color.r, color.g, color.b, 0.5f);
+			g.color(color);
 			g.fillPolygon(base);
 			if (g.isPickingPass())
 				return;
 
 			renderSelection(g, host);
 
-			g.color(color.darker());
-			g.drawPath(base);
+			if (outlines) {
+				g.color(color.darker());
+				g.drawPath(base);
+			}
 		}
 
 		void renderMiniMap(GLGraphics g) {
-			g.color(color.r, color.g, color.b, 0.5f);
+			g.color(color);
 			g.fillPolygon(base);
 		}
 
@@ -141,8 +145,9 @@ public class Band extends ABand {
 	private final class DataRoute extends ADataRoute {
 		final TypedSet sShared, tShared;
 
-		public DataRoute(String label, float s1, float s2, float t1, float t2, TypedSet sShared, TypedSet tShared) {
-			super(label, s1, s2, t1, t2);
+		public DataRoute(String label, float s1, float s2, float t1, float t2, TypedSet sShared, TypedSet tShared,
+				boolean outlines) {
+			super(label, s1, s2, t1, t2, outlines);
 			this.sShared = sShared;
 			this.tShared = tShared;
 		}
@@ -176,8 +181,9 @@ public class Band extends ABand {
 		final TypedList sshared;
 		final TypedList tshared;
 
-		public DataListRoute(String label, float s1, float s2, float t1, float t2, TypedList shared, TypedList tshared) {
-			super(label, s1, s2, t1, t2);
+		public DataListRoute(String label, float s1, float s2, float t1, float t2, TypedList shared, TypedList tshared,
+				boolean outlines) {
+			super(label, s1, s2, t1, t2, outlines);
 			this.sshared = shared;
 			this.tshared = tshared;
 		}
@@ -227,8 +233,9 @@ public class Band extends ABand {
 	private final class DataSingleRoute extends ADataRoute {
 		final TypedID sShared, tShared;
 
-		public DataSingleRoute(String label, float s1, float s2, float t1, float t2, TypedID sShared, TypedID tShared) {
-			super(label, s1, s2, t1, t2);
+		public DataSingleRoute(String label, float s1, float s2, float t1, float t2, TypedID sShared, TypedID tShared,
+				boolean outlines) {
+			super(label, s1, s2, t1, t2, outlines);
 			this.sShared = sShared;
 			this.tShared = tShared;
 		}
@@ -317,7 +324,8 @@ public class Band extends ABand {
 				double t1 = (tgroupLocation.getOffset() + tinneracc[j] * tFactor) * tOverallFactor;
 				double t2 = t1 + tShared.size() * tFactor * tOverallFactor;
 				String label = sgroup.getLabel() + " x " + tgroup.getLabel();
-				groupRoutes.add(new DataRoute(label, (float) s1, (float) s2, (float) t1, (float) t2, sShared, tShared));
+				groupRoutes.add(new DataRoute(label, (float) s1, (float) s2, (float) t1, (float) t2, sShared, tShared,
+						true));
 				sinneracc += sShared.size();
 				tinneracc[j] += tShared.size();
 			}
@@ -485,8 +493,8 @@ public class Band extends ABand {
 			float t2 = (float) tloc.getOffset2() / tMax;
 			if (sIds.size() == 1)
 				return new DataSingleRoute(label, s1, s2, t1, t2, new TypedID(sIds.get(0), s), new TypedID(tIds.get(0),
-						t));
-			return new DataListRoute(label, s1, s2, t1, t2, new TypedList(sIds, s), new TypedList(tIds, t));
+						t), false);
+			return new DataListRoute(label, s1, s2, t1, t2, new TypedList(sIds, s), new TypedList(tIds, t), false);
 		}
 
 	}

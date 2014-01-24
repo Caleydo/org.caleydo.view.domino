@@ -33,7 +33,7 @@ import org.caleydo.view.domino.internal.band.IBandHost.SourceTarget;
  *
  */
 public abstract class ABand implements ILabeled {
-	protected static final Color color = new Color(180, 212, 231, 32);
+	protected static final Color color = new Color(0, 0, 0, 0.05f);
 
 	protected static final List<SelectionType> SELECTION_TYPES = Arrays.asList(SelectionType.SELECTION,
 			SelectionType.MOUSE_OVER);

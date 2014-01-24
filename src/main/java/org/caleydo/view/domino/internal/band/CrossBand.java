@@ -128,7 +128,7 @@ public class CrossBand extends ABand {
 				double w = tShared.size() * tFactor;
 
 				Rect bounds = new Rect((float) x, (float) y, (float) w, (float) h);
-				groupRoutes.add(new MosaicRect(label, bounds, sShared, tShared));
+				groupRoutes.add(new MosaicRect(label, bounds, sShared, tShared, true));
 			}
 		}
 		return groupRoutes;
@@ -253,7 +253,7 @@ public class CrossBand extends ABand {
 			double w = tloc.getSize();
 			double h = sloc.getSize();
 			Rect bounds = new Rect((float) x, (float) y, (float) w, (float) h);
-			return new MosaicRect(label, bounds, new TypedSet(sIds, s), new TypedSet(tIds, t));
+			return new MosaicRect(label, bounds, new TypedSet(sIds, s), new TypedSet(tIds, t), false);
 		}
 	}
 
@@ -302,7 +302,7 @@ public class CrossBand extends ABand {
 
 		@Override
 		public void renderRoute(GLGraphics g, IBandHost host) {
-			g.color(color.r, color.g, color.b, 0.5f);
+			g.color(color);
 			g.fillRect(bounds);
 
 			if (g.isPickingPass())
@@ -333,12 +333,14 @@ public class CrossBand extends ABand {
 		private final Rect bounds;
 		private final TypedSet sIds;
 		private final TypedSet tIds;
+		private final boolean outlines;
 
-		public MosaicRect(String label, Rect bounds, TypedSet sIds, TypedSet tIds) {
+		public MosaicRect(String label, Rect bounds, TypedSet sIds, TypedSet tIds, boolean outlines) {
 			this.label = label;
 			this.bounds = bounds;
 			this.sIds = sIds;
 			this.tIds = tIds;
+			this.outlines = outlines;
 		}
 
 		@Override
@@ -352,7 +354,7 @@ public class CrossBand extends ABand {
 				renderPoint(g, host);
 				return;
 			}
-			g.color(color.r, color.g, color.b, 0.5f);
+			g.color(color);
 			g.fillRect(bounds);
 
 			if (g.isPickingPass())
@@ -367,7 +369,7 @@ public class CrossBand extends ABand {
 							* (sS / (float) sIds.size()));
 				}
 			}
-			if (bounds.width() > 20 && bounds.height() > 20) {
+			if (outlines) {
 				g.color(color.darker());
 				g.drawRect(bounds.x(), bounds.y(), bounds.width(), bounds.height());
 			}

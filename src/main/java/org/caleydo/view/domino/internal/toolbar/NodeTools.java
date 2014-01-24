@@ -234,6 +234,8 @@ public class NodeTools extends GLElementContainer implements GLButton.ISelection
 	@Override
 	public void onSelectionChanged(GLButton button, boolean selected) {
 		NodeGroup node = selection.iterator().next();
+		if (!node.isValid())
+			return;
 		EDimension dim = EDimension.get(button.getTooltip().contains("Dim"));
 		switch (button.getTooltip()) {
 		case "Sort Dim":

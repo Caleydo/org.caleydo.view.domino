@@ -81,6 +81,10 @@ public class NodeGroup extends GLElementDecorator implements ILabeled, IDragGLSo
 			build();
 	}
 
+	public boolean isValid() {
+		return context != null;
+	}
+
 	private void build() {
 		if (context == null)
 			return;
