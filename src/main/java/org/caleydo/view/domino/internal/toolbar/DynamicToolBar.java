@@ -38,6 +38,7 @@ public class DynamicToolBar extends GLElementDecorator implements ICallback<Sele
 	private boolean mouseOver = false;
 
 	private int timerToHide = 0;
+	private float lastW;
 
 	public DynamicToolBar(NodeSelections selections) {
 		this.selections = selections;
@@ -61,10 +62,10 @@ public class DynamicToolBar extends GLElementDecorator implements ICallback<Sele
 			node = NodeSelections.getSingleNode(s);
 
 		if (node == null) {
-			if (mouseOver) {
-				hideOnMouseOut = true;
-			} else
+			if (!mouseOver) {
 				timerToHide = 200;
+			}
+			hideOnMouseOut = true;
 			return;
 		}
 		timerToHide = 0;
@@ -83,6 +84,13 @@ public class DynamicToolBar extends GLElementDecorator implements ICallback<Sele
 				setVisibility(EVisibility.HIDDEN);
 				setContent(null);
 			}
+		}
+		Node act = getActNode();
+		if (act != null) {
+			float wi = act.getSize().x();
+			if (wi != lastW)
+				relayout();
+			lastW = wi;
 		}
 		super.layout(deltaTimeMs);
 	}
