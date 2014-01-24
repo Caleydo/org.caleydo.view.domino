@@ -806,6 +806,8 @@ public class Block extends GLElementContainer implements IGLLayout2, IPickingLis
 			}
 			break;
 		default:
+			setFadeOut(false);
+			repaint();
 			for (Node n : nodes()) {
 				n.setVisibility(EVisibility.PICKABLE);
 				n.setContentPickable(tool == EToolState.SELECT);
