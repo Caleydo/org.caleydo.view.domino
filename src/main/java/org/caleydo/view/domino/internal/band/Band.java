@@ -21,7 +21,6 @@ import org.caleydo.core.id.IDType;
 import org.caleydo.core.util.color.Color;
 import org.caleydo.core.view.opengl.layout2.GLGraphics;
 import org.caleydo.core.view.opengl.layout2.manage.GLLocation;
-import org.caleydo.core.view.opengl.util.spline.ITesselatedPolygon;
 import org.caleydo.view.domino.api.model.typed.MultiTypedSet;
 import org.caleydo.view.domino.api.model.typed.TypedCollections;
 import org.caleydo.view.domino.api.model.typed.TypedGroupList;
@@ -31,6 +30,7 @@ import org.caleydo.view.domino.api.model.typed.TypedListGroup;
 import org.caleydo.view.domino.api.model.typed.TypedSet;
 import org.caleydo.view.domino.api.model.typed.TypedSets;
 import org.caleydo.view.domino.internal.INodeLocator;
+import org.caleydo.view.domino.internal.band.BandLine.IBandArea;
 import org.caleydo.view.domino.internal.band.IBandHost.SourceTarget;
 
 import com.google.common.collect.ImmutableMultimap;
@@ -88,7 +88,7 @@ public class Band extends ABand {
 	private abstract class ADataRoute implements IBandRenderAble {
 		private final String rlabel;
 		protected final float s1, s2, t1, t2;
-		protected ITesselatedPolygon base;
+		protected IBandArea base;
 
 		public ADataRoute(String label, float s1, float s2, float t1, float t2) {
 			this.rlabel = label;
@@ -132,6 +132,10 @@ public class Band extends ABand {
 
 		protected abstract void renderSelection(GLGraphics g, IBandHost host);
 
+		@Override
+		public boolean intersects(Rectangle2D bounds) {
+			return base.intersects(bounds);
+		}
 	}
 
 	private final class DataRoute extends ADataRoute {

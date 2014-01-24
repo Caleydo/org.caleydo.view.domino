@@ -7,22 +7,26 @@ package org.caleydo.view.domino.internal.band;
 
 import gleem.linalg.Vec2f;
 
+import java.awt.Shape;
+import java.awt.geom.Rectangle2D;
 import java.util.List;
 
 import org.caleydo.core.view.opengl.layout2.GLGraphics;
-import org.caleydo.core.view.opengl.util.spline.ITesselatedPolygon;
 import org.caleydo.core.view.opengl.util.spline.TesselationRenderer;
+import org.caleydo.view.domino.internal.band.BandLine.IBandArea;
 
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 
-public class StubifiedArea implements ITesselatedPolygon {
+public class StubifiedArea implements IBandArea {
 	private final List<Vec2f> top;
 	private final List<Vec2f> bottom;
 	private final int split;
 	private final float[] bottomPercentages;
 	private final float[] topPercentages;
 	private final float stubAlpha;
+
+	private final Shape shapeA, shapeB;
 
 	public StubifiedArea(List<Vec2f> top, List<Vec2f> bottom, int split, float[] topPercentages,
 			float[] bottomPercentages, float stubAlpha) {
@@ -32,6 +36,13 @@ public class StubifiedArea implements ITesselatedPolygon {
 		this.topPercentages = topPercentages;
 		this.bottomPercentages = bottomPercentages;
 		this.stubAlpha = stubAlpha;
+		{
+			int n = top.size();
+			this.shapeA = PolyArea.createShape(Iterables.concat(top.subList(0, split),
+					Lists.reverse(bottom.subList(0, split))));
+			this.shapeB = PolyArea.createShape(Iterables.concat(top.subList(n - split, n),
+					Lists.reverse(bottom.subList(n - split, n))));
+		}
 	}
 
 	@Override
@@ -67,5 +78,10 @@ public class StubifiedArea implements ITesselatedPolygon {
 	@Override
 	public int size() {
 		return top.size() + bottom.size();
+	}
+
+	@Override
+	public boolean intersects(Rectangle2D bounds) {
+		return shapeA.intersects(bounds) || shapeB.intersects(bounds);
 	}
 }

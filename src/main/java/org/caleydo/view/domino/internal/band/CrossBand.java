@@ -295,6 +295,7 @@ public class CrossBand extends ABand {
 		 * @param bound
 		 * @return
 		 */
+		@Override
 		public boolean intersects(Rectangle2D bound) {
 			return bounds.asRectangle2D().intersects(bound);
 		}
@@ -375,6 +376,11 @@ public class CrossBand extends ABand {
 		@Override
 		public TypedSet asSet(SourceTarget type) {
 			return type.select(sIds, tIds);
+		}
+
+		@Override
+		public boolean intersects(Rectangle2D bounds) {
+			return this.bounds.asRectangle2D().intersects(bounds);
 		}
 	}
 }

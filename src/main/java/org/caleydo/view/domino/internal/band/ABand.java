@@ -8,7 +8,9 @@ package org.caleydo.view.domino.internal.band;
 import java.awt.geom.Rectangle2D;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.caleydo.core.data.collection.EDimension;
 import org.caleydo.core.data.selection.SelectionType;
@@ -19,6 +21,7 @@ import org.caleydo.core.view.opengl.layout2.GLGraphics;
 import org.caleydo.core.view.opengl.layout2.manage.GLLocation;
 import org.caleydo.core.view.opengl.layout2.util.PickingPool;
 import org.caleydo.view.domino.api.model.typed.MultiTypedSet;
+import org.caleydo.view.domino.api.model.typed.TypedCollections;
 import org.caleydo.view.domino.api.model.typed.TypedGroupList;
 import org.caleydo.view.domino.api.model.typed.TypedSet;
 import org.caleydo.view.domino.internal.INodeLocator;
@@ -89,6 +92,33 @@ public abstract class ABand implements ILabeled {
 
 	public EDimension getDimension(SourceTarget type) {
 		return type.select(sDim, tDim);
+	}
+
+	public TypedSet intersect(Rectangle2D bounds, SourceTarget type) {
+		IBandRenderAble r = overviewRoute();
+		if (!r.intersects(bounds))
+			return TypedCollections.empty(getIdType(type));
+
+		Iterable<? extends IBandRenderAble> l;
+		switch(mode) {
+		case OVERVIEW:
+			return r.asSet(type);
+		case GROUPS:
+			l = groupRoutes();
+			break;
+		case DETAIL:
+			l = detailRoutes();
+			break;
+		default:
+			throw new IllegalStateException();
+		}
+
+		Set<Integer> rs = new HashSet<>();
+		for(IBandRenderAble ri : l) {
+			if (ri.intersects(bounds))
+				rs.addAll(ri.asSet(type));
+		}
+		return new TypedSet(rs, getIdType(type));
 	}
 
 	public abstract void renderMiniMap(GLGraphics g);
@@ -215,6 +245,12 @@ public abstract class ABand implements ILabeled {
 
 	protected interface IBandRenderAble extends ILabeled {
 		void renderRoute(GLGraphics g, IBandHost host);
+
+		/**
+		 * @param bounds
+		 * @return
+		 */
+		boolean intersects(Rectangle2D bounds);
 
 		/**
 		 * @param type

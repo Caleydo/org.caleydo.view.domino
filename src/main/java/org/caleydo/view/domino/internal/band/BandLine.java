@@ -90,7 +90,7 @@ public class BandLine {
 		return r;
 	}
 
-	public ITesselatedPolygon computeArea(float s1, float s2, float t1, float t2) {
+	public IBandArea computeArea(float s1, float s2, float t1, float t2) {
 		List<Vec2f> top = computeLine(Math.min(s1, s2), Math.min(t1, t2));
 		List<Vec2f> bottom = computeLine(Math.max(s1, s2), Math.max(t1, t2));
 		if (!stubified)
@@ -114,5 +114,9 @@ public class BandLine {
 
 		// TODO check sheared
 		return true;
+	}
+
+	public interface IBandArea extends ITesselatedPolygon {
+		boolean intersects(Rectangle2D bounds);
 	}
 }
