@@ -10,6 +10,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.caleydo.core.data.collection.EDimension;
@@ -23,6 +24,7 @@ import org.caleydo.core.data.virtualarray.group.Group;
 import org.caleydo.core.data.virtualarray.group.GroupList;
 import org.caleydo.core.util.color.Color;
 import org.caleydo.core.util.color.ColorBrewer;
+import org.caleydo.core.util.color.EColorSchemeType;
 import org.caleydo.core.view.opengl.layout2.GLGraphics;
 import org.caleydo.view.domino.api.model.typed.ITypedGroup;
 import org.caleydo.view.domino.api.model.typed.TypedListGroup;
@@ -31,12 +33,38 @@ import org.caleydo.view.domino.api.model.typed.TypedSetGroup;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.MapMaker;
 
 /**
  * @author Samuel Gratzl
  *
  */
 public class Utils {
+	private final static Map<ATableBasedDataDomain, ColorBrewer> dataDomain2qualitative = new MapMaker().weakKeys()
+			.makeMap();
+
+	/**
+	 * @param dataDomain
+	 * @return
+	 */
+	private static List<Color> generatedColors(ATableBasedDataDomain dataDomain, int size) {
+		ColorBrewer c = dataDomain2qualitative.get(dataDomain);
+		if (c != null)
+			return c.getColors(size);
+		Collection<ColorBrewer> vs = dataDomain2qualitative.values();
+		for (ColorBrewer b : ColorBrewer.values()) {
+			if (b.getType() != EColorSchemeType.QUALITATIVE)
+				continue;
+			if (!vs.contains(b)) {
+				dataDomain2qualitative.put(dataDomain, b);
+				return b.getColors(size);
+			}
+		}
+		// all already used
+		// TODO better strategy
+		return ColorBrewer.Set2.getColors(size);
+
+	}
 	public static void renderCategorical(GLGraphics g, float w, float h, GroupList groups, final int total,
 			boolean horizontal, List<Color> colors) {
 		if (horizontal) {
@@ -107,7 +135,7 @@ public class Utils {
 	private static List<Color> getGroupColors(Integer referenceId, ATableBasedDataDomain dataDomain, GroupList groups,
 			EDimension mainDim) {
 		if (referenceId == null) {
-			return ColorBrewer.Set2.getColors(groups.size());
+			return generatedColors(dataDomain, groups.size());
 		}
 		// lookup the colors from the properties
 		List<CategoryProperty<?>> categories = Utils.resolveCategories(referenceId, dataDomain, mainDim.opposite());
