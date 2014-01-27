@@ -50,11 +50,11 @@ public final class TypedGroups {
 	}
 
 	public static boolean isUngrouped(ITypedGroup group) {
-		return group.getLabel() == UNGROUPED;
+		return group != null && group.getLabel() == UNGROUPED;
 	}
 
 	public static boolean isUnmapped(ITypedGroup group) {
-		return group.getLabel() == UNMAPPED;
+		return group != null && group.getLabel() == UNMAPPED;
 	}
 
 	/**

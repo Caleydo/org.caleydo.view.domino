@@ -6,6 +6,7 @@
 package org.caleydo.view.domino.internal.ui;
 
 import java.util.List;
+import java.util.Set;
 
 import org.caleydo.core.data.collection.EDimension;
 import org.caleydo.core.data.datadomain.DataSupportDefinitions;
@@ -19,8 +20,8 @@ import org.caleydo.core.event.EventListenerManager.DeepScan;
 import org.caleydo.core.util.color.Color;
 import org.caleydo.core.util.function.DoubleFunctions;
 import org.caleydo.core.util.function.DoubleStatistics;
-import org.caleydo.core.util.function.IDoubleFunction;
 import org.caleydo.core.util.function.IDoubleList;
+import org.caleydo.core.util.function.IInvertableDoubleFunction;
 import org.caleydo.core.util.function.MappedDoubleList;
 import org.caleydo.core.view.opengl.layout2.GLElement;
 import org.caleydo.core.view.opengl.layout2.GLGraphics;
@@ -32,8 +33,10 @@ import org.caleydo.core.view.opengl.layout2.manage.GLLocation.ILocator;
 import org.caleydo.core.view.opengl.layout2.manage.IGLElementFactory2;
 import org.caleydo.core.view.opengl.picking.Pick;
 import org.caleydo.view.domino.api.model.typed.TypedList;
+import org.caleydo.view.domino.api.model.typed.util.BitSetSet;
 
 import com.google.common.base.Function;
+import com.google.common.collect.ImmutableSet;
 
 /**
  * render a single element as an axis, e.g. to represent a PCP
@@ -112,7 +115,7 @@ public class AxisElementFactory implements IGLElementFactory2 {
 		private final EDimension dim;
 		private final List<Integer> data;
 		private final IDoubleList list;
-		private final IDoubleFunction normalize;
+		private final IInvertableDoubleFunction normalize;
 
 		public AxisElement(TablePerspective t) {
 			this(EDimension.get(t.getNrDimensions() == 1), t, EDimension.get(t.getNrDimensions() == 1)
@@ -216,13 +219,22 @@ public class AxisElementFactory implements IGLElementFactory2 {
 		}
 
 		@Override
-		public GLLocation apply(Integer input) {
-			return GLLocation.applyPrimitive(this, input);
+		public Set<Integer> unapply(GLLocation location) {
+			float total = dim.select(getSize());
+			double from = normalize.unapply(location.getOffset() / total);
+			double to = normalize.unapply(location.getOffset2() / total);
+			BitSetSet r = new BitSetSet();
+			for (int i = 0; i < list.size(); ++i) {
+				double v = list.getPrimitive(i);
+				if (from <= v && v <= to)
+					r.add(i);
+			}
+			return ImmutableSet.copyOf(r);
 		}
 
 		@Override
-		public List<GLLocation> apply(Iterable<Integer> dataIndizes) {
-			return GLLocation.apply(this, dataIndizes);
+		public GLLocation apply(Integer input) {
+			return GLLocation.applyPrimitive(this, input);
 		}
 
 	}

@@ -12,9 +12,11 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeSet;
 
 import org.apache.commons.lang.StringUtils;
 import org.caleydo.core.data.collection.EDimension;
@@ -23,7 +25,6 @@ import org.caleydo.core.event.EventListenerManager.ListenTo;
 import org.caleydo.core.id.IDType;
 import org.caleydo.core.util.base.ILabeled;
 import org.caleydo.core.util.base.Labels;
-import org.caleydo.core.util.collection.Pair;
 import org.caleydo.core.util.color.Color;
 import org.caleydo.core.view.opengl.canvas.IGLMouseListener.IMouseEvent;
 import org.caleydo.core.view.opengl.layout.Column.VAlign;
@@ -66,6 +67,7 @@ import org.caleydo.view.domino.internal.event.HideNodeEvent;
 
 import com.google.common.collect.Collections2;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
 
@@ -266,7 +268,7 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 			index = Math.min((int) (ratio * c), c - 1);
 		}
 		if (index < 0)
-			return null;
+			return ESetOperation.UNION;
 		return ESetOperation.values()[index];
 	}
 
@@ -1033,6 +1035,22 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 				double size = dim.select(g.getSize());
 				return new GLLocation(offset, size);
 			}
+
+			@Override
+			public Set<Integer> unapply(GLLocation location) {
+				Set<Integer> r = new TreeSet<>();
+				for (int i = 0; i < groups.size(); ++i) {
+					NodeGroup g = groups.get(i);
+					double offset = dim.select(g.getLocation());
+					double size = dim.select(g.getSize());
+					if (offset + size < location.getOffset())
+						continue;
+					if (offset > location.getOffset2())
+						break;
+					r.add(i);
+				}
+				return ImmutableSet.copyOf(r);
+			}
 		};
 	}
 
@@ -1041,29 +1059,85 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 		final List<NodeGroup> groups = getGroupNeighbors(EDirection.getPrimary(dim.opposite()));
 		int offset = 0;
 		List<TypedListGroup> gropus2 = data.getGroups();
-		final List<Pair<Integer, ILocator>> locators = new ArrayList<>(gropus2.size());
+		final List<GroupLocator> locators = new ArrayList<>(gropus2.size());
 
 		for (int i = 0; i < gropus2.size(); ++i) {
 			int size = gropus2.get(i).size();
 			offset += size;
 			final NodeGroup g = groups.get(i);
 			float loffset = dim.select(g.getLocation());
-			locators.add(Pair.make(offset, GLLocation.shift(g.getLocator(dim), loffset)));
+			float lsize = dim.select(g.getSize());
+			GroupLocator gl = new GroupLocator(new GLLocation(loffset, lsize), offset, GLLocation.shift(
+					g.getLocator(dim), loffset));
+			locators.add(gl);
 		}
 		return new GLLocation.ALocator() {
 			@Override
 			public GLLocation apply(int dataIndex) {
-				int offset = 0;
-				for (Pair<Integer, ILocator> loc : locators) {
-					if (loc.getFirst() > dataIndex) {
-						return loc.getSecond().apply(dataIndex - offset);
+				for (GroupLocator loc : locators) {
+					if (loc.getDataOffset() > dataIndex) {
+						return loc.apply(dataIndex);
 					}
-					offset = loc.getFirst();
 				}
 				return GLLocation.UNKNOWN;
 			}
+
+			@Override
+			public Set<Integer> unapply(GLLocation location) {
+				Set<Integer> r = new HashSet<>();
+				for (GroupLocator loc : locators) {
+					if (loc.in(location))
+						r.addAll(loc.unapply(location));
+				}
+				return GLLocation.UNKNOWN_IDS;
+			}
 		};
 
+	}
+
+	private static class GroupLocator extends GLLocation.ALocator {
+		private final GLLocation loc;
+		private final int dataOffset;
+		private final ILocator locator;
+
+		public GroupLocator(GLLocation loc, int dataOffset, ILocator locator) {
+			this.loc = loc;
+			this.dataOffset = dataOffset;
+			this.locator = locator;
+		}
+
+		/**
+		 * @param location
+		 * @return
+		 */
+		public boolean in(GLLocation location) {
+			double o = location.getOffset();
+			double o2 = location.getOffset2();
+			if (loc.getOffset2() < o || loc.getOffset() > o2)
+				return false;
+			return true;
+		}
+
+		/**
+		 * @return the dataOffset, see {@link #dataOffset}
+		 */
+		public int getDataOffset() {
+			return dataOffset;
+		}
+
+		@Override
+		public GLLocation apply(int dataIndex) {
+			return locator.apply(dataIndex - dataOffset);
+		}
+
+		@Override
+		public Set<Integer> unapply(GLLocation location) {
+			Set<Integer> d = locator.unapply(location);
+			List<Integer> r = new ArrayList<>(d.size());
+			for (Integer di : d)
+				r.add(di + dataOffset);
+			return ImmutableSet.copyOf(r);
+		}
 	}
 
 	/**
