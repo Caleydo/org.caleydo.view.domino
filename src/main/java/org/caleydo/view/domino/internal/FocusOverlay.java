@@ -32,6 +32,10 @@ import org.caleydo.core.view.opengl.layout2.renderer.GLRenderers;
 import org.caleydo.core.view.opengl.picking.IPickingListener;
 import org.caleydo.core.view.opengl.picking.Pick;
 import org.caleydo.view.domino.api.model.graph.EProximityMode;
+import org.caleydo.view.domino.api.model.typed.TypedGroupList;
+import org.caleydo.view.domino.api.model.typed.TypedList;
+import org.caleydo.view.domino.internal.data.IDataValues;
+import org.caleydo.view.domino.internal.data.TransposedDataValues;
 import org.caleydo.view.domino.internal.plugin.Settings;
 
 import com.google.common.base.Predicates;
@@ -44,17 +48,20 @@ import com.google.common.collect.Iterables;
  */
 public class FocusOverlay extends GLElementContainer implements IPickingListener, IHasMinSize, ISelectionCallback {
 
-	private final int dimSize;
-	private final int recSize;
-	private final GLElementFactorySwitcher switcher;
+	private GLElementFactorySwitcher switcher;
 
 	private float shiftX, shiftY;
+
+	private String label;
+	private IDataValues data;
+	private TypedGroupList dimData;
+	private TypedGroupList recData;
 
 	public FocusOverlay(Node node) {
 		super(GLLayouts.flowVertical(2));
 
 		this.switcher = build(node);
-		this.add(createButtonBar(node, switcher));
+		this.add(createButtonBar(node.getLabel(), switcher));
 
 		final ScrollingDecorator scroll = ScrollingDecorator.wrap(switcher, Settings.SCROLLBAR_WIDTH);
 		this.add(scroll);
@@ -63,8 +70,28 @@ public class FocusOverlay extends GLElementContainer implements IPickingListener
 		setVisibility(EVisibility.PICKABLE);
 		onPick(this);
 
-		this.dimSize = node.getData(EDimension.DIMENSION).size();
-		this.recSize = node.getData(EDimension.RECORD).size();
+		this.label = node.getLabel();
+		this.data = node.data;
+		this.dimData = node.getData(EDimension.DIMENSION);
+		this.recData = node.getData(EDimension.RECORD);
+	}
+
+	public void transpose() {
+		TypedGroupList t = this.dimData;
+		this.dimData = this.recData;
+		this.recData = t;
+		float t2 = shiftX;
+		this.shiftX = shiftY;
+		this.shiftY = t2;
+
+		this.switcher = buildTransposed(switcher, data, dimData, recData);
+
+		this.clear();
+
+		this.add(createButtonBar(label, switcher));
+
+		final ScrollingDecorator scroll = ScrollingDecorator.wrap(switcher, Settings.SCROLLBAR_WIDTH);
+		this.add(scroll);
 	}
 
 	/**
@@ -72,35 +99,72 @@ public class FocusOverlay extends GLElementContainer implements IPickingListener
 	 * @param switcher2
 	 * @return
 	 */
-	private GLElement createButtonBar(Node node, GLElementFactorySwitcher s) {
+	private GLElement createButtonBar(String label, GLElementFactorySwitcher s) {
 		GLElementContainer c = new GLElementContainer(GLLayouts.flowHorizontal(2));
-		c.add(new GLElement(GLRenderers.drawText(node.getLabel())));
+		c.add(new GLElement(GLRenderers.drawText(label)));
 		final ButtonBarBuilder b = s.createButtonBarBuilder();
 		b.layoutAs(EButtonBarLayout.HORIZONTAL).size(24);
+		b.prepend(createTransposeButton());
 		b.customCallback(this);
-		int size = Iterables.size(s);
+		int size = Iterables.size(s) + 1;
 		c.add(b.build().setSize(size * 26, -1));
 		c.setSize(-1, 24);
 		return c;
 	}
 
-	@Override
-	public void onSelectionChanged(GLButton button, boolean selected) {
-		//update min size
-		get(1).relayout();
+	/**
+	 * @return
+	 */
+	private GLElement createTransposeButton() {
+		GLButton b = new GLButton();
+		b.setCallback(this);
+		b.setRenderer(GLRenderers.fillImage(Resources.ICON_TRANSPOSE));
+		b.setTooltip("Transpose");
+		b.setSize(24, -1);
+		return b;
 	}
 
-	public GLElementFactorySwitcher build(Node node) {
+	@Override
+	public void onSelectionChanged(GLButton button, boolean selected) {
+		if ("Transpose".equals(button.getTooltip())) {
+			transpose();
+		} else if (size() > 1) {
+			// update min size
+			get(1).relayout();
+		}
+	}
+
+	private GLElementFactorySwitcher build(Node node) {
+		GLElementFactorySwitcher s = build(node.data, node.getData(EDimension.DIMENSION),
+				node.getData(EDimension.RECORD));
+		node.selectDefaultVisualization(s);
+		return s;
+	}
+
+	private GLElementFactorySwitcher buildTransposed(GLElementFactorySwitcher ori, IDataValues data, TypedList dimData,
+			TypedList recData) {
+		data = TransposedDataValues.transpose(data);
+		GLElementFactorySwitcher s = build(data, recData, dimData);
+		String id = ori.getActiveId();
+		for (GLElementSupplier sup : s) {
+			if (sup.getId().equals(id)) {
+				s.setActive(sup);
+				break;
+			}
+		}
+		return s;
+	}
+
+	private GLElementFactorySwitcher build(IDataValues data, TypedList dimData, TypedList recData) {
 		Builder b = GLElementFactoryContext.builder();
-		node.data.fill(b, node.getData(EDimension.DIMENSION), node.getData(EDimension.RECORD));
+		data.fill(b, dimData, recData);
 		// if free high else medium
 		b.put(EDetailLevel.class, EDetailLevel.HIGH);
 		b.set("heatmap.blurNotSelected");
 		b.set("heatmap.forceTextures");
 		ImmutableList<GLElementSupplier> extensions = GLElementFactories.getExtensions(b.build(), "domino."
-				+ node.data.getExtensionID(), Predicates.and(node.data, EProximityMode.FREE));
+ + data.getExtensionID(), Predicates.and(data, EProximityMode.FREE));
 		GLElementFactorySwitcher s = new GLElementFactorySwitcher(extensions, ELazyiness.DESTROY);
-		node.selectDefaultVisualization(s);
 		return s;
 	}
 
@@ -114,8 +178,8 @@ public class FocusOverlay extends GLElementContainer implements IPickingListener
 	public Vec2f getMinSize() {
 		GLElementDimensionDesc dim = switcher.getActiveDesc(EDimension.DIMENSION);
 		GLElementDimensionDesc rec = switcher.getActiveDesc(EDimension.RECORD);
-		double w = dim.size(dimSize) + shiftX;
-		double h = rec.size(recSize) + shiftY;
+		double w = dim.size(dimData.size()) + shiftX;
+		double h = rec.size(recData.size()) + shiftY;
 		w = Math.max(100, w);
 		h = Math.max(20, h);
 		return new Vec2f((float) w, (float) h);
