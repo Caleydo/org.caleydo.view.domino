@@ -1063,19 +1063,19 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 
 		for (int i = 0; i < gropus2.size(); ++i) {
 			int size = gropus2.get(i).size();
-			offset += size;
 			final NodeGroup g = groups.get(i);
 			float loffset = dim.select(g.getLocation());
 			float lsize = dim.select(g.getSize());
-			GroupLocator gl = new GroupLocator(new GLLocation(loffset, lsize), offset, GLLocation.shift(
+			GroupLocator gl = new GroupLocator(new GLLocation(loffset, lsize), offset, size, GLLocation.shift(
 					g.getLocator(dim), loffset));
+			offset += size;
 			locators.add(gl);
 		}
 		return new GLLocation.ALocator() {
 			@Override
 			public GLLocation apply(int dataIndex) {
 				for (GroupLocator loc : locators) {
-					if (loc.getDataOffset() > dataIndex) {
+					if (loc.in(dataIndex)) {
 						return loc.apply(dataIndex);
 					}
 				}
@@ -1098,11 +1098,13 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 	private static class GroupLocator extends GLLocation.ALocator {
 		private final GLLocation loc;
 		private final int dataOffset;
+		private final int dataSize;
 		private final ILocator locator;
 
-		public GroupLocator(GLLocation loc, int dataOffset, ILocator locator) {
+		public GroupLocator(GLLocation loc, int dataOffset, int dataSize, ILocator locator) {
 			this.loc = loc;
 			this.dataOffset = dataOffset;
+			this.dataSize = dataSize;
 			this.locator = locator;
 		}
 
@@ -1118,11 +1120,22 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 			return true;
 		}
 
+		public boolean in(int dataIndex) {
+			return dataIndex < (dataOffset + dataSize);
+		}
+
 		/**
 		 * @return the dataOffset, see {@link #dataOffset}
 		 */
 		public int getDataOffset() {
 			return dataOffset;
+		}
+
+		/**
+		 * @return the dataSize, see {@link #dataSize}
+		 */
+		public int getDataSize() {
+			return dataSize;
 		}
 
 		@Override
