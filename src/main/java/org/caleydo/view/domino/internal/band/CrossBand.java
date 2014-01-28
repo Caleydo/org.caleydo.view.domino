@@ -282,7 +282,7 @@ public class CrossBand extends ABand {
 		 * @param g
 		 */
 		public void renderMiniMap(GLGraphics g) {
-			g.color(color.r, color.g, color.b, 0.5f);
+			g.color(color.r, color.g, color.b, color.a);
 			g.fillRect(bounds);
 		}
 
@@ -301,7 +301,7 @@ public class CrossBand extends ABand {
 		}
 
 		@Override
-		public void renderRoute(GLGraphics g, IBandHost host) {
+		public void renderRoute(GLGraphics g, IBandHost host, int nrItems) {
 			g.color(color);
 			g.fillRect(bounds);
 
@@ -349,7 +349,7 @@ public class CrossBand extends ABand {
 		}
 
 		@Override
-		public void renderRoute(GLGraphics g, IBandHost host) {
+		public void renderRoute(GLGraphics g, IBandHost host, int nrItems) {
 			if (bounds.width() <= 2 && bounds.height() <= 2) {
 				renderPoint(g, host);
 				return;

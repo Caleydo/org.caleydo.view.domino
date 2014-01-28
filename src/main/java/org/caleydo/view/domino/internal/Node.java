@@ -1478,6 +1478,7 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 		Rect bounds = focusBounds(size, total);
 		popup.show(overlay, bounds);
 	}
+
 	private static Rect focusBounds(Vec2f size, Vec2f total) {
 		Vec2f avail = total.times(0.8f);
 

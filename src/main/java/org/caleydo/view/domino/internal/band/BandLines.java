@@ -62,9 +62,6 @@ public class BandLines {
 	}
 
 	private static Pair<List<Vec2f>, List<Vec2f>> createHorizontal(Rect s, Rect t) {
-		if (s.y() == t.y()) { // just two simple points
-			return b(c(s.x2y(), t.xy()), c(s.x2y2(), t.xy2()));
-		}
 		return b(shifted(s.x2y(), t.xy()), shifted(s.x2y2(), t.xy2()));
 	}
 

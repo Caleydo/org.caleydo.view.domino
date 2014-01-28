@@ -33,7 +33,7 @@ import org.caleydo.view.domino.internal.band.IBandHost.SourceTarget;
  *
  */
 public abstract class ABand implements ILabeled {
-	protected static final Color color = new Color(0, 0, 0, 0.05f);
+	protected final static Color color = new Color(0, 0, 0, 0.5f);
 
 	protected static final List<SelectionType> SELECTION_TYPES = Arrays.asList(SelectionType.SELECTION,
 			SelectionType.MOUSE_OVER);
@@ -137,7 +137,7 @@ public abstract class ABand implements ILabeled {
 	public final void render(GLGraphics g, float w, float h, IBandHost host) {
 		switch (mode) {
 		case OVERVIEW:
-			overviewRoute().renderRoute(g, host);
+			overviewRoute().renderRoute(g, host, 1);
 			break;
 		case GROUPS:
 			float z = g.z();
@@ -149,7 +149,7 @@ public abstract class ABand implements ILabeled {
 			}
 			for (IBandRenderAble r : gR) {
 				g.incZ(0.0001f);
-				r.renderRoute(g, host);
+				r.renderRoute(g, host, gR.size());
 			}
 			g.incZ(z - g.z());
 			break;
@@ -163,7 +163,7 @@ public abstract class ABand implements ILabeled {
 			}
 			for (IBandRenderAble r : lR) {
 				g.incZ(0.0001f);
-				r.renderRoute(g, host);
+				r.renderRoute(g, host, lR.size());
 			}
 			g.incZ(z - g.z());
 			break;
@@ -183,20 +183,22 @@ public abstract class ABand implements ILabeled {
 		switch (mode) {
 		case OVERVIEW:
 			g.pushName(pickingPool.get(start++));
-			overviewRoute().renderRoute(g, host);
+			overviewRoute().renderRoute(g, host, 1);
 			g.popName();
 			break;
 		case GROUPS:
-			for (IBandRenderAble r : groupRoutes()) {
+			final List<? extends IBandRenderAble> gR = groupRoutes();
+			for (IBandRenderAble r : gR) {
 				g.pushName(pickingPool.get(start++));
-				r.renderRoute(g, host);
+				r.renderRoute(g, host, gR.size());
 				g.popName();
 			}
 			break;
 		case DETAIL:
-			for (IBandRenderAble r : detailRoutes()) {
+			final List<? extends IBandRenderAble> dR = detailRoutes();
+			for (IBandRenderAble r : dR) {
 				g.pushName(pickingPool.get(start++));
-				r.renderRoute(g, host);
+				r.renderRoute(g, host, dR.size());
 				g.popName();
 			}
 			break;
@@ -253,7 +255,7 @@ public abstract class ABand implements ILabeled {
 	}
 
 	protected interface IBandRenderAble extends ILabeled {
-		void renderRoute(GLGraphics g, IBandHost host);
+		void renderRoute(GLGraphics g, IBandHost host, int nrBands);
 
 		/**
 		 * @param bounds
