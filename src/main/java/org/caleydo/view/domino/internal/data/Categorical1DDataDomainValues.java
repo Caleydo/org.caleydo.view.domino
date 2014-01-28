@@ -14,12 +14,16 @@ import org.caleydo.core.data.collection.Histogram;
 import org.caleydo.core.data.perspective.table.TablePerspective;
 import org.caleydo.core.data.perspective.variable.Perspective;
 import org.caleydo.core.util.color.Color;
+import org.caleydo.core.util.function.IDoubleList;
+import org.caleydo.core.util.function.MappedDoubleList;
 import org.caleydo.core.view.opengl.layout2.manage.GLElementFactoryContext.Builder;
 import org.caleydo.view.domino.api.model.graph.EProximityMode;
 import org.caleydo.view.domino.api.model.typed.TypedGroupSet;
 import org.caleydo.view.domino.api.model.typed.TypedList;
 import org.caleydo.view.domino.api.model.typed.TypedSetGroup;
 import org.caleydo.view.domino.internal.util.Utils;
+
+import com.google.common.base.Function;
 
 /**
  * @author Samuel Gratzl
@@ -79,6 +83,19 @@ public class Categorical1DDataDomainValues extends A1DDataDomainValues {
 		b.put(Histogram.class, hist);
 		b.put("distribution.colors", getHistColors(hist, data));
 		b.put("distribution.labels", getHistLabels(hist, data));
+
+		final Function<Integer, Double> toNormalized = new Function<Integer, Double>() {
+			@Override
+			public Double apply(Integer input) {
+				return (double) getNormalized(input.intValue());
+			}
+		};
+		b.put("id2double", toNormalized);
+		final MappedDoubleList<Integer> list = new MappedDoubleList<>(data, toNormalized);
+
+		b.put("min", 0);
+		b.put("max", 1);
+		b.put(IDoubleList.class, list);
 	}
 
 	protected Color[] getHistColors(Histogram hist, TypedList data) {
@@ -107,6 +124,12 @@ public class Categorical1DDataDomainValues extends A1DDataDomainValues {
 			i++;
 		}
 		return -1;
+	}
+
+	@Override
+	public boolean apply(String input) {
+		return super.apply(input)
+				&& !Arrays.asList("labels", "distribution.bar", "kaplanmaier", "boxandwhiskers").contains(input);
 	}
 
 }

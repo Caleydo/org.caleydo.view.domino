@@ -18,12 +18,13 @@ import org.caleydo.core.event.data.DataSetSelectedEvent;
 import org.caleydo.core.id.IDType;
 import org.caleydo.core.util.color.Color;
 import org.caleydo.core.util.function.Function2;
+import org.caleydo.core.util.function.IDoubleList;
+import org.caleydo.core.util.function.MappedDoubleList;
 import org.caleydo.core.view.opengl.layout2.manage.GLElementFactoryContext.Builder;
 import org.caleydo.view.domino.api.model.graph.EProximityMode;
 import org.caleydo.view.domino.api.model.typed.TypedCollections;
 import org.caleydo.view.domino.api.model.typed.TypedGroupSet;
 import org.caleydo.view.domino.api.model.typed.TypedList;
-import org.caleydo.view.domino.api.model.typed.TypedListGroup;
 import org.caleydo.view.domino.api.model.typed.TypedSet;
 import org.caleydo.view.domino.api.model.typed.TypedSetGroup;
 import org.caleydo.view.domino.internal.util.Utils;
@@ -92,12 +93,16 @@ public class StratificationDataValue implements IDataValues, Function2<Integer, 
 		final EDimension dir = swapped ? main.opposite() : main;
 		b.put(EDimension.class, dir);
 		final TypedList data = dir.select(dimData, recData);
+		fill(b, data);
+	}
+
+	void fill(Builder b, final TypedList data) {
 		b.put(TypedList.class, data);
-		b.put("data",data);
 		b.put("idType",data.getIdType());
 		b.put(IDType.class, data.getIdType());
-		b.put("axis.min", 0);
-		b.put("axis.max", groups().size() - 1);
+
+		b.put("min", 0);
+		b.put("max", groups().size() - 1);
 		final Function<Integer, Double> toIndex = new Function<Integer, Double>() {
 			@Override
 			public Double apply(Integer input) {
@@ -109,7 +114,7 @@ public class StratificationDataValue implements IDataValues, Function2<Integer, 
 		b.put(Histogram.class, hist);
 		b.put("distribution.colors", getHistColors(hist, data));
 		b.put("distribution.labels", getHistLabels(hist, data));
-		// b.put(IDoubleList.class, new MappedDoubleList<>(data, toIndex));
+		b.put(IDoubleList.class, new MappedDoubleList<>(data, toIndex));
 	}
 
 	/**
@@ -193,7 +198,7 @@ public class StratificationDataValue implements IDataValues, Function2<Integer, 
 
 	@Override
 	public boolean apply(String input) {
-		return !"labels".equals(input) && !"distribution.bar".equals(input);
+		return !Arrays.asList("labels", "distribution.bar", "kaplanmaier", "boxandwhiskers").contains(input);
 	}
 
 	@Override
