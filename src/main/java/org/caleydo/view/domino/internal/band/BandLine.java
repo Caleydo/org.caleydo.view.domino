@@ -93,11 +93,29 @@ public class BandLine {
 	public IBandArea computeArea(float s1, float s2, float t1, float t2) {
 		List<Vec2f> top = computeLine(Math.min(s1, s2), Math.min(t1, t2));
 		List<Vec2f> bottom = computeLine(Math.max(s1, s2), Math.max(t1, t2));
-		if (!stubified)
+		if (!stubified) {
+			if (isSimilar(top, bottom))
+				return new PolyAreaLine(top);
 			return new PolyArea(top, bottom);
+		}
 
 		int split = top.size() / 2;
 		return new StubifiedArea(top, bottom, split, this.top.getPercentages(), this.bottom.getPercentages(), 1);
+	}
+
+	/**
+	 * @param top2
+	 * @param bottom2
+	 * @return
+	 */
+	private static boolean isSimilar(List<Vec2f> a, List<Vec2f> b) {
+		Vec2f a0 = a.get(0);
+		Vec2f b0 = b.get(0);
+		Vec2f an = a.get(a.size() - 1);
+		Vec2f bn = b.get(b.size() - 1);
+		if (a0.minus(b0).lengthSquared() < 2 * 2 && an.minus(bn).lengthSquared() < 2 * 2)
+			return true;
+		return false;
 	}
 
 	public boolean intersects(Rectangle2D bounds) {
