@@ -160,6 +160,13 @@ public class Domino extends GLElementContainer implements IDropGLTarget, IPickin
 	}
 
 	/**
+	 * @return the bands, see {@link #bands}
+	 */
+	public Bands getBands() {
+		return bands;
+	}
+
+	/**
 	 * @return the showDebugInfos, see {@link #showDebugInfos}
 	 */
 	public boolean isShowDebugInfos() {

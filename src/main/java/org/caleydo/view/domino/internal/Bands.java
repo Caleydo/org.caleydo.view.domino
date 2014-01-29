@@ -45,6 +45,7 @@ import org.caleydo.view.domino.internal.band.ABand;
 import org.caleydo.view.domino.internal.band.IBandHost;
 import org.caleydo.view.domino.internal.dnd.ADragInfo;
 import org.caleydo.view.domino.internal.dnd.SetDragInfo;
+import org.caleydo.view.domino.internal.undo.ChangeBandLevelCmd;
 
 import com.google.common.base.Function;
 import com.google.common.collect.ImmutableList;
@@ -159,7 +160,9 @@ public class Bands extends GLElement implements MultiSelectionManagerMixin.ISele
 	protected void onBandPick(Pick pick) {
 		switch (pick.getPickingMode()) {
 		case RIGHT_CLICKED:
-			getRoute(pick.getObjectID()).changeLevel(!((IMouseEvent) pick).isCtrlDown()); // FIXME
+			UndoStack undo = findParent(Domino.class).getUndo();
+			ABand band = getRoute(pick.getObjectID());
+			undo.push(new ChangeBandLevelCmd(band.getIdentifier(), !((IMouseEvent) pick).isCtrlDown()));
 			repaint();
 			break;
 		default:
@@ -292,6 +295,17 @@ public class Bands extends GLElement implements MultiSelectionManagerMixin.ISele
 		if (index < 0 || index >= bands.size())
 			return null;
 		return bands.get(index);
+	}
+
+	/**
+	 * @param identifier
+	 * @return
+	 */
+	private ABand getRoute(String identifier) {
+		for (ABand band : bands)
+			if (identifier.equals(band.getIdentifier()))
+				return band;
+		return null;
 	}
 
 	@Override
@@ -438,6 +452,17 @@ public class Bands extends GLElement implements MultiSelectionManagerMixin.ISele
 
 	private static Rectangle2D shrink(Rectangle2D r) {
 		return new Rectangle2D.Double(r.getX() + 2, r.getY() + 2, r.getWidth() - 4, r.getHeight() - 4);
+	}
+
+	/**
+	 * @param bandIdentifier
+	 * @param increase
+	 */
+	public void changeLevel(String identifier, boolean increase) {
+		ABand band = getRoute(identifier);
+		if (band != null)
+			band.changeLevel(increase);
+
 	}
 
 }
