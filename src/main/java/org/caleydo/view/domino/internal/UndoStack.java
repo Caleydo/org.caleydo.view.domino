@@ -66,6 +66,7 @@ public class UndoStack {
 
 	public void clearUndo() {
 		this.undo.clear();
+		fire();
 	}
 
 	public void undoAll() {

@@ -79,17 +79,32 @@ public class LeftToolBar extends GLElementContainer implements IGLLayout2, ISele
 	 *
 	 */
 	private void addUndoRedoButtons() {
+		final ISelectionCallback callback = new ISelectionCallback() {
+			@Override
+			public void onSelectionChanged(GLButton button, boolean selected) {
+				switch (button.getTooltip()) {
+				case "Undo":
+					undo.undo();
+					break;
+				case "Redo":
+					undo.redo();
+					break;
+				case "Undo all operations and redo them step by step":
+					playStop();
+					break;
+				case "Clear Undo History":
+					undo.clearUndo();
+					break;
+				}
+			}
+		};
+
 		final GLButton undoB = new GLButton();
 		final IGLRenderer uEnabled = GLRenderers.fillImage(Resources.ICON_UNDO);
 		final IGLRenderer uDisabled = GLRenderers.fillImage(Resources.ICON_UNDO_DISABLED);
 		undoB.setRenderer(undo.isUndoEmpty() ? uDisabled : uEnabled);
 		undoB.setTooltip("Undo");
-		undoB.setCallback(new ISelectionCallback() {
-			@Override
-			public void onSelectionChanged(GLButton button, boolean selected) {
-				undo.undo();
-			}
-		});
+		undoB.setCallback(callback);
 		this.add(undoB);
 
 		final GLButton redoB = new GLButton();
@@ -97,12 +112,7 @@ public class LeftToolBar extends GLElementContainer implements IGLLayout2, ISele
 		final IGLRenderer rDisabled = GLRenderers.fillImage(Resources.ICON_REDO_DISABLED);
 		redoB.setRenderer(undo.isRedoEmpty() ? rDisabled : rEnabled);
 		redoB.setTooltip("Redo");
-		redoB.setCallback(new ISelectionCallback() {
-			@Override
-			public void onSelectionChanged(GLButton button, boolean selected) {
-				undo.redo();
-			}
-		});
+		redoB.setCallback(callback);
 		this.add(redoB);
 
 		this.undo.onChanged(new ICallback<UndoStack>() {
@@ -116,14 +126,15 @@ public class LeftToolBar extends GLElementContainer implements IGLLayout2, ISele
 
 		GLButton replay = new GLButton();
 		replay.setRenderer(GLRenderers.fillImage(Resources.ICON_REPLAY));
-		replay.setTooltip("undo all operation and redo them step by step");
-		replay.setCallback(new ISelectionCallback() {
-			@Override
-			public void onSelectionChanged(GLButton button, boolean selected) {
-				playStop();
-			}
-		});
+		replay.setTooltip("Undo all operations and redo them step by step");
+		replay.setCallback(callback);
 		this.add(replay);
+
+		GLButton clearUndo = new GLButton();
+		clearUndo.setRenderer(GLRenderers.fillImage(Resources.ICON_UNDO_CLEAR));
+		clearUndo.setTooltip("Clear Undo History");
+		clearUndo.setCallback(callback);
+		this.add(clearUndo);
 	}
 
 	/**
