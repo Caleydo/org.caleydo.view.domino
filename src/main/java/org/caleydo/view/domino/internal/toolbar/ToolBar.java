@@ -23,6 +23,7 @@ import org.caleydo.core.view.opengl.layout2.layout.GLPadding;
 import org.caleydo.core.view.opengl.layout2.renderer.GLRenderers;
 import org.caleydo.view.domino.internal.NodeGroup;
 import org.caleydo.view.domino.internal.NodeSelections;
+import org.caleydo.view.domino.internal.UndoStack;
 
 import com.google.common.collect.Collections2;
 
@@ -35,13 +36,15 @@ public class ToolBar extends GLElementContainer implements ICallback<SelectionTy
 	private final GLElement label;
 	private NodeTools tools;
 	private NodeSelections selections;
+	private UndoStack undo;
 
 	/**
 	 * @param selections
 	 *
 	 */
-	public ToolBar(NodeSelections selections) {
+	public ToolBar(UndoStack undo, NodeSelections selections) {
 		super(GLLayouts.flowHorizontal(2));
+		this.undo = undo;
 		this.selections = selections;
 		this.selections.onNodeGroupSelectionChanges(this);
 		this.label = new GLElement();
@@ -71,7 +74,7 @@ public class ToolBar extends GLElementContainer implements ICallback<SelectionTy
 		if (selection.isEmpty()) {
 			return;
 		}
-		this.tools = new NodeTools(selection);
+		this.tools = new NodeTools(undo, selection);
 		this.add(tools);
 	}
 

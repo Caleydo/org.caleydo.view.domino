@@ -8,6 +8,7 @@ package org.caleydo.view.domino.internal;
 import gleem.linalg.Vec2f;
 
 import java.awt.geom.Rectangle2D;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -22,7 +23,6 @@ import org.caleydo.core.view.opengl.canvas.IGLMouseListener.IMouseEvent;
 import org.caleydo.core.view.opengl.layout2.GLElement;
 import org.caleydo.core.view.opengl.layout2.GLElementContainer;
 import org.caleydo.core.view.opengl.layout2.GLGraphics;
-import org.caleydo.core.view.opengl.layout2.GLSandBox;
 import org.caleydo.core.view.opengl.layout2.IGLElementContext;
 import org.caleydo.core.view.opengl.layout2.basic.ScrollingDecorator;
 import org.caleydo.core.view.opengl.layout2.dnd.EDnDType;
@@ -49,6 +49,13 @@ import org.caleydo.view.domino.internal.event.HideNodeEvent;
 import org.caleydo.view.domino.internal.toolbar.DynamicToolBar;
 import org.caleydo.view.domino.internal.toolbar.LeftToolBar;
 import org.caleydo.view.domino.internal.toolbar.ToolBar;
+import org.caleydo.view.domino.internal.undo.AddLazyBlockCmd;
+import org.caleydo.view.domino.internal.undo.AddLazyMultiBlockCmd;
+import org.caleydo.view.domino.internal.undo.CmdComposite;
+import org.caleydo.view.domino.internal.undo.MoveBlockCmd;
+import org.caleydo.view.domino.internal.undo.RemoveNodeCmd;
+import org.caleydo.view.domino.internal.undo.RemoveNodeGroupCmd;
+import org.caleydo.view.domino.internal.undo.ZoomCmd;
 
 import com.google.common.collect.ImmutableList;
 
@@ -71,6 +78,8 @@ public class Domino extends GLElementContainer implements IDropGLTarget, IPickin
 
 	private EToolState tool = EToolState.MOVE;
 
+	private final UndoStack undo = new UndoStack(this);
+
 	@DeepScan
 	private final NodeSelections selections = new NodeSelections();
 
@@ -80,11 +89,11 @@ public class Domino extends GLElementContainer implements IDropGLTarget, IPickin
 	public Domino() {
 		setLayout(this);
 
-		this.toolBar = new ToolBar(selections);
+		this.toolBar = new ToolBar(undo, selections);
 		this.toolBar.setSize(-1, 24);
 		this.add(toolBar);
 
-		this.leftToolBar = new LeftToolBar();
+		this.leftToolBar = new LeftToolBar(undo);
 		this.leftToolBar.setSize(24, -1);
 		this.add(leftToolBar);
 
@@ -122,7 +131,7 @@ public class Domino extends GLElementContainer implements IDropGLTarget, IPickin
 			}
 		});
 
-		DynamicToolBar dynToolBar = new DynamicToolBar(selections);
+		DynamicToolBar dynToolBar = new DynamicToolBar(undo, selections);
 		content.add(dynToolBar);
 	}
 
@@ -180,10 +189,6 @@ public class Domino extends GLElementContainer implements IDropGLTarget, IPickin
 		this.showDebugInfos = showDebugInfos;
 	}
 
-	public static void main(String[] args) {
-		GLSandBox.main(args, new Domino());
-	}
-
 	@Override
 	protected boolean hasPickAbles() {
 		return true;
@@ -191,6 +196,7 @@ public class Domino extends GLElementContainer implements IDropGLTarget, IPickin
 
 	@Override
 	public void pick(Pick pick) {
+		IMouseEvent event = ((IMouseEvent) pick);
 		switch (pick.getPickingMode()) {
 		case MOUSE_OVER:
 			context.getMouseLayer().addDropTarget(this);
@@ -199,7 +205,8 @@ public class Domino extends GLElementContainer implements IDropGLTarget, IPickin
 			context.getMouseLayer().removeDropTarget(this);
 			break;
 		case MOUSE_WHEEL:
-			zoom((IMouseEvent) pick);
+			if (event.getWheelRotation() != 0)
+				undo.push(new ZoomCmd(ScaleLogic.shiftLogic(event, new Vec2f(100, 100))));
 			break;
 		case DRAG_DETECTED:
 			pick.setDoDragging(true);
@@ -208,12 +215,12 @@ public class Domino extends GLElementContainer implements IDropGLTarget, IPickin
 			break;
 		case DRAGGED:
 			if (pick.isDoDragging() && this.select != null) {
-				this.select.dragTo(pick.getDx(), pick.getDy(), ((IMouseEvent) pick).isCtrlDown());
+				this.select.dragTo(pick.getDx(), pick.getDy(), event.isCtrlDown());
 			}
 			break;
 		case MOUSE_RELEASED:
 			if (pick.isDoDragging() && this.select != null) {
-				this.select.dragTo(pick.getDx(), pick.getDy(), ((IMouseEvent) pick).isCtrlDown());
+				this.select.dragTo(pick.getDx(), pick.getDy(), event.isCtrlDown());
 				content.remove(this.select);
 				this.select = null;
 			}
@@ -223,14 +230,8 @@ public class Domino extends GLElementContainer implements IDropGLTarget, IPickin
 		}
 	}
 
-	/**
-	 * @param pick
-	 */
-	private void zoom(IMouseEvent event) {
-		if (event.getWheelRotation() == 0)
-			return;
-		blocks.zoom(event);
-
+	public void zoom(Vec2f shift) {
+		blocks.zoom(shift);
 		bands.relayout();
 	}
 
@@ -242,81 +243,74 @@ public class Domino extends GLElementContainer implements IDropGLTarget, IPickin
 	@Override
 	public void onDrop(IDnDItem item) {
 		IDragInfo info = item.getInfo();
+		final Vec2f pos = toDropPosition(item);
 		if (info instanceof NodeGroupDragInfo) {
 			NodeGroupDragInfo g = (NodeGroupDragInfo) info;
-			dropNode(item, g.getGroup().toNode());
+			dropNode(pos, g.getGroup().toNode(), item.getType() == EDnDType.MOVE ? g.getGroup() : null);
 		} else if (info instanceof NodeDragInfo) {
 			NodeDragInfo g = (NodeDragInfo) info;
-			dropNode(item, item.getType() == EDnDType.COPY ? new Node(g.getNode()) : g.getNode());
+			dropNode(pos, item.getType() == EDnDType.COPY ? new Node(g.getNode()) : g.getNode(), null);
 		} else if (info instanceof MultiNodeGroupDragInfo) {
 			MultiNodeGroupDragInfo g = (MultiNodeGroupDragInfo) info;
 			Node start = g.getPrimary().toNode();
-			Block b = dropNode(item, start);
-			rebuild(b, start, g.getPrimary(), g.getGroups(), null);
+			undo.push(new AddLazyMultiBlockCmd(start, pos, g.getPrimary(), g.getGroups()));
 		} else if (info instanceof BlockDragInfo) {
-			dropBlocks(item, ((BlockDragInfo) info).getStart(), ((BlockDragInfo) info).getBlocks());
+			final Block start = ((BlockDragInfo) info).getStart();
+			undo.push(new MoveBlockCmd(((BlockDragInfo) info).getBlocks(), pos.minus(start.getLocation())));
 		} else {
 			Node node = Nodes.extract(item);
-			dropNode(item, node);
+			dropNode(pos, node, null);
 		}
 	}
 
-	private void rebuild(Block b, Node asNode, NodeGroup act, Set<NodeGroup> items, EDirection commingFrom) {
-		items.remove(act);
-		for (EDirection dir : EDirection.values()) {
-			if (dir == commingFrom)
-				continue;
-			NodeGroup next = act.findNeigbhor(dir, items);
-			if (next == null)
-				continue;
-			Node nextNode = next.toNode();
-			b.addNode(asNode, dir, nextNode, false);
-			rebuild(b, nextNode, next, items, dir);
+	private Block dropNode(Vec2f pos, Node node, NodeGroup groupToRemove) {
+		Block block = node.getBlock();
+		if (block != null && block.size() == 1) {
+			Vec2f shift = pos.minus(block.getLocation());
+			undo.push(new MoveBlockCmd(Collections.singleton(block), shift));
+			return block;
 		}
-	}
-
-	private Block dropNode(IDnDItem item, Node node) {
-		removeNode(node);
-		Block b = new Block(node);
-		b.setTool(tool);
-		setBlockDropPosition(item, b);
-		blocks.addBlock(b);
-
+		final AddLazyBlockCmd cmd = new AddLazyBlockCmd(node, pos);
+		if (block != null)
+			undo.push(CmdComposite.chain(new RemoveNodeCmd(node), cmd));
+		else if (groupToRemove != null)
+			undo.push(CmdComposite.chain(cmd, new RemoveNodeGroupCmd(groupToRemove)));
+		else {
+			undo.push(cmd);
+		}
 		removePlaceholder();
 		bands.relayout();
 		content.getParent().relayout();
-		return b;
+		return null; // FIXME
 	}
 
 	/**
-	 * @param item
-	 * @param block
+	 * @return the undo, see {@link #undo}
 	 */
-	private void dropBlocks(IDnDItem item, Block start, Set<Block> blocks) {
-		if (blocks.size() == 1)
-			setBlockDropPosition(item, start);
-		else {
-			Vec2f old = start.getLocation();
-			setBlockDropPosition(item, start);
-			Vec2f change = old.minus(start.getLocation());
-			for (Block b : blocks) {
-				if (b == start)
-					continue;
-				Vec2f loc = b.getLocation();
-				b.setLocation(loc.x() - change.x(), loc.y() - change.y());
-			}
+	public UndoStack getUndo() {
+		return undo;
+	}
+
+	public void moveBlocks(Set<Block> blocks, Vec2f shift) {
+		for (Block b : blocks) {
+			Vec2f loc = b.getLocation();
+			b.setLocation(loc.x() + shift.x(), loc.y() + shift.y());
 		}
 		bands.relayout();
 		content.getParent().relayout();
 	}
 
-	private void setBlockDropPosition(IDnDItem item, Block b) {
+	private Vec2f toDropPosition(IDnDItem item) {
 		Vec2f pos = blocks.toRelative(item.getMousePos());
 		if (currentlyDraggedVis != null)
 			pos.add(currentlyDraggedVis.getLocation());
-		b.setLocation(pos.x(), pos.y());
+		return pos;
 	}
 
+	public boolean containsNode(Node node) {
+		Block block = getBlock(node);
+		return block != null;
+	}
 	/**
 	 * @param node
 	 */
@@ -561,6 +555,12 @@ public class Domino extends GLElementContainer implements IDropGLTarget, IPickin
 		updateBands();
 	}
 
+	public void addBlock(Block block) {
+		block.setTool(tool);
+		blocks.addBlock(block);
+		updateBands();
+	}
+
 	public IDragInfo startSWTDrag(IDragEvent event, Block block) {
 		Set<Block> selected = selections.getBlockSelection(SelectionType.SELECTION);
 		selected = new HashSet<>(selected);
@@ -623,13 +623,7 @@ public class Domino extends GLElementContainer implements IDropGLTarget, IPickin
 			throw new IllegalStateException();
 		}
 		change.scale(factor);
-		for (Block block : blocks) {
-			Vec2f l = block.getLocation().plus(change);
-			block.setLocation(Math.max(l.x(), 0), Math.max(l.y(), 0));
-		}
-
-		bands.relayout();
-		content.getParent().relayout();
+		undo.push(new MoveBlockCmd(blocks, change));
 	}
 
 	@Override

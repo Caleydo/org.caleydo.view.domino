@@ -18,13 +18,11 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 
-import org.apache.commons.lang.StringUtils;
 import org.caleydo.core.data.collection.EDimension;
 import org.caleydo.core.event.EventListenerManager.DeepScan;
 import org.caleydo.core.event.EventListenerManager.ListenTo;
 import org.caleydo.core.id.IDType;
 import org.caleydo.core.util.base.ILabeled;
-import org.caleydo.core.util.base.Labels;
 import org.caleydo.core.util.color.Color;
 import org.caleydo.core.view.opengl.canvas.IGLMouseListener.IMouseEvent;
 import org.caleydo.core.view.opengl.layout.Column.VAlign;
@@ -52,20 +50,21 @@ import org.caleydo.view.domino.api.model.typed.ITypedComparator;
 import org.caleydo.view.domino.api.model.typed.TypedCollections;
 import org.caleydo.view.domino.api.model.typed.TypedGroupList;
 import org.caleydo.view.domino.api.model.typed.TypedGroupSet;
-import org.caleydo.view.domino.api.model.typed.TypedGroups;
 import org.caleydo.view.domino.api.model.typed.TypedList;
 import org.caleydo.view.domino.api.model.typed.TypedListGroup;
 import org.caleydo.view.domino.api.model.typed.TypedSet;
 import org.caleydo.view.domino.api.model.typed.TypedSetGroup;
 import org.caleydo.view.domino.internal.data.IDataValues;
-import org.caleydo.view.domino.internal.data.StratificationDataValue;
 import org.caleydo.view.domino.internal.data.TransposedDataValues;
 import org.caleydo.view.domino.internal.dnd.DragElement;
 import org.caleydo.view.domino.internal.dnd.NodeDragInfo;
 import org.caleydo.view.domino.internal.dnd.NodeGroupDragInfo;
 import org.caleydo.view.domino.internal.event.HideNodeEvent;
+import org.caleydo.view.domino.internal.undo.CmdComposite;
+import org.caleydo.view.domino.internal.undo.MergeNodesCmd;
+import org.caleydo.view.domino.internal.undo.RemoveNodeGroupCmd;
+import org.caleydo.view.domino.internal.undo.ZoomCmd;
 
-import com.google.common.collect.Collections2;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
@@ -348,7 +347,8 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 			repaint();
 			break;
 		case MOUSE_WHEEL:
-			findBlock().zoom((IMouseEvent) pick, this);
+			Vec2f shift = ScaleLogic.shiftLogic((IMouseEvent) pick, getSize());
+			findParent(Domino.class).getUndo().push(new ZoomCmd(this, shift));
 			break;
 		default:
 			break;
@@ -414,17 +414,17 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 		IDragInfo info = item.getInfo();
 		if (info instanceof NodeGroupDragInfo) {
 			NodeGroupDragInfo g = (NodeGroupDragInfo) info;
-			mergeNode(g.getGroup().toNode(), mousePos);
+			mergeNode(g.getGroup().toNode(), mousePos, item.getType() == EDnDType.MOVE ? g.getGroup() : null);
 		} else if (info instanceof NodeDragInfo) {
 			NodeDragInfo g = (NodeDragInfo) info;
 			Node n = g.getNode();
 			if (item.getType() == EDnDType.COPY)
 				n = new Node(n);
-			mergeNode(n, mousePos);
+			mergeNode(n, mousePos, null);
 		} else {
 			Node node = Nodes.extract(item);
 			if (node != null)
-				mergeNode(node, mousePos);
+				mergeNode(node, mousePos, null);
 		}
 		dropSetOperation = null;
 		repaint();
@@ -445,39 +445,25 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 	/**
 	 * @param node
 	 * @param mousePos
+	 * @param groupToRemove
 	 */
-	private void mergeNode(Node node, Vec2f mousePos) {
-		Domino domino = findParent(Domino.class);
-		domino.removeNode(node);
-		EDimension dim = getSingleGroupingDimension();
+	private void mergeNode(Node node, Vec2f mousePos, NodeGroup groupToRemove) {
 		final ESetOperation type = toSetType(mousePos);
-		TypedGroupSet a = getUnderlyingData(dim);
-		TypedGroupList b = node.getData(dim);
-		TypedGroupSet r;
-		switch (type) {
-		case INTERSECTION:
-			r = TypedGroups.intersect(a, b);
-			break;
-		case UNION:
-			r = TypedGroups.union(a, b);
-			// we need a new data as we have the super set
-			this.data = new StratificationDataValue(getLabel(), r, dim);
-			break;
-		case DIFFERENCE:
-			r = TypedGroups.difference(a, b);
-			break;
-		default:
-			throw new IllegalStateException();
-		}
-		setUnderlyingData(dim, r);
-		triggerResort(dim);
+		Domino domino = findParent(Domino.class);
+		final UndoStack undo = domino.getUndo();
+		final MergeNodesCmd cmd = new MergeNodesCmd(this, type, node);
+		if (groupToRemove != null) {
+			undo.push(CmdComposite.chain(cmd, new RemoveNodeGroupCmd(groupToRemove)));
+		} else
+			undo.push(cmd);
 	}
 
+	public IDataValues getDataValues() {
+		return data;
+	}
 
-
-	public void removeMe() {
-		Domino domino = findParent(Domino.class);
-		domino.removeNode(this);
+	public void setDataValues(IDataValues data) {
+		this.data = data;
 	}
 
 	@Override
@@ -632,33 +618,6 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 		return r;
 	}
 
-	public void merge(Collection<NodeGroup> groups) {
-		if (groups.size() < 2)
-			return;
-		EDimension dim = getSingleGroupingDimension();
-		if (dim == null)
-			return;
-		List<TypedListGroup> d = new ArrayList<>(dim.select(dimData, recData).getGroups());
-		List<TypedSetGroup> r = new ArrayList<>();
-		List<Integer> indices = new ArrayList<>();
-
-		for (NodeGroup g : new ArrayList<>(groups)) {
-			final TypedListGroup gd = g.getData(dim);
-			r.add(gd.asSet());
-			int index = d.indexOf(gd);
-			indices.add(index);
-			d.remove(index);
-			g.prepareRemoveal();
-		}
-		TypedSetGroup mg = new TypedSetGroup(TypedSet.union(r), StringUtils.join(
-				Collections2.transform(r, Labels.TO_LABEL), ", "), mixColors(r));
-		d.add(mg.asList());
-		TypedGroupList l = new TypedGroupList(d);
-		setUnderlyingData(dim, l.asSet());
-		triggerResort(dim);
-	}
-
-
 	/**
 	 * @param selection
 	 * @return
@@ -672,25 +631,7 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 		return true;
 	}
 
-	/**
-	 * @param r
-	 * @return
-	 */
-	private static Color mixColors(List<TypedSetGroup> data) {
-		float r = 0;
-		float g = 0;
-		float b = 0;
-		float a = 0;
-		for (TypedSetGroup group : data) {
-			Color c = group.getColor();
-			r += c.r;
-			g += c.g;
-			b += c.b;
-			a += c.a;
-		}
-		float f = 1.f / data.size();
-		return new Color(r * f, g * f, b * f, a * f);
-	}
+
 
 	public EDimension getSingleGroupingDimension() {
 		final List<TypedListGroup> dimGroups = dimData.getGroups();
@@ -700,25 +641,6 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 		if (dimGroups.size() > 1)
 			return EDimension.DIMENSION;
 		return EDimension.RECORD;
-	}
-
-	public void removeGroup(NodeGroup group) {
-		EDimension dim = getSingleGroupingDimension();
-		if (dim == null)
-			return; // no single grouping
-		final TypedGroupList select = dim.select(dimData, recData);
-		List<TypedListGroup> d = new ArrayList<>(select.getGroups());
-		final TypedListGroup toRemove = group.getData(dim);
-		d.remove(toRemove);
-
-		if (d.isEmpty()) {
-			removeMe();
-			return;
-		}
-
-		TypedGroupList l = new TypedGroupList(d);
-		setUnderlyingData(dim, l.asSet());
-		triggerResort(dim);
 	}
 
 	public boolean canRemoveGroup(NodeGroup nodeGroup) {
@@ -739,11 +661,12 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 	 * @param dim
 	 * @param l
 	 */
-	private void setUnderlyingData(EDimension dim, TypedGroupSet data) {
+	public void setUnderlyingData(EDimension dim, TypedGroupSet data) {
 		if (dim.isDimension())
 			dimUnderlying = data;
 		else
 			recUnderlying = data;
+		triggerResort(dim);
 
 	}
 
@@ -962,13 +885,6 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 	}
 	public void sortByMe(EDimension dim) {
 		findBlock().sortBy(this, dim);
-	}
-
-	/**
-	 * @param dimension
-	 */
-	public void limitToMe(EDimension dim) {
-		findBlock().limitTo(this, dim);
 	}
 
 	/**
@@ -1222,14 +1138,6 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 				node.selectMe();
 			}
 		}
-	}
-
-	/**
-	 * @param dimension
-	 * @return
-	 */
-	public void removeBlock() {
-		findBlock().removeMe();
 	}
 
 	/**

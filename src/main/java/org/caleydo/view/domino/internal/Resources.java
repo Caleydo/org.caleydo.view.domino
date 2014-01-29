@@ -70,6 +70,9 @@ public class Resources {
 	public static final URL ICON_FOCUS = icon("focus.png");
 	public static final URL ICON_HATCHING = icon("hatching.png");
 
+	public static final URL ICON_UNDO = icon("arrow_undo.png");
+	public static final URL ICON_REDO = icon("arrow_redo.png");
+
 
 	/**
 	 * @param string

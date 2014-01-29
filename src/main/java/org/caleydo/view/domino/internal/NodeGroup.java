@@ -17,7 +17,6 @@ import org.caleydo.core.view.opengl.layout2.GLElement;
 import org.caleydo.core.view.opengl.layout2.GLElementDecorator;
 import org.caleydo.core.view.opengl.layout2.GLGraphics;
 import org.caleydo.core.view.opengl.layout2.IGLElementContext;
-import org.caleydo.core.view.opengl.layout2.dnd.EDnDType;
 import org.caleydo.core.view.opengl.layout2.dnd.IDnDItem;
 import org.caleydo.core.view.opengl.layout2.dnd.IDragGLSource;
 import org.caleydo.core.view.opengl.layout2.dnd.IDragInfo;
@@ -263,9 +262,6 @@ public class NodeGroup extends GLElementDecorator implements ILabeled, IDragGLSo
 
 	@Override
 	public void onDropped(IDnDItem info) {
-		if (info.getType() == EDnDType.MOVE && info.getInfo() instanceof NodeGroupDragInfo) {
-			getNode().removeGroup(this);
-		}
 		if (info.getInfo() instanceof NodeDragInfo) {
 			getNode().showAgain();
 		} else if (info.getInfo() instanceof BlockDragInfo) {
@@ -306,14 +302,6 @@ public class NodeGroup extends GLElementDecorator implements ILabeled, IDragGLSo
 	 */
 	public boolean canBeRemoved() {
 		return getNode().canRemoveGroup(this);
-	}
-
-	/**
-	 *
-	 */
-	public void removeMe() {
-		prepareRemoveal();
-		getNode().removeGroup(this);
 	}
 
 	/**

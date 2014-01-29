@@ -22,6 +22,7 @@ import org.caleydo.core.data.selection.SelectionType;
 import org.caleydo.core.event.EventListenerManager.ListenTo;
 import org.caleydo.core.id.IDType;
 import org.caleydo.core.util.base.Labels;
+import org.caleydo.core.util.collection.Pair;
 import org.caleydo.core.util.color.Color;
 import org.caleydo.core.view.opengl.canvas.IGLMouseListener.IMouseEvent;
 import org.caleydo.core.view.opengl.layout2.GLElement;
@@ -446,10 +447,8 @@ public class Block extends GLElementContainer implements IGLLayout2, IPickingLis
 	/**
 	 * @param event
 	 */
-	public void zoom(IMouseEvent event, Node just) {
+	public void zoom(Vec2f shift, Node just) {
 
-		Vec2f s = just == null ? new Vec2f(100, 100) : just.getSize();
-		Vec2f shift = ScaleLogic.shiftLogic(event, s);
 		float shiftX = shift.x();
 		float shiftY = shift.y();
 
@@ -535,20 +534,6 @@ public class Block extends GLElementContainer implements IGLLayout2, IPickingLis
 		return this.isEmpty();
 	}
 
-	/**
-	 * @param node
-	 * @param dim
-	 */
-	public void removeBlock(Node node, EDimension dim) {
-		LinearBlock block = getBlock(node, dim.opposite());
-		if (block == null)
-			return;
-		List<Node> nodes = new ArrayList<>(block);
-		for (Node n : nodes) {
-			n.removeMe();
-		}
-	}
-
 	private LinearBlock getBlock(Node node, EDimension dim) {
 		for (LinearBlock block : linearBlocks) {
 			if (block.getDim() == dim && block.contains(node))
@@ -605,28 +590,41 @@ public class Block extends GLElementContainer implements IGLLayout2, IPickingLis
 	 * @param node
 	 * @param dim
 	 */
-	public void sortByImpl(Node node, EDimension dim, boolean forceStratify) {
+	public Pair<List<Node>, Boolean> sortByImpl(Node node, EDimension dim, boolean forceStratify) {
 		LinearBlock block = getBlock(node, dim.opposite());
 		if (block == null)
-			return;
-		block.sortBy(node, forceStratify);
+			return null;
+		Pair<List<Node>, Boolean> old = block.sortBy(node, forceStratify);
 		realign(node);
 		updateBlock();
+		return old;
 	}
 
-	public void sortBy(Node node, EDimension dim) {
-		sortByImpl(node, dim, false);
+	public Pair<List<Node>, Boolean> sortBy(Node node, EDimension dim) {
+		return sortByImpl(node, dim, false);
 	}
 
-	public void stratifyBy(Node node, EDimension dim) {
-		sortByImpl(node, dim, true);
-	}
-
-	public void limitTo(Node node, EDimension dim) {
+	public Pair<List<Node>, Boolean> restoreSorting(Node node, EDimension dim, List<Node> sortCriteria,
+			Boolean stratified) {
 		LinearBlock block = getBlock(node, dim.opposite());
-		block.limitDataTo(node);
+		if (block == null)
+			return null;
+		Pair<List<Node>, Boolean> old = block.sortBy(sortCriteria, stratified);
 		realign(node);
 		updateBlock();
+		return old;
+	}
+
+	public Pair<List<Node>, Boolean> stratifyBy(Node node, EDimension dim) {
+		return sortByImpl(node, dim, true);
+	}
+
+	public Node limitTo(Node node, EDimension dim) {
+		LinearBlock block = getBlock(node, dim.opposite());
+		Node bak = block.limitDataTo(node);
+		realign(node);
+		updateBlock();
+		return bak;
 	}
 
 	/**
@@ -763,10 +761,6 @@ public class Block extends GLElementContainer implements IGLLayout2, IPickingLis
 		updatedNode(node);
 	}
 
-	public void removeMe() {
-		findDomino().removeBlock(this);
-	}
-
 	/**
 	 * @return
 	 */
@@ -814,5 +808,15 @@ public class Block extends GLElementContainer implements IGLLayout2, IPickingLis
 			}
 		}
 		setVisibility(tool == EToolState.BANDS ? EVisibility.PICKABLE : EVisibility.VISIBLE);
+	}
+
+	public void transpose() {
+		for (Node n : nodes())
+			n.transposeMe();
+		for (LinearBlock b : linearBlocks)
+			b.transposedMe();
+		realign(nodes().iterator().next());
+		updateBlock();
+
 	}
 }

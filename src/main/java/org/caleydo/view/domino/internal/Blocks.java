@@ -13,7 +13,6 @@ import java.util.Set;
 import org.caleydo.core.data.selection.SelectionType;
 import org.caleydo.core.util.base.ICallback;
 import org.caleydo.core.util.collection.Pair;
-import org.caleydo.core.view.opengl.canvas.IGLMouseListener.IMouseEvent;
 import org.caleydo.core.view.opengl.layout2.GLElement;
 import org.caleydo.core.view.opengl.layout2.GLElementContainer;
 import org.caleydo.core.view.opengl.layout2.GLGraphics;
@@ -70,9 +69,9 @@ public class Blocks extends GLElementContainer implements IHasMinSize, ICallback
 		}
 	}
 
-	public void zoom(IMouseEvent event) {
+	public void zoom(Vec2f shift) {
 		for (Block block : getBlocks()) {
-			block.zoom(event, null);
+			block.zoom(shift, null);
 		}
 		getParent().getParent().relayout();
 	}

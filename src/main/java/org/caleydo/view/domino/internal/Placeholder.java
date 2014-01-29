@@ -31,6 +31,9 @@ import org.caleydo.view.domino.internal.dnd.ADragInfo;
 import org.caleydo.view.domino.internal.dnd.DragElement;
 import org.caleydo.view.domino.internal.dnd.NodeDragInfo;
 import org.caleydo.view.domino.internal.dnd.NodeGroupDragInfo;
+import org.caleydo.view.domino.internal.undo.CmdComposite;
+import org.caleydo.view.domino.internal.undo.PersistNodeCmd;
+import org.caleydo.view.domino.internal.undo.RemoveNodeGroupCmd;
 
 import com.google.common.collect.Iterators;
 import com.google.common.collect.Lists;
@@ -101,9 +104,17 @@ public class Placeholder extends PickableGLElement implements IDropGLTarget, IPi
 	public void onDrop(IDnDItem item) {
 		if (preview != null) {
 			final Domino domino = findParent(Domino.class);
-			domino.persistPreview(dir.opposite(), preview);
+			Node toRemove = null;
 			if (item.getType() != EDnDType.COPY && item.getInfo() instanceof NodeDragInfo) {
-				domino.removeNode(((NodeDragInfo) item.getInfo()).getNode());
+				toRemove = ((NodeDragInfo) item.getInfo()).getNode();
+			}
+			final PersistNodeCmd cmd = new PersistNodeCmd(dir.opposite(), preview, toRemove);
+			final UndoStack undo = domino.getUndo();
+			if (item.getInfo() instanceof NodeGroupDragInfo && item.getType() == EDnDType.MOVE) {
+				NodeGroup groupToRemove = ((NodeGroupDragInfo) item.getInfo()).getGroup();
+				undo.push(CmdComposite.chain(cmd, new RemoveNodeGroupCmd(groupToRemove)));
+			} else {
+				undo.push(cmd);
 			}
 		}
 		preview = null;

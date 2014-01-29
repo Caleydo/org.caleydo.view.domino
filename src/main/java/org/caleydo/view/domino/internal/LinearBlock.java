@@ -16,6 +16,7 @@ import java.util.Map;
 
 import org.caleydo.core.data.collection.EDimension;
 import org.caleydo.core.id.IDType;
+import org.caleydo.core.util.collection.Pair;
 import org.caleydo.core.util.color.Color;
 import org.caleydo.core.view.opengl.layout.Column.VAlign;
 import org.caleydo.core.view.opengl.layout2.GLElement;
@@ -49,7 +50,7 @@ import com.google.common.collect.Iterables;
  *
  */
 public class LinearBlock extends AbstractCollection<Node> {
-	private final EDimension dim;
+	private EDimension dim;
 	private final List<Node> nodes = new ArrayList<>();
 
 	private List<Node> sortCriteria = new ArrayList<>(2);
@@ -68,6 +69,13 @@ public class LinearBlock extends AbstractCollection<Node> {
 		update();
 		apply();
 		updateNeighbors();
+	}
+
+	/**
+	 *
+	 */
+	public void transposedMe() {
+		this.dim = dim.opposite();
 	}
 
 	/**
@@ -390,16 +398,25 @@ public class LinearBlock extends AbstractCollection<Node> {
 		return n.getNodeLocator(dim.opposite());
 	}
 
+	public Pair<List<Node>, Boolean> sortBy(List<Node> sortCriteria, boolean stratified) {
+		Pair<List<Node>, Boolean> act = Pair.make((List<Node>) new ArrayList<>(sortCriteria), stratified);
+		this.stratified = stratified;
+		this.sortCriteria.clear();
+		this.sortCriteria.addAll(sortCriteria);
+		return act;
+	}
+
 	/**
 	 * @param node
 	 * @param forceStratify
 	 */
-	public boolean sortBy(Node node, boolean forceStratify) {
+	public Pair<List<Node>, Boolean> sortBy(Node node, boolean forceStratify) {
+		Pair<List<Node>, Boolean> act = Pair.make((List<Node>) new ArrayList<>(sortCriteria), stratified);
 		if (nodes.size() == 1) {
 			this.stratified = !this.stratified;
 			update();
 			apply();
-			return true;
+			return act;
 		}
 		int index = sortCriteria.indexOf(node);
 		if (index == 0 && stratified) {
@@ -422,13 +439,14 @@ public class LinearBlock extends AbstractCollection<Node> {
 
 		update();
 		apply();
-		return true;
+		return act;
 	}
 
-	public void limitDataTo(Node node) {
+	public Node limitDataTo(Node node) {
 		if (nodes.size() == 1) {
-			return;
+			return dataSelection;
 		}
+		Node bak = dataSelection;
 		// add if it was not part of
 		if (dataSelection == node) {
 			dataSelection = null;
@@ -436,6 +454,7 @@ public class LinearBlock extends AbstractCollection<Node> {
 			dataSelection = node;
 		update();
 		apply();
+		return bak;
 	}
 
 	/**

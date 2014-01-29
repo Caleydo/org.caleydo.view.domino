@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
@@ -39,8 +40,20 @@ import org.caleydo.view.domino.internal.Node;
 import org.caleydo.view.domino.internal.NodeGroup;
 import org.caleydo.view.domino.internal.NodeSelections;
 import org.caleydo.view.domino.internal.Resources;
+import org.caleydo.view.domino.internal.UndoStack;
+import org.caleydo.view.domino.internal.undo.ChangeVisTypeToCmd;
+import org.caleydo.view.domino.internal.undo.LimitToNodeCmd;
+import org.caleydo.view.domino.internal.undo.MergeGroupsCmd;
+import org.caleydo.view.domino.internal.undo.RemoveBlockCmd;
+import org.caleydo.view.domino.internal.undo.RemoveNodeCmd;
+import org.caleydo.view.domino.internal.undo.RemoveNodeGroupCmd;
+import org.caleydo.view.domino.internal.undo.RemoveSliceCmd;
+import org.caleydo.view.domino.internal.undo.SortByNodesCmd;
+import org.caleydo.view.domino.internal.undo.TransposeBlocksCmd;
 
-import com.google.common.base.Predicates;
+import com.google.common.collect.HashMultiset;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Multiset;
 
 /**
  * @author Samuel Gratzl
@@ -49,15 +62,17 @@ import com.google.common.base.Predicates;
 public class NodeTools extends GLElementContainer implements GLButton.ISelectionCallback, IGLLayout2 {
 
 	private final Set<NodeGroup> selection;
+	private final UndoStack undo;
 
-	public NodeTools(NodeGroup group) {
-		this(Collections.singleton(group));
+	public NodeTools(UndoStack undo, NodeGroup group) {
+		this(undo, Collections.singleton(group));
 	}
 
 	/**
 	 * @param selection
 	 */
-	public NodeTools(Set<NodeGroup> selection) {
+	public NodeTools(UndoStack undo, Set<NodeGroup> selection) {
+		this.undo = undo;
 		setLayout(this);
 		this.selection = selection;
 		if (selection.size() == 1) {
@@ -106,8 +121,8 @@ public class NodeTools extends GLElementContainer implements GLButton.ISelection
 						addButton("Stratify Recs", Resources.ICON_SORT_REC);
 					}
 				}
-				addButton("Transpose Blocks", Resources.ICON_TRANSPOSE);
 			}
+			addButton("Transpose Blocks", Resources.ICON_TRANSPOSE);
 			addMultiNodes(nodes);
 			if (blocks.size() == 1)
 				addButton("Remove Block", Resources.ICON_DELETE);
@@ -128,20 +143,49 @@ public class NodeTools extends GLElementContainer implements GLButton.ISelection
 	}
 
 	private void addMultiNodes(Set<Node> nodes) {
-		final GLElementFactorySwitcher switcher = nodes.iterator().next().getRepresentableSwitcher();
-		ButtonBarBuilder b = switcher.createButtonBarBuilder();
+		ButtonBarBuilder b = new ButtonBarBuilder();
 		b.layoutAs(EButtonBarLayout.SLIDE_DOWN);
-		if (nodes.size() > 1) {
-			final Set<String> ids = getIds(switcher);
-			for (Node node : nodes) {
-				ids.retainAll(getIds(node.getRepresentableSwitcher()));
-			}
-			if (ids.isEmpty())
-				return;
-			b.filterBy(Predicates.in(ids));
-		}
 		b.customCallback(new ChangeVisTypeTo(nodes));
-		this.add(b.build());
+		GLElementFactorySwitcher start = nodes.iterator().next().getRepresentableSwitcher();
+		if (nodes.size() == 1) {
+			this.add(b.build(start, start.getActiveId()));
+		} else {
+			Collection<GLElementSupplier> s = Lists.newArrayList(start);
+			Multiset<String> actives = HashMultiset.create();
+			for (Node node : nodes) {
+				final GLElementFactorySwitcher swi = node.getRepresentableSwitcher();
+				Set<String> ids = getIds(swi);
+				for (Iterator<GLElementSupplier> it = s.iterator(); it.hasNext();) {
+					if (!ids.contains(it.next().getId()))
+						it.remove();
+				}
+				actives.add(swi.getActiveId());
+			}
+			if (s.isEmpty())
+				return;
+			String initialID = mostFrequent(actives);
+			this.add(b.build(s, initialID));
+		}
+	}
+
+	/**
+	 * @param actives
+	 * @return
+	 */
+	private static <T> T mostFrequent(Multiset<T> sets) {
+		if (sets.isEmpty())
+			return null;
+		Set<T> elems = sets.elementSet();
+		T maxV = elems.iterator().next();
+		int max = sets.count(maxV);
+		for (T elem : elems) {
+			int c = sets.count(elem);
+			if (c > max) {
+				max = c;
+				maxV = elem;
+			}
+		}
+		return maxV;
 	}
 
 	private Set<String> getIds(final GLElementFactorySwitcher switcher) {
@@ -240,45 +284,44 @@ public class NodeTools extends GLElementContainer implements GLButton.ISelection
 		switch (button.getTooltip()) {
 		case "Sort Dim":
 		case "Sort Rec":
-			node.getNode().sortByMe(dim);
+			undo.push(new SortByNodesCmd(node.getNode(), dim, false));
 			break;
 		case "Sort Dims":
 		case "Sort Recs":
-			for (Block b : NodeSelections.getFullBlocks(selection))
-				((Node) b.get(0)).sortByMe(dim);
+			undo.push(SortByNodesCmd.multi(NodeSelections.getFullNodes(selection), dim, false));
 			break;
 		case "Stratify Dim":
 		case "Stratify Rec":
-			node.getNode().stratifyByMe(dim);
+			undo.push(new SortByNodesCmd(node.getNode(), dim, true));
 			break;
 		case "Stratify Dims":
 		case "Stratify Recs":
-			for (Block b : NodeSelections.getFullBlocks(selection))
-				((Node) b.get(0)).stratifyByMe(dim);
+			undo.push(SortByNodesCmd.multi(NodeSelections.getFullNodes(selection), dim, true));
 			break;
 		case "Limit Dim":
 		case "Limit Rec":
-			node.getNode().limitToMe(dim);
+			undo.push(new LimitToNodeCmd(node.getNode(), dim));
 			break;
 		case "Remove Node":
-			node.getNode().removeMe();
+			undo.push(new RemoveNodeCmd(node.getNode()));
 			break;
 		case "Remove Nodes":
-			for (Node n : NodeSelections.getFullNodes(selection))
-				n.removeMe();
+			undo.push(RemoveNodeCmd.multi(NodeSelections.getFullNodes(selection)));
 			break;
 		case "Remove Slice":
-			node.getNode().removeSlice(selection);
+			undo.push(new RemoveSliceCmd(node.getNode(), selection));
 			break;
 		case "Remove Group":
-			node.removeMe();
+			undo.push(new RemoveNodeGroupCmd(node));
+			break;
+		case "Merge Groups":
+			undo.push(new MergeGroupsCmd(node.getNode(), selection));
 			break;
 		case "Remove Block":
-			node.getNode().getBlock().removeMe();
+			undo.push(new RemoveBlockCmd(node.getNode().getBlock()));
 			break;
 		case "Remove Blocks":
-			for (Block b : NodeSelections.getFullBlocks(selection))
-				b.removeMe();
+			undo.push(RemoveBlockCmd.multi(NodeSelections.getFullBlocks(selection)));
 			break;
 		case "Select All In Node":
 			node.getNode().selectAll();
@@ -294,15 +337,11 @@ public class NodeTools extends GLElementContainer implements GLButton.ISelection
 			node.select(EDirection.NORTH);
 			node.select(EDirection.SOUTH);
 			break;
-		case "Merge Groups":
-			node.getNode().merge(selection);
-			break;
 		case "Transpose":
-			node.getNode().transpose();
+			undo.push(new TransposeBlocksCmd(Collections.singleton(node.getNode().getBlock())));
 			break;
 		case "Transpose Blocks":
-			for (Block b : NodeSelections.getFullBlocks(selection))
-				((Node) b.get(0)).transpose();
+			undo.push(new TransposeBlocksCmd(NodeSelections.getFullBlocks(selection)));
 			break;
 		case "Open Details":
 			node.getNode().showInFocus();
@@ -368,7 +407,7 @@ public class NodeTools extends GLElementContainer implements GLButton.ISelection
 		return null;
 	}
 
-	private static class ChangeVisTypeTo implements ISelectionCallback {
+	private class ChangeVisTypeTo implements ISelectionCallback {
 		private final Collection<Node> nodes;
 
 		/**
@@ -380,8 +419,8 @@ public class NodeTools extends GLElementContainer implements GLButton.ISelection
 
 		@Override
 		public void onSelectionChanged(GLButton button, boolean selected) {
-			for (Node node : nodes)
-				node.setVisualizationType(button.getLayoutDataAs(GLElementSupplier.class, null).getId());
+			final String id = button.getLayoutDataAs(GLElementSupplier.class, null).getId();
+			undo.push(new ChangeVisTypeToCmd(nodes, id));
 		}
 
 	}

@@ -26,6 +26,8 @@ import org.caleydo.core.view.opengl.layout2.renderer.GLRenderers;
 import org.caleydo.core.view.opengl.layout2.renderer.IGLRenderer;
 import org.caleydo.view.domino.internal.Domino;
 import org.caleydo.view.domino.internal.EToolState;
+import org.caleydo.view.domino.internal.Resources;
+import org.caleydo.view.domino.internal.UndoStack;
 import org.caleydo.view.domino.internal.tourguide.ui.EntityTypeSelector;
 import org.caleydo.view.domino.internal.ui.DragLabelButton;
 import org.caleydo.view.domino.internal.ui.DragSelectionButton;
@@ -40,15 +42,21 @@ public class LeftToolBar extends GLElementContainer implements IGLLayout2, ISele
 
 	@DeepScan
 	private final MultiSelectionManagerMixin selections = new MultiSelectionManagerMixin(this);
+	private UndoStack undo;
 
 	/**
+	 * @param undo
 	 *
 	 */
-	public LeftToolBar() {
+	public LeftToolBar(UndoStack undo) {
+		this.undo = undo;
 		setLayout(this);
 		setRenderer(GLRenderers.fillRect(Color.LIGHT_BLUE));
 
 		addToolButtons();
+		this.add(new GLElement());
+
+		addUndoRedoButtons();
 
 		this.add(new GLElement());
 
@@ -60,6 +68,33 @@ public class LeftToolBar extends GLElementContainer implements IGLLayout2, ISele
 			b.setEnabled(false);
 			selections.add(manager);
 		}
+	}
+
+	/**
+	 *
+	 */
+	private void addUndoRedoButtons() {
+		GLButton b = new GLButton();
+		b.setRenderer(GLRenderers.fillImage(Resources.ICON_UNDO));
+		b.setTooltip("Undo");
+		b.setCallback(new ISelectionCallback() {
+			@Override
+			public void onSelectionChanged(GLButton button, boolean selected) {
+				undo.undo();
+			}
+		});
+		this.add(b);
+
+		b = new GLButton();
+		b.setRenderer(GLRenderers.fillImage(Resources.ICON_REDO));
+		b.setTooltip("Redo");
+		b.setCallback(new ISelectionCallback() {
+			@Override
+			public void onSelectionChanged(GLButton button, boolean selected) {
+				undo.redo();
+			}
+		});
+		this.add(b);
 	}
 
 	/**
@@ -100,8 +135,7 @@ public class LeftToolBar extends GLElementContainer implements IGLLayout2, ISele
 
 	@Override
 	public void onSelectionChanged(GLButton button, boolean selected) {
-		Domino domino = findParent(Domino.class);
-		domino.setTool(button.getLayoutDataAs(EToolState.class, null));
+		findParent(Domino.class).setTool(button.getLayoutDataAs(EToolState.class, null));
 	}
 
 
