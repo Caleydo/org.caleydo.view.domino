@@ -982,8 +982,11 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 			final NodeGroup g = groups.get(i);
 			float loffset = dim.select(g.getLocation());
 			float lsize = dim.select(g.getSize());
+			final ILocator loc = g.getLocator(dim);
+			if (GLLocation.NO_LOCATOR == loc) // one no location, all no location
+				return GLLocation.NO_LOCATOR;
 			GroupLocator gl = new GroupLocator(new GLLocation(loffset, lsize), offset, size, GLLocation.shift(
-					g.getLocator(dim), loffset));
+					loc, loffset));
 			offset += size;
 			locators.add(gl);
 		}

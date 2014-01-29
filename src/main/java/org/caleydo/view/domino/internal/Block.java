@@ -43,6 +43,7 @@ import org.caleydo.view.domino.api.model.graph.EDirection;
 import org.caleydo.view.domino.api.model.typed.TypedGroupList;
 import org.caleydo.view.domino.internal.band.ABand;
 import org.caleydo.view.domino.internal.band.BandFactory;
+import org.caleydo.view.domino.internal.band.EBandMode;
 import org.caleydo.view.domino.internal.data.VisualizationTypeOracle;
 import org.caleydo.view.domino.internal.dnd.ADragInfo;
 import org.caleydo.view.domino.internal.dnd.BlockDragInfo;
@@ -662,6 +663,14 @@ public class Block extends GLElementContainer implements IGLLayout2, IPickingLis
 		ABand band = BandFactory.create(label, sData, tData, ra, rb, sNodeLocator, tNodeLocator, sDir, tDir, id);
 		if (band == null)
 			return;
+
+		EBandMode defaultMode = EBandMode.OVERVIEW;
+		if (sData.getGroups().size() > 1 || tData.getGroups().size() > 1)
+			defaultMode = EBandMode.GROUPS;
+		else if (sNodeLocator.hasLocator(EBandMode.DETAIL) && tNodeLocator.hasLocator(EBandMode.DETAIL))
+			defaultMode = EBandMode.DETAIL;
+		band.setLevel(defaultMode);
+
 		routes.add(band);
 	}
 

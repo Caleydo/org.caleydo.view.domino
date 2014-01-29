@@ -28,6 +28,7 @@ import org.caleydo.core.view.opengl.layout2.manage.GLElementFactoryContext;
 import org.caleydo.core.view.opengl.layout2.manage.GLElementFactoryContext.Builder;
 import org.caleydo.core.view.opengl.layout2.manage.GLElementFactorySwitcher;
 import org.caleydo.core.view.opengl.layout2.manage.GLElementFactorySwitcher.ELazyiness;
+import org.caleydo.core.view.opengl.layout2.manage.GLLocation;
 import org.caleydo.core.view.opengl.layout2.manage.GLLocation.ILocator;
 import org.caleydo.core.view.opengl.picking.IPickingListener;
 import org.caleydo.core.view.opengl.picking.Pick;
@@ -332,7 +333,9 @@ public class NodeGroup extends GLElementDecorator implements ILabeled, IDragGLSo
 	}
 
 	public ILocator getLocator(final EDimension dim) {
-		ILocator desc = getDesc(dim);
+		GLElementDimensionDesc desc = getDesc(dim);
+		if (!desc.hasLocation())
+			return GLLocation.NO_LOCATOR;
 		return desc;
 	}
 

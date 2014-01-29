@@ -15,6 +15,8 @@ import org.caleydo.view.domino.internal.band.EBandMode;
  */
 public interface INodeLocator {
 	GLLocation apply(EBandMode mode, int index);
+
+	boolean hasLocator(EBandMode mode);
 }
 
 class NodeLocator implements INodeLocator {
@@ -26,6 +28,13 @@ class NodeLocator implements INodeLocator {
 		this.node = node;
 		this.groupLocator = groupLocator;
 		this.detailLocator = detailLocator;
+	}
+
+	@Override
+	public boolean hasLocator(EBandMode mode) {
+		if (mode == EBandMode.DETAIL && detailLocator == GLLocation.NO_LOCATOR)
+			return false;
+		return true;
 	}
 
 	@Override

@@ -19,7 +19,6 @@ import org.caleydo.core.util.base.ILabeled;
 import org.caleydo.core.util.collection.Pair;
 import org.caleydo.core.util.color.Color;
 import org.caleydo.core.view.opengl.layout2.GLGraphics;
-import org.caleydo.core.view.opengl.layout2.manage.GLLocation;
 import org.caleydo.core.view.opengl.layout2.util.PickingPool;
 import org.caleydo.view.domino.api.model.typed.MultiTypedSet;
 import org.caleydo.view.domino.api.model.typed.TypedCollections;
@@ -206,8 +205,7 @@ public abstract class ABand implements ILabeled {
 		return start;
 	}
 	private boolean canHaveDetailMode() {
-		return sLocator != null && GLLocation.NO_LOCATOR != sLocator && tLocator != null
-				&& GLLocation.NO_LOCATOR != tLocator;
+		return sLocator.hasLocator(EBandMode.DETAIL) && tLocator.hasLocator(EBandMode.DETAIL);
 	}
 	/**
 	 * @param b
@@ -219,6 +217,10 @@ public abstract class ABand implements ILabeled {
 		if ((mode == EBandMode.GROUPS && !detailsThere && increase) || (mode == EBandMode.DETAIL && increase))
 			return;
 		mode = EBandMode.values()[this.mode.ordinal() + (increase ? 1 : -1)];
+	}
+
+	public void setLevel(EBandMode mode) {
+		this.mode = mode;
 	}
 
 
