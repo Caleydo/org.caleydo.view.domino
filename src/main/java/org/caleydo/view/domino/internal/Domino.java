@@ -308,14 +308,13 @@ public class Domino extends GLElementContainer implements IDropGLTarget, IPickin
 	}
 
 	public boolean containsNode(Node node) {
-		Block block = getBlock(node);
-		return block != null;
+		return node.getBlock() != null;
 	}
 	/**
 	 * @param node
 	 */
 	public void removeNode(Node node) {
-		Block block = getBlock(node);
+		Block block = node.getBlock();
 		if (block != null && block.removeNode(node)) {
 			blocks.remove(block);
 			bands.relayout();
@@ -325,16 +324,6 @@ public class Domino extends GLElementContainer implements IDropGLTarget, IPickin
 
 	public void cleanup(Node node) {
 		selections.cleanup(node);
-	}
-
-	/**
-	 * @param node
-	 */
-	private Block getBlock(Node node) {
-		for (Block block : blocks.getBlocks())
-			if (block.containsNode(node))
-				return block;
-		return null;
 	}
 
 	public void addPlaceholdersFor(Node node) {
@@ -388,7 +377,7 @@ public class Domino extends GLElementContainer implements IDropGLTarget, IPickin
 	 */
 	public void placeAt(Node neighbor, EDirection dir, Node node, boolean detached) {
 		removeNode(node);
-		Block block = getBlock(neighbor);
+		Block block = neighbor.getBlock();
 		block.addNode(neighbor, dir, node, detached);
 	}
 
@@ -637,6 +626,10 @@ public class Domino extends GLElementContainer implements IDropGLTarget, IPickin
 			moveSelection(EDirection.NORTH, f);
 		else if (e.isKey(ESpecialKey.DOWN))
 			moveSelection(EDirection.SOUTH, f);
+		else if (e.isControlDown() && (e.isKey('z') || e.isKey('Z')))
+			undo.undo();
+		else if (e.isControlDown() && (e.isKey('y') || e.isKey('Y')))
+			undo.redo();
 	}
 
 	@Override

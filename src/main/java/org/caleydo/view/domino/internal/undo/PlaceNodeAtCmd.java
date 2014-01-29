@@ -5,8 +5,7 @@
  *******************************************************************************/
 package org.caleydo.view.domino.internal.undo;
 
-import gleem.linalg.Vec2f;
-
+import org.caleydo.view.domino.api.model.graph.EDirection;
 import org.caleydo.view.domino.internal.Domino;
 import org.caleydo.view.domino.internal.Node;
 
@@ -14,42 +13,29 @@ import org.caleydo.view.domino.internal.Node;
  * @author Samuel Gratzl
  *
  */
-public class ZoomCmd implements ICmd {
-	private final Node node;
-	private final Vec2f shift;
+public class PlaceNodeAtCmd implements ICmd {
 
-	public ZoomCmd(Vec2f shift) {
-		this(null, shift);
-	}
-	public ZoomCmd(Node node, Vec2f shift) {
+	private Node node;
+	private Node neighbor;
+	private EDirection dir;
+	private boolean detached;
+
+	public PlaceNodeAtCmd(Node node, Node neighbor, EDirection dir, boolean detached) {
 		this.node = node;
-		this.shift = shift;
+		this.neighbor = neighbor;
+		this.dir = dir;
+		this.detached = detached;
 	}
 
 	@Override
 	public String getLabel() {
-		return "Zoom";
+		return "Add Node: " + node.getLabel();
 	}
 
 	@Override
 	public ICmd run(Domino domino) {
-		if (node != null)
-			node.getBlock().zoom(shift, node);
-		else
-			domino.zoom(shift);
-		return new ZoomCmd(node, shift.times(-1));
-	}
-
-	/**
-	 * @param undo
-	 * @return
-	 */
-	public boolean merge(ZoomCmd undo) {
-		if (undo.node == this.node) {
-			this.shift.add(undo.shift);
-			return true;
-		}
-		return false;
+		domino.placeAt(neighbor, dir, node, detached);
+		return new RemoveNodeCmd(node);
 	}
 
 }

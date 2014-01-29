@@ -57,7 +57,10 @@ public class PersistNodeCmd implements ICmd {
 			if (readd != null)
 				del = readd.run(domino);
 			ICmd add = new RemoveNodeCmd(preview).run(domino);
-			return CmdComposite.chain(add, del);
+			if (del == null)
+				return add;
+			else
+				return CmdComposite.chain(add, del);
 		}
 
 		@Override

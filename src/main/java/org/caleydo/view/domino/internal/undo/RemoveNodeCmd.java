@@ -7,6 +7,7 @@ package org.caleydo.view.domino.internal.undo;
 
 import java.util.Collection;
 
+import org.caleydo.view.domino.api.model.graph.EDirection;
 import org.caleydo.view.domino.internal.Block;
 import org.caleydo.view.domino.internal.Domino;
 import org.caleydo.view.domino.internal.Node;
@@ -39,8 +40,23 @@ public class RemoveNodeCmd implements ICmd {
 		if (b.size() == 1) // remove the whole block
 			return new RemoveBlockCmd(b).run(domino);
 
-		domino.removeNode(node);
-		return null; // FIXME undo can't undo
+		Node neighbor = null;
+		EDirection dir = null;
+		for (EDirection d : EDirection.values()) {
+			Node n = node.getNeighbor(d);
+			if (n != null) {
+				neighbor = n;
+				dir = d;
+				break;
+			}
+		}
+		if (dir == null)
+			throw new IllegalStateException();
+		assert neighbor != null && dir != null;
+		boolean detached = node.isDetached(dir.asDim());
+		b.removeNode(node);
+		domino.cleanup(node);
+		return new PlaceNodeAtCmd(node, neighbor, dir.opposite(), detached);
 	}
 
 	@Override

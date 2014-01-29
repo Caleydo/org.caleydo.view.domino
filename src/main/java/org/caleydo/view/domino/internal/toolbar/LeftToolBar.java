@@ -13,6 +13,7 @@ import org.caleydo.core.data.selection.SelectionManager;
 import org.caleydo.core.data.selection.SelectionType;
 import org.caleydo.core.event.EventListenerManager.DeepScan;
 import org.caleydo.core.id.IDCategory;
+import org.caleydo.core.util.base.ICallback;
 import org.caleydo.core.util.color.Color;
 import org.caleydo.core.view.opengl.layout2.GLElement;
 import org.caleydo.core.view.opengl.layout2.GLElementContainer;
@@ -74,27 +75,40 @@ public class LeftToolBar extends GLElementContainer implements IGLLayout2, ISele
 	 *
 	 */
 	private void addUndoRedoButtons() {
-		GLButton b = new GLButton();
-		b.setRenderer(GLRenderers.fillImage(Resources.ICON_UNDO));
-		b.setTooltip("Undo");
-		b.setCallback(new ISelectionCallback() {
+		final GLButton undoB = new GLButton();
+		final IGLRenderer uEnabled = GLRenderers.fillImage(Resources.ICON_UNDO);
+		final IGLRenderer uDisabled = GLRenderers.fillImage(Resources.ICON_UNDO_DISABLED);
+		undoB.setRenderer(undo.isUndoEmpty() ? uDisabled : uEnabled);
+		undoB.setTooltip("Undo");
+		undoB.setCallback(new ISelectionCallback() {
 			@Override
 			public void onSelectionChanged(GLButton button, boolean selected) {
 				undo.undo();
 			}
 		});
-		this.add(b);
+		this.add(undoB);
 
-		b = new GLButton();
-		b.setRenderer(GLRenderers.fillImage(Resources.ICON_REDO));
-		b.setTooltip("Redo");
-		b.setCallback(new ISelectionCallback() {
+		final GLButton redoB = new GLButton();
+		final IGLRenderer rEnabled = GLRenderers.fillImage(Resources.ICON_REDO);
+		final IGLRenderer rDisabled = GLRenderers.fillImage(Resources.ICON_REDO_DISABLED);
+		redoB.setRenderer(undo.isRedoEmpty() ? rDisabled : rEnabled);
+		redoB.setTooltip("Redo");
+		redoB.setCallback(new ISelectionCallback() {
 			@Override
 			public void onSelectionChanged(GLButton button, boolean selected) {
 				undo.redo();
 			}
 		});
-		this.add(b);
+		this.add(redoB);
+
+		this.undo.onChanged(new ICallback<UndoStack>() {
+
+			@Override
+			public void on(UndoStack data) {
+				undoB.setRenderer(undo.isUndoEmpty() ? uDisabled : uEnabled);
+				redoB.setRenderer(undo.isRedoEmpty() ? rDisabled : rEnabled);
+			}
+		});
 	}
 
 	/**
