@@ -74,6 +74,7 @@ public class Resources {
 	public static final URL ICON_REDO = icon("arrow_redo.png");
 	public static final URL ICON_UNDO_DISABLED = icon("arrow_undo_disabled.png");
 	public static final URL ICON_REDO_DISABLED = icon("arrow_redo_disabled.png");
+	public static final URL ICON_REPLAY = icon("video.png");
 
 
 	/**

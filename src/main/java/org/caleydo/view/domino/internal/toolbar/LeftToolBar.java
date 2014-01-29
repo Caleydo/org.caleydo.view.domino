@@ -43,7 +43,11 @@ public class LeftToolBar extends GLElementContainer implements IGLLayout2, ISele
 
 	@DeepScan
 	private final MultiSelectionManagerMixin selections = new MultiSelectionManagerMixin(this);
-	private UndoStack undo;
+
+	private final UndoStack undo;
+
+	private boolean isAutoRedoing;
+	private int timeToNextRedo;
 
 	/**
 	 * @param undo
@@ -109,6 +113,45 @@ public class LeftToolBar extends GLElementContainer implements IGLLayout2, ISele
 				redoB.setRenderer(undo.isRedoEmpty() ? rDisabled : rEnabled);
 			}
 		});
+
+		GLButton replay = new GLButton();
+		replay.setRenderer(GLRenderers.fillImage(Resources.ICON_REPLAY));
+		replay.setTooltip("undo all operation and redo them step by step");
+		replay.setCallback(new ISelectionCallback() {
+			@Override
+			public void onSelectionChanged(GLButton button, boolean selected) {
+				playStop();
+			}
+		});
+		this.add(replay);
+	}
+
+	/**
+	 *
+	 */
+	protected void playStop() {
+		if (this.isAutoRedoing) {
+			this.isAutoRedoing = false;
+			return;
+		}
+		this.isAutoRedoing = true;
+		timeToNextRedo = 300;
+		undo.undoAll();
+	}
+
+	@Override
+	public void layout(int deltaTimeMs) {
+		if (isAutoRedoing) {
+			timeToNextRedo -= deltaTimeMs;
+			if (timeToNextRedo <= 0) {
+				undo.redo();
+				timeToNextRedo = 300;
+			}
+			if (undo.isRedoEmpty()) {
+				isAutoRedoing = false;
+			}
+		}
+		super.layout(deltaTimeMs);
 	}
 
 	/**

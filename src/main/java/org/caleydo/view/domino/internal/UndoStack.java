@@ -64,6 +64,11 @@ public class UndoStack {
 		return true;
 	}
 
+	public void undoAll() {
+		while (!this.undo.isEmpty())
+			undo();
+	}
+
 	public boolean redo() {
 		if (this.redo.isEmpty())
 			return false;
