@@ -9,6 +9,7 @@ import gleem.linalg.Vec2f;
 
 import org.caleydo.core.data.collection.EDimension;
 import org.caleydo.core.view.opengl.layout2.geom.Rect;
+import org.caleydo.view.domino.api.model.graph.EDirection;
 import org.caleydo.view.domino.api.model.typed.MultiTypedSet;
 import org.caleydo.view.domino.api.model.typed.TypedGroupList;
 import org.caleydo.view.domino.api.model.typed.TypedSets;
@@ -32,15 +33,40 @@ public class BandFactory {
 				return null;
 			if (line.isInvalid())
 				return null;
-			return new Band(line, label, shared, sData, tData, sNodeLocator, tNodeLocator, sDim, tDim, identifier);
+			Vec2f sPoint = line.getPoint(true, true);
+			Vec2f tPoint = line.getPoint(false, true);
+			EDirection sDir = EDirection.getPrimary(sDim);
+			if (sDim.opposite().select(sPoint) > sDim.opposite().select(ra.xy()))
+				sDir = sDir.opposite();
+			EDirection tDir = EDirection.getPrimary(tDim);
+			if (tDim.opposite().select(tPoint) > tDim.opposite().select(rb.xy()))
+				tDir = tDir.opposite();
+			return new Band(line, label, shared, sData, tData, sNodeLocator, tNodeLocator, sDir, tDir, identifier);
 		} else {
 			// cross
 			if (sDim == EDimension.RECORD) {
 				Vec2f s = ra.x2y();
 				Vec2f t = rb.xy();
-				return new CrossBand(label, shared, sData, tData, sNodeLocator, tNodeLocator, s, t, identifier);
+				EDirection sDir = EDirection.getPrimary(sDim);
+				if (s.y() >= t.y())
+					sDir = sDir.opposite();
+				EDirection tDir = EDirection.getPrimary(tDim);
+				if (s.x() >= t.x())
+					tDir = tDir.opposite();
+				return new CrossBand(label, shared, sData, tData, sNodeLocator, tNodeLocator, s, t, sDir, tDir,
+						identifier);
+			} else {
+				Vec2f s = ra.xy();
+				Vec2f t = rb.x2y();
+				EDirection sDir = EDirection.getPrimary(tDim);
+				if (t.y() >= s.y())
+					sDir = sDir.opposite();
+				EDirection tDir = EDirection.getPrimary(sDim);
+				if (t.x() >= s.x())
+					tDir = tDir.opposite();
+				return new CrossBand(label, shared, tData, sData, tNodeLocator, sNodeLocator, t, s, sDir, tDir,
+						identifier);
 			}
 		}
-		return null;
 	}
 }

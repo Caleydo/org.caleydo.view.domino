@@ -19,10 +19,11 @@ import java.util.Set;
 import java.util.TreeSet;
 
 import org.caleydo.core.data.collection.EDimension;
-import org.caleydo.core.event.EventListenerManager.DeepScan;
 import org.caleydo.core.event.EventListenerManager.ListenTo;
+import org.caleydo.core.id.IDCreator;
 import org.caleydo.core.id.IDType;
 import org.caleydo.core.util.base.ILabeled;
+import org.caleydo.core.util.base.IUniqueObject;
 import org.caleydo.core.util.color.Color;
 import org.caleydo.core.view.opengl.canvas.IGLMouseListener.IMouseEvent;
 import org.caleydo.core.view.opengl.layout.Column.VAlign;
@@ -38,14 +39,16 @@ import org.caleydo.core.view.opengl.layout2.dnd.IDropGLTarget;
 import org.caleydo.core.view.opengl.layout2.geom.Rect;
 import org.caleydo.core.view.opengl.layout2.layout.IGLLayout2;
 import org.caleydo.core.view.opengl.layout2.layout.IGLLayoutElement;
+import org.caleydo.core.view.opengl.layout2.manage.EVisScaleType;
+import org.caleydo.core.view.opengl.layout2.manage.GLElementFactories;
 import org.caleydo.core.view.opengl.layout2.manage.GLElementFactories.GLElementSupplier;
 import org.caleydo.core.view.opengl.layout2.manage.GLElementFactorySwitcher;
 import org.caleydo.core.view.opengl.layout2.manage.GLLocation;
 import org.caleydo.core.view.opengl.layout2.manage.GLLocation.ILocator;
+import org.caleydo.core.view.opengl.layout2.manage.IGLElementMetaData;
 import org.caleydo.core.view.opengl.picking.IPickingListener;
 import org.caleydo.core.view.opengl.picking.Pick;
 import org.caleydo.view.domino.api.model.graph.EDirection;
-import org.caleydo.view.domino.api.model.graph.EProximityMode;
 import org.caleydo.view.domino.api.model.typed.ITypedComparator;
 import org.caleydo.view.domino.api.model.typed.TypedCollections;
 import org.caleydo.view.domino.api.model.typed.TypedGroupList;
@@ -74,17 +77,15 @@ import com.google.common.collect.Sets;
  * @author Samuel Gratzl
  *
  */
-public class Node extends GLElementContainer implements IGLLayout2, ILabeled, IDropGLTarget, IPickingListener {
-	/**
-	 *
-	 */
+public class Node extends GLElementContainer implements IGLLayout2, ILabeled, IDropGLTarget, IPickingListener,
+		IUniqueObject {
 	private static final int MIN_SIZE = 30;
-
 	static final float BORDER = 2;
+
+	private final int id = IDCreator.createVMUniqueID(Node.class);
 
 	private final Node origin;
 	private final Node[] neighbors = new Node[4];
-	private float[] offsets = new float[4];
 	private final String label;
 
 	IDataValues data;
@@ -95,11 +96,6 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 	private TypedGroupList recData;
 	private TypedGroupSet recUnderlying;
 
-	@DeepScan
-	private DetachedAdapter dimDetached = new DetachedAdapter(this, EDimension.DIMENSION);
-	@DeepScan
-	private DetachedAdapter recDetached = new DetachedAdapter(this, EDimension.RECORD);
-
 	// visualizationtype -> scale factor
 	// if type is size dependent -> global factor
 	// else local factor
@@ -109,8 +105,6 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 
 
 	private String visualizationType;
-
-	private boolean dirtyBands;
 
 	private boolean mouseOver;
 
@@ -146,6 +140,11 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 		init();
 	}
 
+	@Override
+	public int getID() {
+		return id;
+	}
+
 	/**
 	 * @return the origin, see {@link #origin}
 	 */
@@ -156,23 +155,6 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 	private void copyScaleFactors(Node clone) {
 		for (Map.Entry<String, Vec2f> entry : clone.scaleFactors.entrySet())
 			this.scaleFactors.put(entry.getKey(), entry.getValue().copy());
-	}
-
-	public boolean isDetached(EDimension dim) {
-		return getDetachedHandler(dim).isDetached();
-	}
-
-	private DetachedAdapter getDetachedHandler(EDimension dim) {
-		return dim.select(dimDetached, recDetached);
-	}
-
-	public void setDetached(EDimension dim, boolean value) {
-		if (isDetached(dim) == value)
-			return;
-		EProximityMode p = getProximityMode();
-		getDetachedHandler(dim).setDetached(value);
-		if (p != getProximityMode()) // trigger update of vis
-			setData(dimData, recData);
 	}
 
 	/**
@@ -229,10 +211,6 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 			super.renderImpl(g, w, h);
 		} else
 			renderDropHints(g, w, h);
-
-		// render detached bands
-		dimDetached.renderImpl(g, w, h);
-		recDetached.renderImpl(g, w, h);
 	}
 
 	private void renderDropHints(GLGraphics g, float w, float h) {
@@ -326,10 +304,6 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 		if (getVisibility() != EVisibility.PICKABLE)
 			return;
 		super.renderPickImpl(g, w, h);
-
-		// render detached bands
-		dimDetached.renderPickImpl(g, w, h);
-		recDetached.renderPickImpl(g, w, h);
 	}
 
 	@Override
@@ -469,8 +443,6 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 	@Override
 	protected void takeDown() {
 		context.getMouseLayer().removeDropTarget(this);
-		dimDetached.takeDown();
-		recDetached.takeDown();
 		super.takeDown();
 	}
 	/**
@@ -551,8 +523,6 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 	protected void init(IGLElementContext context) {
 		super.init(context);
 		updateSize(false);
-		dimDetached.init(context);
-		recDetached.init(context);
 	}
 
 
@@ -560,18 +530,18 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 		Vec2f new_ = fixSize(scaleSize(originalSize()));
 		final Vec2f act = getSize();
 		Vec2f change = new_.minus(act);
-		if (dimDetached.isDetached()) {
-			dimDetached.incShift(-change.y() * .5f);
-			final Vec2f l = getLocation();
-			setLocation(l.x(), l.y() - change.y() * .5f);
-			// new_.setY(act.y());
-		}
-		if (recDetached.isDetached()) {
-			recDetached.incShift(-change.x() * .5f);
-			final Vec2f l = getLocation();
-			setLocation(l.x() - change.x() * .5f, l.y());
-			// new_.setX(act.x());
-		}
+		// if (dimDetached.isDetached()) {
+		// dimDetached.incShift(-change.y() * .5f);
+		// final Vec2f l = getLocation();
+		// setLocation(l.x(), l.y() - change.y() * .5f);
+		// // new_.setY(act.y());
+		// }
+		// if (recDetached.isDetached()) {
+		// recDetached.incShift(-change.x() * .5f);
+		// final Vec2f l = getLocation();
+		// setLocation(l.x() - change.x() * .5f, l.y());
+		// // new_.setX(act.x());
+		// }
 		setSize(new_.x(), new_.y());
 	}
 
@@ -605,6 +575,21 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 		else
 			scale = new Vec2f(1, 1);
 		return scale;
+	}
+
+	public void copyScaleFactors(Node node, EDimension dim) {
+		for (Map.Entry<String, Vec2f> entry : node.scaleFactors.entrySet()) {
+			Vec2f old = scaleFactors.get(entry.getKey());
+			if (old == null)
+				old = new Vec2f(1, 1);
+			if (dim.isHorizontal())
+				old.setX(entry.getValue().x());
+			else
+				old.setY(entry.getValue().y());
+			this.scaleFactors.put(entry.getKey(), old);
+		}
+		updateSize(false);
+		relayout();
 	}
 
 	private float[] getSizes(EDimension dim) {
@@ -740,11 +725,6 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 			}
 		}
 
-	}
-
-	private void updateDetachedBands(final EDimension dim) {
-		getDetachedHandler(dim).createBand(getNeighbor(EDirection.getPrimary(dim)),
-				getNeighbor(EDirection.getPrimary(dim).opposite()));
 	}
 
 	public Node getNeighbor(EDirection dir) {
@@ -906,30 +886,6 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 	public void selectAll() {
 		for (NodeGroup g : nodeGroups())
 			g.selectMe();
-	}
-
-	/**
-	 * @return
-	 */
-	public EProximityMode getProximityMode() {
-		boolean dAlone = isAlone(EDimension.DIMENSION);
-		final boolean rAlone = isAlone(EDimension.RECORD);
-		if (dAlone && rAlone)
-			return EProximityMode.FREE;
-		if ((isDetached(EDimension.DIMENSION) || areNeighborsDetached(EDimension.DIMENSION))
-				&& (isDetached(EDimension.RECORD) || areNeighborsDetached(EDimension.RECORD)))
-			return EProximityMode.DETACHED;
-		return EProximityMode.ATTACHED;
-	}
-
-	/**
-	 * @param dimension
-	 * @return
-	 */
-	private boolean areNeighborsDetached(EDimension dim) {
-		Node n = getNeighbor(EDirection.getPrimary(dim));
-		Node n2 = getNeighbor(EDirection.getPrimary(dim).opposite());
-		return (n == null || n.isDetached(dim)) && (n2 == null || n2.isDetached(dim));
 	}
 
 	/**
@@ -1098,10 +1054,6 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 		TypedGroupList t = this.recData;
 		this.recData = dimData;
 		this.dimData = t;
-		boolean tmpR = this.isDetached(EDimension.RECORD);
-		this.setDetached(EDimension.RECORD, this.isDetached(EDimension.DIMENSION));
-		this.setDetached(EDimension.DIMENSION, tmpR);
-
 		for (Vec2f scale : scaleFactors.values())
 			scale.set(scale.y(), scale.x());
 
@@ -1151,13 +1103,10 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 			return;
 
 		// if (origin != null && )
-		final EProximityMode proximityMode = getProximityMode();
-		if (origin != null && proximityMode == origin.getProximityMode()) {
-			String target = origin.getVisualizationType();
-			if (trySetVisualizationType(s, target))
-				return;
-		}
-		Collection<String> list = this.data.getDefaultVisualization(proximityMode);
+		if (origin != null && trySetVisualizationType(s, origin.getVisualizationType()))
+			return;
+
+		Collection<String> list = this.data.getDefaultVisualization();
 		for (String target : list) {
 			if (trySetVisualizationType(s, target))
 				return;
@@ -1190,17 +1139,31 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 		int active = findVisTypeIndex(id);
 		if (active < 0) // invalid type
 			return;
+		boolean was = isDetachedVis();
 		visualizationType = id;
+
 		for (NodeGroup g : nodeGroups()) {
 			GLElementFactorySwitcher s = g.getSwitcher();
 			anyChange = anyChange || s.getActive() != active;
 			s.setActive(active);
 		}
-		if (!anyChange && groupCount() > 1)
+		if (!anyChange)
 			return;
+
 		updateSize(true);
 		relayout();
-		findBlock().updatedNode(Node.this);
+		findBlock().updatedNode(Node.this, was, isDetachedVis());
+	}
+
+	public boolean isDetachedVis() {
+		IGLElementMetaData metaData = GLElementFactories.getMetaData(getVisualizationType());
+		boolean needDetached = metaData != null && metaData.getScaleType() == EVisScaleType.FIX;
+		return needDetached;
+	}
+
+	@Override
+	public String toString() {
+		return getLabel();
 	}
 
 	/**
@@ -1241,18 +1204,18 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 
 		final Vec2f act = getSize();
 		Vec2f change = new_.minus(act);
-		if (dimDetached.isDetached()) {
-			dimDetached.incShift(-change.y() * .5f);
-			final Vec2f l = getLocation();
-			setLocation(l.x(), l.y() - change.y() * .5f);
-			// new_.setY(act.y());
-		}
-		if (recDetached.isDetached()) {
-			recDetached.incShift(-change.x() * .5f);
-			final Vec2f l = getLocation();
-			setLocation(l.x() - change.x() * .5f, l.y());
-			// new_.setX(act.x());
-		}
+		// if (dimDetached.isDetached()) {
+		// dimDetached.incShift(-change.y() * .5f);
+		// final Vec2f l = getLocation();
+		// setLocation(l.x(), l.y() - change.y() * .5f);
+		// // new_.setY(act.y());
+		// }
+		// if (recDetached.isDetached()) {
+		// recDetached.incShift(-change.x() * .5f);
+		// final Vec2f l = getLocation();
+		// setLocation(l.x() - change.x() * .5f, l.y());
+		// // new_.setX(act.x());
+		// }
 		setSize(new_.x(), new_.y());
 		relayout();
 	}
@@ -1264,23 +1227,23 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 
 	public Rect getDetachedRectBounds() {
 		Rect r = getRectBounds().clone();
-		if (dimDetached.isDetached()) {
-			r.x(r.x() - 50);
-			r.width(r.width() + 100);
-			r.y(r.y() - dimDetached.getShift());
-			r.height(r.height() + dimDetached.getShift() * 2);
-		}
-		if (recDetached.isDetached()) {
-			r.y(r.y() - 50);
-			r.height(r.height() + 100);
-			r.x(r.x() - recDetached.getShift());
-			r.width(r.width() + recDetached.getShift() * 2);
-		}
+		// if (dimDetached.isDetached()) {
+		// r.x(r.x() - 50);
+		// r.width(r.width() + 100);
+		// r.y(r.y() - dimDetached.getShift());
+		// r.height(r.height() + dimDetached.getShift() * 2);
+		// }
+		// if (recDetached.isDetached()) {
+		// r.y(r.y() - 50);
+		// r.height(r.height() + 100);
+		// r.x(r.x() - recDetached.getShift());
+		// r.width(r.width() + recDetached.getShift() * 2);
+		// }
 
-		r.x(r.x() - offsets[EDirection.WEST.ordinal()]);
-		r.y(r.y() - offsets[EDirection.NORTH.ordinal()]);
-		r.width(r.width() + offsets[EDirection.WEST.ordinal()] + offsets[EDirection.EAST.ordinal()]);
-		r.height(r.height() + offsets[EDirection.NORTH.ordinal()] + offsets[EDirection.SOUTH.ordinal()]);
+		// r.x(r.x() - offsets[EDirection.WEST.ordinal()]);
+		// r.y(r.y() - offsets[EDirection.NORTH.ordinal()]);
+		// r.width(r.width() + offsets[EDirection.WEST.ordinal()] + offsets[EDirection.EAST.ordinal()]);
+		// r.height(r.height() + offsets[EDirection.NORTH.ordinal()] + offsets[EDirection.SOUTH.ordinal()]);
 
 		return r;
 	}
@@ -1292,26 +1255,27 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 	 * @param height
 	 */
 	public void setDetachedBounds(float x, float y, float w, float h) {
-		x += offsets[EDirection.WEST.ordinal()];
-		y += offsets[EDirection.NORTH.ordinal()];
-		w -= offsets[EDirection.WEST.ordinal()] + offsets[EDirection.EAST.ordinal()];
-		h -= offsets[EDirection.NORTH.ordinal()] + offsets[EDirection.SOUTH.ordinal()];
-
-		Vec2f size = getSize();
-		if (dimDetached.isDetached()) {
-			x += 50;
-			w -= 100;
-			dimDetached.setShift((h - size.y()) * 0.5f);
-			y += dimDetached.getShift();
-			h = size.y();
-		}
-		if (recDetached.isDetached()) {
-			y += 50;
-			h -= 100;
-			recDetached.setShift((w - size.x()) * 0.5f);
-			x += recDetached.getShift();
-			w = size.x();
-		}
+		// x += offsets[EDirection.WEST.ordinal()];
+		// y += offsets[EDirection.NORTH.ordinal()];
+		// w -= offsets[EDirection.WEST.ordinal()] + offsets[EDirection.EAST.ordinal()];
+		// h -= offsets[EDirection.NORTH.ordinal()] + offsets[EDirection.SOUTH.ordinal()];
+		//
+		// Vec2f size = getSize();
+		// if (dimDetached.isDetached()) {
+		// x += 50;
+		// w -= 100;
+		// dimDetached.setShift((h - size.y()) * 0.5f);
+		// y += dimDetached.getShift();
+		// h = size.y();
+		// }
+		// if (recDetached.isDetached()) {
+		// y += 50;
+		// h -= 100;
+		// recDetached.setShift((w - size.x()) * 0.5f);
+		// x += recDetached.getShift();
+		// w = size.x();
+		// }
+		// System.out.println(getLabel() + " " + x + " " + y + " " + w + " " + h);
 		setBounds(x, y, w, h);
 		relayout();
 	}
@@ -1330,47 +1294,11 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 		return super.context;
 	}
 
-	@Override
-	public void layout(int deltaTimeMs) {
-		super.layout(deltaTimeMs);
-
-		if (dirtyBands) {
-			updateDetachedBands(EDimension.DIMENSION);
-			updateDetachedBands(EDimension.RECORD);
-			dirtyBands = false;
-		}
-	}
-
-	/**
-	 *
-	 */
-	public void updateBands() {
-		this.dirtyBands = true;
-	}
-
 	/**
 	 * @return
 	 */
 	public Color getColor() {
 		return data.getColor();
-	}
-
-	/**
-	 * @param dir
-	 * @param i
-	 */
-	public void setOffset(EDirection dir, float offset) {
-		float bak = offsets[dir.ordinal()];
-		offsets[dir.ordinal()] = offset;
-		if (bak == offset)
-			return;
-		if (dir.isHorizontal())
-			shiftLocation(offset-bak, 0);
-		else
-			shiftLocation(0,offset-bak);
-		Block b = findBlock();
-		if (b != null)
-			b.updatedNode(this);
 	}
 
 	public void shiftLocation(float x, float y) {

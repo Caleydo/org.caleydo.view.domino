@@ -33,8 +33,8 @@ public class AddLazyMultiBlockCmd implements ICmd {
 	public ICmd run(Domino domino) {
 		Block b = new Block(node);
 		b.setLocation(loc.x(), loc.y());
-		rebuild(b, node, act, items, null);
 		domino.addBlock(b);
+		rebuild(b, node, act, items, null);
 		return new RemoveBlockCmd(b);
 	}
 
@@ -47,7 +47,7 @@ public class AddLazyMultiBlockCmd implements ICmd {
 			if (next == null)
 				continue;
 			Node nextNode = next.toNode();
-			b.addNode(asNode, dir, nextNode, false);
+			b.addNode(asNode, dir, nextNode);
 			rebuild(b, nextNode, next, items, dir);
 		}
 	}

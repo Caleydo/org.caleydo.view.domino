@@ -137,4 +137,14 @@ public class BandLine {
 	public interface IBandArea extends ITesselatedPolygon {
 		boolean intersects(Rectangle2D bounds);
 	}
+
+	/**
+	 * @param b
+	 * @param c
+	 * @return
+	 */
+	public Vec2f getPoint(boolean first, boolean top) {
+		PolyLine l = top ? this.top : this.bottom;
+		return first ? l.get(0) : l.get(l.size() - 1);
+	}
 }

@@ -18,13 +18,11 @@ public class PlaceNodeAtCmd implements ICmd {
 	private Node node;
 	private Node neighbor;
 	private EDirection dir;
-	private boolean detached;
 
-	public PlaceNodeAtCmd(Node node, Node neighbor, EDirection dir, boolean detached) {
+	public PlaceNodeAtCmd(Node node, Node neighbor, EDirection dir) {
 		this.node = node;
 		this.neighbor = neighbor;
 		this.dir = dir;
-		this.detached = detached;
 	}
 
 	@Override
@@ -34,7 +32,7 @@ public class PlaceNodeAtCmd implements ICmd {
 
 	@Override
 	public ICmd run(Domino domino) {
-		domino.placeAt(neighbor, dir, node, detached);
+		domino.placeAt(neighbor, dir, node);
 		return new RemoveNodeCmd(node);
 	}
 

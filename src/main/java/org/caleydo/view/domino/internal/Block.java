@@ -44,6 +44,7 @@ import org.caleydo.view.domino.api.model.typed.TypedGroupList;
 import org.caleydo.view.domino.internal.band.ABand;
 import org.caleydo.view.domino.internal.band.BandFactory;
 import org.caleydo.view.domino.internal.band.EBandMode;
+import org.caleydo.view.domino.internal.band.IBandHost.SourceTarget;
 import org.caleydo.view.domino.internal.data.VisualizationTypeOracle;
 import org.caleydo.view.domino.internal.dnd.ADragInfo;
 import org.caleydo.view.domino.internal.dnd.BlockDragInfo;
@@ -59,12 +60,21 @@ import com.google.common.collect.Maps;
  *
  */
 public class Block extends GLElementContainer implements IGLLayout2, IPickingListener {
+	/**
+	 *
+	 */
+	private static final float DETACHED_OFFSET = 50.f;
+
 	private final List<LinearBlock> linearBlocks = new ArrayList<>();
 
 	private boolean fadeOut = false;
 	private int fadeOutTime = 0;
 
 	private boolean armed;
+
+	private final OffsetShifts offsets = new OffsetShifts();
+
+	private final BlockBands bands = new BlockBands();
 
 	private final IDragGLSource source = new IDragGLSource() {
 		@Override
@@ -90,6 +100,7 @@ public class Block extends GLElementContainer implements IGLLayout2, IPickingLis
 
 	public Block(Node node) {
 		setLayout(this);
+		this.add(bands);
 		node.setLocation(0, 0);
 		addFirstNode(node);
 
@@ -169,6 +180,9 @@ public class Block extends GLElementContainer implements IGLLayout2, IPickingLis
 		g.color(Color.WHITE).fillPolygon(TesselatedPolygons.polygon2(outline));
 
 		super.renderImpl(g, w, h);
+
+		renderDetachedBands(g);
+
 		Domino domino = findDomino();
 
 		if (domino.isShowDebugInfos())
@@ -192,6 +206,14 @@ public class Block extends GLElementContainer implements IGLLayout2, IPickingLis
 		if (fadeOut) {
 			fadeOutElements(g, w, h);
 		}
+	}
+
+	/**
+	 * @param g
+	 */
+	private void renderDetachedBands(GLGraphics g) {
+		// TODO Auto-generated method stub
+
 	}
 
 	/**
@@ -253,6 +275,14 @@ public class Block extends GLElementContainer implements IGLLayout2, IPickingLis
 			r.add(corner(node.getRectBounds(), dir));
 			follow(next.getNeighbor(dir.opposite().rot90()), dir.opposite().rot90(), start, r);
 		} else {
+			Vec2f my = node.getLocation();
+			Vec2f ne = next.getLocation();
+			EDimension shiftDir = dir.asDim().opposite();
+			float shift = shiftDir.select(my) - shiftDir.select(ne);
+			if (shift != 0) {
+				r.add(corner(node.getRectBounds(), dir));
+				r.add(corner(next.getRectBounds(), dir.opposite().rot90()));
+			}
 			follow(next, dir, start, r);
 		}
 	}
@@ -277,7 +307,7 @@ public class Block extends GLElementContainer implements IGLLayout2, IPickingLis
 	}
 
 	private Shape getOutlineShape() {
-		if (this.size() == 1)
+		if (this.nodeCount() == 1)
 			return get(0).getRectangleBounds();
 		if (linearBlocks.size() == 1) {
 			LinearBlock b = linearBlocks.get(0);
@@ -308,7 +338,7 @@ public class Block extends GLElementContainer implements IGLLayout2, IPickingLis
 	 * @param n
 	 */
 	public void replace(Node node, Node with) {
-		assert size() == 1 && get(0) == node;
+		assert nodeCount() == 1;
 
 		this.remove(node);
 		if (node != with)
@@ -326,18 +356,27 @@ public class Block extends GLElementContainer implements IGLLayout2, IPickingLis
 		return r;
 	}
 
-	public void addNode(Node neighbor, EDirection dir, Node node, boolean detached) {
+	public void addNode(Node neighbor, EDirection dir, Node node) {
 		this.add(node);
 		LinearBlock block = getBlock(neighbor, dir.asDim());
 		if (block == null)
 			return;
-		block.add(neighbor, dir, node, detached);
+		block.add(neighbor, dir, node);
 		EDimension other = dir.asDim().opposite();
+		node.copyScaleFactors(neighbor, other);
 		if (node.has(other.opposite()))
 			linearBlocks.add(new LinearBlock(other, node));
-		realign(neighbor);
+
+		if (neighbor.isDetachedVis() || node.isDetachedVis()) {
+			if (dir.opposite().isPrimaryDirection())
+				setOffset(node, neighbor, DETACHED_OFFSET);
+			else
+				setOffset(neighbor, node, DETACHED_OFFSET);
+		}
+
+		realign();
 		updateBlock();
-		shiftBlock(dir, node);
+		// shiftBlock(dir, node);
 	}
 
 	private void shiftBlock(EDirection dir, Node node) {
@@ -356,6 +395,9 @@ public class Block extends GLElementContainer implements IGLLayout2, IPickingLis
 			setLocation(loc.x(), loc.y() + node.getDetachedRectBounds().height());
 	}
 
+	public void realign() {
+		realign(nodes().iterator().next());
+	}
 	public void realign(Node startPoint) {
 		realign(startPoint, null);
 	}
@@ -366,14 +408,14 @@ public class Block extends GLElementContainer implements IGLLayout2, IPickingLis
 		LinearBlock dim = commingFrom == EDimension.DIMENSION ? null : getBlock(startPoint, EDimension.DIMENSION);
 		LinearBlock rec = commingFrom == EDimension.RECORD ? null : getBlock(startPoint, EDimension.RECORD);
 		if (rec != null) {
-			rec.alignAlong(startPoint);
+			rec.alignAlong(startPoint, offsets);
 			for (Node node : rec) {
 				if (node != startPoint)
 					realign(node, EDimension.RECORD);
 			}
 		}
 		if (dim != null) {
-			dim.alignAlong(startPoint);
+			dim.alignAlong(startPoint, offsets);
 			for (Node node : dim) {
 				if (node != startPoint)
 					realign(node, EDimension.DIMENSION);
@@ -398,11 +440,11 @@ public class Block extends GLElementContainer implements IGLLayout2, IPickingLis
 		updateSize();
 	}
 
-	public void updatedNode(Node node) {
-		realign(node);
-		updateBands();
-		shiftToZero();
-		updateSize();
+	public void updatedNode(Node node, boolean wasDetached, boolean isDetached) {
+		if (wasDetached != isDetached)
+			updateOffsets(node);
+		realign();
+		updateBlock();
 
 		// autoStratify(node);
 	}
@@ -410,8 +452,30 @@ public class Block extends GLElementContainer implements IGLLayout2, IPickingLis
 	/**
 	 * @param node
 	 */
+	private void updateOffsets(Node node) {
+		boolean d = node.isDetachedVis();
+		for (EDirection dir : EDirection.values()) {
+			Node n = node.getNeighbor(dir);
+			if (n == null)
+				continue;
+			boolean dn = n.isDetachedVis();
+
+			if (d || dn) {
+				if (dir.isPrimaryDirection())
+					setOffset(n, node, DETACHED_OFFSET);
+				else
+					setOffset(node, n, DETACHED_OFFSET);
+			} else {
+				offsets.remove(node,n);
+			}
+		}
+	}
+
+	/**
+	 * @param node
+	 */
 	private void autoStratify(Node node) {
-		if (this.size() != 1) // just in single case
+		if (this.nodeCount() != 1) // just in single case
 			return;
 		if (!VisualizationTypeOracle.stratifyByDefault(node.getVisualizationType()))
 			return;
@@ -443,6 +507,7 @@ public class Block extends GLElementContainer implements IGLLayout2, IPickingLis
 		if (r == null)
 			return;
 		setSize((float) r.getWidth(), (float) r.getHeight());
+		relayout();
 	}
 
 	/**
@@ -455,28 +520,52 @@ public class Block extends GLElementContainer implements IGLLayout2, IPickingLis
 
 		if (just != null) {
 			just.shiftBy(shiftX, shiftY);
+			String visTypeToCheck = just.isDetachedVis() ? just.getVisualizationType() : null;
 			for (EDimension d : just.dimensions()) {
 				d = d.opposite();
-				if (just.isDetached(d))
-					continue;
 				LinearBlock b = getBlock(just, d);
 				if (b == null) // error
 					continue;
-				float x = d.select(0, shiftX);
-				float y = d.select(shiftY, 0);
 				for (Node node : b)
-					if (node != just && !node.isDetached(d))
-						node.shiftBy(x, y);
+					if (node != just)
+						node.copyScaleFactors(just, d.opposite());
+				// float x = d.select(0, shiftX);
+				// float y = d.select(shiftY, 0);
+				// for (Node node : b) {
+				// // sync shift all data_dependent or the same vis type
+				// String visTypeToCompare = node.isDetachedVis() ? node.getVisualizationType() : null;
+				// if (node != just && Objects.equal(visTypeToCompare, visTypeToCheck))
+				// node.shiftBy(x, y);
+				// }
+				for (Node node : b)
+					updateShifts(node);
 			}
-			realign(just);
+			realign();
 		} else {
 			for (Node node : nodes())
 				node.shiftBy(shiftX, shiftY);
-			Node first = nodes().iterator().next();
-			realign(first);
+			for (Node node : nodes())
+				updateShifts(node);
+			realign();
 		}
 		updateBlock();
-		updateBands();
+	}
+
+	/**
+	 * @param node
+	 */
+	private void updateShifts(Node node) {
+		boolean d = node.isDetachedVis();
+		for (EDirection dir : EDirection.primaries()) {
+			Node n = node.getNeighbor(dir);
+			if (n == null)
+				continue;
+			boolean nd = n.isDetachedVis();
+			if (!d && !nd)
+				continue;
+			Vec2f delta = n.getSize().minus(node.getSize());
+			offsets.setShift(node, n, dir.asDim().opposite().select(delta) * 0.5f);
+		}
 	}
 
 	/**
@@ -486,18 +575,34 @@ public class Block extends GLElementContainer implements IGLLayout2, IPickingLis
 		Vec2f offset = new Vec2f(Float.POSITIVE_INFINITY, Float.POSITIVE_INFINITY);
 		for (Node n : nodes()) {
 			Vec2f l = n.getLocation();
-			if (l.x() < offset.x() && !n.isDetached(EDimension.RECORD))
+			if (l.x() < offset.x()) // && !n.isDetached(EDimension.RECORD));
 				offset.setX(l.x());
-			if (l.y() < offset.y() && !n.isDetached(EDimension.DIMENSION))
+			if (l.y() < offset.y()) // FIXME && !n.isDetached(EDimension.DIMENSION))
 				offset.setY(l.y());
 		}
+		Node first = nodes().iterator().next();
+		Vec2f loc = first.getLocation();
+
 		if (offset.x() == 0 && offset.y() == 0)
 			return;
 
 		for (Node n : nodes()) {
-			Vec2f l = n.getLocation();
-			n.setLocation(l.x() - offset.x(), l.y() - offset.y());
+			n.shiftLocation(-offset.x(), -offset.y());
 		}
+
+		Vec2f loc_new = first.getLocation();
+		Vec2f shift = loc_new.minus(loc);
+		shiftLocation(-shift.x(), -shift.y());
+	}
+
+	public void shiftLocation(float x, float y) {
+		Vec2f l = getLocation();
+		setLocation(l.x() + x, l.y() + y);
+	}
+
+	private float getOffset(Node n, EDirection dir) {
+		Node neighbor = n.getNeighbor(dir);
+		return offsets.getOffset(n, neighbor);
 	}
 
 	/**
@@ -507,8 +612,12 @@ public class Block extends GLElementContainer implements IGLLayout2, IPickingLis
 		return Iterables.filter(this, Node.class);
 	}
 
+	public int nodeCount() {
+		return Iterables.size(nodes());
+	}
+
 	public boolean removeNode(Node node) {
-		if (this.size() == 1) {
+		if (this.nodeCount() == 1) {
 			this.remove(node);
 			return true;
 		}
@@ -521,16 +630,29 @@ public class Block extends GLElementContainer implements IGLLayout2, IPickingLis
 				if (block.size() == 1)
 					linearBlocks.remove(block);
 				else {
+					// merge offsets
+					Node left = node.getNeighbor(EDirection.getPrimary(dim));
+					Node right = node.getNeighbor(EDirection.getPrimary(dim).opposite());
+					offsets.remove(left, node);
+					offsets.remove(right, node);
+
 					int index = block.remove(node);
+
+					if (left != null && right != null && (left.isDetachedVis() || right.isDetachedVis())) // update
+																											// offsets
+						setOffset(left, right, DETACHED_OFFSET);
+
 					if (index == 0) {
-						realign(block.get(0));
-						shiftRemoveBlock(node, dim);
-					} else
-						realign(block.get(index - 1));
+						realign();
+						// shiftRemoveBlock(node, dim);
+					} else {
+						realign();
+					}
 				}
 			}
 		}
 		this.remove(node);
+
 		updateBlock();
 		return this.isEmpty();
 	}
@@ -551,6 +673,7 @@ public class Block extends GLElementContainer implements IGLLayout2, IPickingLis
 				AGLLayoutElement.TO_GL_ELEMENT);
 		for (LinearBlock block : linearBlocks)
 			block.doLayout(lookup);
+		children.get(0).setBounds(0, 0, w, h);
 		return false;
 	}
 
@@ -582,9 +705,8 @@ public class Block extends GLElementContainer implements IGLLayout2, IPickingLis
 
 
 	private void updateBands() {
-		for (Node n : nodes())
-			n.updateBands();
 		findDomino().updateBands();
+		bands.relayout();
 	}
 
 	/**
@@ -596,7 +718,7 @@ public class Block extends GLElementContainer implements IGLLayout2, IPickingLis
 		if (block == null)
 			return null;
 		Pair<List<Node>, Boolean> old = block.sortBy(node, forceStratify);
-		realign(node);
+		realign();
 		updateBlock();
 		return old;
 	}
@@ -611,7 +733,7 @@ public class Block extends GLElementContainer implements IGLLayout2, IPickingLis
 		if (block == null)
 			return null;
 		Pair<List<Node>, Boolean> old = block.sortBy(sortCriteria, stratified);
-		realign(node);
+		realign();
 		updateBlock();
 		return old;
 	}
@@ -623,7 +745,7 @@ public class Block extends GLElementContainer implements IGLLayout2, IPickingLis
 	public Node limitTo(Node node, EDimension dim) {
 		LinearBlock block = getBlock(node, dim.opposite());
 		Node bak = block.limitDataTo(node);
-		realign(node);
+		realign();
 		updateBlock();
 		return bak;
 	}
@@ -664,6 +786,15 @@ public class Block extends GLElementContainer implements IGLLayout2, IPickingLis
 		if (band == null)
 			return;
 
+		boolean swapped = band.getLocator(SourceTarget.SOURCE) != sNodeLocator;
+		EDirection sdir = band.getAttachingDirection(SourceTarget.SOURCE);
+		EDirection tdir = band.getAttachingDirection(SourceTarget.TARGET);
+		if (swapped) {
+			band.setLocators(lb.getNodeLocator(sdir.isPrimaryDirection()), la.getNodeLocator(tdir.isPrimaryDirection()));
+		} else {
+			band.setLocators(la.getNodeLocator(sdir.isPrimaryDirection()), lb.getNodeLocator(tdir.isPrimaryDirection()));
+		}
+
 		EBandMode defaultMode = EBandMode.OVERVIEW;
 		if (sData.getGroups().size() > 1 || tData.getGroups().size() > 1)
 			defaultMode = EBandMode.GROUPS;
@@ -681,8 +812,8 @@ public class Block extends GLElementContainer implements IGLLayout2, IPickingLis
 	 * @return
 	 */
 	private static String toId(Node a, Node b) {
-		int ai = a.hashCode();
-		int bi = b.hashCode();
+		int ai = a.getID();
+		int bi = b.getID();
 		if (ai < bi)
 			return ai + "X" + bi;
 		return bi + "X" + ai;
@@ -767,7 +898,6 @@ public class Block extends GLElementContainer implements IGLLayout2, IPickingLis
 	 */
 	public void tranposedNode(Node node) {
 		replace(node, node);
-		updatedNode(node);
 	}
 
 	/**
@@ -824,8 +954,52 @@ public class Block extends GLElementContainer implements IGLLayout2, IPickingLis
 			n.transposeMe();
 		for (LinearBlock b : linearBlocks)
 			b.transposedMe();
-		realign(nodes().iterator().next());
+		realign();
 		updateBlock();
 
 	}
+
+	/**
+	 * @param left
+	 * @param right
+	 * @param offset
+	 */
+	public void setOffset(Node left, Node right, float offset) {
+		if (left.isDetachedVis() || right.isDetachedVis())
+			offset = Math.max(offset, DETACHED_OFFSET);
+		if (offset >= DETACHED_OFFSET)
+		offsets.setOffset(left, right, offset);
+	}
+
+	/**
+	 * @param bands
+	 */
+	public void createOffsetBands(List<ABand> bands) {
+		for (LinearBlock l : getLinearBlocks()) {
+			Node prev = null;
+			for (Node node : l) {
+				float offset = offsets.getOffset(prev, node);
+				if (offset > 0) {
+					bands.add(create(prev, node, l.getDim()));
+				}
+				prev = node;
+			}
+		}
+	}
+
+	private ABand create(Node s, Node t, EDimension dim) {
+		EDimension d = dim.opposite();
+		TypedGroupList sData = s.getData(d);
+		TypedGroupList tData = t.getData(d);
+
+		Rect ra = s.getRectBounds();
+		Rect rb = t.getRectBounds();
+		String label = s.getLabel() + " x " + s.getLabel();
+		final INodeLocator sNodeLocator = s.getNodeLocator(d);
+		final INodeLocator tNodeLocator = t.getNodeLocator(d);
+		String id = s.getID() + "D" + t.getID();
+		ABand band = BandFactory.create(label, sData, tData, ra, rb, sNodeLocator, tNodeLocator, d, d, id);
+		return band;
+	}
+
 }

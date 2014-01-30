@@ -12,7 +12,6 @@ import org.caleydo.core.data.collection.EDimension;
 import org.caleydo.core.id.IDCategory;
 import org.caleydo.core.util.color.Color;
 import org.caleydo.core.view.opengl.layout2.manage.GLElementFactoryContext.Builder;
-import org.caleydo.view.domino.api.model.graph.EProximityMode;
 import org.caleydo.view.domino.api.model.typed.TypedCollections;
 import org.caleydo.view.domino.api.model.typed.TypedGroupSet;
 import org.caleydo.view.domino.api.model.typed.TypedList;
@@ -60,7 +59,7 @@ public class LabelDataValues implements IDataValues {
 	}
 
 	@Override
-	public Collection<String> getDefaultVisualization(EProximityMode mode) {
+	public Collection<String> getDefaultVisualization() {
 		return Collections.singleton("labels");
 	}
 

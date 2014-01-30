@@ -47,24 +47,18 @@ public class Placeholder extends PickableGLElement implements IDropGLTarget, IPi
 	private final Node neighbor;
 	private final EDirection dir;
 	private final boolean transpose;
-	private boolean isDetached;
 
 	private Node preview;
 	private final float offset;
 
 	public Placeholder(Node neighbor, EDirection dir, boolean transpose) {
-		this(neighbor, dir, transpose, 0);
-	}
-
-	public Placeholder(Node neighbor, EDirection dir, boolean transpose, float detachedOffset) {
 		this.neighbor = neighbor;
 		this.dir = dir;
 		this.transpose = transpose;
-		this.isDetached = detachedOffset > 0;
 		Vec2f size = neighbor.getSize();
 		Vec2f loc = neighbor.getAbsoluteLocation();
 		final int c = 50;
-		final float offset = detachedOffset;
+		final float offset = 0;
 		this.offset = offset + c;
 		switch (dir) {
 		case NORTH:
@@ -143,7 +137,7 @@ public class Placeholder extends PickableGLElement implements IDropGLTarget, IPi
 		if (transpose) {
 			node.transposeMe();
 		}
-		domino.addPreview(neighbor, dir, node, isDetached, offset);
+		domino.addPreview(neighbor, dir, node, offset);
 	}
 
 	@Override
@@ -228,7 +222,7 @@ public class Placeholder extends PickableGLElement implements IDropGLTarget, IPi
 
 	@Override
 	protected void renderImpl(GLGraphics g, float w, float h) {
-		final Color c = isDetached ? Color.LIGHT_BLUE : Color.LIGHT_GRAY;
+		final Color c = Color.LIGHT_GRAY;
 		if (preview != null) {
 			final GLElementFactorySwitcher switcher = preview.getRepresentableSwitcher();
 			List<GLElementSupplier> l = Lists.newArrayList(switcher);

@@ -49,6 +49,10 @@ public enum EDirection {
 		return this == WEST || this == NORTH;
 	}
 
+	public static ImmutableSet<EDirection> primaries() {
+		return Sets.immutableEnumSet(WEST, NORTH);
+	}
+
 	/**
 	 * @param dimension
 	 * @return
@@ -72,9 +76,9 @@ public enum EDirection {
 	 */
 	public static ImmutableSet<EDirection> get(EDimension dim) {
 		if (dim.isHorizontal())
-			return Sets.immutableEnumSet(EDirection.WEST, EDirection.EAST);
+			return Sets.immutableEnumSet(WEST, EAST);
 		else
-			return Sets.immutableEnumSet(EDirection.NORTH, EDirection.SOUTH);
+			return Sets.immutableEnumSet(NORTH, SOUTH);
 	}
 
 	/**
@@ -82,9 +86,9 @@ public enum EDirection {
 	 */
 	public static EDirection getPrimary(EDimension dim) {
 		if (dim.isHorizontal())
-			return EDirection.WEST;
+			return WEST;
 		else
-			return EDirection.NORTH;
+			return NORTH;
 	}
 
 	public static Function<EDirection,EDirection> TO_OPPOSITE = new Function<EDirection,EDirection>() {

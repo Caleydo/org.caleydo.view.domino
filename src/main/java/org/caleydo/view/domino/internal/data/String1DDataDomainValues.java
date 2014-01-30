@@ -13,10 +13,8 @@ import org.caleydo.core.data.collection.EDimension;
 import org.caleydo.core.data.perspective.table.TablePerspective;
 import org.caleydo.core.data.perspective.variable.Perspective;
 import org.caleydo.core.view.opengl.layout2.manage.GLElementFactoryContext.Builder;
-import org.caleydo.view.domino.api.model.graph.EProximityMode;
 import org.caleydo.view.domino.api.model.typed.TypedGroupSet;
 import org.caleydo.view.domino.api.model.typed.TypedList;
-import org.caleydo.view.domino.api.model.typed.TypedListGroup;
 import org.caleydo.view.domino.api.model.typed.TypedSet;
 
 import com.google.common.base.Function;
@@ -45,7 +43,7 @@ public class String1DDataDomainValues extends A1DDataDomainValues {
 	}
 
 	@Override
-	public Collection<String> getDefaultVisualization(EProximityMode mode) {
+	public Collection<String> getDefaultVisualization() {
 		return Collections.singleton("labels");
 	}
 

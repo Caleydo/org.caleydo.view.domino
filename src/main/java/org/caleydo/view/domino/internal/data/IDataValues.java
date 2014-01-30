@@ -11,7 +11,6 @@ import org.caleydo.core.data.collection.EDimension;
 import org.caleydo.core.util.base.ILabeled;
 import org.caleydo.core.view.opengl.layout2.manage.GLElementFactoryContext.Builder;
 import org.caleydo.core.view.opengl.util.gleem.IColored;
-import org.caleydo.view.domino.api.model.graph.EProximityMode;
 import org.caleydo.view.domino.api.model.typed.TypedGroupSet;
 import org.caleydo.view.domino.api.model.typed.TypedList;
 import org.caleydo.view.domino.api.model.typed.TypedSet;
@@ -40,7 +39,7 @@ public interface IDataValues extends ILabeled, IColored, Predicate<String> {
 	 */
 	void fill(Builder b, TypedList dimData, TypedList recData);
 
-	Collection<String> getDefaultVisualization(EProximityMode mode);
+	Collection<String> getDefaultVisualization();
 
 	/**
 	 * filter for extension ids

@@ -15,12 +15,12 @@ import java.util.List;
 import java.util.Set;
 
 import org.apache.commons.lang.StringUtils;
-import org.caleydo.core.data.collection.EDimension;
 import org.caleydo.core.data.selection.SelectionType;
 import org.caleydo.core.id.IDType;
 import org.caleydo.core.util.color.Color;
 import org.caleydo.core.view.opengl.layout2.GLGraphics;
 import org.caleydo.core.view.opengl.layout2.manage.GLLocation;
+import org.caleydo.view.domino.api.model.graph.EDirection;
 import org.caleydo.view.domino.api.model.typed.MultiTypedSet;
 import org.caleydo.view.domino.api.model.typed.TypedCollections;
 import org.caleydo.view.domino.api.model.typed.TypedGroupList;
@@ -50,8 +50,7 @@ public class Band extends ABand {
 	private List<ADataRoute> detailRoutes;
 
 	public Band(BandLine band, String label, MultiTypedSet shared, TypedGroupList sData, TypedGroupList tData,
-			INodeLocator sLocator, INodeLocator tLocator, EDimension sDim,
- EDimension tDim, String identifier) {
+			INodeLocator sLocator, INodeLocator tLocator, EDirection sDim, EDirection tDim, String identifier) {
 		super(shared, sData, tData, sLocator, tLocator, sDim, tDim, identifier);
 		this.band = band;
 
@@ -75,7 +74,8 @@ public class Band extends ABand {
 
 	public void updateBand(BandLine band, INodeLocator sLocator, INodeLocator tLocator) {
 		this.band = band;
-		super.updateBand(sLocator, tLocator);
+		this.sLocator = sLocator;
+		this.tLocator = tLocator;
 		overviewRoute.updateBand();
 		if (groupRoutes != null)
 			for (DataRoute r : groupRoutes)
@@ -83,6 +83,11 @@ public class Band extends ABand {
 		if (detailRoutes != null)
 			for (ADataRoute r : detailRoutes)
 				r.updateBand();
+	}
+
+	@Override
+	public void setLocators(INodeLocator sLocator, INodeLocator tLocator) {
+		updateBand(band, sLocator, tLocator);
 	}
 
 	private abstract class ADataRoute implements IBandRenderAble {

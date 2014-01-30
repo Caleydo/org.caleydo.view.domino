@@ -10,6 +10,7 @@ import java.util.AbstractCollection;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -59,8 +60,9 @@ public class LinearBlock extends AbstractCollection<Node> {
 	private boolean stratified = false;
 	private MultiTypedList data;
 
+	private final Map<String, Float> scaleFactors = new HashMap<>();
+
 	public LinearBlock(EDimension dim, Node node) {
-		node.setDetached(dim, false);
 		this.dim = dim;
 		this.nodes.add(node);
 		this.sortCriteria.add(node);
@@ -122,26 +124,23 @@ public class LinearBlock extends AbstractCollection<Node> {
 		Node n = nodes.get(0);
 		final EDirection dir = EDirection.getPrimary(dim);
 		if (n != node) {
-			addPlaceHolders(r, normal, transposed, n, dir, 0);
-			addPlaceHolders(r, normal, transposed, n, dir, 70);
+			addPlaceHolders(r, normal, transposed, n, dir);
 		} else if (nodes.size() > 1) {
-			addPlaceHolders(r, normal, transposed, nodes.get(1), dir, dim.select(n.getSize()));
+			addPlaceHolders(r, normal, transposed, nodes.get(1), dir);
 		}
 		n = nodes.get(nodes.size()-1);
 		if (n != node) {
-			addPlaceHolders(r, normal, transposed, n, dir.opposite(), 0);
-			addPlaceHolders(r, normal, transposed, n, dir.opposite(), 70);
+			addPlaceHolders(r, normal, transposed, n, dir.opposite());
 		} else if (nodes.size() > 1) {
-			addPlaceHolders(r, normal, transposed, nodes.get(nodes.size() - 2), dir.opposite(), dim.select(n.getSize()));
+			addPlaceHolders(r, normal, transposed, nodes.get(nodes.size() - 2), dir.opposite());
 		}
 	}
 
-	private void addPlaceHolders(List<Placeholder> r, boolean normal, boolean transposed, Node n, EDirection dir,
-			float offset) {
+	private void addPlaceHolders(List<Placeholder> r, boolean normal, boolean transposed, Node n, EDirection dir) {
 		if (normal)
-			r.add(new Placeholder(n, dir, false, offset));
+			r.add(new Placeholder(n, dir, false));
 		if (transposed && !normal)
-			r.add(new Placeholder(n, dir, true, offset));
+			r.add(new Placeholder(n, dir, true));
 	}
 
 	private static boolean isCompatible(IDType a, IDType b) {
@@ -166,7 +165,7 @@ public class LinearBlock extends AbstractCollection<Node> {
 
 	@Override
 	public boolean add(Node node) {
-		this.add(this.nodes.get(this.nodes.size() - 1), EDirection.getPrimary(dim).opposite(), node, false);
+		this.add(this.nodes.get(this.nodes.size() - 1), EDirection.getPrimary(dim).opposite(), node);
 		return true;
 	}
 
@@ -205,8 +204,7 @@ public class LinearBlock extends AbstractCollection<Node> {
 	 * @param node
 	 * @param detached
 	 */
-	public void add(Node neighbor, EDirection dir, Node node, boolean detached) {
-		node.setDetached(dim, detached);
+	public void add(Node neighbor, EDirection dir, Node node) {
 		int index = nodes.indexOf(neighbor);
 		assert index >= 0;
 
@@ -536,30 +534,45 @@ public class LinearBlock extends AbstractCollection<Node> {
 
 	/**
 	 * @param startPoint
+	 * @param offsets
 	 */
-	public void alignAlong(Node startPoint) {
+	public void alignAlong(Node startPoint, OffsetShifts offsets) {
 		if (nodes.size() <= 1)
 			return;
 		int start = nodes.indexOf(startPoint);
 		Rect bounds = startPoint.getDetachedRectBounds();
+		EDirection dir = EDirection.getPrimary(dim).opposite();
 		for (int i = start - 1; i >= 0; --i) {
 			Node n = nodes.get(i);
 			Rect n_bounds = n.getDetachedRectBounds().clone();
+			float offset = offsets.getOffset(n.getNeighbor(dir), n);
 			if (dim.isDimension()) {
-				n.setDetachedBounds(bounds.x() - n_bounds.width() - 1, bounds.y(), n_bounds.width(), bounds.height());
+				float shift = -(bounds.height() - n_bounds.height()) * 0.5f;
+				n.setDetachedBounds(bounds.x() - n_bounds.width() - offset, bounds.y() - shift,
+						n_bounds.width(),
+						n_bounds.height());
 			} else {
-				n.setDetachedBounds(bounds.x(), bounds.y() - n_bounds.height() - 1, bounds.width(), n_bounds.height());
+				float shift = -(bounds.width() - n_bounds.width()) * 0.5f;
+				n.setDetachedBounds(bounds.x() - shift, bounds.y() - n_bounds.height() - offset,
+ n_bounds.width(),
+						n_bounds.height());
 			}
 			bounds = n.getDetachedRectBounds();
 		}
 		bounds = startPoint.getDetachedRectBounds();
+		dir = dir.opposite();
 		for (int i = start + 1; i < nodes.size(); ++i) {
 			Node n = nodes.get(i);
 			Rect n_bounds = n.getDetachedRectBounds().clone();
+			float offset = Math.max(offsets.getOffset(n.getNeighbor(dir), n), 1);
 			if (dim.isDimension()) {
-				n.setDetachedBounds(bounds.x2() + 1, bounds.y(), n_bounds.width(), bounds.height());
+				float shift = (bounds.height() - n_bounds.height()) * 0.5f;
+				n.setDetachedBounds(bounds.x2() + offset, bounds.y() + shift, n_bounds.width(),
+ n_bounds.height());
 			} else {
-				n.setDetachedBounds(bounds.x(), bounds.y2() + 1, bounds.width(), n_bounds.height());
+				float shift = (bounds.width() - n_bounds.width()) * 0.5f;
+				n.setDetachedBounds(bounds.x() + shift, bounds.y2() + offset, n_bounds.width(),
+						n_bounds.height());
 			}
 			bounds = n.getDetachedRectBounds();
 		}

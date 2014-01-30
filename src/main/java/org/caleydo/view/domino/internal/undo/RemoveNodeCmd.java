@@ -37,7 +37,7 @@ public class RemoveNodeCmd implements ICmd {
 	@Override
 	public ICmd run(Domino domino) {
 		Block b = node.getBlock();
-		if (b.size() == 1) // remove the whole block
+		if (b.nodeCount() == 1) // remove the whole block
 			return new RemoveBlockCmd(b).run(domino);
 
 		Node neighbor = null;
@@ -53,10 +53,9 @@ public class RemoveNodeCmd implements ICmd {
 		if (dir == null)
 			throw new IllegalStateException();
 		assert neighbor != null && dir != null;
-		boolean detached = node.isDetached(dir.asDim());
 		b.removeNode(node);
 		domino.cleanup(node);
-		return new PlaceNodeAtCmd(node, neighbor, dir.opposite(), detached);
+		return new PlaceNodeAtCmd(node, neighbor, dir.opposite());
 	}
 
 	@Override

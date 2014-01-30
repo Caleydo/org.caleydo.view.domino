@@ -19,7 +19,6 @@ import org.caleydo.core.data.perspective.table.TablePerspective;
 import org.caleydo.core.id.IDType;
 import org.caleydo.core.util.collection.Pair;
 import org.caleydo.core.view.opengl.layout2.manage.GLElementFactoryContext.Builder;
-import org.caleydo.view.domino.api.model.graph.EProximityMode;
 import org.caleydo.view.domino.api.model.typed.TypedGroupSet;
 import org.caleydo.view.domino.api.model.typed.TypedList;
 import org.caleydo.view.domino.api.model.typed.TypedSet;
@@ -152,7 +151,7 @@ public class Categorical2DDataDomainValues extends ADataDomainDataValues {
 	}
 
 	@Override
-	public Collection<String> getDefaultVisualization(EProximityMode mode) {
+	public Collection<String> getDefaultVisualization() {
 		return Collections.singleton("heatmap");
 	}
 }

@@ -7,11 +7,12 @@ package org.caleydo.view.domino.internal;
 
 import gleem.linalg.Vec2f;
 
+import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.Collections;
+import java.util.List;
 import java.util.Set;
 
-import org.caleydo.core.data.collection.EDimension;
 import org.caleydo.core.data.selection.MultiSelectionManagerMixin;
 import org.caleydo.core.data.selection.SelectionManager;
 import org.caleydo.core.data.selection.SelectionType;
@@ -19,141 +20,89 @@ import org.caleydo.core.event.EventListenerManager.DeepScan;
 import org.caleydo.core.id.IDType;
 import org.caleydo.core.util.color.Color;
 import org.caleydo.core.view.opengl.canvas.IGLMouseListener.IMouseEvent;
+import org.caleydo.core.view.opengl.layout2.GLElement;
 import org.caleydo.core.view.opengl.layout2.GLGraphics;
 import org.caleydo.core.view.opengl.layout2.IGLElementContext;
-import org.caleydo.core.view.opengl.layout2.geom.Rect;
 import org.caleydo.core.view.opengl.layout2.util.PickingPool;
 import org.caleydo.core.view.opengl.picking.IPickingLabelProvider;
 import org.caleydo.core.view.opengl.picking.IPickingListener;
 import org.caleydo.core.view.opengl.picking.Pick;
 import org.caleydo.core.view.opengl.picking.PickingListenerComposite;
-import org.caleydo.view.domino.api.model.typed.TypedGroupList;
 import org.caleydo.view.domino.api.model.typed.TypedID;
 import org.caleydo.view.domino.api.model.typed.TypedList;
 import org.caleydo.view.domino.api.model.typed.TypedSet;
 import org.caleydo.view.domino.internal.band.ABand;
-import org.caleydo.view.domino.internal.band.BandFactory;
 import org.caleydo.view.domino.internal.band.IBandHost;
 
 import com.jogamp.common.util.IntIntHashMap;
 import com.jogamp.common.util.IntIntHashMap.Entry;
 
 /**
+ * a dedicated layer for the bands for better caching behavior
+ *
  * @author Samuel Gratzl
  *
  */
-public class DetachedAdapter implements MultiSelectionManagerMixin.ISelectionMixinCallback, IPickingListener,
-		IPickingLabelProvider, IBandHost {
-	private float shift;
-	private boolean isDetached;
+public abstract class ABands extends GLElement implements MultiSelectionManagerMixin.ISelectionMixinCallback, IBandHost,
+		IPickingListener, IPickingLabelProvider {
+	@DeepScan
+	protected final MultiSelectionManagerMixin selections = new MultiSelectionManagerMixin(this);
 
-	private PickingPool pickingPool;
+
+	protected final List<ABand> bands = new ArrayList<>();
+
+	protected PickingPool pickingBandDetailPool;
+	protected PickingPool pickingBandPool;
 	private final IntIntHashMap pickingOffsets = new IntIntHashMap();
 
-	private ABand left;
-	private ABand right;
-
-	private final Node host;
-	private final EDimension dim;
-
-	@DeepScan
-	private final MultiSelectionManagerMixin selections = new MultiSelectionManagerMixin(this);
-
-	public DetachedAdapter(Node host, EDimension dim) {
-		this.host = host;
-		this.dim = dim;
-	}
+	protected abstract void update();
 
 	/**
-	 * @param isDetached
-	 *            setter, see {@link isDetached}
+	 *
 	 */
-	public void setDetached(boolean isDetached) {
-		if (this.isDetached == isDetached)
-			return;
-		this.isDetached = isDetached;
-		if (!isDetached) {
-			shift = 0;
-			left = null;
-			right = null;
-		}
+	public ABands() {
+		setVisibility(EVisibility.PICKABLE);
 	}
 
-	/**
-	 * @return the isDetached, see {@link #isDetached}
-	 */
-	public boolean isDetached() {
-		return isDetached;
+	@Override
+	protected void layoutImpl(int deltaTimeMs) {
+		super.layoutImpl(deltaTimeMs);
+		update();
 	}
 
-	public void init(IGLElementContext context) {
-		pickingPool = new PickingPool(context, PickingListenerComposite.concat(this, context.getSWTLayer()
+
+	@Override
+	protected void init(IGLElementContext context) {
+		super.init(context);
+		pickingBandDetailPool = new PickingPool(context, PickingListenerComposite.concat(this, context.getSWTLayer()
 				.createTooltip(this)));
-	}
-
-	public void takeDown() {
-		pickingPool.clear();
-		pickingPool = null;
-	}
-
-	/**
-	 * @param shift
-	 *            setter, see {@link shift}
-	 */
-	public void setShift(float shift) {
-		this.shift = shift;
+		pickingBandPool = new PickingPool(context, new IPickingListener() {
+			@Override
+			public void pick(Pick pick) {
+				onBandPick(pick);
+			}
+		});
 	}
 
 	/**
-	 * @return the shift, see {@link #shift}
+	 * @param pick
 	 */
-	public float getShift() {
-		return shift;
+	protected abstract void onBandPick(Pick pick);
+
+	@Override
+	protected void takeDown() {
+		pickingBandDetailPool.clear();
+		pickingBandDetailPool = null;
+		pickingBandPool.clear();
+		pickingBandPool = null;
+		super.takeDown();
 	}
 
-
-	public void createBand(Node left, Node right) {
-		if (!isDetached)
-			return;
-		if (left != null && !left.isDetached(dim)) {
-			ABand bak = this.left;
-			this.left = create(left, host);
-			if (bak != null && this.left != null)
-				this.left.initFrom(bak);
-		} else
-			this.left = null;
-		if (right != null) {
-			ABand bak = this.left;
-			this.right = create(host, right);
-			if (bak != null && this.right != null)
-				this.right.initFrom(bak);
-		} else
-			this.right = null;
-
-	}
-
-	/**
-	 * @param left2
-	 * @param host2
-	 * @return
-	 */
-	private ABand create(Node s, Node t) {
-		EDimension d = dim.opposite();
-		TypedGroupList sData = s.getData(d);
-		TypedGroupList tData = t.getData(d);
-
-		Rect ra = s.getRectBounds();
-		Rect rb = t.getRectBounds();
-		String label = s.getLabel() + " x " + s.getLabel();
-		final INodeLocator sNodeLocator = s.getNodeLocator(d);
-		final INodeLocator tNodeLocator = t.getNodeLocator(d);
-		String id = s.hashCode() + "D" + t.hashCode();
-		ABand band = BandFactory.create(label, sData, tData, ra, rb, sNodeLocator, tNodeLocator, d, d, id);
-		return band;
-	}
 	@Override
 	public String getLabel(Pick pick) {
 		int[] split = split(pick.getObjectID());
+		if (split == null)
+			return "";
 		ABand route = getRoute(split[0]);
 		if (route == null)
 			return "";
@@ -163,6 +112,8 @@ public class DetachedAdapter implements MultiSelectionManagerMixin.ISelectionMix
 	@Override
 	public void pick(Pick pick) {
 		int[] split = split(pick.getObjectID());
+		if (split == null)
+			return;
 		switch (pick.getPickingMode()) {
 		case CLICKED:
 			select(getRoute(split[0]), split[1], SelectionType.SELECTION, !((IMouseEvent) pick).isCtrlDown());
@@ -173,10 +124,6 @@ public class DetachedAdapter implements MultiSelectionManagerMixin.ISelectionMix
 		case MOUSE_OUT:
 			clear(getRoute(split[0]), split[1], SelectionType.MOUSE_OVER);
 			break;
-		case RIGHT_CLICKED:
-			getRoute(split[0]).changeLevel(!((IMouseEvent) pick).isCtrlDown()); // FIXME
-			host.repaint();
-			break;
 		default:
 			break;
 		}
@@ -186,15 +133,32 @@ public class DetachedAdapter implements MultiSelectionManagerMixin.ISelectionMix
 	 * @param objectID
 	 * @return
 	 */
-	private int[] split(int objectID) {
+	protected int[] split(int objectID) {
 		Entry last = null;
 		for (Entry entry : pickingOffsets) {
 			if (entry.value > objectID)
 				break;
 			last = entry;
 		}
-		assert last != null;
+		if (last == null)
+			return null;
 		return new int[] { last.key, objectID - last.value };
+	}
+
+	/**
+	 * @param route
+	 * @param type
+	 */
+	private void clear(ABand route, int subIndex, SelectionType type) {
+		if (route == null)
+			return;
+		for (SourceTarget st : SourceTarget.values()) {
+			SelectionManager manager = selections.get(route.getIdType(st));
+			if (manager == null)
+				return;
+			manager.clearSelection(type);
+			selections.fireSelectionDelta(manager);
+		}
 	}
 
 	/**
@@ -214,75 +178,83 @@ public class DetachedAdapter implements MultiSelectionManagerMixin.ISelectionMix
 			manager.addToType(type, route.getIds(st, subIndex));
 			selections.fireSelectionDelta(manager);
 		}
-		host.repaint();
+		repaint();
 	}
 
-	private void clear(ABand route, int subIndex, SelectionType type) {
-		if (route == null)
-			return;
-		for (SourceTarget st : SourceTarget.values()) {
-			SelectionManager manager = selections.get(route.getIdType(st));
-			if (manager == null)
-				return;
-			manager.clearSelection(type);
-			selections.fireSelectionDelta(manager);
-		}
-	}
 	/**
 	 * @param objectID
 	 * @return
 	 */
-	private ABand getRoute(int index) {
-		if (index == 1 || left == null)
-			return right;
-		return left;
+	protected ABand getRoute(int index) {
+		if (index < 0 || index >= bands.size())
+			return null;
+		return bands.get(index);
 	}
 
-	public void renderImpl(GLGraphics g, float w, float h) {
-		if (!isDetached)
-			return;
-		Vec2f loc = host.getLocation();
+	/**
+	 * @param identifier
+	 * @return
+	 */
+	private ABand getRoute(String identifier) {
+		for (ABand band : bands)
+			if (identifier.equals(band.getIdentifier()))
+				return band;
+		return null;
+	}
+
+	@Override
+	protected void renderImpl(GLGraphics g, float w, float h) {
+		super.renderImpl(g, w, h);
+		Vec2f loc = getShift();
 		g.save().move(-loc.x(), -loc.y());
 		float z = g.z();
-		if (left != null) {
+		for (ABand edge : bands) {
 			g.incZ(0.002f);
-			left.render(g, w, h, this);
-		}
-		if (right != null) {
-			g.incZ(0.002f);
-			right.render(g, w, h, this);
+			edge.render(g, w, h, this);
 		}
 		g.incZ(z - g.z());
 		g.restore();
 	}
 
-	public void renderPickImpl(GLGraphics g, float w, float h) {
-		if (!isDetached)
-			return;
-		g.incZ(0.05f);
-		g.color(Color.RED);
-		Vec2f loc = host.getLocation();
+	protected abstract Vec2f getShift();
+
+	public void renderMiniMap(GLGraphics g) {
+		Vec2f loc = getShift();
 		g.save().move(-loc.x(), -loc.y());
-		int i = 0;
-		int j = 0;
-		pickingOffsets.clear();
-		if (left != null) {
-			pickingOffsets.put(i++, j);
-			j = left.renderPick(g, w, h, this, pickingPool, j);
-		}
-		if (right != null) {
-			pickingOffsets.put(i++, j);
-			j = right.renderPick(g, w, h, this, pickingPool, j);
+		for (ABand edge : bands) {
+			edge.renderMiniMap(g);
 		}
 		g.restore();
-		g.incZ(-0.05f);
-		g.color(Color.BLACK);
 	}
 
 	@Override
-	public IGLElementContext getContext() {
-		return host.getContext();
+	protected void renderPickImpl(GLGraphics g, float w, float h) {
+		g.color(Color.BLUE);
+		super.renderPickImpl(g, w, h);
+		g.color(Color.BLACK);
+		if (getVisibility() == EVisibility.PICKABLE) {
+			g.incZ(0.05f);
+			g.color(Color.RED);
+			Vec2f loc = getShift();
+			g.save().move(-loc.x(), -loc.y());
+			int j = 0;
+			pickingOffsets.clear();
+			for (int i = 0; i < bands.size(); i++) {
+				pickingOffsets.put(i, j);
+				final ABand band = bands.get(i);
+				g.pushName(pickingBandPool.get(i));
+				g.incZ(-0.01f);
+				band.renderMiniMap(g);
+				g.incZ(0.01f);
+				j = band.renderPick(g, w, h, this, pickingBandDetailPool, j);
+				g.popName();
+			}
+			g.restore();
+			g.incZ(-0.05f);
+			g.color(Color.BLACK);
+		}
 	}
+
 
 	@Override
 	public TypedSet getSelected(TypedSet ids, SelectionType type) {
@@ -320,7 +292,7 @@ public class DetachedAdapter implements MultiSelectionManagerMixin.ISelectionMix
 	 * @param idType
 	 * @return
 	 */
-	private SelectionManager getOrCreate(IDType idType) {
+	protected SelectionManager getOrCreate(IDType idType) {
 		SelectionManager manager = selections.get(idType);
 		if (manager == null) {
 			manager = new SelectionManager(idType);
@@ -330,15 +302,24 @@ public class DetachedAdapter implements MultiSelectionManagerMixin.ISelectionMix
 	}
 
 	@Override
+	protected boolean hasPickAbles() {
+		return true; // routes have pickables
+	}
+
+	@Override
 	public void onSelectionUpdate(SelectionManager manager) {
-		host.repaint();
+		repaint();
 	}
 
 	/**
-	 * @param f
+	 * @param bandIdentifier
+	 * @param increase
 	 */
-	public void incShift(float f) {
-		setShift(shift + f);
+	public void changeLevel(String identifier, boolean increase) {
+		ABand band = getRoute(identifier);
+		if (band != null)
+			band.changeLevel(increase);
+
 	}
 
 }

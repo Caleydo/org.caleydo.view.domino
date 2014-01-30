@@ -33,7 +33,6 @@ import org.caleydo.core.view.opengl.layout2.manage.GLLocation.ILocator;
 import org.caleydo.core.view.opengl.picking.IPickingListener;
 import org.caleydo.core.view.opengl.picking.Pick;
 import org.caleydo.view.domino.api.model.graph.EDirection;
-import org.caleydo.view.domino.api.model.graph.EProximityMode;
 import org.caleydo.view.domino.api.model.typed.TypedGroupSet;
 import org.caleydo.view.domino.api.model.typed.TypedGroups;
 import org.caleydo.view.domino.api.model.typed.TypedListGroup;
@@ -43,7 +42,6 @@ import org.caleydo.view.domino.internal.dnd.NodeDragInfo;
 import org.caleydo.view.domino.internal.dnd.NodeGroupDragInfo;
 import org.caleydo.view.domino.internal.ui.PickingBarrier;
 
-import com.google.common.base.Predicates;
 import com.google.common.collect.ImmutableList;
 
 /**
@@ -92,12 +90,13 @@ public class NodeGroup extends GLElementDecorator implements ILabeled, IDragGLSo
 		final Node parent = getNode();
 		parent.data.fill(b, dimData, recData);
 		// if free high else medium
-		b.put(EDetailLevel.class, parent.getProximityMode() == EProximityMode.FREE ? EDetailLevel.HIGH
-				: EDetailLevel.MEDIUM);
+		b.put(EDetailLevel.class,
+				parent.isAlone(EDimension.DIMENSION) && parent.isAlone(EDimension.RECORD) ? EDetailLevel.HIGH
+						: EDetailLevel.MEDIUM);
 		b.set("heatmap.blurNotSelected");
 		b.set("heatmap.forceTextures");
 		ImmutableList<GLElementSupplier> extensions = GLElementFactories.getExtensions(b.build(), "domino."
-				+ parent.data.getExtensionID(), Predicates.and(parent.data, parent.getProximityMode()));
+				+ parent.data.getExtensionID(), parent.data);
 		GLElementFactorySwitcher s = new GLElementFactorySwitcher(extensions, ELazyiness.DESTROY);
 		parent.selectDefaultVisualization(s);
 		barrier.setContent(s);

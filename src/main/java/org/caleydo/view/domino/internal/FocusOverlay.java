@@ -31,14 +31,12 @@ import org.caleydo.core.view.opengl.layout2.manage.GLElementFactorySwitcher.ELaz
 import org.caleydo.core.view.opengl.layout2.renderer.GLRenderers;
 import org.caleydo.core.view.opengl.picking.IPickingListener;
 import org.caleydo.core.view.opengl.picking.Pick;
-import org.caleydo.view.domino.api.model.graph.EProximityMode;
 import org.caleydo.view.domino.api.model.typed.TypedGroupList;
 import org.caleydo.view.domino.api.model.typed.TypedList;
 import org.caleydo.view.domino.internal.data.IDataValues;
 import org.caleydo.view.domino.internal.data.TransposedDataValues;
 import org.caleydo.view.domino.internal.plugin.Settings;
 
-import com.google.common.base.Predicates;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 
@@ -162,8 +160,8 @@ public class FocusOverlay extends GLElementContainer implements IPickingListener
 		b.put(EDetailLevel.class, EDetailLevel.HIGH);
 		b.set("heatmap.blurNotSelected");
 		b.set("heatmap.forceTextures");
-		ImmutableList<GLElementSupplier> extensions = GLElementFactories.getExtensions(b.build(), "domino."
- + data.getExtensionID(), Predicates.and(data, EProximityMode.FREE));
+		ImmutableList<GLElementSupplier> extensions = GLElementFactories.getExtensions(b.build(),
+				"domino." + data.getExtensionID(), data);
 		GLElementFactorySwitcher s = new GLElementFactorySwitcher(extensions, ELazyiness.DESTROY);
 		return s;
 	}

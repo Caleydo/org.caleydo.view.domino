@@ -272,7 +272,7 @@ public class Domino extends GLElementContainer implements IDropGLTarget, IPickin
 
 	private Block dropNode(Vec2f pos, Node node, NodeGroup groupToRemove) {
 		Block block = node.getBlock();
-		if (block != null && block.size() == 1) {
+		if (block != null && block.nodeCount() == 1) {
 			Vec2f shift = pos.minus(block.getLocation());
 			undo.push(new MoveBlockCmd(Collections.singleton(block), shift));
 			return block;
@@ -382,10 +382,10 @@ public class Domino extends GLElementContainer implements IDropGLTarget, IPickin
 	 * @param transpose
 	 * @param detached
 	 */
-	public void placeAt(Node neighbor, EDirection dir, Node node, boolean detached) {
+	public void placeAt(Node neighbor, EDirection dir, Node node) {
 		removeNode(node);
 		Block block = neighbor.getBlock();
-		block.addNode(neighbor, dir, node, detached);
+		block.addNode(neighbor, dir, node);
 	}
 
 	private void removePlaceholder() {
@@ -658,14 +658,24 @@ public class Domino extends GLElementContainer implements IDropGLTarget, IPickin
 	 * @param preview
 	 */
 	public void persistPreview(EDirection dir, Node preview) {
-		preview.setOffset(dir, 0);
+		final Node neighbor = preview.getNeighbor(dir);
+		final Block b = neighbor.getBlock();
+		if (dir.isPrimaryDirection()) {
+			b.setOffset(neighbor, preview, 0);
+		} else
+			b.setOffset(preview, neighbor, 0);
+
 		removePlaceholder();
 		bands.relayout();
 	}
 
-	public void addPreview(Node neighbor, EDirection dir, Node preview, boolean detached, float offset) {
-		preview.setOffset(dir.opposite(), offset);
-		placeAt(neighbor, dir, preview, detached);
+	public void addPreview(Node neighbor, EDirection dir, Node preview, float offset) {
+		final Block b = neighbor.getBlock();
+		if (dir.isPrimaryDirection()) {
+			b.setOffset(preview, neighbor, offset);
+		} else
+			b.setOffset(neighbor, preview, offset);
+		placeAt(neighbor, dir, preview);
 	}
 
 }

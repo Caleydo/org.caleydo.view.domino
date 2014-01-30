@@ -21,7 +21,6 @@ import org.caleydo.core.util.function.Function2;
 import org.caleydo.core.util.function.IDoubleList;
 import org.caleydo.core.util.function.MappedDoubleList;
 import org.caleydo.core.view.opengl.layout2.manage.GLElementFactoryContext.Builder;
-import org.caleydo.view.domino.api.model.graph.EProximityMode;
 import org.caleydo.view.domino.api.model.typed.TypedCollections;
 import org.caleydo.view.domino.api.model.typed.TypedGroupSet;
 import org.caleydo.view.domino.api.model.typed.TypedList;
@@ -187,7 +186,7 @@ public class StratificationDataValue implements IDataValues, Function2<Integer, 
 	}
 
 	@Override
-	public Collection<String> getDefaultVisualization(EProximityMode mode) {
+	public Collection<String> getDefaultVisualization() {
 		return Arrays.asList("distribution.hist", "heatmap");
 	}
 

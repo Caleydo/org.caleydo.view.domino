@@ -20,6 +20,7 @@ import org.caleydo.core.util.collection.Pair;
 import org.caleydo.core.util.color.Color;
 import org.caleydo.core.view.opengl.layout2.GLGraphics;
 import org.caleydo.core.view.opengl.layout2.util.PickingPool;
+import org.caleydo.view.domino.api.model.graph.EDirection;
 import org.caleydo.view.domino.api.model.typed.MultiTypedSet;
 import org.caleydo.view.domino.api.model.typed.TypedCollections;
 import org.caleydo.view.domino.api.model.typed.TypedGroupList;
@@ -46,14 +47,14 @@ public abstract class ABand implements ILabeled {
 
 	protected INodeLocator sLocator, tLocator;
 
-	protected final EDimension sDim;
-	protected final EDimension tDim;
+	protected final EDirection sDim;
+	protected final EDirection tDim;
 
 	private final String identifier;
 
 	public ABand(MultiTypedSet shared, TypedGroupList sData, TypedGroupList tData,
-			INodeLocator sLocator, INodeLocator tLocator, EDimension sDim,
- EDimension tDim, String identifier) {
+ INodeLocator sLocator,
+			INodeLocator tLocator, EDirection sDim, EDirection tDim, String identifier) {
 		this.shared = shared;
 		this.sData = sData;
 		this.tData = tData;
@@ -64,6 +65,11 @@ public abstract class ABand implements ILabeled {
 		this.identifier = identifier;
 	}
 
+	public INodeLocator getLocator(SourceTarget type) {
+		return type.select(sLocator, tLocator);
+	}
+
+	public abstract void setLocators(INodeLocator sLocator, INodeLocator tLocator);
 	/**
 	 * @return the identifier, see {@link #identifier}
 	 */
@@ -80,18 +86,13 @@ public abstract class ABand implements ILabeled {
 	 */
 	public abstract boolean stubify();
 
-	protected void updateBand(INodeLocator sLocator, INodeLocator tLocator) {
-		this.sLocator = sLocator;
-		this.tLocator = tLocator;
-	}
-
 	@Override
 	public String getLabel() {
 		return overviewRoute().getLabel();
 	}
 
 	public EDimension getDimension(SourceTarget type) {
-		return type.select(sDim, tDim);
+		return type.select(sDim, tDim).asDim();
 	}
 
 	public Pair<TypedSet, TypedSet> intersectingIds(Rectangle2D bounds) {
@@ -270,5 +271,13 @@ public abstract class ABand implements ILabeled {
 		 * @return
 		 */
 		TypedSet asSet(SourceTarget type);
+	}
+
+	/**
+	 * @param source
+	 * @return
+	 */
+	public EDirection getAttachingDirection(SourceTarget type) {
+		return type.select(sDim, tDim);
 	}
 }

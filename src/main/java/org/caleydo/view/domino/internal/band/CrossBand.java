@@ -15,13 +15,13 @@ import java.util.List;
 import java.util.Set;
 
 import org.apache.commons.lang.StringUtils;
-import org.caleydo.core.data.collection.EDimension;
 import org.caleydo.core.data.selection.SelectionType;
 import org.caleydo.core.id.IDType;
 import org.caleydo.core.util.color.Color;
 import org.caleydo.core.view.opengl.layout2.GLGraphics;
 import org.caleydo.core.view.opengl.layout2.geom.Rect;
 import org.caleydo.core.view.opengl.layout2.manage.GLLocation;
+import org.caleydo.view.domino.api.model.graph.EDirection;
 import org.caleydo.view.domino.api.model.typed.MultiTypedSet;
 import org.caleydo.view.domino.api.model.typed.TypedGroupList;
 import org.caleydo.view.domino.api.model.typed.TypedList;
@@ -46,8 +46,9 @@ public class CrossBand extends ABand {
 	private Vec2f sLoc, tLoc;
 
 	public CrossBand(String label, MultiTypedSet shared, TypedGroupList sData, TypedGroupList tData,
-			INodeLocator sLocator, INodeLocator tLocator, Vec2f s, Vec2f t, String identifier) {
-		super(shared, sData, tData, sLocator, tLocator, EDimension.RECORD, EDimension.DIMENSION, identifier);
+			INodeLocator sLocator, INodeLocator tLocator, Vec2f s, Vec2f t, EDirection sDir, EDirection tDir,
+			String identifier) {
+		super(shared, sData, tData, sLocator, tLocator, sDir, tDir, identifier);
 
 		this.sLoc = s;
 		this.tLoc = t;
@@ -62,6 +63,17 @@ public class CrossBand extends ABand {
 			Rect bounds = new Rect(tLoc.x(), sLoc.y(), w, h);
 			this.overview = new Disc(label, bounds, sShared, tShared);
 		}
+	}
+
+	@Override
+	public void setLocators(INodeLocator sLocator, INodeLocator tLocator) {
+		this.sLocator = sLocator;
+		this.tLocator = tLocator;
+		if (this.detailRoutes != null)
+			detailRoutes = null;
+		if (this.groupRoutes != null)
+			groupRoutes = null;
+
 	}
 
 	@Override
