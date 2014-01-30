@@ -9,7 +9,6 @@ import gleem.linalg.Vec2f;
 
 import org.caleydo.core.data.collection.EDimension;
 import org.caleydo.core.util.color.Color;
-import org.caleydo.core.view.opengl.layout2.dnd.IDnDItem;
 import org.caleydo.core.view.opengl.layout2.geom.Rect;
 import org.caleydo.view.domino.api.model.graph.EDirection;
 

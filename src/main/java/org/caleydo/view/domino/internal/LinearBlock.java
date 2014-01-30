@@ -10,7 +10,6 @@ import java.util.AbstractCollection;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -54,13 +53,11 @@ public class LinearBlock extends AbstractCollection<Node> {
 	private EDimension dim;
 	private final List<Node> nodes = new ArrayList<>();
 
-	private List<Node> sortCriteria = new ArrayList<>(2);
+	private final List<Node> sortCriteria = new ArrayList<>(2);
 	private Node dataSelection = null;
 
 	private boolean stratified = false;
 	private MultiTypedList data;
-
-	private final Map<String, Float> scaleFactors = new HashMap<>();
 
 	public LinearBlock(EDimension dim, Node node) {
 		this.dim = dim;

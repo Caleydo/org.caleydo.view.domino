@@ -36,6 +36,7 @@ import org.caleydo.view.domino.api.model.graph.EDirection;
 import org.caleydo.view.domino.api.model.typed.TypedGroupSet;
 import org.caleydo.view.domino.api.model.typed.TypedGroups;
 import org.caleydo.view.domino.api.model.typed.TypedListGroup;
+import org.caleydo.view.domino.internal.data.IDataValues;
 import org.caleydo.view.domino.internal.dnd.ADragInfo;
 import org.caleydo.view.domino.internal.dnd.BlockDragInfo;
 import org.caleydo.view.domino.internal.dnd.NodeDragInfo;
@@ -88,7 +89,8 @@ public class NodeGroup extends GLElementDecorator implements ILabeled, IDragGLSo
 			return;
 		Builder b = GLElementFactoryContext.builder();
 		final Node parent = getNode();
-		parent.data.fill(b, dimData, recData);
+		final IDataValues data = parent.getDataValues();
+		data.fill(b, dimData, recData);
 		// if free high else medium
 		b.put(EDetailLevel.class,
 				parent.isAlone(EDimension.DIMENSION) && parent.isAlone(EDimension.RECORD) ? EDetailLevel.HIGH
@@ -96,7 +98,7 @@ public class NodeGroup extends GLElementDecorator implements ILabeled, IDragGLSo
 		b.set("heatmap.blurNotSelected");
 		b.set("heatmap.forceTextures");
 		ImmutableList<GLElementSupplier> extensions = GLElementFactories.getExtensions(b.build(), "domino."
-				+ parent.data.getExtensionID(), parent.data);
+ + data.getExtensionID(), data);
 		GLElementFactorySwitcher s = new GLElementFactorySwitcher(extensions, ELazyiness.DESTROY);
 		parent.selectDefaultVisualization(s);
 		barrier.setContent(s);
@@ -125,13 +127,13 @@ public class NodeGroup extends GLElementDecorator implements ILabeled, IDragGLSo
 			if (!barrier.isPickable())
 				context.getMouseLayer().addDragSource(this);
 			domino.select(SelectionType.MOUSE_OVER, this, false);
-			getNode().data.onSelectionChanged(true);
+			getNode().getDataValues().onSelectionChanged(true);
 			repaint();
 			break;
 		case MOUSE_OUT:
 			context.getMouseLayer().removeDragSource(this);
 			domino.clear(SelectionType.MOUSE_OVER, (NodeGroup) null);
-			getNode().data.onSelectionChanged(false);
+			getNode().getDataValues().onSelectionChanged(false);
 			repaint();
 			break;
 		case CLICKED:
@@ -292,7 +294,8 @@ public class NodeGroup extends GLElementDecorator implements ILabeled, IDragGLSo
 	 */
 	public Node toNode() {
 		final Node parent = getNode();
-		Node n = new Node(parent, parent.data, getLabel(), new TypedGroupSet(dimData.asSet()), new TypedGroupSet(
+		Node n = new Node(parent, parent.getDataValues(), getLabel(), new TypedGroupSet(dimData.asSet()),
+				new TypedGroupSet(
 				recData.asSet()));
 		return n;
 	}

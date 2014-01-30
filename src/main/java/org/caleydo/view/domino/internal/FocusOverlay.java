@@ -71,7 +71,7 @@ public class FocusOverlay extends GLElementContainer implements IPickingListener
 		onPick(this);
 
 		this.label = node.getLabel();
-		this.data = node.data;
+		this.data = node.getDataValues();
 		this.dimData = node.getData(EDimension.DIMENSION);
 		this.recData = node.getData(EDimension.RECORD);
 	}
@@ -135,7 +135,7 @@ public class FocusOverlay extends GLElementContainer implements IPickingListener
 	}
 
 	private GLElementFactorySwitcher build(Node node) {
-		GLElementFactorySwitcher s = build(node.data, node.getData(EDimension.DIMENSION),
+		GLElementFactorySwitcher s = build(node.getDataValues(), node.getData(EDimension.DIMENSION),
 				node.getData(EDimension.RECORD));
 		node.selectDefaultVisualization(s);
 		return s;

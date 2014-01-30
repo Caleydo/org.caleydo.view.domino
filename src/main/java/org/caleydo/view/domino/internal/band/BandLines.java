@@ -143,10 +143,6 @@ public class BandLines {
 		return Pair.make(top, bottom);
 	}
 
-	private static List<Vec2f> c(Vec2f... points) {
-		return ImmutableList.copyOf(points);
-	}
-
 	/**
 	 * @param curve
 	 * @return

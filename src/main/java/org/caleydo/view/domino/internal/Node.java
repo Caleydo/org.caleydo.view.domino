@@ -88,7 +88,7 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 	private final Node[] neighbors = new Node[4];
 	private final String label;
 
-	IDataValues data;
+	private IDataValues data;
 
 	private TypedGroupList dimData;
 	private TypedGroupSet dimUnderlying;
@@ -273,7 +273,7 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 			for (int i = 0; i < vs.length; ++i) {
 				final float x = i * wi + (wi - hi) * 0.5f;
 				final ESetOperation op = vs[i];
-				Placeholder.renderDropZone(g, i * wi, 0, wi, h, Color.LIGHT_GRAY);
+				APlaceholder.renderDropZone(g, i * wi, 0, wi, h, Color.LIGHT_GRAY);
 				g.fillImage(op.toIcon(), x, (h - hi) * 0.5f, hi, hi);
 				if (op == dropSetOperation)
 					g.color(Color.BLACK).drawRoundedRect(x, (h - hi) * 0.5f, hi, hi, 5);
@@ -284,7 +284,7 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 			for (int i = 0; i < vs.length; ++i) {
 				final float y = i * hi + (hi - wi) * 0.5f;
 				final ESetOperation op = vs[i];
-				Placeholder.renderDropZone(g, 0, i * hi, w, hi, Color.LIGHT_GRAY);
+				APlaceholder.renderDropZone(g, 0, i * hi, w, hi, Color.LIGHT_GRAY);
 				g.fillImage(op.toIcon(), (w - wi) * 0.5f, y, wi, wi);
 				if (op == dropSetOperation)
 					g.color(Color.BLACK).drawRoundedRect((w - wi) * 0.5f, y, wi, wi, 5);
@@ -305,7 +305,7 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 			for (int i = 0; i < cols; ++i) {
 				ESetOperation op = vs[k++];
 				float x = i * wi + (wi - si) * 0.5f;
-				Placeholder.renderDropZone(g, i * wi, j * hi, wi, hi, Color.LIGHT_GRAY);
+				APlaceholder.renderDropZone(g, i * wi, j * hi, wi, hi, Color.LIGHT_GRAY);
 				g.fillImage(op.toIcon(), x, y, si, si);
 				if (op == dropSetOperation)
 					g.color(Color.BLACK).drawRoundedRect(x, y, si, si, 5);
@@ -544,20 +544,6 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 
 	private void updateSize(boolean adaptDetached) {
 		Vec2f new_ = fixSize(scaleSize(originalSize()));
-		final Vec2f act = getSize();
-		Vec2f change = new_.minus(act);
-		// if (dimDetached.isDetached()) {
-		// dimDetached.incShift(-change.y() * .5f);
-		// final Vec2f l = getLocation();
-		// setLocation(l.x(), l.y() - change.y() * .5f);
-		// // new_.setY(act.y());
-		// }
-		// if (recDetached.isDetached()) {
-		// recDetached.incShift(-change.x() * .5f);
-		// final Vec2f l = getLocation();
-		// setLocation(l.x() - change.x() * .5f, l.y());
-		// // new_.setX(act.x());
-		// }
 		setSize(new_.x(), new_.y());
 	}
 
@@ -696,8 +682,6 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 	}
 
 	public void setNeighbor(EDirection dir, Node neighbor) {
-		// setDetached(dir.asDim(), false);
-
 		Node bak = this.neighbors[dir.ordinal()];
 		if (bak == neighbor)
 			return;
@@ -1015,20 +999,6 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 			return dataIndex < (dataOffset + dataSize);
 		}
 
-		/**
-		 * @return the dataOffset, see {@link #dataOffset}
-		 */
-		public int getDataOffset() {
-			return dataOffset;
-		}
-
-		/**
-		 * @return the dataSize, see {@link #dataSize}
-		 */
-		public int getDataSize() {
-			return dataSize;
-		}
-
 		@Override
 		public GLLocation apply(int dataIndex) {
 			return locator.apply(dataIndex - dataOffset);
@@ -1221,20 +1191,6 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 		String type = getVisualizationType();
 		scaleFactors.put(type, new Vec2f(sx, sy));
 
-		final Vec2f act = getSize();
-		Vec2f change = new_.minus(act);
-		// if (dimDetached.isDetached()) {
-		// dimDetached.incShift(-change.y() * .5f);
-		// final Vec2f l = getLocation();
-		// setLocation(l.x(), l.y() - change.y() * .5f);
-		// // new_.setY(act.y());
-		// }
-		// if (recDetached.isDetached()) {
-		// recDetached.incShift(-change.x() * .5f);
-		// final Vec2f l = getLocation();
-		// setLocation(l.x() - change.x() * .5f, l.y());
-		// // new_.setX(act.x());
-		// }
 		setSize(new_.x(), new_.y());
 		relayout();
 	}
@@ -1246,24 +1202,6 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 
 	public Rect getDetachedRectBounds() {
 		Rect r = getRectBounds().clone();
-		// if (dimDetached.isDetached()) {
-		// r.x(r.x() - 50);
-		// r.width(r.width() + 100);
-		// r.y(r.y() - dimDetached.getShift());
-		// r.height(r.height() + dimDetached.getShift() * 2);
-		// }
-		// if (recDetached.isDetached()) {
-		// r.y(r.y() - 50);
-		// r.height(r.height() + 100);
-		// r.x(r.x() - recDetached.getShift());
-		// r.width(r.width() + recDetached.getShift() * 2);
-		// }
-
-		// r.x(r.x() - offsets[EDirection.WEST.ordinal()]);
-		// r.y(r.y() - offsets[EDirection.NORTH.ordinal()]);
-		// r.width(r.width() + offsets[EDirection.WEST.ordinal()] + offsets[EDirection.EAST.ordinal()]);
-		// r.height(r.height() + offsets[EDirection.NORTH.ordinal()] + offsets[EDirection.SOUTH.ordinal()]);
-
 		return r;
 	}
 
@@ -1274,27 +1212,6 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 	 * @param height
 	 */
 	public void setDetachedBounds(float x, float y, float w, float h) {
-		// x += offsets[EDirection.WEST.ordinal()];
-		// y += offsets[EDirection.NORTH.ordinal()];
-		// w -= offsets[EDirection.WEST.ordinal()] + offsets[EDirection.EAST.ordinal()];
-		// h -= offsets[EDirection.NORTH.ordinal()] + offsets[EDirection.SOUTH.ordinal()];
-		//
-		// Vec2f size = getSize();
-		// if (dimDetached.isDetached()) {
-		// x += 50;
-		// w -= 100;
-		// dimDetached.setShift((h - size.y()) * 0.5f);
-		// y += dimDetached.getShift();
-		// h = size.y();
-		// }
-		// if (recDetached.isDetached()) {
-		// y += 50;
-		// h -= 100;
-		// recDetached.setShift((w - size.x()) * 0.5f);
-		// x += recDetached.getShift();
-		// w = size.x();
-		// }
-		// System.out.println(getLabel() + " " + x + " " + y + " " + w + " " + h);
 		setBounds(x, y, w, h);
 		relayout();
 	}

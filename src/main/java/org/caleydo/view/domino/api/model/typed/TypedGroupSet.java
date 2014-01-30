@@ -48,6 +48,7 @@ public class TypedGroupSet extends TypedSet implements ITypedGroupCollection {
 	/**
 	 * @return the groups, see {@link #groups}
 	 */
+	@Override
 	public List<TypedSetGroup> getGroups() {
 		return groups;
 	}

@@ -517,7 +517,6 @@ public class Block extends GLElementContainer implements IGLLayout2, IPickingLis
 
 		if (just != null) {
 			just.shiftBy(shiftX, shiftY);
-			String visTypeToCheck = just.isDetachedVis() ? just.getVisualizationType() : null;
 			for (EDimension d : just.dimensions()) {
 				d = d.opposite();
 				LinearBlock b = getBlock(just, d);
@@ -526,14 +525,6 @@ public class Block extends GLElementContainer implements IGLLayout2, IPickingLis
 				for (Node node : b)
 					if (node != just)
 						node.copyScaleFactors(just, d.opposite());
-				// float x = d.select(0, shiftX);
-				// float y = d.select(shiftY, 0);
-				// for (Node node : b) {
-				// // sync shift all data_dependent or the same vis type
-				// String visTypeToCompare = node.isDetachedVis() ? node.getVisualizationType() : null;
-				// if (node != just && Objects.equal(visTypeToCompare, visTypeToCheck))
-				// node.shiftBy(x, y);
-				// }
 				for (Node node : b)
 					updateShifts(node);
 			}
@@ -595,11 +586,6 @@ public class Block extends GLElementContainer implements IGLLayout2, IPickingLis
 	public void shiftLocation(float x, float y) {
 		Vec2f l = getLocation();
 		setLocation(l.x() + x, l.y() + y);
-	}
-
-	private float getOffset(Node n, EDirection dir) {
-		Node neighbor = n.getNeighbor(dir);
-		return offsets.getOffset(n, neighbor);
 	}
 
 	/**
