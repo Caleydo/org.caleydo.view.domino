@@ -34,7 +34,7 @@ import org.caleydo.core.view.opengl.layout2.manage.ButtonBarBuilder.EButtonBarLa
 import org.caleydo.core.view.opengl.layout2.manage.GLElementFactories.GLElementSupplier;
 import org.caleydo.core.view.opengl.layout2.manage.GLElementFactorySwitcher;
 import org.caleydo.core.view.opengl.layout2.renderer.IGLRenderer;
-import org.caleydo.view.domino.api.model.graph.EDirection;
+import org.caleydo.view.domino.api.model.EDirection;
 import org.caleydo.view.domino.internal.Block;
 import org.caleydo.view.domino.internal.Node;
 import org.caleydo.view.domino.internal.NodeGroup;

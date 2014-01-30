@@ -9,7 +9,7 @@ import gleem.linalg.Vec2f;
 
 import org.caleydo.core.data.collection.EDimension;
 import org.caleydo.core.util.color.Color;
-import org.caleydo.view.domino.api.model.graph.EDirection;
+import org.caleydo.view.domino.api.model.EDirection;
 
 /**
  * @author Samuel Gratzl

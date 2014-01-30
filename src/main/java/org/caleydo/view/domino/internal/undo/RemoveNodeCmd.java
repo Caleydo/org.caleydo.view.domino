@@ -7,7 +7,7 @@ package org.caleydo.view.domino.internal.undo;
 
 import java.util.Collection;
 
-import org.caleydo.view.domino.api.model.graph.EDirection;
+import org.caleydo.view.domino.api.model.EDirection;
 import org.caleydo.view.domino.internal.Block;
 import org.caleydo.view.domino.internal.Domino;
 import org.caleydo.view.domino.internal.Node;

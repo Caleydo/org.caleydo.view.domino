@@ -17,7 +17,7 @@ import org.caleydo.core.data.selection.SelectionType;
 import org.caleydo.core.event.EventListenerManager.ListenTo;
 import org.caleydo.core.event.data.SelectionCommandEvent;
 import org.caleydo.core.util.base.ICallback;
-import org.caleydo.view.domino.api.model.graph.EDirection;
+import org.caleydo.view.domino.api.model.EDirection;
 
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.HashMultiset;

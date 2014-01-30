@@ -48,7 +48,7 @@ import org.caleydo.core.view.opengl.layout2.manage.GLLocation.ILocator;
 import org.caleydo.core.view.opengl.layout2.manage.IGLElementMetaData;
 import org.caleydo.core.view.opengl.picking.IPickingListener;
 import org.caleydo.core.view.opengl.picking.Pick;
-import org.caleydo.view.domino.api.model.graph.EDirection;
+import org.caleydo.view.domino.api.model.EDirection;
 import org.caleydo.view.domino.api.model.typed.ITypedComparator;
 import org.caleydo.view.domino.api.model.typed.TypedCollections;
 import org.caleydo.view.domino.api.model.typed.TypedGroupList;

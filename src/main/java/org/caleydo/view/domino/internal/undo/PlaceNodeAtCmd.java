@@ -5,7 +5,7 @@
  *******************************************************************************/
 package org.caleydo.view.domino.internal.undo;
 
-import org.caleydo.view.domino.api.model.graph.EDirection;
+import org.caleydo.view.domino.api.model.EDirection;
 import org.caleydo.view.domino.internal.Domino;
 import org.caleydo.view.domino.internal.Node;
 

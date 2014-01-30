@@ -4,7 +4,7 @@ import gleem.linalg.Vec2f;
 
 import java.util.Set;
 
-import org.caleydo.view.domino.api.model.graph.EDirection;
+import org.caleydo.view.domino.api.model.EDirection;
 import org.caleydo.view.domino.internal.Block;
 import org.caleydo.view.domino.internal.Domino;
 import org.caleydo.view.domino.internal.Node;

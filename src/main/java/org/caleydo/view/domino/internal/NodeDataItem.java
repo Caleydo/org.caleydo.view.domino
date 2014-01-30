@@ -11,7 +11,7 @@ import java.util.Set;
 import org.caleydo.core.data.collection.EDimension;
 import org.caleydo.core.util.base.ILabeled;
 import org.caleydo.core.util.base.Labels;
-import org.caleydo.view.domino.api.model.graph.EDirection;
+import org.caleydo.view.domino.api.model.EDirection;
 import org.caleydo.view.domino.api.model.typed.TypedGroupList;
 import org.caleydo.view.info.dataset.spi.IDataSetItem;
 import org.eclipse.swt.SWT;
