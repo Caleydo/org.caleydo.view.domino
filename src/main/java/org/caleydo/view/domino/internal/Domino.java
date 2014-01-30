@@ -647,6 +647,16 @@ public class Domino extends GLElementContainer implements IDropGLTarget, IPickin
 			undo.undo();
 		else if (e.isControlDown() && (e.isKey('y') || e.isKey('Y')))
 			undo.redo();
+		else if (e.isControlDown() && (e.isKey('a') || e.isKey('A')))
+			selectAll();
+	}
+
+	/**
+	 *
+	 */
+	private void selectAll() {
+		for (Block b : blocks.getBlocks())
+			b.selectAll();
 	}
 
 	@Override
