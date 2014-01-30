@@ -101,7 +101,7 @@ public class NodeTools extends GLElementContainer implements GLButton.ISelection
 
 			if (dim != null)
 				addButton("Merge Groups", dim.select(Resources.ICON_MERGE_DIM, Resources.ICON_MERGE_REC));
-			if (node.size() == selection.size()) {
+			if (node.groupCount() == selection.size()) {
 				addButton("Remove Node", Resources.ICON_DELETE_ALL);
 			}
 		} else if (!nodes.isEmpty() && blocks.isEmpty()) {
