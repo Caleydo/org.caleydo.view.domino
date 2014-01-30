@@ -25,7 +25,6 @@ import org.caleydo.core.view.opengl.layout2.dnd.IDnDItem;
 import org.caleydo.core.view.opengl.layout2.dnd.IDragGLSource;
 import org.caleydo.core.view.opengl.layout2.dnd.IDragInfo;
 import org.caleydo.core.view.opengl.picking.Pick;
-import org.caleydo.view.domino.DominoCanvas;
 import org.caleydo.view.domino.api.model.typed.TypedSet;
 import org.caleydo.view.domino.internal.band.ABand;
 import org.caleydo.view.domino.internal.dnd.ADragInfo;

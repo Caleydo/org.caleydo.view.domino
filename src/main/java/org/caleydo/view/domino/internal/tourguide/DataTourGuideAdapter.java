@@ -10,6 +10,7 @@ import org.caleydo.core.view.opengl.layout2.dnd.IDragGLSource;
 import org.caleydo.view.tourguide.api.model.ADataDomainQuery;
 import org.caleydo.view.tourguide.api.model.AScoreRow;
 import org.caleydo.view.tourguide.api.vis.ITourGuideView;
+import org.caleydo.view.tourguide.api.vis.TourGuideUtils;
 import org.caleydo.view.tourguide.spi.adapter.ITourGuideAdapter;
 import org.caleydo.view.tourguide.spi.adapter.ITourGuideAdapterFactory;
 import org.caleydo.view.tourguide.spi.adapter.ITourGuideDataMode;
@@ -25,6 +26,10 @@ public class DataTourGuideAdapter extends ATourGuideAdapter {
 	@Override
 	public String getLabel() {
 		return "Domino Data";
+	}
+
+	public static void show() {
+		TourGuideUtils.showTourGuide(SECONDARY_ID);
 	}
 
 

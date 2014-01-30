@@ -16,6 +16,7 @@ import org.caleydo.view.tourguide.api.model.AScoreRow;
 import org.caleydo.view.tourguide.api.model.ASingleIDDataDomainQuery;
 import org.caleydo.view.tourguide.api.model.StratificationDataDomainQuery;
 import org.caleydo.view.tourguide.api.vis.ITourGuideView;
+import org.caleydo.view.tourguide.api.vis.TourGuideUtils;
 import org.caleydo.view.tourguide.spi.adapter.ITourGuideAdapter;
 import org.caleydo.view.tourguide.spi.adapter.ITourGuideAdapterFactory;
 import org.caleydo.view.tourguide.spi.adapter.ITourGuideDataMode;
@@ -32,6 +33,10 @@ public class StratifiationTourGuideAdapter extends ATourGuideAdapter implements 
 	@Override
 	public String getLabel() {
 		return "Domino Stratifications";
+	}
+
+	public static void show() {
+		TourGuideUtils.showTourGuide(SECONDARY_ID);
 	}
 
 	@Override
