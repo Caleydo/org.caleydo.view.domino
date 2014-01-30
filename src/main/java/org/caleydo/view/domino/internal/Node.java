@@ -108,6 +108,8 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 
 	private boolean mouseOver;
 
+	private boolean isPreviewing = false;
+
 
 	public Node(IDataValues data) {
 		this(null, data, data.getLabel(), data.getDefaultGroups(EDimension.DIMENSION), data
@@ -138,6 +140,20 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 		// guessShift(dimGroups.size(), recGroups.size());
 		setData(fixList(dimGroups), fixList(recGroups));
 		init();
+	}
+
+	/**
+	 * @param isPreviewing
+	 *            setter, see {@link isPreviewing}
+	 */
+	public void setPreviewing(boolean isPreviewing) {
+		if (this.isPreviewing == isPreviewing)
+			return;
+		boolean bak = isDetachedVis();
+		this.isPreviewing = isPreviewing;
+		boolean new_ = isDetachedVis();
+		if (bak != new_ && findBlock() != null)
+			findBlock().updatedNode(Node.this, bak, new_);
 	}
 
 	@Override
@@ -1156,6 +1172,9 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 	}
 
 	public boolean isDetachedVis() {
+		if (isPreviewing) {
+			return true;
+		}
 		IGLElementMetaData metaData = GLElementFactories.getMetaData(getVisualizationType());
 		boolean needDetached = metaData != null && metaData.getScaleType() == EVisScaleType.FIX;
 		return needDetached;

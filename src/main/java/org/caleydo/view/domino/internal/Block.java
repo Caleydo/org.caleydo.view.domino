@@ -39,6 +39,7 @@ import org.caleydo.core.view.opengl.layout2.layout.IGLLayoutElement;
 import org.caleydo.core.view.opengl.picking.IPickingListener;
 import org.caleydo.core.view.opengl.picking.Pick;
 import org.caleydo.core.view.opengl.util.spline.TesselatedPolygons;
+import org.caleydo.view.domino.DominoCanvas;
 import org.caleydo.view.domino.api.model.graph.EDirection;
 import org.caleydo.view.domino.api.model.typed.TypedGroupList;
 import org.caleydo.view.domino.internal.band.ABand;
@@ -63,7 +64,7 @@ public class Block extends GLElementContainer implements IGLLayout2, IPickingLis
 	/**
 	 *
 	 */
-	private static final float DETACHED_OFFSET = 50.f;
+	static final float DETACHED_OFFSET = 50.f;
 
 	private final List<LinearBlock> linearBlocks = new ArrayList<>();
 
@@ -461,10 +462,7 @@ public class Block extends GLElementContainer implements IGLLayout2, IPickingLis
 			boolean dn = n.isDetachedVis();
 
 			if (d || dn) {
-				if (dir.isPrimaryDirection())
-					setOffset(n, node, DETACHED_OFFSET);
-				else
-					setOffset(node, n, DETACHED_OFFSET);
+				setOffset(n, node, DETACHED_OFFSET);
 			} else {
 				offsets.remove(node,n);
 			}
@@ -825,7 +823,9 @@ public class Block extends GLElementContainer implements IGLLayout2, IPickingLis
 	 */
 	public Rect getAbsoluteBounds(LinearBlock b) {
 		Rect r = new Rect(b.getBounds());
-		r.xy(toAbsolute(r.xy()));
+		Vec2f xy = toAbsolute(r.xy());
+		xy.sub(findParent(DominoCanvas.class).getAbsoluteLocation());
+		r.xy(xy);
 		return r;
 	}
 
@@ -964,10 +964,9 @@ public class Block extends GLElementContainer implements IGLLayout2, IPickingLis
 	 * @param right
 	 * @param offset
 	 */
-	public void setOffset(Node left, Node right, float offset) {
+	private void setOffset(Node left, Node right, float offset) {
 		if (left.isDetachedVis() || right.isDetachedVis())
 			offset = Math.max(offset, DETACHED_OFFSET);
-		if (offset >= DETACHED_OFFSET)
 		offsets.setOffset(left, right, offset);
 	}
 
@@ -980,7 +979,9 @@ public class Block extends GLElementContainer implements IGLLayout2, IPickingLis
 			for (Node node : l) {
 				float offset = offsets.getOffset(prev, node);
 				if (offset > 0) {
-					bands.add(create(prev, node, l.getDim()));
+					final ABand b = create(prev, node, l.getDim());
+					if (b != null)
+						bands.add(b);
 				}
 				prev = node;
 			}

@@ -49,7 +49,6 @@ public class Placeholder extends PickableGLElement implements IDropGLTarget, IPi
 	private final boolean transpose;
 
 	private Node preview;
-	private final float offset;
 
 	public Placeholder(Node neighbor, EDirection dir, boolean transpose) {
 		this.neighbor = neighbor;
@@ -57,9 +56,8 @@ public class Placeholder extends PickableGLElement implements IDropGLTarget, IPi
 		this.transpose = transpose;
 		Vec2f size = neighbor.getSize();
 		Vec2f loc = neighbor.getAbsoluteLocation();
-		final int c = 50;
+		final float c = Block.DETACHED_OFFSET;
 		final float offset = 0;
-		this.offset = offset + c;
 		switch (dir) {
 		case NORTH:
 			setBounds(loc.x(), loc.y() - c - offset, size.x(), c);
@@ -137,7 +135,7 @@ public class Placeholder extends PickableGLElement implements IDropGLTarget, IPi
 		if (transpose) {
 			node.transposeMe();
 		}
-		domino.addPreview(neighbor, dir, node, offset);
+		domino.addPreview(neighbor, dir, node);
 	}
 
 	@Override

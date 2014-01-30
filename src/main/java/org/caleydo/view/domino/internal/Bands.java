@@ -25,6 +25,7 @@ import org.caleydo.core.view.opengl.layout2.dnd.IDnDItem;
 import org.caleydo.core.view.opengl.layout2.dnd.IDragGLSource;
 import org.caleydo.core.view.opengl.layout2.dnd.IDragInfo;
 import org.caleydo.core.view.opengl.picking.Pick;
+import org.caleydo.view.domino.DominoCanvas;
 import org.caleydo.view.domino.api.model.typed.TypedSet;
 import org.caleydo.view.domino.internal.band.ABand;
 import org.caleydo.view.domino.internal.dnd.ADragInfo;
@@ -166,7 +167,9 @@ public class Bands extends ABands implements IDragGLSource, ICallback<SelectionT
 
 	@Override
 	protected Vec2f getShift() {
-		return getAbsoluteLocation();
+		Vec2f xy = getAbsoluteLocation();
+		xy.sub(findParent(DominoCanvas.class).getAbsoluteLocation());
+		return xy;
 	}
 
 

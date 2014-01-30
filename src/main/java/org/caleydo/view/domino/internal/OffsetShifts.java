@@ -31,6 +31,8 @@ public class OffsetShifts {
 	}
 
 	public void setOffset(Node a, Node b, float offset) {
+		if (a == null || b == null)
+			return;
 		Vec2f v = get(a, b);
 		if (v == null)
 			v = new Vec2f(0, 0);
@@ -39,6 +41,8 @@ public class OffsetShifts {
 	}
 
 	public void setShift(Node a, Node b, float shift) {
+		if (a == null || b == null)
+			return;
 		Vec2f v = get(a, b);
 		if (v == null)
 			v = new Vec2f(0, 0);

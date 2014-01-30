@@ -11,6 +11,7 @@ import org.caleydo.core.data.collection.EDimension;
 import org.caleydo.core.util.color.Color;
 import org.caleydo.core.view.opengl.canvas.EDetailLevel;
 import org.caleydo.core.view.opengl.canvas.IGLMouseListener.IMouseEvent;
+import org.caleydo.core.view.opengl.layout.Column.VAlign;
 import org.caleydo.core.view.opengl.layout2.GLElement;
 import org.caleydo.core.view.opengl.layout2.GLElementContainer;
 import org.caleydo.core.view.opengl.layout2.GLGraphics;
@@ -19,6 +20,7 @@ import org.caleydo.core.view.opengl.layout2.basic.GLButton.ISelectionCallback;
 import org.caleydo.core.view.opengl.layout2.basic.ScrollingDecorator;
 import org.caleydo.core.view.opengl.layout2.basic.ScrollingDecorator.IHasMinSize;
 import org.caleydo.core.view.opengl.layout2.layout.GLLayouts;
+import org.caleydo.core.view.opengl.layout2.layout.GLPadding;
 import org.caleydo.core.view.opengl.layout2.manage.ButtonBarBuilder;
 import org.caleydo.core.view.opengl.layout2.manage.ButtonBarBuilder.EButtonBarLayout;
 import org.caleydo.core.view.opengl.layout2.manage.GLElementDimensionDesc;
@@ -99,7 +101,7 @@ public class FocusOverlay extends GLElementContainer implements IPickingListener
 	 */
 	private GLElement createButtonBar(String label, GLElementFactorySwitcher s) {
 		GLElementContainer c = new GLElementContainer(GLLayouts.flowHorizontal(2));
-		c.add(new GLElement(GLRenderers.drawText(label)));
+		c.add(new GLElement(GLRenderers.drawText(label, VAlign.LEFT, new GLPadding(1, 1, 1, 5))));
 		final ButtonBarBuilder b = s.createButtonBarBuilder();
 		b.layoutAs(EButtonBarLayout.HORIZONTAL).size(24);
 		b.prepend(createTransposeButton());
@@ -178,7 +180,7 @@ public class FocusOverlay extends GLElementContainer implements IPickingListener
 		GLElementDimensionDesc rec = switcher.getActiveDesc(EDimension.RECORD);
 		double w = dim.size(dimData.size()) + shiftX;
 		double h = rec.size(recData.size()) + shiftY;
-		w = Math.max(100, w);
+		w = Math.max(200, w);
 		h = Math.max(20, h);
 		return new Vec2f((float) w, (float) h);
 	}

@@ -55,15 +55,23 @@ public class DynamicToolBar extends GLElementDecorator implements ICallback<Sele
 
 	@Override
 	public void on(SelectionType type) {
-		Set<NodeGroup> s = selections.getSelection(type);
-		if (type != SelectionType.MOUSE_OVER)
-			return;
+		Set<NodeGroup> s = new HashSet<>(selections.getSelection(SelectionType.MOUSE_OVER));
+		Set<NodeGroup> selected = selections.getSelection(SelectionType.SELECTION);
 		Node act = getActNode();
 		Node node = null;
 		if (s.size() == 1)
 			node = s.iterator().next().getNode();
 		else
 			node = NodeSelections.getSingleNode(s);
+
+		if (node != null && !selected.isEmpty()) {
+			for (NodeGroup sel : selected) { // fill out will all of the same node
+				if (sel.getNode() == node)
+					s.add(sel);
+			}
+			if (s.size() != node.groupCount()) // not all found, just the mouse overed agains
+				s = selections.getSelection(SelectionType.MOUSE_OVER);
+		}
 
 		if (node == null) {
 			if (!mouseOver) {
@@ -74,8 +82,6 @@ public class DynamicToolBar extends GLElementDecorator implements ICallback<Sele
 		}
 		timerToHide = 0;
 		hideOnMouseOut = false;
-		if (act == node)
-			return;
 		setVisibility(EVisibility.PICKABLE);
 		setContent(new NodeTools(undo, new HashSet<>(s)).setLayoutData(node));
 	}

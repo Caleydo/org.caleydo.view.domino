@@ -129,10 +129,8 @@ public class Band extends ABand {
 
 			renderSelection(g, host);
 
-			if (outlines) {
-				g.color(color.r, color.g, color.b, color.a * Math.min(alpha * 2, 1));
-				g.drawPath(base);
-			}
+			g.color(color.r, color.g, color.b, color.a * Math.min(alpha * (outlines ? 2 : 1), 1));
+			g.drawPath(base);
 		}
 
 		void renderMiniMap(GLGraphics g) {

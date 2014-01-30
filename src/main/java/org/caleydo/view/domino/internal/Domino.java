@@ -37,6 +37,7 @@ import org.caleydo.core.view.opengl.layout2.layout.IGLLayoutElement;
 import org.caleydo.core.view.opengl.picking.IPickingListener;
 import org.caleydo.core.view.opengl.picking.Pick;
 import org.caleydo.core.view.opengl.picking.PickingMode;
+import org.caleydo.view.domino.DominoCanvas;
 import org.caleydo.view.domino.api.model.graph.EDirection;
 import org.caleydo.view.domino.internal.dnd.ADragInfo;
 import org.caleydo.view.domino.internal.dnd.BlockDragInfo;
@@ -69,7 +70,7 @@ public class Domino extends GLElementContainer implements IDropGLTarget, IPickin
 	private final Blocks blocks;
 	private final ToolBar toolBar;
 	private final LeftToolBar leftToolBar;
-	private final GLElementContainer content;
+	private final DominoCanvas content;
 	private SelectLayer select;
 	private DragElement currentlyDraggedVis;
 	private boolean showDebugInfos = true;
@@ -97,7 +98,7 @@ public class Domino extends GLElementContainer implements IDropGLTarget, IPickin
 		this.leftToolBar.setSize(24, -1);
 		this.add(leftToolBar);
 
-		this.content = new GLElementContainer(GLLayouts.LAYERS);
+		this.content = new DominoCanvas(GLLayouts.LAYERS);
 		content.setVisibility(EVisibility.PICKABLE);
 		content.onPick(new IPickingListener() {
 
@@ -658,23 +659,13 @@ public class Domino extends GLElementContainer implements IDropGLTarget, IPickin
 	 * @param preview
 	 */
 	public void persistPreview(EDirection dir, Node preview) {
-		final Node neighbor = preview.getNeighbor(dir);
-		final Block b = neighbor.getBlock();
-		if (dir.isPrimaryDirection()) {
-			b.setOffset(neighbor, preview, 0);
-		} else
-			b.setOffset(preview, neighbor, 0);
-
+		preview.setPreviewing(false);
 		removePlaceholder();
 		bands.relayout();
 	}
 
-	public void addPreview(Node neighbor, EDirection dir, Node preview, float offset) {
-		final Block b = neighbor.getBlock();
-		if (dir.isPrimaryDirection()) {
-			b.setOffset(preview, neighbor, offset);
-		} else
-			b.setOffset(neighbor, preview, offset);
+	public void addPreview(Node neighbor, EDirection dir, Node preview) {
+		preview.setPreviewing(true);
 		placeAt(neighbor, dir, preview);
 	}
 

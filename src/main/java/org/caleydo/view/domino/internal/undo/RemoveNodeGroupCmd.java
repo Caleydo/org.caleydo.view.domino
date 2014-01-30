@@ -45,7 +45,7 @@ public class RemoveNodeGroupCmd implements ICmd {
 		TypedGroupList l = new TypedGroupList(d);
 		node.setUnderlyingData(dim, l.asSet());
 
-		group.prepareRemoveal();
+		// group.prepareRemoveal();
 		return new UndoRemoveGroupCmd(dim, bak);
 	}
 
