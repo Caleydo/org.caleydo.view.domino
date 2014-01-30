@@ -116,7 +116,7 @@ public class LinearBlock extends AbstractCollection<Node> {
 	 * @param node
 	 * @param r
 	 */
-	public void addPlaceholdersFor(Node node, List<Placeholder> r) {
+	public void addPlaceholdersFor(Node node, List<APlaceholder> r) {
 		boolean normal = isCompatible(node.getIdType(dim.opposite()), getIdType());
 		boolean transposed = isCompatible(node.getIdType(dim), getIdType());
 		if (!normal && !transposed)
@@ -136,11 +136,13 @@ public class LinearBlock extends AbstractCollection<Node> {
 		}
 	}
 
-	private void addPlaceHolders(List<Placeholder> r, boolean normal, boolean transposed, Node n, EDirection dir) {
+	private void addPlaceHolders(List<APlaceholder> r, boolean normal, boolean transposed, Node n, EDirection dir) {
 		if (normal)
 			r.add(new Placeholder(n, dir, false));
 		if (transposed && !normal)
 			r.add(new Placeholder(n, dir, true));
+		if (!dir.isPrimaryDirection())
+			r.add(new FreePlaceholder(dir, n));
 	}
 
 	private static boolean isCompatible(IDType a, IDType b) {

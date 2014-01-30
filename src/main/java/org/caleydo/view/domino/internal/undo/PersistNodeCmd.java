@@ -5,7 +5,6 @@
  *******************************************************************************/
 package org.caleydo.view.domino.internal.undo;
 
-import org.caleydo.view.domino.api.model.graph.EDirection;
 import org.caleydo.view.domino.internal.Domino;
 import org.caleydo.view.domino.internal.Node;
 
@@ -15,12 +14,10 @@ import org.caleydo.view.domino.internal.Node;
  */
 public class PersistNodeCmd implements ICmd {
 
-	private final EDirection dir;
 	private final Node preview;
 	private final Node toRemove;
 
-	public PersistNodeCmd(EDirection dir, Node preview, Node toRemove) {
-		this.dir = dir;
+	public PersistNodeCmd(Node preview, Node toRemove) {
 		this.preview = preview;
 		this.toRemove = toRemove;
 	}
@@ -32,7 +29,7 @@ public class PersistNodeCmd implements ICmd {
 
 	@Override
 	public ICmd run(Domino domino) {
-		domino.persistPreview(dir, preview);
+		domino.persistPreview(preview);
 
 		ICmd readd = null;
 		if (toRemove != null && domino.containsNode(toRemove))

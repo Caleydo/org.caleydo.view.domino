@@ -347,6 +347,16 @@ public class Domino extends GLElementContainer implements IDropGLTarget, IPickin
 		for (Block block : blocks.getBlocks()) {
 			l.addAll(block.addPlaceholdersFor(node));
 		}
+
+		if (l.isEmpty()) {
+			Vec2f size = getSize();
+			Rect r = new Rect();
+			r.x(50);
+			r.y(size.y() * 0.25f);
+			r.width(Block.DETACHED_OFFSET);
+			r.height(size.y() * 0.5f);
+			l.add(new FreePlaceholder(EDirection.EAST, r));
+		}
 	}
 
 	@Override
@@ -658,7 +668,7 @@ public class Domino extends GLElementContainer implements IDropGLTarget, IPickin
 	 * @param dir
 	 * @param preview
 	 */
-	public void persistPreview(EDirection dir, Node preview) {
+	public void persistPreview(Node preview) {
 		preview.setPreviewing(false);
 		removePlaceholder();
 		bands.relayout();

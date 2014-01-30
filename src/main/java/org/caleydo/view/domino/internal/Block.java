@@ -349,8 +349,8 @@ public class Block extends GLElementContainer implements IGLLayout2, IPickingLis
 		updateBands();
 	}
 
-	public Collection<Placeholder> addPlaceholdersFor(Node node) {
-		List<Placeholder> r = new ArrayList<>();
+	public Collection<APlaceholder> addPlaceholdersFor(Node node) {
+		List<APlaceholder> r = new ArrayList<>();
 		for (LinearBlock block : linearBlocks) {
 			block.addPlaceholdersFor(node, r);
 		}
