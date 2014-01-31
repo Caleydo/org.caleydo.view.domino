@@ -20,6 +20,7 @@ import org.caleydo.core.util.function.DoubleStatistics;
 import org.caleydo.core.util.function.IDoubleList;
 import org.caleydo.core.util.function.MappedDoubleList;
 import org.caleydo.core.view.opengl.layout2.manage.GLElementFactoryContext.Builder;
+import org.caleydo.view.domino.api.model.typed.ITypedCollection;
 import org.caleydo.view.domino.api.model.typed.TypedGroupSet;
 import org.caleydo.view.domino.api.model.typed.TypedList;
 import org.caleydo.view.domino.api.model.typed.TypedSet;
@@ -37,12 +38,29 @@ import com.google.common.collect.Sets;
 public class Numerical1DDataDomainValues extends A1DDataDomainValues {
 	private final TypedGroupSet groups;
 	private final boolean isInteger;
+	private final int bins;
+	private final int maxBinSize;
+	private final DoubleStatistics stats;
+
+	private final Function<Integer, Double> toRaw = new Function<Integer, Double>() {
+		@Override
+		public Double apply(Integer input) {
+			return getRaw(input.intValue()).doubleValue();
+		}
+	};
 
 	public Numerical1DDataDomainValues(TablePerspective data, EDimension main) {
 		super(data, main);
 		Perspective p = main.select(data.getDimensionPerspective(), data.getRecordPerspective());
 		this.groups = extractGroups(p);
 		this.isInteger = DataSupportDefinitions.dataClass(EDataClass.NATURAL_NUMBER).apply(data);
+
+		this.bins = (int) Math.sqrt(groups.size());
+		this.maxBinSize = createHist(groups).getLargestValue();
+		org.caleydo.core.util.function.DoubleStatistics.Builder b = DoubleStatistics.builder();
+		for (Integer id : groups)
+			b.add(toRaw.apply(id));
+		this.stats = b.build();
 	}
 
 	@Override
@@ -86,23 +104,27 @@ public class Numerical1DDataDomainValues extends A1DDataDomainValues {
 		return super.apply(input) && !"distribution.pie".equals(input);
 	}
 
-	protected Histogram createHist(TypedList data) {
-		final int bins = (int) Math.sqrt(data.size());
+	protected Histogram createHist(ITypedCollection data) {
 		Histogram h = new Histogram(bins);
 		for (Integer id : data) {
 			float v = getNormalized(id.intValue());
 			if (Float.isNaN(v)) {
 				h.addNAN(id);
 			} else {
-				// this works because the values in the container are
-				// already normalized
-				int bucketIndex = (int) (v * bins);
-				if (bucketIndex == bins)
-					bucketIndex--;
+				int bucketIndex = toBin(v);
 				h.add(bucketIndex, id);
 			}
 		}
 		return h;
+	}
+
+	int toBin(float v) {
+		// this works because the values in the container are
+		// already normalized
+		int bucketIndex = (int) (v * bins);
+		if (bucketIndex == bins)
+			bucketIndex--;
+		return bucketIndex;
 	}
 
 	protected Color[] getHistColors(Histogram hist, TypedList data) {
@@ -129,19 +151,12 @@ public class Numerical1DDataDomainValues extends A1DDataDomainValues {
 		b.put(Histogram.class, hist);
 		b.put("distribution.colors", getHistColors(hist, data));
 		b.put("distribution.labels", getHistLabels(hist, data));
+		b.put("distribution.largestBin", maxBinSize);
 
-		final Function<Integer, Double> toRaw = new Function<Integer, Double>() {
-			@Override
-			public Double apply(Integer input) {
-				return getRaw(input.intValue()).doubleValue();
-			}
-		};
 		b.put("id2double", toRaw);
 		final MappedDoubleList<Integer> list = new MappedDoubleList<>(data, toRaw);
-		DoubleStatistics stats = DoubleStatistics.of(list);
-
-		b.put("min", stats.getMin());
-		b.put("max", stats.getMax());
+		b.put("min", this.stats.getMin());
+		b.put("max", this.stats.getMax());
 		b.put(IDoubleList.class, list);
 		// b.set("kaplanmaier.fillCurve");
 	}

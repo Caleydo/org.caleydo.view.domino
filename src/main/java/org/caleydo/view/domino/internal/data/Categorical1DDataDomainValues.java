@@ -30,6 +30,7 @@ import com.google.common.base.Function;
  */
 public class Categorical1DDataDomainValues extends A1DDataDomainValues {
 	private final TypedGroupSet groups;
+	private final int maxBinSize;
 
 	/**
 	 * @param t
@@ -38,6 +39,16 @@ public class Categorical1DDataDomainValues extends A1DDataDomainValues {
 		super(data, main);
 		Perspective p = main.select(data.getDimensionPerspective(), data.getRecordPerspective());
 		this.groups = new TypedGroupSet(Utils.extractSetGroups(p, id.getId(), main));
+
+		int maxBinSize = largestGroup(groups);
+		this.maxBinSize = maxBinSize;
+	}
+
+	static int largestGroup(TypedGroupSet groups) {
+		int maxBinSize = 0;
+		for (TypedSetGroup g : groups.getGroups())
+			maxBinSize = Math.max(g.size(), maxBinSize);
+		return maxBinSize;
 	}
 
 	@Override
@@ -80,6 +91,7 @@ public class Categorical1DDataDomainValues extends A1DDataDomainValues {
 		super.fill(b, data);
 		final Histogram hist = createHist(data);
 		b.put(Histogram.class, hist);
+		b.put("distribution.largestBin", maxBinSize);
 		b.put("distribution.colors", getHistColors(hist, data));
 		b.put("distribution.labels", getHistLabels(hist, data));
 

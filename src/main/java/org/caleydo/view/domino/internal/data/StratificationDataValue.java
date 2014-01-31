@@ -41,6 +41,8 @@ public class StratificationDataValue implements IDataValues, Function2<Integer, 
 
 	private final TypedGroupSet singleGroup;
 	private final TypedGroupSet groups;
+	private final int maxBinSize;
+
 
 
 	public StratificationDataValue(Perspective data, EDimension dim, Integer referenceId) {
@@ -49,6 +51,7 @@ public class StratificationDataValue implements IDataValues, Function2<Integer, 
 		this.singleGroup = TypedGroupSet.createUngrouped(TypedCollections.INVALID_SINGLETON_SET);
 		this.groups = new TypedGroupSet(Utils.extractSetGroups(data, referenceId, dim));
 		this.reference = data.getDataDomain();
+		this.maxBinSize = Categorical1DDataDomainValues.largestGroup(groups);
 	}
 
 	public StratificationDataValue(String label, TypedSet data, EDimension main) {
@@ -57,6 +60,7 @@ public class StratificationDataValue implements IDataValues, Function2<Integer, 
 		this.singleGroup = TypedGroupSet.createUngrouped(TypedCollections.INVALID_SINGLETON_SET);
 		this.groups = TypedGroupSet.createUngrouped(data);
 		this.reference = null;
+		this.maxBinSize = Categorical1DDataDomainValues.largestGroup(groups);
 	}
 
 	public StratificationDataValue(String label, TypedGroupSet data, EDimension main) {
@@ -65,6 +69,7 @@ public class StratificationDataValue implements IDataValues, Function2<Integer, 
 		this.singleGroup = TypedGroupSet.createUngrouped(TypedCollections.INVALID_SINGLETON_SET);
 		this.groups = data;
 		this.reference = null;
+		this.maxBinSize = Categorical1DDataDomainValues.largestGroup(groups);
 	}
 
 
@@ -113,6 +118,7 @@ public class StratificationDataValue implements IDataValues, Function2<Integer, 
 		b.put(Histogram.class, hist);
 		b.put("distribution.colors", getHistColors(hist, data));
 		b.put("distribution.labels", getHistLabels(hist, data));
+		b.put("distribution.largestBin", maxBinSize);
 		b.put(IDoubleList.class, new MappedDoubleList<>(data, toIndex));
 	}
 
