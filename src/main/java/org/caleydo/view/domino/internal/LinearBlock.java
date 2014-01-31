@@ -382,8 +382,11 @@ public class LinearBlock extends AbstractCollection<Node> {
 	 * @param b
 	 * @return
 	 */
-	public TypedGroupList getData(boolean first) {
-		return getNode(first).getData(dim.opposite());
+	public TypedGroupList getData() {
+		if (dataSelection != null) // use this as we have no missing values here
+			return dataSelection.getData(dim.opposite());
+		// best guess the first sorting criteria
+		return sortCriteria.get(0).getData(dim.opposite());
 	}
 
 	Node getNode(boolean first) {

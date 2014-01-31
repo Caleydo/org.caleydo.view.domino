@@ -751,8 +751,8 @@ public class Block extends GLElementContainer implements IGLLayout2, IPickingLis
 
 
 	private void createRoute(Block a, LinearBlock la, Block b, LinearBlock lb, List<ABand> routes) {
-		TypedGroupList sData = la.getData(true);
-		TypedGroupList tData = lb.getData(false);
+		TypedGroupList sData = la.getData();
+		TypedGroupList tData = lb.getData();
 
 		Rect ra = a.getAbsoluteBounds(la);
 		Rect rb = b.getAbsoluteBounds(lb);
@@ -964,7 +964,7 @@ public class Block extends GLElementContainer implements IGLLayout2, IPickingLis
 			for (Node node : l) {
 				float offset = offsets.getOffset(prev, node);
 				if (offset > 0) {
-					final ABand b = create(prev, node, l.getDim());
+					final ABand b = create(prev, node, l, l.getDim());
 					if (b != null)
 						bands.add(b);
 				}
@@ -973,10 +973,10 @@ public class Block extends GLElementContainer implements IGLLayout2, IPickingLis
 		}
 	}
 
-	private ABand create(Node s, Node t, EDimension dim) {
+	private ABand create(Node s, Node t, LinearBlock b, EDimension dim) {
 		EDimension d = dim.opposite();
-		TypedGroupList sData = s.getData(d);
-		TypedGroupList tData = t.getData(d);
+		TypedGroupList sData = s.isDetachedVis() ? s.getData(d) : b.getData();
+		TypedGroupList tData = t.isDetachedVis() ? t.getData(d) : b.getData();
 
 		Rect ra = s.getRectBounds();
 		Rect rb = t.getRectBounds();
