@@ -158,7 +158,24 @@ public class Numerical1DDataDomainValues extends A1DDataDomainValues {
 		b.put("min", this.stats.getMin());
 		b.put("max", this.stats.getMax());
 		b.put(IDoubleList.class, list);
+
+		// FIXME hack, if we have positive and negatives to a centered bar plot
+		if (stats.getMin() < 0 && stats.getMax() > 0)
+			b.put("hbar.center", 0);
+
+		b.put("hbar.id2color", new AlternatingColors(Color.BLACK, Color.LIGHT_GRAY, even(data)));
 		// b.set("kaplanmaier.fillCurve");
+	}
+
+	/**
+	 * @param data
+	 * @return
+	 */
+	private Set<Integer> even(TypedList data) {
+		BitSetSet s = new BitSetSet();
+		for (int i = 0; i < data.size(); i += 2)
+			s.add(data.get(i));
+		return s;
 	}
 
 	@Override
@@ -176,4 +193,23 @@ public class Numerical1DDataDomainValues extends A1DDataDomainValues {
 			return ((Number) r).floatValue();
 		return Float.NaN;
 	}
+
+	private static final class AlternatingColors implements Function<Integer, Color> {
+		private final Color even, odd;
+		private final Set<Integer> isEven;
+
+		public AlternatingColors(Color even, Color odd, Set<Integer> isEven) {
+			this.even = even;
+			this.odd = odd;
+			this.isEven = isEven;
+		}
+
+		@Override
+		public Color apply(Integer input) {
+			if (isEven.contains(input))
+				return even;
+			return odd;
+		}
+	}
+
 }
