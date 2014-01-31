@@ -6,7 +6,6 @@
 package org.caleydo.view.domino.api.model.typed;
 
 import java.util.AbstractSet;
-import java.util.BitSet;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
@@ -217,9 +216,7 @@ public class TypedSet extends AbstractSet<Integer> implements ITypedCollection {
 
 	public static TypedSet intersection(BitSetSet a, TypedSet b) {
 		if (b.wrappee instanceof BitSetSet) {
-			BitSet clone = (BitSet) a.getBitSet().clone();
-			clone.and(((BitSetSet) b.wrappee).getBitSet());
-			return new TypedSet(new BitSetSet(clone), b.idType);
+			return new TypedSet(BitSetSet.and(a, ((BitSetSet) b.wrappee)), b.idType);
 		}
 		return new TypedSet(ImmutableSet.copyOf(Sets.intersection(b, a)), b.idType); // as the predicate is: in the
 																						// second argument
@@ -227,9 +224,7 @@ public class TypedSet extends AbstractSet<Integer> implements ITypedCollection {
 
 	private static TypedSet union(BitSetSet a, TypedSet b) {
 		if (b.wrappee instanceof BitSetSet) {
-			BitSet clone = (BitSet) a.getBitSet().clone();
-			clone.or(((BitSetSet) b.wrappee).getBitSet());
-			return new TypedSet(new BitSetSet(clone), b.idType);
+			return new TypedSet(BitSetSet.or(a, (BitSetSet) b.wrappee), b.idType);
 		}
 		return new TypedSet(ImmutableSet.copyOf(Sets.union(b, a)), b.idType); // as the predicate is: in the second
 																				// argument
@@ -237,27 +232,24 @@ public class TypedSet extends AbstractSet<Integer> implements ITypedCollection {
 
 	private static int and(BitSetSet a, Set<Integer> b) {
 		if (b instanceof BitSetSet) {
-			BitSet clone = (BitSet) a.getBitSet().clone();
-			clone.and(((BitSetSet) b).getBitSet());
-			return clone.cardinality();
+			BitSetSet s = BitSetSet.and(a, (BitSetSet) b);
+			return s.size();
 		}
 		return Sets.intersection(b, a).size(); // as the predicate is: in the second argument
 	}
 
 	private static int or(BitSetSet a, Set<Integer> b) {
 		if (b instanceof BitSetSet) {
-			BitSet clone = (BitSet) a.getBitSet().clone();
-			clone.or(((BitSetSet) b).getBitSet());
-			return clone.cardinality();
+			BitSetSet s = BitSetSet.or(a, (BitSetSet) b);
+			return s.size();
 		}
 		return Sets.union(b, a).size(); // as the predicate is: in the second argument
 	}
 
 	private static int without(BitSetSet a, Set<Integer> b) {
 		if (b instanceof BitSetSet) {
-			BitSet clone = (BitSet) a.getBitSet().clone();
-			clone.andNot(((BitSetSet) b).getBitSet());
-			return clone.cardinality();
+			BitSetSet s = BitSetSet.andNot(a, (BitSetSet) b);
+			return s.size();
 		}
 		return Sets.difference(a, b).size(); // as the predicate is: in the second argument
 	}

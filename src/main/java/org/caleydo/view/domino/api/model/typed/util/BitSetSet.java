@@ -11,6 +11,7 @@ import java.util.Iterator;
 import java.util.Set;
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.Iterators;
 
 /**
  * a set implementation based on a {@link BitSet}
@@ -19,10 +20,11 @@ import com.google.common.base.Preconditions;
  *
  */
 public class BitSetSet extends AbstractSet<Integer> {
-	private final BitSet bitSet;
+	private final BitSet positives;
+	private final BitSet negatives;
 
 	public BitSetSet() {
-		this(new BitSet());
+		this(new BitSet(), new BitSet());
 	}
 
 	public BitSetSet(Set<Integer> ids) {
@@ -33,8 +35,9 @@ public class BitSetSet extends AbstractSet<Integer> {
 	/**
 	 * @param clone
 	 */
-	public BitSetSet(BitSet bitSet) {
-		this.bitSet = bitSet;
+	public BitSetSet(BitSet positives, BitSet negatives) {
+		this.positives = positives;
+		this.negatives = negatives;
 	}
 
 	/**
@@ -54,25 +57,30 @@ public class BitSetSet extends AbstractSet<Integer> {
 			return false;
 		final int i = ((Integer) o).intValue();
 		if (i < 0)
-			return false;
-		return bitSet.get(i);
+			return negatives.get(-i);
+		return positives.get(i);
 	}
 
 	@Override
 	public void clear() {
-		bitSet.clear();
+		positives.clear();
+		negatives.clear();
 	}
 
 	@Override
 	public boolean isEmpty() {
-		return bitSet.isEmpty();
+		return positives.isEmpty() && negatives.isEmpty();
 	}
 
 	@Override
 	public boolean remove(Object o) {
 		if (!contains(o))
 			return false;
-		bitSet.clear(((Integer) o).intValue());
+		final int i = ((Integer) o).intValue();
+		if (i < 0)
+			negatives.clear(-i);
+		else
+			positives.clear(i);
 		return true;
 	}
 
@@ -81,44 +89,82 @@ public class BitSetSet extends AbstractSet<Integer> {
 		Preconditions.checkNotNull(e);
 		if (contains(e))
 			return false;
-		bitSet.set(e.intValue());
+		final int i = e.intValue();
+		if (i < 0)
+			negatives.set(-i);
+		else
+			positives.set(i);
 		return true;
 	}
 
-	/**
-	 * @return the bitSet, see {@link #bitSet}
-	 */
-	public BitSet getBitSet() {
-		return bitSet;
-	}
-
-
 	@Override
 	public Iterator<Integer> iterator() {
-		return new Iterator<Integer>() {
-			int i = bitSet.nextSetBit(0);
-
-			@Override
-			public void remove() {
-				bitSet.clear(bitSet.previousSetBit(i - 1));
-			}
-
-			@Override
-			public Integer next() {
-				int bak = i;
-				i = bitSet.nextSetBit(i + 1);
-				return bak;
-			}
-
-			@Override
-			public boolean hasNext() {
-				return i != -1;
-			}
-		};
+		if (positives.isEmpty() && negatives.isEmpty())
+			return Iterators.emptyIterator();
+		if (positives.isEmpty())
+			return new BitSetIterator(negatives, false);
+		if (negatives.isEmpty())
+			return new BitSetIterator(positives, true);
+		return Iterators.concat(new BitSetIterator(negatives, false), new BitSetIterator(positives, true));
 	}
 
 	@Override
 	public int size() {
-		return bitSet.cardinality();
+		return positives.cardinality() + negatives.cardinality();
 	}
+
+	private static class BitSetIterator implements Iterator<Integer> {
+		private final BitSet bitSet;
+		private final boolean forward;
+
+		private int i;
+
+		public BitSetIterator(BitSet bitSet, boolean forward) {
+			this.bitSet = bitSet;
+			this.forward = forward;
+			this.i = forward ? bitSet.nextSetBit(0) : bitSet.previousSetBit(bitSet.size());
+		}
+
+		@Override
+		public void remove() {
+			bitSet.clear(forward ? bitSet.previousSetBit(i - 1) : bitSet.nextSetBit(i + 1));
+		}
+
+		@Override
+		public Integer next() {
+			int bak = i;
+			i = forward ? bitSet.nextSetBit(i + 1) : bitSet.previousSetBit(i - 1);
+			return forward ? bak : -bak;
+		}
+
+		@Override
+		public boolean hasNext() {
+			return i != -1;
+		}
+	}
+
+	public static BitSetSet and(BitSetSet a, BitSetSet b) {
+		BitSet p = (BitSet) a.positives.clone();
+		p.and(b.positives);
+		BitSet n = (BitSet) a.negatives.clone();
+		n.and(b.negatives);
+		return new BitSetSet(p, n);
+	}
+
+	public static BitSetSet or(BitSetSet a, BitSetSet b) {
+		BitSet p = (BitSet) a.positives.clone();
+		p.or(b.positives);
+		BitSet n = (BitSet) a.negatives.clone();
+		n.or(b.negatives);
+		return new BitSetSet(p, n);
+	}
+
+	public static BitSetSet andNot(BitSetSet a, BitSetSet b) {
+		BitSet p = (BitSet) a.positives.clone();
+		p.andNot(b.positives);
+		BitSet n = (BitSet) a.negatives.clone();
+		n.andNot(b.negatives);
+		return new BitSetSet(p, n);
+	}
+
 }
