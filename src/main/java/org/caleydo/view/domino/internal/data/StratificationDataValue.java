@@ -17,7 +17,6 @@ import org.caleydo.core.event.EventPublisher;
 import org.caleydo.core.event.data.DataSetSelectedEvent;
 import org.caleydo.core.id.IDType;
 import org.caleydo.core.util.color.Color;
-import org.caleydo.core.util.function.Function2;
 import org.caleydo.core.util.function.IDoubleList;
 import org.caleydo.core.util.function.MappedDoubleList;
 import org.caleydo.core.view.opengl.layout2.manage.GLElementFactoryContext.Builder;
@@ -34,7 +33,7 @@ import com.google.common.base.Function;
  * @author Samuel Gratzl
  *
  */
-public class StratificationDataValue implements IDataValues, Function2<Integer, Integer, Color> {
+public class StratificationDataValue implements IDataValues, Function<Integer, Color> {
 	private final IDataDomain reference;
 	private final String label;
 	private final EDimension main;
@@ -84,15 +83,7 @@ public class StratificationDataValue implements IDataValues, Function2<Integer, 
 
 	@Override
 	public void fill(Builder b, TypedList dimData, TypedList recData) {
-		b.put("heatmap.dimensions", dimData);
-		b.put("heatmap.dimensions.idType", dimData.getIdType());
-		b.put("heatmap.records", recData);
-		b.put("heatmap.records.idType", recData.getIdType());
 		final boolean swapped = dimData.getIdType() != getDefaultGroups(EDimension.DIMENSION).getIdType();
-		if (swapped) { // swapped
-			b.put(Function2.class, Functions2s.swap(this));
-		} else
-			b.put(Function2.class, this);
 
 		final EDimension dir = swapped ? main.opposite() : main;
 		b.put(EDimension.class, dir);
@@ -114,6 +105,7 @@ public class StratificationDataValue implements IDataValues, Function2<Integer, 
 			}
 		};
 		b.put("index2double", toIndex);
+		b.put("id2color", this);
 		final Histogram hist = createHist(data);
 		b.put(Histogram.class, hist);
 		b.put("distribution.colors", getHistColors(hist, data));
@@ -157,8 +149,7 @@ public class StratificationDataValue implements IDataValues, Function2<Integer, 
 	}
 
 	@Override
-	public Color apply(Integer record, Integer dimension) {
-		Integer id = main.select(dimension, record);
+	public Color apply(Integer id) {
 		for (TypedSetGroup g : groups()) {
 			if (g.contains(id))
 				return g.getColor();

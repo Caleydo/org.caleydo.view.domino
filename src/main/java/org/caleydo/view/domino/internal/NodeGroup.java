@@ -95,7 +95,7 @@ public class NodeGroup extends GLElementDecorator implements ILabeled, IDragGLSo
 		b.put(EDetailLevel.class,
 				parent.isAlone(EDimension.DIMENSION) && parent.isAlone(EDimension.RECORD) ? EDetailLevel.HIGH
 						: EDetailLevel.MEDIUM);
-		b.set("heatmap.blurNotSelected");
+		b.set("blurNotSelected");
 		b.set("heatmap.forceTextures");
 		ImmutableList<GLElementSupplier> extensions = GLElementFactories.getExtensions(b.build(), "domino."
  + data.getExtensionID(), data);

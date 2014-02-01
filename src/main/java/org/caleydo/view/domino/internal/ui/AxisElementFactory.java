@@ -201,7 +201,7 @@ public class AxisElementFactory implements IGLElementFactory2 {
 		 */
 		public GLElementDimensionDesc getDesc(EDimension dim) {
 			if (this.dim != dim)
-				return GLElementDimensionDesc.newFix(20).minimum(10).build();
+				return GLElementDimensionDesc.newFix(20).minimum(5).build();
 			return GLElementDimensionDesc.newFix(200).minimum(50).locateUsing(this).build();
 		}
 

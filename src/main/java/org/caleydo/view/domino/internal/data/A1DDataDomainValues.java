@@ -9,17 +9,20 @@ import org.caleydo.core.data.collection.EDimension;
 import org.caleydo.core.data.perspective.table.TablePerspective;
 import org.caleydo.core.data.perspective.variable.Perspective;
 import org.caleydo.core.id.IDType;
+import org.caleydo.core.util.color.Color;
 import org.caleydo.core.view.opengl.layout2.manage.GLElementFactoryContext.Builder;
 import org.caleydo.view.domino.api.model.typed.TypedCollections;
 import org.caleydo.view.domino.api.model.typed.TypedGroupSet;
 import org.caleydo.view.domino.api.model.typed.TypedID;
 import org.caleydo.view.domino.api.model.typed.TypedList;
 
+import com.google.common.base.Function;
+
 /**
  * @author Samuel Gratzl
  *
  */
-public abstract class A1DDataDomainValues extends ADataDomainDataValues {
+public abstract class A1DDataDomainValues extends ADataDomainDataValues implements Function<Integer, Color> {
 	protected final EDimension main;
 
 	protected final TypedID id;
@@ -57,8 +60,6 @@ public abstract class A1DDataDomainValues extends ADataDomainDataValues {
 			dim = dim.opposite();
 			data = main.opposite().select(dimData, recData);
 		}
-		TypedList single = TypedCollections.singletonList(id);
-		super.fillHeatMap(b, dim.select(data, single), dim.select(single, data));
 		b.put(EDimension.class, dim);
 		fill(b, data);
 	}
@@ -71,6 +72,7 @@ public abstract class A1DDataDomainValues extends ADataDomainDataValues {
 		b.put(TypedList.class, data);
 		b.put(IDType.class, data.getIdType());
 		b.put("idType", data.getIdType());
+		b.put("id2color", this);
 	}
 
 	@Override
@@ -84,5 +86,11 @@ public abstract class A1DDataDomainValues extends ADataDomainDataValues {
 
 	public Object getRaw(int id) {
 		return getRaw(main.select(id, this.id.getId()), main.select(this.id.getId(), id));
+	}
+
+	@Override
+	public Color apply(Integer id) {
+		EDimension d = main.opposite();
+		return apply(d.select(id.intValue(), this.id.getId()), d.select(this.id.getId(), id.intValue()));
 	}
 }
