@@ -40,6 +40,7 @@ import org.caleydo.core.view.opengl.layout2.geom.Rect;
 import org.caleydo.core.view.opengl.layout2.layout.IGLLayout2;
 import org.caleydo.core.view.opengl.layout2.layout.IGLLayoutElement;
 import org.caleydo.core.view.opengl.layout2.manage.EVisScaleType;
+import org.caleydo.core.view.opengl.layout2.manage.GLElementDimensionDesc;
 import org.caleydo.core.view.opengl.layout2.manage.GLElementFactories;
 import org.caleydo.core.view.opengl.layout2.manage.GLElementFactories.GLElementSupplier;
 import org.caleydo.core.view.opengl.layout2.manage.GLElementFactorySwitcher;
@@ -326,11 +327,13 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 	public void pick(Pick pick) {
 		switch (pick.getPickingMode()) {
 		case MOUSE_OVER:
+			System.out.println(toString() + " add drop target");
 			context.getMouseLayer().addDropTarget(this);
 			mouseOver = true;
 			repaint();
 			break;
 		case MOUSE_OUT:
+			System.out.println(toString() + " remove drop target");
 			context.getMouseLayer().removeDropTarget(this);
 			dropSetOperation = null;
 			mouseOver = false;
@@ -347,6 +350,7 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 
 	@Override
 	public boolean canSWTDrop(IDnDItem item) {
+		System.out.println(toString() + " can SWT DROP");
 		if (has(EDimension.DIMENSION) && has(EDimension.RECORD))
 			return false;
 		Node b = toNode(item);
@@ -548,8 +552,8 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 	}
 
 	private static Vec2f fixSize(Vec2f size) {
-		size.setX(Math.max(size.x(), MIN_SIZE));
-		size.setY(Math.max(size.y(), MIN_SIZE));
+		// size.setX(Math.max(size.x(), MIN_SIZE));
+		// size.setY(Math.max(size.y(), MIN_SIZE));
 		return size;
 	}
 
@@ -572,6 +576,8 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 	private Vec2f getScaleFactor() {
 		Vec2f scale;
 		String type = getVisualizationType();
+		if (GLElementFactories.getMetaData(type).getScaleType() == EVisScaleType.DATADEPENDENT)
+			type = "data";
 		if (this.scaleFactors.containsKey(type))
 			scale = this.scaleFactors.get(type);
 		else
@@ -1183,12 +1189,24 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 		if (shiftX == 0 && shiftY == 0)
 			return;
 		Vec2f raw = originalSize();
+		Vec2f oldScale = getScaleFactor();
 		Vec2f new_ = fixSize(scaleSize(raw.copy()).plus(new Vec2f(shiftX, shiftY)));
-		// TODO check if the change is valid according to the visualizations
+
+		final GLElementFactorySwitcher switcher = getRepresentableSwitcher();
+		GLElementDimensionDesc dimDesc = switcher.getActiveDesc(EDimension.DIMENSION);
+		GLElementDimensionDesc recDesc = switcher.getActiveDesc(EDimension.RECORD);
+
+		// not allowed to change
+		if (!dimDesc.isValid(new_.x(), dimData.size()))
+			new_.setX(raw.x() * oldScale.x());
+		if (!recDesc.isValid(new_.y(), recData.size()))
+			new_.setY(raw.y() * oldScale.y());
 
 		float sx = new_.x() / raw.x();
 		float sy = new_.y() / raw.y();
 		String type = getVisualizationType();
+		if (GLElementFactories.getMetaData(type).getScaleType() == EVisScaleType.DATADEPENDENT)
+			type = "data";
 		scaleFactors.put(type, new Vec2f(sx, sy));
 
 		setSize(new_.x(), new_.y());

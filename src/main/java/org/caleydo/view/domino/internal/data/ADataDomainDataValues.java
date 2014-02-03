@@ -163,10 +163,10 @@ public abstract class ADataDomainDataValues implements IDataValues, Function2<In
 	 * @param recData
 	 */
 	protected void fillHeatMap(Builder b, TypedList dimData, TypedList recData) {
-		b.put("heatmap.dimensions", dimData);
-		b.put("heatmap.dimensions.idType", dimData.getIdType());
-		b.put("heatmap.records", recData);
-		b.put("heatmap.records.idType", recData.getIdType());
+		b.put("dimensions", dimData);
+		b.put("dimensions.idType", dimData.getIdType());
+		b.put("records", recData);
+		b.put("records.idType", recData.getIdType());
 		if (dimData.getIdType() != getIDType(EDimension.DIMENSION)) { // swapped
 			b.put(Function2.class, Functions2s.swap(this));
 		} else
