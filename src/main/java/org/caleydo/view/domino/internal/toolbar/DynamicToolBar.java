@@ -21,7 +21,6 @@ import org.caleydo.core.view.opengl.layout2.layout.IGLLayoutElement;
 import org.caleydo.core.view.opengl.layout2.renderer.RoundedRectRenderer;
 import org.caleydo.core.view.opengl.picking.IPickingListener;
 import org.caleydo.core.view.opengl.picking.Pick;
-import org.caleydo.view.domino.internal.Node;
 import org.caleydo.view.domino.internal.NodeGroup;
 import org.caleydo.view.domino.internal.NodeSelections;
 import org.caleydo.view.domino.internal.UndoStack;
@@ -56,34 +55,19 @@ public class DynamicToolBar extends GLElementDecorator implements ICallback<Sele
 	@Override
 	public void on(SelectionType type) {
 		Set<NodeGroup> s = new HashSet<>(selections.getSelection(SelectionType.MOUSE_OVER));
-		Set<NodeGroup> selected = selections.getSelection(SelectionType.SELECTION);
-		Node act = getActNode();
-		Node node = null;
-		if (s.size() == 1)
-			node = s.iterator().next().getNode();
-		else
-			node = NodeSelections.getSingleNode(s);
-
-		if (node != null && !selected.isEmpty()) {
-			for (NodeGroup sel : selected) { // fill out will all of the same node
-				if (sel.getNode() == node)
-					s.add(sel);
-			}
-			if (s.size() != node.groupCount()) // not all found, just the mouse overed agains
-				s = selections.getSelection(SelectionType.MOUSE_OVER);
-		}
-
-		if (node == null) {
+		if (s.isEmpty()) {
 			if (!mouseOver) {
 				timerToHide = 200;
 			}
 			hideOnMouseOut = true;
 			return;
 		}
+		NodeGroup g = s.iterator().next();
+		s.addAll(selections.getSelection(SelectionType.SELECTION));
 		timerToHide = 0;
 		hideOnMouseOut = false;
 		setVisibility(EVisibility.PICKABLE);
-		setContent(new NodeTools(undo, new HashSet<>(s)).setLayoutData(node));
+		setContent(new NodeTools(undo, new HashSet<>(s)).setLayoutData(g));
 	}
 
 	@Override
@@ -95,7 +79,7 @@ public class DynamicToolBar extends GLElementDecorator implements ICallback<Sele
 				setContent(null);
 			}
 		}
-		Node act = getActNode();
+		NodeGroup act = getActNode();
 		if (act != null) {
 			float wi = act.getSize().x();
 			if (wi != lastW)
@@ -108,11 +92,11 @@ public class DynamicToolBar extends GLElementDecorator implements ICallback<Sele
 	/**
 	 * @return
 	 */
-	private Node getActNode() {
+	private NodeGroup getActNode() {
 		GLElement c = getContent();
 		if (c == null)
 			return null;
-		Node node = ((NodeTools) c).getSelection().iterator().next().getNode();
+		NodeGroup node = c.getLayoutDataAs(NodeGroup.class, null);
 		return node;
 	}
 
@@ -139,7 +123,7 @@ public class DynamicToolBar extends GLElementDecorator implements ICallback<Sele
 	@Override
 	protected void layoutContent(IGLLayoutElement content, float w, float h, int deltaTimeMs) {
 		final NodeTools tools = (NodeTools) content.asElement();
-		Node node = tools.getSelection().iterator().next().getNode();
+		NodeGroup node = getActNode();
 		Vec2f loc = node.getAbsoluteLocation();
 		Vec2f base = getAbsoluteLocation();
 		Vec2f rel = loc.minus(base);
