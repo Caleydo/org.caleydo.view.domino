@@ -230,6 +230,10 @@ public class Domino extends GLElementContainer implements IDropGLTarget, IPickin
 				this.select.dragTo(pick.getDx(), pick.getDy(), event.isCtrlDown());
 				content.remove(this.select);
 				this.select = null;
+			} else {
+				// clear selection
+				selections.clear(SelectionType.SELECTION, (Block) null);
+				selections.clear(SelectionType.SELECTION, (NodeGroup) null);
 			}
 			break;
 		default:
