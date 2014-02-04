@@ -73,6 +73,10 @@ public class NodeDataItem implements IDataSetItem {
 	 * @param selections
 	 */
 	private void updateImpl(String text) {
+		if (this.text.isDisposed()) {
+			instance = null;
+			return;
+		}
 		this.text.setText(text);
 	}
 
