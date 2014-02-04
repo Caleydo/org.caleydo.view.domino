@@ -72,9 +72,9 @@ public class Domino extends GLElementContainer implements IDropGLTarget, IPickin
 	private final DominoCanvas content;
 	private SelectLayer select;
 	private DragElement currentlyDraggedVis;
-	private boolean showDebugInfos = true;
+	private boolean showDebugInfos = false;
 	private boolean showMiniMap = false;
-	private boolean showBlockLabels = false;
+	private boolean showBlockLabels = true;
 
 	private EToolState tool = EToolState.MOVE;
 
