@@ -566,7 +566,7 @@ public class LinearBlock extends AbstractCollection<Node> {
 		for (int i = start + 1; i < nodes.size(); ++i) {
 			Node n = nodes.get(i);
 			Rect n_bounds = n.getDetachedRectBounds().clone();
-			float offset = Math.max(offsets.getOffset(n.getNeighbor(dir), n), 1);
+			float offset = offsets.getOffset(n.getNeighbor(dir), n);
 			if (dim.isDimension()) {
 				float shift = (bounds.height() - n_bounds.height()) * 0.5f;
 				n.setDetachedBounds(bounds.x2() + offset, bounds.y() + shift, n_bounds.width(),

@@ -194,14 +194,14 @@ public class Block extends GLElementContainer implements IGLLayout2, IPickingLis
 		}
 
 		NodeSelections selections = domino.getSelections();
-		if (selections.isSelected(SelectionType.SELECTION, this))
-			g.color(SelectionType.SELECTION.getColor()).lineWidth(3);
-		else if (selections.isSelected(SelectionType.MOUSE_OVER, this))
-			g.color(SelectionType.MOUSE_OVER.getColor()).lineWidth(3);
-		else
-			g.color(Color.LIGHT_GRAY);
-		g.incZ().drawPath(getOutline(), true).decZ();
-		g.lineWidth(1);
+		final boolean selected = selections.isSelected(SelectionType.SELECTION, this);
+		final boolean mouseOver = selections.isSelected(SelectionType.MOUSE_OVER, this);
+		if (selected || mouseOver) {
+			g.lineWidth(3).color((selected ? SelectionType.SELECTION : SelectionType.MOUSE_OVER).getColor());
+			g.incZ().drawPath(getOutline(), true).decZ();
+			g.lineWidth(1);
+		}
+
 
 		if (fadeOut) {
 			fadeOutElements(g, w, h);

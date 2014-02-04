@@ -80,8 +80,7 @@ import com.google.common.collect.Sets;
  */
 public class Node extends GLElementContainer implements IGLLayout2, ILabeled, IDropGLTarget, IPickingListener,
 		IUniqueObject {
-	private static final int MIN_SIZE = 30;
-	static final float BORDER = 2;
+	static final float BORDER = 1;
 
 	private final int id = IDCreator.createVMUniqueID(Node.class);
 
@@ -547,14 +546,22 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 
 
 	private void updateSize(boolean adaptDetached) {
-		Vec2f new_ = fixSize(scaleSize(originalSize()));
+		Vec2f new_ = addBorders(scaleSize(originalSize()));
+
 		setSize(new_.x(), new_.y());
 	}
 
-	private static Vec2f fixSize(Vec2f size) {
-		// size.setX(Math.max(size.x(), MIN_SIZE));
-		// size.setY(Math.max(size.y(), MIN_SIZE));
-		return size;
+	/**
+	 * @param scaleSize
+	 * @return
+	 */
+	private Vec2f addBorders(Vec2f s) {
+		final int dims = getData(EDimension.DIMENSION).getGroups().size();
+		final int recs = getData(EDimension.RECORD).getGroups().size();
+		// 2 border per group + 2 extra between each group
+		s.setX(s.x() + (dims + dims - 1) * 2 * BORDER);
+		s.setY(s.y() + (recs + recs - 1) * 2 * BORDER);
+		return s;
 	}
 
 	private Vec2f originalSize() {
@@ -606,7 +613,7 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 		int i = 0;
 		for (NodeGroup l : lefts) {
 			double size = l.getDesc(dim).size(l.getData(dim).size());
-			r[i++] = (float) size + BORDER * 2;
+			r[i++] = (float) size;
 		}
 		return r;
 	}
@@ -781,21 +788,24 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 			int deltaTimeMs) {
 		float[] dims = getSizes(EDimension.DIMENSION);
 		float[] recs = getSizes(EDimension.RECORD);
-		float fw = (w) / sum(dims);
-		float fh = (h) / sum(recs);
+		float dimSpace = (dims.length + dims.length - 1) * 2 * BORDER;
+		float recSpace = (recs.length + recs.length - 1) * 2 * BORDER;
+		// 2 border per group + 2 extra between each group
+		float fw = (w - dimSpace) / sum(dims);
+		float fh = (h - recSpace) / sum(recs);
 
 		int k = 0;
 		float x = 0;
 		for (int i = 0; i < dims.length; ++i) {
 			float y = 0;
-			float wi = dims[i] * fw;
+			float wi = dims[i] * fw + BORDER * 2;
 			for (int j = 0; j < recs.length; ++j) {
-				float hi = recs[j] * fh;
+				float hi = recs[j] * fh + BORDER * 2;
 				IGLLayoutElement child = children.get(k++);
 				child.setBounds(x, y, wi, hi);
-				y += hi;
+				y += hi + BORDER * 2;
 			}
-			x += wi;
+			x += wi + BORDER * 2;
 		}
 		return false;
 	}
@@ -1190,7 +1200,7 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 			return;
 		Vec2f raw = originalSize();
 		Vec2f oldScale = getScaleFactor();
-		Vec2f new_ = fixSize(scaleSize(raw.copy()).plus(new Vec2f(shiftX, shiftY)));
+		Vec2f new_ = scaleSize(raw.copy()).plus(new Vec2f(shiftX, shiftY));
 
 		final GLElementFactorySwitcher switcher = getRepresentableSwitcher();
 		GLElementDimensionDesc dimDesc = switcher.getActiveDesc(EDimension.DIMENSION);
@@ -1209,6 +1219,7 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 			type = "data";
 		scaleFactors.put(type, new Vec2f(sx, sy));
 
+		new_ = addBorders(new_);
 		setSize(new_.x(), new_.y());
 		relayout();
 	}

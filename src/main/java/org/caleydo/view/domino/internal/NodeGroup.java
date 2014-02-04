@@ -68,7 +68,7 @@ public class NodeGroup extends GLElementDecorator implements ILabeled, IDragGLSo
 
 	@Override
 	protected void layoutContent(IGLLayoutElement content, float w, float h, int deltaTimeMs) {
-		content.setBounds(0, 0, w, h);
+		content.setBounds(Node.BORDER, Node.BORDER, w - 2 * Node.BORDER, h - 2 * Node.BORDER);
 	}
 
 	@Override
