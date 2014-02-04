@@ -149,11 +149,18 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 	public void setPreviewing(boolean isPreviewing) {
 		if (this.isPreviewing == isPreviewing)
 			return;
-		boolean bak = isDetachedVis();
+		float bak = getDetachedOffset();
 		this.isPreviewing = isPreviewing;
-		boolean new_ = isDetachedVis();
+		float new_ = getDetachedOffset();
 		if (bak != new_ && findBlock() != null)
 			findBlock().updatedNode(Node.this, bak, new_);
+	}
+
+	/**
+	 * @return the isPreviewing, see {@link #isPreviewing}
+	 */
+	public boolean isPreviewing() {
+		return isPreviewing;
 	}
 
 	@Override
@@ -1143,7 +1150,7 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 		int active = findVisTypeIndex(id);
 		if (active < 0) // invalid type
 			return;
-		boolean was = isDetachedVis();
+		float was = getDetachedOffset();
 		visualizationType = id;
 
 		for (NodeGroup g : nodeGroups()) {
@@ -1156,16 +1163,15 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 
 		updateSize(true);
 		relayout();
-		findBlock().updatedNode(Node.this, was, isDetachedVis());
+		findBlock().updatedNode(Node.this, was, getDetachedOffset());
 	}
 
-	public boolean isDetachedVis() {
-		if (isPreviewing) {
-			return true;
-		}
+	public float getDetachedOffset() {
+		if (isPreviewing)
+			return Block.DETACHED_OFFSET * 2;
 		IGLElementMetaData metaData = GLElementFactories.getMetaData(getVisualizationType());
 		boolean needDetached = metaData != null && metaData.getScaleType() == EVisScaleType.FIX;
-		return needDetached;
+		return needDetached ? Block.DETACHED_OFFSET : 0;
 	}
 
 	@Override

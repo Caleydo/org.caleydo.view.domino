@@ -367,11 +367,8 @@ public class Block extends GLElementContainer implements IGLLayout2, IPickingLis
 		if (node.has(other.opposite()))
 			linearBlocks.add(new LinearBlock(other, node));
 
-		if (neighbor.isDetachedVis() || node.isDetachedVis()) {
-			if (dir.opposite().isPrimaryDirection())
-				setOffset(node, neighbor, DETACHED_OFFSET);
-			else
-				setOffset(neighbor, node, DETACHED_OFFSET);
+		if (neighbor.getDetachedOffset() > 0 || node.getDetachedOffset() > 0) {
+			setOffset(node, neighbor, Math.max(neighbor.getDetachedOffset(), node.getDetachedOffset()));
 		}
 
 		realign();
@@ -440,7 +437,7 @@ public class Block extends GLElementContainer implements IGLLayout2, IPickingLis
 		updateSize();
 	}
 
-	public void updatedNode(Node node, boolean wasDetached, boolean isDetached) {
+	public void updatedNode(Node node, float wasDetached, float isDetached) {
 		if (wasDetached != isDetached)
 			updateOffsets(node);
 		realign();
@@ -453,15 +450,15 @@ public class Block extends GLElementContainer implements IGLLayout2, IPickingLis
 	 * @param node
 	 */
 	private void updateOffsets(Node node) {
-		boolean d = node.isDetachedVis();
+		float d = node.getDetachedOffset();
 		for (EDirection dir : EDirection.values()) {
 			Node n = node.getNeighbor(dir);
 			if (n == null)
 				continue;
-			boolean dn = n.isDetachedVis();
+			float dn = n.getDetachedOffset();
 
-			if (d || dn) {
-				setOffset(n, node, DETACHED_OFFSET);
+			if (d > 0 || dn > 0) {
+				setOffset(n, node, Math.max(d, dn));
 			} else {
 				offsets.remove(node,n);
 			}
@@ -543,12 +540,12 @@ public class Block extends GLElementContainer implements IGLLayout2, IPickingLis
 	 * @param node
 	 */
 	private void updateShifts(Node node) {
-		boolean d = node.isDetachedVis();
+		boolean d = node.getDetachedOffset() > 0;
 		for (EDirection dir : EDirection.primaries()) {
 			Node n = node.getNeighbor(dir);
 			if (n == null)
 				continue;
-			boolean nd = n.isDetachedVis();
+			boolean nd = n.getDetachedOffset() > 0;
 			if (!d && !nd)
 				continue;
 			Vec2f delta = n.getSize().minus(node.getSize());
@@ -621,9 +618,10 @@ public class Block extends GLElementContainer implements IGLLayout2, IPickingLis
 
 					int index = block.remove(node);
 
-					if (left != null && right != null && (left.isDetachedVis() || right.isDetachedVis())) // update
+					if (left != null && right != null
+							&& (left.getDetachedOffset() > 0 || right.getDetachedOffset() > 0)) // update
 																											// offsets
-						setOffset(left, right, DETACHED_OFFSET);
+						setOffset(left, right, Math.max(left.getDetachedOffset(), right.getDetachedOffset()));
 
 					if (index == 0) {
 						realign();
@@ -950,8 +948,7 @@ public class Block extends GLElementContainer implements IGLLayout2, IPickingLis
 	 * @param offset
 	 */
 	private void setOffset(Node left, Node right, float offset) {
-		if (left.isDetachedVis() || right.isDetachedVis())
-			offset = Math.max(offset, DETACHED_OFFSET);
+		// offset = Math.max(offset, Math.max(left.getDetachedOffset(), right.getDetachedOffset()));
 		offsets.setOffset(left, right, offset);
 	}
 
@@ -975,8 +972,8 @@ public class Block extends GLElementContainer implements IGLLayout2, IPickingLis
 
 	private ABand create(Node s, Node t, LinearBlock b, EDimension dim) {
 		EDimension d = dim.opposite();
-		TypedGroupList sData = s.isDetachedVis() ? s.getData(d) : b.getData();
-		TypedGroupList tData = t.isDetachedVis() ? t.getData(d) : b.getData();
+		TypedGroupList sData = s.getDetachedOffset() > 0 ? s.getData(d) : b.getData();
+		TypedGroupList tData = t.getDetachedOffset() > 0 ? t.getData(d) : b.getData();
 
 		Rect ra = s.getRectBounds();
 		Rect rb = t.getRectBounds();
