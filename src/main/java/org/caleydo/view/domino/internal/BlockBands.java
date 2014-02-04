@@ -7,8 +7,12 @@ package org.caleydo.view.domino.internal;
 
 import gleem.linalg.Vec2f;
 
+import java.util.Collection;
 import java.util.Map;
 
+import org.caleydo.core.data.selection.SelectionManager;
+import org.caleydo.core.data.selection.SelectionType;
+import org.caleydo.core.id.IDType;
 import org.caleydo.core.view.opengl.canvas.IGLMouseListener.IMouseEvent;
 import org.caleydo.core.view.opengl.picking.Pick;
 import org.caleydo.view.domino.internal.band.ABand;
@@ -59,6 +63,23 @@ public class BlockBands extends ABands {
 	@Override
 	protected Vec2f getShift() {
 		return new Vec2f(0, 0);
+	}
+
+	public void select(SelectionType type, IDType idType, Collection<Integer> ids, boolean additional) {
+		SelectionManager manager = getOrCreate(idType);
+		if (!additional)
+			manager.clearSelection(type);
+		manager.addToType(type, ids);
+		selections.fireSelectionDelta(manager);
+	}
+
+	public void clear(SelectionType type, IDType idType, Collection<Integer> ids) {
+		SelectionManager manager = getOrCreate(idType);
+		if (ids == null)
+			manager.clearSelection(type);
+		else
+			manager.removeFromType(type, ids);
+		selections.fireSelectionDelta(manager);
 	}
 
 }

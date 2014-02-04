@@ -107,6 +107,14 @@ public class Block extends GLElementContainer implements IGLLayout2, IPickingLis
 		onPick(this);
 	}
 
+	public void selectItems(SelectionType type, IDType idType, Collection<Integer> ids, boolean additional) {
+		bands.select(type, idType, ids, additional);
+	}
+
+	public void clearItems(SelectionType type, IDType idType, Collection<Integer> ids) {
+		bands.clear(type, idType, ids);
+	}
+
 
 	@Override
 	public void pick(Pick pick) {

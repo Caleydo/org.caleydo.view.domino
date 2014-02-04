@@ -127,6 +127,7 @@ public class NodeGroup extends GLElementDecorator implements ILabeled, IDragGLSo
 			if (!barrier.isPickable())
 				context.getMouseLayer().addDragSource(this);
 			domino.select(SelectionType.MOUSE_OVER, this, false);
+			selectItems(SelectionType.MOUSE_OVER, false);
 			getNode().getDataValues().onSelectionChanged(true);
 			repaint();
 			break;
@@ -134,6 +135,7 @@ public class NodeGroup extends GLElementDecorator implements ILabeled, IDragGLSo
 			context.getMouseLayer().removeDragSource(this);
 			domino.clear(SelectionType.MOUSE_OVER, (NodeGroup) null);
 			getNode().getDataValues().onSelectionChanged(false);
+			clearItems(SelectionType.MOUSE_OVER, false);
 			repaint();
 			break;
 		case CLICKED:
@@ -141,10 +143,13 @@ public class NodeGroup extends GLElementDecorator implements ILabeled, IDragGLSo
 			break;
 		case MOUSE_RELEASED:
 			if (armed) {
-				if (domino.isSelected(SelectionType.SELECTION, this))
+				if (domino.isSelected(SelectionType.SELECTION, this)) {
 					domino.clear(SelectionType.SELECTION, ctrl ? this : null);
-				else
+					clearItems(SelectionType.SELECTION, ctrl);
+				} else {
 					domino.select(SelectionType.SELECTION, this, ctrl);
+					selectItems(SelectionType.SELECTION, ctrl);
+				}
 				repaint();
 				armed = false;
 			}
@@ -153,8 +158,10 @@ public class NodeGroup extends GLElementDecorator implements ILabeled, IDragGLSo
 			getNode().selectAll();
 			break;
 		case RIGHT_CLICKED:
-			if (!domino.isSelected(SelectionType.SELECTION, this))
+			if (!domino.isSelected(SelectionType.SELECTION, this)) {
 				domino.select(SelectionType.SELECTION, this, ctrl);
+				selectItems(SelectionType.SELECTION, ctrl);
+			}
 			repaint();
 			context.getSWTLayer().showContextMenu(findDomino().getToolBar().asContextMenu());
 			break;
@@ -162,6 +169,27 @@ public class NodeGroup extends GLElementDecorator implements ILabeled, IDragGLSo
 			break;
 		}
 	}
+
+	private void selectItems(SelectionType type, boolean additional) {
+		if (findDomino().getTool() != EToolState.MOVE) // no auto select in select and bands mode
+			return;
+		final Block block = findParent(Block.class);
+		for (EDimension dim : parent.dimensions()) {
+			TypedListGroup ids = getData(dim);
+			block.selectItems(type, ids.getIdType(), ids, additional);
+		}
+	}
+
+	private void clearItems(SelectionType type, boolean additional) {
+		if (findDomino().getTool() != EToolState.MOVE)
+			return;
+		final Block block = findParent(Block.class);
+		for (EDimension dim : parent.dimensions()) {
+			TypedListGroup ids = getData(dim);
+			block.clearItems(type, ids.getIdType(), additional ? ids : null);
+		}
+	}
+
 
 	public void selectMe() {
 		final NodeSelections domino = findDomino().getSelections();
