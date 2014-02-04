@@ -56,7 +56,6 @@ public class LeftToolBar extends GLElementContainer implements IGLLayout2, ISele
 	public LeftToolBar(UndoStack undo) {
 		this.undo = undo;
 		setLayout(this);
-		setRenderer(GLRenderers.fillRect(Color.LIGHT_BLUE));
 
 		addToolButtons();
 		this.add(new GLElement());
@@ -73,6 +72,12 @@ public class LeftToolBar extends GLElementContainer implements IGLLayout2, ISele
 			b.setEnabled(false);
 			selections.add(manager);
 		}
+	}
+
+	@Override
+	protected void renderImpl(GLGraphics g, float w, float h) {
+		g.color(findParent(Domino.class).getTool().getColor()).fillRect(0, 0, w, h);
+		super.renderImpl(g, w, h);
 	}
 
 	/**

@@ -9,12 +9,14 @@ import java.net.URL;
 
 import org.apache.commons.lang.WordUtils;
 import org.caleydo.core.util.base.ILabeled;
+import org.caleydo.core.util.color.Color;
+import org.caleydo.core.view.opengl.util.gleem.IColored;
 
 /**
  * @author Samuel Gratzl
  *
  */
-public enum EToolState implements ILabeled {
+public enum EToolState implements ILabeled, IColored {
 	MOVE, SELECT, BANDS;
 
 	public URL toIcon() {
@@ -32,5 +34,18 @@ public enum EToolState implements ILabeled {
 	@Override
 	public String getLabel() {
 		return WordUtils.capitalizeFully(name());
+	}
+
+	@Override
+	public Color getColor() {
+		switch (this) {
+		case MOVE:
+			return Color.LIGHT_BLUE;
+		case BANDS:
+			return Color.LIGHT_RED;
+		case SELECT:
+			return new Color(144, 238, 144);
+		}
+		throw new IllegalStateException();
 	}
 }

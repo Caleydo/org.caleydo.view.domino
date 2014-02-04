@@ -13,14 +13,15 @@ import org.apache.commons.lang.StringUtils;
 import org.caleydo.core.data.selection.SelectionType;
 import org.caleydo.core.util.base.ICallback;
 import org.caleydo.core.util.base.Labels;
-import org.caleydo.core.util.color.Color;
 import org.caleydo.core.view.contextmenu.AContextMenuItem;
 import org.caleydo.core.view.opengl.layout.Column.VAlign;
 import org.caleydo.core.view.opengl.layout2.GLElement;
 import org.caleydo.core.view.opengl.layout2.GLElementContainer;
+import org.caleydo.core.view.opengl.layout2.GLGraphics;
 import org.caleydo.core.view.opengl.layout2.layout.GLLayouts;
 import org.caleydo.core.view.opengl.layout2.layout.GLPadding;
 import org.caleydo.core.view.opengl.layout2.renderer.GLRenderers;
+import org.caleydo.view.domino.internal.Domino;
 import org.caleydo.view.domino.internal.NodeGroup;
 import org.caleydo.view.domino.internal.NodeSelections;
 import org.caleydo.view.domino.internal.UndoStack;
@@ -49,7 +50,6 @@ public class ToolBar extends GLElementContainer implements ICallback<SelectionTy
 		this.selections.onNodeGroupSelectionChanges(this);
 		this.label = new GLElement();
 		this.add(label);
-		setRenderer(GLRenderers.fillRect(Color.LIGHT_BLUE));
 	}
 
 	@Override
@@ -85,6 +85,12 @@ public class ToolBar extends GLElementContainer implements ICallback<SelectionTy
 		label.setRenderer(GLRenderers.drawText(StringUtils.join(Collections2.transform(selection, Labels.TO_LABEL),
 				", "),
 				VAlign.LEFT, new GLPadding(2, 4)));
+	}
+
+	@Override
+	protected void renderImpl(GLGraphics g, float w, float h) {
+		g.color(findParent(Domino.class).getTool().getColor()).fillRect(0, 0, w, h);
+		super.renderImpl(g, w, h);
 	}
 
 	public List<AContextMenuItem> asContextMenu() {
