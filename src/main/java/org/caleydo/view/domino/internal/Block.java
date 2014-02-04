@@ -896,7 +896,7 @@ public class Block extends GLElementContainer implements IGLLayout2, IPickingLis
 	 *
 	 */
 	public void showAgain() {
-		setVisibility(EVisibility.PICKABLE);
+		setVisibility(findDomino().getTool() == EToolState.BANDS ? EVisibility.PICKABLE : EVisibility.VISIBLE);
 	}
 
 	@ListenTo(sendToMe = true)

@@ -235,7 +235,7 @@ public class NodeSelections {
 		}
 		for (Iterator<Block> it = blocks.elementSet().iterator(); it.hasNext();) {
 			Block block = it.next();
-			if (block.size() != blocks.count(block)) {
+			if (block.nodeCount() != blocks.count(block)) {
 				it.remove();// not all groups
 			}
 		}
