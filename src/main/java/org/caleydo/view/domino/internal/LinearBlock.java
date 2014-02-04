@@ -90,6 +90,10 @@ public class LinearBlock extends AbstractCollection<Node> {
 		return stratified;
 	}
 
+	public boolean isStratisfied(Node node) {
+		return stratified && sortCriteria.get(0) == node;
+	}
+
 	public Rectangle2D getBounds() {
 		Rectangle2D r = null;
 		for (Node elem : nodes) {

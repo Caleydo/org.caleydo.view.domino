@@ -15,6 +15,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.TreeSet;
 
@@ -1146,21 +1147,25 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 	}
 
 	public void setVisualizationType(String id) {
-		boolean anyChange = false;
 		int active = findVisTypeIndex(id);
 		if (active < 0) // invalid type
 			return;
-		float was = getDetachedOffset();
 		visualizationType = id;
 
-		for (NodeGroup g : nodeGroups()) {
-			GLElementFactorySwitcher s = g.getSwitcher();
-			anyChange = anyChange || s.getActive() != active;
-			s.setActive(active);
-		}
-		if (!anyChange)
+		String bak = getRepresentableSwitcher().getActiveId();
+		if (Objects.equals(bak, id)) // no change
 			return;
 
+		findBlock().setVisualizationType(this, id);
+	}
+
+	void setVisualizationTypeImpl(String id) {
+		int active = findVisTypeIndex(id);
+		float was = getDetachedOffset();
+		for (NodeGroup g : nodeGroups()) {
+			GLElementFactorySwitcher s = g.getSwitcher();
+			s.setActive(active);
+		}
 		updateSize(true);
 		relayout();
 		findBlock().updatedNode(Node.this, was, getDetachedOffset());

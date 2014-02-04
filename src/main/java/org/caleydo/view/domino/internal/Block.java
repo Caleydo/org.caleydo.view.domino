@@ -442,8 +442,6 @@ public class Block extends GLElementContainer implements IGLLayout2, IPickingLis
 			updateOffsets(node);
 		realign();
 		updateBlock();
-
-		// autoStratify(node);
 	}
 
 	/**
@@ -983,6 +981,35 @@ public class Block extends GLElementContainer implements IGLLayout2, IPickingLis
 		String id = s.getID() + "D" + t.getID();
 		ABand band = BandFactory.create(label, sData, tData, ra, rb, sNodeLocator, tNodeLocator, d, d, id);
 		return band;
+	}
+
+	public boolean isSingle() {
+		return nodeCount() == 1;
+	}
+
+	private boolean isStratified(Node node, EDimension dim) {
+		LinearBlock b = getBlock(node, dim.opposite());
+		return b == null ? false : b.isStratisfied(node);
+	}
+
+	/**
+	 * @param node
+	 * @param id
+	 */
+	public void setVisualizationType(Node node, String id) {
+		boolean isSingle = nodeCount() == 1;
+		boolean localChange = true;
+		if (isSingle) {
+			boolean stratify = VisualizationTypeOracle.stratifyByDefault(id);
+			for (EDimension dim : node.dimensions()) {
+				if (isStratified(node, dim) != stratify) {
+					stratifyBy(node, dim);
+					localChange = false;
+				}
+			}
+		}
+		if (localChange)
+			node.setVisualizationTypeImpl(id);
 	}
 
 }
