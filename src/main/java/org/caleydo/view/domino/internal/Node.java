@@ -1116,6 +1116,8 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 	}
 
 	private static boolean trySetVisualizationType(GLElementFactorySwitcher s, String target) {
+		if (target == null)
+			return false;
 		for (GLElementSupplier supp : s) {
 			if (target.equals(supp.getId())) {
 				s.setActive(supp);

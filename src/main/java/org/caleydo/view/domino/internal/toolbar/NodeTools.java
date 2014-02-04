@@ -229,11 +229,13 @@ public class NodeTools extends GLElementContainer implements GLButton.ISelection
 	private void addSingleNode(Node node) {
 		if (node.has(EDimension.DIMENSION)) {
 			addButton("Sort Dim", Resources.ICON_SORT_DIM);
-			addButton("Stratify Dim", Resources.ICON_STRATIFY_DIM);
+			if (node.getUnderlyingData(EDimension.DIMENSION).getGroups().size() > 1)
+				addButton("Stratify Dim", Resources.ICON_STRATIFY_DIM);
 		}
 		if (node.has(EDimension.RECORD)) {
 			addButton("Sort Rec", Resources.ICON_SORT_REC);
-			addButton("Stratify Rec", Resources.ICON_STRATIFY_REC);
+			if (node.getUnderlyingData(EDimension.RECORD).getGroups().size() > 1)
+				addButton("Stratify Rec", Resources.ICON_STRATIFY_REC);
 		}
 		final boolean recAlone = node.isAlone(EDimension.RECORD);
 		if (node.has(EDimension.DIMENSION) && !recAlone) {

@@ -121,7 +121,8 @@ public class Band extends ABand {
 
 		@Override
 		public void renderRoute(GLGraphics g, IBandHost host, int nrBands) {
-			final float alpha = alpha(nrBands);
+			final float alpha = EBandMode.alpha(nrBands);
+			final Color color = mode.getColor();
 			g.color(color.r, color.g, color.b, color.a * alpha);
 			g.fillPolygon(base);
 			if (g.isPickingPass())
@@ -134,7 +135,8 @@ public class Band extends ABand {
 		}
 
 		void renderMiniMap(GLGraphics g) {
-			g.color(color.r, color.g, color.b, color.a * alpha(1));
+			final Color color = mode.getColor();
+			g.color(color.r, color.g, color.b, color.a * EBandMode.alpha(1));
 			g.fillPolygon(base);
 		}
 
@@ -262,14 +264,6 @@ public class Band extends ABand {
 				}
 			}
 		}
-	}
-
-	/**
-	 * @return
-	 */
-	static float alpha(int nrItems) {
-		float alpha = Math.min((float) (6 / Math.sqrt(nrItems)), 0.8f);
-		return alpha;
 	}
 
 	/**

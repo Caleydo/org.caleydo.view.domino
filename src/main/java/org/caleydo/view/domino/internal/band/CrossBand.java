@@ -140,7 +140,7 @@ public class CrossBand extends ABand {
 				double w = tShared.size() * tFactor;
 
 				Rect bounds = new Rect((float) x, (float) y, (float) w, (float) h);
-				groupRoutes.add(new MosaicRect(label, bounds, sShared, tShared, true));
+				groupRoutes.add(new MosaicRect(label, bounds, sShared, tShared, EBandMode.GROUPS));
 			}
 		}
 		return groupRoutes;
@@ -265,7 +265,7 @@ public class CrossBand extends ABand {
 			double w = tloc.getSize();
 			double h = sloc.getSize();
 			Rect bounds = new Rect((float) x, (float) y, (float) w, (float) h);
-			return new MosaicRect(label, bounds, new TypedSet(sIds, s), new TypedSet(tIds, t), false);
+			return new MosaicRect(label, bounds, new TypedSet(sIds, s), new TypedSet(tIds, t), EBandMode.DETAIL);
 		}
 	}
 
@@ -294,6 +294,7 @@ public class CrossBand extends ABand {
 		 * @param g
 		 */
 		public void renderMiniMap(GLGraphics g) {
+			final Color color = EBandMode.OVERVIEW.getColor();
 			g.color(color.r, color.g, color.b, color.a);
 			g.fillRect(bounds);
 		}
@@ -314,6 +315,7 @@ public class CrossBand extends ABand {
 
 		@Override
 		public void renderRoute(GLGraphics g, IBandHost host, int nrItems) {
+			final Color color = EBandMode.OVERVIEW.getColor();
 			g.color(color);
 			g.fillRect(bounds);
 
@@ -345,14 +347,14 @@ public class CrossBand extends ABand {
 		private final Rect bounds;
 		private final TypedSet sIds;
 		private final TypedSet tIds;
-		private final boolean outlines;
+		private final EBandMode mode;
 
-		public MosaicRect(String label, Rect bounds, TypedSet sIds, TypedSet tIds, boolean outlines) {
+		public MosaicRect(String label, Rect bounds, TypedSet sIds, TypedSet tIds, EBandMode mode) {
 			this.label = label;
 			this.bounds = bounds;
 			this.sIds = sIds;
 			this.tIds = tIds;
-			this.outlines = outlines;
+			this.mode = mode;
 		}
 
 		@Override
@@ -366,6 +368,7 @@ public class CrossBand extends ABand {
 				renderPoint(g, host);
 				return;
 			}
+			Color color = mode.getColor();
 			g.color(color);
 			g.fillRect(bounds);
 
@@ -381,7 +384,7 @@ public class CrossBand extends ABand {
 							* (sS / (float) sIds.size()));
 				}
 			}
-			if (outlines) {
+			if (mode == EBandMode.GROUPS) {
 				g.color(color.darker());
 				g.drawRect(bounds.x(), bounds.y(), bounds.width(), bounds.height());
 			}
@@ -392,7 +395,7 @@ public class CrossBand extends ABand {
 		 * @param host
 		 */
 		private void renderPoint(GLGraphics g, IBandHost host) {
-			Color c = color;
+			Color c = mode.getColor();
 
 			if (!g.isPickingPass()) {
 				for (SelectionType type : SELECTION_TYPES) {

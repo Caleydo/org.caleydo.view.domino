@@ -17,7 +17,6 @@ import org.caleydo.core.data.selection.SelectionType;
 import org.caleydo.core.id.IDType;
 import org.caleydo.core.util.base.ILabeled;
 import org.caleydo.core.util.collection.Pair;
-import org.caleydo.core.util.color.Color;
 import org.caleydo.core.view.opengl.layout2.GLGraphics;
 import org.caleydo.core.view.opengl.layout2.util.PickingPool;
 import org.caleydo.view.domino.api.model.EDirection;
@@ -33,8 +32,6 @@ import org.caleydo.view.domino.internal.band.IBandHost.SourceTarget;
  *
  */
 public abstract class ABand implements ILabeled {
-	protected final static Color color = new Color(0, 0, 0, 0.5f);
-
 	protected static final List<SelectionType> SELECTION_TYPES = Arrays.asList(SelectionType.SELECTION,
 			SelectionType.MOUSE_OVER);
 
