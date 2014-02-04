@@ -15,6 +15,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.apache.commons.lang.StringUtils;
 import org.caleydo.core.data.collection.EDimension;
@@ -50,6 +51,8 @@ import org.caleydo.view.domino.internal.dnd.ADragInfo;
 import org.caleydo.view.domino.internal.dnd.BlockDragInfo;
 import org.caleydo.view.domino.internal.event.HideNodeEvent;
 
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.ImmutableSet.Builder;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Iterators;
 import com.google.common.collect.Maps;
@@ -1018,6 +1021,17 @@ public class Block extends GLElementContainer implements IGLLayout2, IPickingLis
 		}
 		if (localChange)
 			node.setVisualizationTypeImpl(id);
+	}
+
+	/**
+	 * @return
+	 */
+	public Set<IDType> getIDTypes() {
+		Builder<IDType> builder = ImmutableSet.builder();
+		for (LinearBlock b : linearBlocks) {
+			builder.add(b.getIdType());
+		}
+		return builder.build();
 	}
 
 }

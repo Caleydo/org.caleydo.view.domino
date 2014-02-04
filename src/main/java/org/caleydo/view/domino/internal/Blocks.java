@@ -21,6 +21,7 @@ import org.caleydo.core.view.opengl.layout2.geom.Rect;
 import org.caleydo.view.domino.internal.dnd.DragElement;
 
 import com.google.common.collect.Iterables;
+import com.google.common.collect.Sets;
 
 /**
  * @author Samuel Gratzl
@@ -37,9 +38,13 @@ public class Blocks extends GLElementContainer implements IHasMinSize, ICallback
 		final Domino domino = findParent(Domino.class);
 		if (data == SelectionType.SELECTION && domino.getTool() == EToolState.BANDS) {
 			Set<Block> s = domino.getSelections().getBlockSelection(SelectionType.SELECTION);
-			if (s.size() < 2) {
+			if (s.isEmpty()) {
 				for (Block b : getBlocks())
 					b.setFadeOut(false);
+			} else if (s.size() == 1) {
+				Block sel = s.iterator().next();
+				for (Block b : getBlocks())
+					b.setFadeOut(b != sel && !canHaveBands(sel, b));
 			} else {
 				for (Block b : getBlocks())
 					b.setFadeOut(!s.contains(b));
@@ -47,12 +52,21 @@ public class Blocks extends GLElementContainer implements IHasMinSize, ICallback
 		}
 	}
 
+	/**
+	 * @param sel
+	 * @param b
+	 * @return
+	 */
+	private boolean canHaveBands(Block a, Block b) {
+		return !Sets.intersection(a.getIDTypes(), b.getIDTypes()).isEmpty();
+	}
+
 	public void addBlock(Block b) {
 		this.add(b);
 		final Domino domino = findParent(Domino.class);
 		if (domino.getTool() == EToolState.BANDS) {
 			Set<Block> s = domino.getSelections().getBlockSelection(SelectionType.SELECTION);
-			b.setFadeOut(s.size() >= 2 && !s.contains(b));
+			b.setFadeOut((s.size() >= 2 && !s.contains(b)) || (s.size() == 1 && !canHaveBands(s.iterator().next(), b)));
 		}
 	}
 
