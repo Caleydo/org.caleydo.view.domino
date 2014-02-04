@@ -707,7 +707,7 @@ public class Block extends GLElementContainer implements IGLLayout2, IPickingLis
 	}
 
 	public Pair<List<Node>, Boolean> restoreSorting(Node node, EDimension dim, List<Node> sortCriteria,
-			Boolean stratified) {
+			boolean stratified) {
 		LinearBlock block = getBlock(node, dim.opposite());
 		if (block == null)
 			return null;

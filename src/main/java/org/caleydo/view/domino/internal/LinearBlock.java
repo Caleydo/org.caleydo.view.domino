@@ -403,10 +403,12 @@ public class LinearBlock extends AbstractCollection<Node> {
 	}
 
 	public Pair<List<Node>, Boolean> sortBy(List<Node> sortCriteria, boolean stratified) {
-		Pair<List<Node>, Boolean> act = Pair.make((List<Node>) new ArrayList<>(sortCriteria), stratified);
+		Pair<List<Node>, Boolean> act = Pair.make((List<Node>) new ArrayList<>(this.sortCriteria), this.stratified);
 		this.stratified = stratified;
 		this.sortCriteria.clear();
 		this.sortCriteria.addAll(sortCriteria);
+		update();
+		apply();
 		return act;
 	}
 
