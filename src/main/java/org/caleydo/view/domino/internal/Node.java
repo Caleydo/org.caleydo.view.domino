@@ -469,6 +469,7 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 
 	@Override
 	protected void takeDown() {
+		System.out.println(toString() + " takeDown");
 		context.getMouseLayer().removeDropTarget(this);
 		super.takeDown();
 	}
@@ -1135,15 +1136,20 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 		return false;
 	}
 
+	public String getVisualizationType() {
+		return getVisualizationType(false);
+	}
 	/**
 	 * @return
 	 */
-	public String getVisualizationType() {
-		if (isEmpty())
-			return null;
+	public String getVisualizationType(boolean guess) {
+		final String default_ = guess ? visualizationType : null;
+		if (isEmpty()) {
+			return default_;
+		}
 		NodeGroup g = (NodeGroup) get(0);
 		final GLElementFactorySwitcher s = g.getSwitcher();
-		return s == null ? null : s.getActiveId();
+		return s == null ? default_ : s.getActiveId();
 	}
 
 	public void setVisualizationType(String id) {
@@ -1311,5 +1317,20 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 		float w = target.x();
 		float h = target.y();
 		return new Rect((total.x() - w) * 0.5f, (total.y() - h) * 0.5f, w, h);
+	}
+
+	/**
+	 * @param dimData2
+	 * @param dimension
+	 * @return
+	 */
+	public TypedGroupSet getSubGroupData(TypedListGroup group, EDimension dim) {
+		boolean stratified = findBlock().isStratified(this, dim);
+		final TypedGroupSet underlying = getUnderlyingData(dim);
+		boolean hasMultipleGroups = underlying.getGroups().size() > 1;
+		if (stratified || !hasMultipleGroups)
+			return new TypedGroupSet(group.asSet());
+
+		return underlying.subSet(group);
 	}
 }

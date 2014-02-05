@@ -82,7 +82,7 @@ public class LinearBlock extends AbstractCollection<Node> {
 	 * @return
 	 */
 	private boolean stratifyByDefault(Node node) {
-		String type = node.getVisualizationType();
+		String type = node.getVisualizationType(true);
 		return VisualizationTypeOracle.stratifyByDefault(type);
 	}
 

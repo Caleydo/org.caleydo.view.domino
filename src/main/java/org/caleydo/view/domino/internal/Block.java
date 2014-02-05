@@ -998,7 +998,7 @@ public class Block extends GLElementContainer implements IGLLayout2, IPickingLis
 		return nodeCount() == 1;
 	}
 
-	private boolean isStratified(Node node, EDimension dim) {
+	public boolean isStratified(Node node, EDimension dim) {
 		LinearBlock b = getBlock(node, dim.opposite());
 		return b == null ? false : b.isStratisfied(node);
 	}

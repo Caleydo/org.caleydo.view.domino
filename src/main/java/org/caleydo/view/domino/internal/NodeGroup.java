@@ -322,9 +322,9 @@ public class NodeGroup extends GLElementDecorator implements ILabeled, IDragGLSo
 	 */
 	public Node toNode() {
 		final Node parent = getNode();
-		Node n = new Node(parent, parent.getDataValues(), getLabel(), new TypedGroupSet(dimData.asSet()),
-				new TypedGroupSet(
-				recData.asSet()));
+		final TypedGroupSet dim = parent.getSubGroupData(dimData, EDimension.DIMENSION);
+		final TypedGroupSet rec = parent.getSubGroupData(recData, EDimension.RECORD);
+		Node n = new Node(parent, parent.getDataValues(), getLabel(), dim, rec);
 		return n;
 	}
 
