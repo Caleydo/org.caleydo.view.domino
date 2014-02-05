@@ -22,6 +22,7 @@ import org.caleydo.core.view.opengl.layout2.dnd.EDnDType;
 import org.caleydo.core.view.opengl.layout2.dnd.IDnDItem;
 import org.caleydo.core.view.opengl.layout2.dnd.IDragInfo;
 import org.caleydo.core.view.opengl.layout2.dnd.IDropGLTarget;
+import org.caleydo.core.view.opengl.layout2.geom.Rect;
 import org.caleydo.core.view.opengl.layout2.manage.GLElementFactories.GLElementSupplier;
 import org.caleydo.core.view.opengl.layout2.manage.GLElementFactorySwitcher;
 import org.caleydo.core.view.opengl.picking.IPickingLabelProvider;
@@ -35,7 +36,6 @@ import org.caleydo.view.domino.internal.undo.ICmd;
 import org.caleydo.view.domino.internal.undo.PersistNodeCmd;
 import org.caleydo.view.domino.internal.undo.RemoveNodeGroupCmd;
 
-import com.google.common.collect.Iterators;
 import com.google.common.collect.Lists;
 import com.jogamp.opengl.util.texture.Texture;
 
@@ -186,9 +186,11 @@ public abstract class APlaceholder extends PickableGLElement implements IDropGLT
 
 	private int toIndex(Vec2f l) {
 		EDimension dim = getDimension().opposite();
-		float total = dim.select(getSize());
-		float ratio = (dim.select(l) - total * 0.1f) / (total * 0.8f);
-		int size = Iterators.size(preview.getRepresentableSwitcher().iterator());
+		final Vec2f wh = getSize();
+		Rect rect = getSelectionRect(wh.x(), wh.y());
+		float total = dim.select(rect.size());
+		float ratio = (dim.select(l.minus(rect.xy())) - total * 0.1f) / (total * 0.8f);
+		int size = preview.getRepresentableSwitcher().size();
 		return Math.min((int) (ratio * size), size - 1);
 	}
 
@@ -198,6 +200,10 @@ public abstract class APlaceholder extends PickableGLElement implements IDropGLT
 	protected void renderImpl(GLGraphics g, float w, float h) {
 		final Color c = getColor();
 		if (preview != null) {
+			Rect selectionRect = getSelectionRect(w, h);
+			w = selectionRect.width();
+			h = selectionRect.height();
+			g.save().move(selectionRect.xy());
 			final GLElementFactorySwitcher switcher = preview.getRepresentableSwitcher();
 			List<GLElementSupplier> l = Lists.newArrayList(switcher);
 			if (getDimension().isVertical()) { // in the other direction is the long one
@@ -223,9 +229,39 @@ public abstract class APlaceholder extends PickableGLElement implements IDropGLT
 						g.color(Color.BLACK).drawRoundedRect((w - wi) * 0.5f, y, wi, wi, 5);
 				}
 			}
+			g.restore();
 		} else {
 			renderDropZone(g, 0, 0, w, h, c);
 		}
+	}
+
+	/**
+	 * @param w
+	 * @param h
+	 * @return
+	 */
+	private Rect getSelectionRect(float w, float h) {
+		final int count = preview.getRepresentableSwitcher().size();
+		final boolean vertical = getDimension().isHorizontal();
+		final float total = vertical ? h : w;
+		float perItem = (total * 0.8f) / count;
+		float MIN_ICON_SIZE = 32;
+		float MAX_ICON_SIZE = 48;
+		perItem = Math.max(MIN_ICON_SIZE, Math.min(MAX_ICON_SIZE, perItem));
+		float size = (perItem * count) / 0.8f;
+		float shift = (total - size) * 0.5f;
+		if (vertical)
+			return new Rect(0, shift, w, size);
+		else
+			return new Rect(shift, 0, size, h);
+	}
+
+	@Override
+	protected void renderPickImpl(GLGraphics g, float w, float h) {
+		if (getVisibility() == EVisibility.PICKABLE && preview != null) {
+			g.fillRect(getSelectionRect(w, h));
+		}
+		super.renderPickImpl(g, w, h);
 	}
 
 	static void renderDropZone(GLGraphics g, float x, float y, float w, float h, Color c) {
