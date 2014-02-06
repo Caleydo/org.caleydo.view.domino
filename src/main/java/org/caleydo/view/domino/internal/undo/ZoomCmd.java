@@ -14,7 +14,7 @@ import org.caleydo.view.domino.internal.Node;
  * @author Samuel Gratzl
  *
  */
-public class ZoomCmd implements ICmd {
+public class ZoomCmd implements IMergeAbleCmd {
 	private final Node node;
 	private final Vec2f shift;
 
@@ -44,7 +44,11 @@ public class ZoomCmd implements ICmd {
 	 * @param undo
 	 * @return
 	 */
-	public boolean merge(ZoomCmd undo) {
+	@Override
+	public boolean merge(ICmd cmd) {
+		if (!(cmd instanceof ZoomCmd))
+			return false;
+		ZoomCmd undo = (ZoomCmd) cmd;
 		if (undo.node == this.node) {
 			this.shift.add(undo.shift);
 			return true;

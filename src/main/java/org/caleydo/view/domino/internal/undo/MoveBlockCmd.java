@@ -16,7 +16,7 @@ import org.caleydo.view.domino.internal.Domino;
  * @author Samuel Gratzl
  *
  */
-public class MoveBlockCmd implements ICmd {
+public class MoveBlockCmd implements IMergeAbleCmd {
 	private final Set<Block> blocks;
 	private final Vec2f shift;
 
@@ -34,6 +34,18 @@ public class MoveBlockCmd implements ICmd {
 	public ICmd run(Domino domino) {
 		domino.moveBlocks(blocks, shift);
 		return new MoveBlockCmd(blocks, shift.times(-1));
+	}
+
+	@Override
+	public boolean merge(ICmd cmd) {
+		if (cmd instanceof MoveBlockCmd) {
+			final MoveBlockCmd m = (MoveBlockCmd) cmd;
+			if (m.blocks.equals(blocks)) {
+				shift.add(m.shift);
+				return true;
+			}
+		}
+		return false;
 	}
 
 }

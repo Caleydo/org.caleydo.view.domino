@@ -10,7 +10,7 @@ import java.util.Deque;
 
 import org.caleydo.core.util.base.ICallback;
 import org.caleydo.view.domino.internal.undo.ICmd;
-import org.caleydo.view.domino.internal.undo.ZoomCmd;
+import org.caleydo.view.domino.internal.undo.IMergeAbleCmd;
 
 /**
  * @author Samuel Gratzl
@@ -33,10 +33,9 @@ public class UndoStack {
 	public void push(ICmd cmd) {
 		ICmd undo = cmd.run(domino);
 		if (undo != null) {
-			// merge same zoom stuff
-			if (undo instanceof ZoomCmd && this.undo.peekLast() instanceof ZoomCmd) {
-				ZoomCmd peek = (ZoomCmd) this.undo.peekLast();
-				if (!peek.merge((ZoomCmd) undo))
+			if (this.undo.peekLast() instanceof IMergeAbleCmd) {
+				IMergeAbleCmd peek = (IMergeAbleCmd) this.undo.peekLast();
+				if (!peek.merge(undo))
 					this.undo.add(undo);
 			} else
 				this.undo.add(undo);
