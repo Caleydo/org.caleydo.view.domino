@@ -53,10 +53,10 @@ public class BandLines {
 		if (s.x2() < t.x() - 40) {
 			return createHorizontal(s, t);
 		} else {
-			final float delta = Math.max(s.height(), t.height()) * 1.5f;
-			if (t.x() < s.x2() && t.x() > s.x() && ((s.y2() < t.y() - delta) || (s.y() < t.y2() + delta))) {
-				return createQuestion(s, t);
-			}
+			// final float delta = Math.max(s.height(), t.height()) * 1.5f;
+			// if (t.x() < s.x2() && t.x() > s.x() && ((s.y2() < t.y() - delta) || (s.y() < t.y2() + delta))) {
+			// return createQuestion(s, t);
+			// }
 		}
 		return null;
 	}
