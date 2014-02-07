@@ -108,6 +108,7 @@ public class Block extends GLElementContainer implements IGLLayout2, IPickingLis
 		addFirstNode(node);
 
 		onPick(this);
+		setPicker(null);
 	}
 
 	public void selectItems(SelectionType type, IDType idType, Collection<Integer> ids, boolean additional) {
@@ -192,8 +193,6 @@ public class Block extends GLElementContainer implements IGLLayout2, IPickingLis
 
 		super.renderImpl(g, w, h);
 
-		renderDetachedBands(g);
-
 		Domino domino = findDomino();
 
 		if (domino.isShowDebugInfos())
@@ -219,12 +218,12 @@ public class Block extends GLElementContainer implements IGLLayout2, IPickingLis
 		}
 	}
 
-	/**
-	 * @param g
-	 */
-	private void renderDetachedBands(GLGraphics g) {
-		// TODO Auto-generated method stub
-
+	@Override
+	protected void renderPickImpl(GLGraphics g, float w, float h) {
+		if (getVisibility() == EVisibility.PICKABLE) {
+			g.color(Color.WHITE).fillPolygon(TesselatedPolygons.polygon2(getOutline()));
+		}
+		super.renderPickImpl(g, w, h);
 	}
 
 	/**
@@ -232,27 +231,27 @@ public class Block extends GLElementContainer implements IGLLayout2, IPickingLis
 	 */
 	private Collection<Vec2f> getOutline() {
 		Collection<Vec2f> r = new ArrayList<>(3);
-		// if (this.size() == 1) {
-		// Rect b = get(0).getRectBounds();
-		// r.add(b.xy());
-		// r.add(b.x2y());
-		// r.add(b.x2y2());
-		// r.add(b.xy2());
-		// return r;
-		// }
-		// if (linearBlocks.size() == 1) {
-		// LinearBlock b = linearBlocks.get(0);
-		// Rect r1 = b.getNode(true).getRectBounds();
-		// Rect r2 = b.getNode(false).getRectBounds();
-		// r.add(r1.xy());
-		// if (b.getDim().isHorizontal())
-		// r.add(r1.x2y());
-		// else
-		// r.add(r2.x2y());
-		// r.add(r2.x2y2());
-		// r.add(r2.xy2());
-		// return r;
-		// }
+		if (this.size() == 1) {
+			Rect b = get(0).getRectBounds();
+			r.add(b.xy());
+			r.add(b.x2y());
+			r.add(b.x2y2());
+			r.add(b.xy2());
+			return r;
+		}
+		if (linearBlocks.size() == 1) {
+			LinearBlock b = linearBlocks.get(0);
+			Rect r1 = b.getNode(true).getRectBounds();
+			Rect r2 = b.getNode(false).getRectBounds();
+			r.add(r1.xy());
+			if (b.getDim().isHorizontal())
+				r.add(r1.x2y());
+			else
+				r.add(r2.x2y());
+			r.add(r2.x2y2());
+			r.add(r2.xy2());
+			return r;
+		}
 
 		Node start = nodes().iterator().next();
 		// search for a start point
@@ -264,6 +263,23 @@ public class Block extends GLElementContainer implements IGLLayout2, IPickingLis
 		EDirection act = EDirection.EAST;
 		Node actN = start;
 		follow(actN, act, start, r);
+		return r;
+	}
+
+	public Rect getBoundingBox() {
+		if (nodeCount() == 1)
+			return nodes().iterator().next().getRectBounds();
+		Rect r = null;
+		for (Vec2f p : getOutline()) {
+			if (r == null) {
+				r = new Rect(p.x(), p.y(), 1, 1);
+			} else {
+				r.x(Math.min(r.x(), p.x()));
+				r.y(Math.min(r.y(), p.y()));
+				r.x2(Math.max(r.x2(), p.x()));
+				r.y2(Math.max(r.y2(), p.y()));
+			}
+		}
 		return r;
 	}
 
@@ -319,7 +335,7 @@ public class Block extends GLElementContainer implements IGLLayout2, IPickingLis
 
 	private Shape getOutlineShape() {
 		if (this.nodeCount() == 1)
-			return get(0).getRectangleBounds();
+			return nodes().iterator().next().getRectangleBounds();
 		if (linearBlocks.size() == 1) {
 			LinearBlock b = linearBlocks.get(0);
 			Rect r1 = b.getNode(true).getRectBounds();
@@ -385,22 +401,6 @@ public class Block extends GLElementContainer implements IGLLayout2, IPickingLis
 		realign();
 		updateBlock();
 		// shiftBlock(dir, node);
-	}
-
-	private void shiftBlock(EDirection dir, Node node) {
-		Vec2f loc = getLocation();
-		if (dir == EDirection.WEST)
-			setLocation(loc.x() - node.getDetachedRectBounds().width(), loc.y());
-		else if (dir == EDirection.NORTH)
-			setLocation(loc.x(), loc.y() - node.getDetachedRectBounds().height());
-	}
-
-	private void shiftRemoveBlock(Node node, EDimension dim) {
-		Vec2f loc = getLocation();
-		if (dim.isHorizontal())
-			setLocation(loc.x() + node.getDetachedRectBounds().width(), loc.y());
-		else
-			setLocation(loc.x(), loc.y() + node.getDetachedRectBounds().height());
 	}
 
 	public void realign() {
@@ -475,41 +475,19 @@ public class Block extends GLElementContainer implements IGLLayout2, IPickingLis
 	}
 
 	/**
-	 * @param node
-	 */
-	private void autoStratify(Node node) {
-		if (this.nodeCount() != 1) // just in single case
-			return;
-		if (!VisualizationTypeOracle.stratifyByDefault(node.getVisualizationType()))
-			return;
-		for (EDimension dim : EDimension.values()) {
-			if (!node.has(dim))
-				continue;
-			LinearBlock b = getBlock(node, dim.opposite());
-			if (b == null)
-				continue;
-			if (b.isStratisfied())
-				continue;
-			if (node.getUnderlyingData(dim).getGroups().size() <= 1)
-				continue;
-			sortBy(node, dim);
-		}
-	}
-
-	/**
 	 *
 	 */
 	private void updateSize() {
-		Rectangle2D r = null;
+		Rect r = null;
 		for (LinearBlock elem : linearBlocks) {
 			if (r == null) {
 				r = elem.getBounds();
 			} else
-				Rectangle2D.union(r, elem.getBounds(), r);
+				r = Rect.union(r, elem.getBounds());
 		}
 		if (r == null)
 			return;
-		setSize((float) r.getWidth(), (float) r.getHeight());
+		setSize(r.width(), r.height());
 		relayout();
 	}
 
@@ -761,8 +739,8 @@ public class Block extends GLElementContainer implements IGLLayout2, IPickingLis
 		TypedGroupList sData = la.getData();
 		TypedGroupList tData = lb.getData();
 
-		Rect ra = a.getAbsoluteBounds(la);
-		Rect rb = b.getAbsoluteBounds(lb);
+		Rect ra = la.getBounds();
+		Rect rb = lb.getBounds();
 
 		String label = la.getNode(true).getLabel() + " x " + lb.getNode(false).getLabel();
 
@@ -807,18 +785,6 @@ public class Block extends GLElementContainer implements IGLLayout2, IPickingLis
 		if (ai < bi)
 			return ai + "X" + bi;
 		return bi + "X" + ai;
-	}
-
-	/**
-	 * @param la
-	 * @return
-	 */
-	public Rect getAbsoluteBounds(LinearBlock b) {
-		Rect r = new Rect(b.getBounds());
-		Vec2f xy = toAbsolute(r.xy());
-		xy.sub(findParent(DominoCanvas.class).getAbsoluteLocation());
-		r.xy(xy);
-		return r;
 	}
 
 	private static boolean isCompatible(IDType a, IDType b) {

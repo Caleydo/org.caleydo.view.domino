@@ -19,7 +19,6 @@ import org.caleydo.core.view.opengl.canvas.IGLCanvas;
 import org.caleydo.core.view.opengl.canvas.IGLKeyListener;
 import org.caleydo.core.view.opengl.layout2.GLElement;
 import org.caleydo.core.view.opengl.layout2.GLElementDecorator;
-import org.caleydo.core.view.opengl.layout2.basic.ScrollingDecorator;
 import org.caleydo.core.view.opengl.layout2.view.AMultiTablePerspectiveElementView;
 import org.caleydo.view.domino.internal.Domino;
 import org.caleydo.view.domino.internal.event.ToggleShowBlockLabelsEvent;
@@ -68,7 +67,7 @@ public class DominoView extends AMultiTablePerspectiveElementView {
 
 	@Override
 	protected GLElement createContent() {
-		return ScrollingDecorator.wrap(domino, Settings.SCROLLBAR_WIDTH);
+		return domino;
 	}
 
 	@Override

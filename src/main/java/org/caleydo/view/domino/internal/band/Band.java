@@ -19,6 +19,7 @@ import org.caleydo.core.data.selection.SelectionType;
 import org.caleydo.core.id.IDType;
 import org.caleydo.core.util.color.Color;
 import org.caleydo.core.view.opengl.layout2.GLGraphics;
+import org.caleydo.core.view.opengl.layout2.geom.Rect;
 import org.caleydo.core.view.opengl.layout2.manage.GLLocation;
 import org.caleydo.view.domino.api.model.EDirection;
 import org.caleydo.view.domino.api.model.typed.MultiTypedSet;
@@ -145,6 +146,11 @@ public class Band extends ABand {
 		@Override
 		public boolean intersects(Rectangle2D bounds) {
 			return base.intersects(bounds);
+		}
+
+		@Override
+		public Rect getBoundingBox() {
+			return base.getBoundingBox();
 		}
 	}
 

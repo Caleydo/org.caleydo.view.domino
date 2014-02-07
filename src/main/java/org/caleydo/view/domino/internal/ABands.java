@@ -23,6 +23,7 @@ import org.caleydo.core.view.opengl.canvas.IGLMouseListener.IMouseEvent;
 import org.caleydo.core.view.opengl.layout2.GLElement;
 import org.caleydo.core.view.opengl.layout2.GLGraphics;
 import org.caleydo.core.view.opengl.layout2.IGLElementContext;
+import org.caleydo.core.view.opengl.layout2.geom.Rect;
 import org.caleydo.core.view.opengl.layout2.util.PickingPool;
 import org.caleydo.core.view.opengl.picking.IPickingLabelProvider;
 import org.caleydo.core.view.opengl.picking.IPickingListener;
@@ -31,6 +32,7 @@ import org.caleydo.core.view.opengl.picking.PickingListenerComposite;
 import org.caleydo.view.domino.api.model.typed.TypedID;
 import org.caleydo.view.domino.api.model.typed.TypedList;
 import org.caleydo.view.domino.api.model.typed.TypedSet;
+import org.caleydo.view.domino.internal.MiniMapCanvas.IHasMiniMap;
 import org.caleydo.view.domino.internal.band.ABand;
 import org.caleydo.view.domino.internal.band.IBandHost;
 
@@ -44,7 +46,7 @@ import com.jogamp.common.util.IntIntHashMap.Entry;
  *
  */
 public abstract class ABands extends GLElement implements MultiSelectionManagerMixin.ISelectionMixinCallback, IBandHost,
-		IPickingListener, IPickingLabelProvider {
+ IPickingListener, IPickingLabelProvider, IHasMiniMap {
 	@DeepScan
 	protected final MultiSelectionManagerMixin selections = new MultiSelectionManagerMixin(this);
 
@@ -218,6 +220,7 @@ public abstract class ABands extends GLElement implements MultiSelectionManagerM
 
 	protected abstract Vec2f getShift();
 
+	@Override
 	public void renderMiniMap(GLGraphics g) {
 		Vec2f loc = getShift();
 		g.save().move(-loc.x(), -loc.y());
@@ -225,6 +228,24 @@ public abstract class ABands extends GLElement implements MultiSelectionManagerM
 			edge.renderMiniMap(g);
 		}
 		g.restore();
+	}
+
+	@Override
+	public Rect getBoundingBox() {
+		Rect r = null;
+		Vec2f loc = getShift();
+		for (ABand edge : bands) {
+			Rect bounds = edge.getBoundingBox();
+			if (r == null)
+				r = bounds;
+			else
+				r = Rect.union(r, bounds);
+		}
+		if (r != null) {
+			r.x(r.x() - loc.x());
+			r.y(r.y() - loc.y());
+		}
+		return r;
 	}
 
 	@Override

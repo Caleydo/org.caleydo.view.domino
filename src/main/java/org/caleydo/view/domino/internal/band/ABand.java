@@ -5,6 +5,8 @@
  *******************************************************************************/
 package org.caleydo.view.domino.internal.band;
 
+import gleem.linalg.Vec2f;
+
 import java.awt.geom.Rectangle2D;
 import java.util.Arrays;
 import java.util.Collection;
@@ -17,7 +19,9 @@ import org.caleydo.core.data.selection.SelectionType;
 import org.caleydo.core.id.IDType;
 import org.caleydo.core.util.base.ILabeled;
 import org.caleydo.core.util.collection.Pair;
+import org.caleydo.core.view.opengl.layout2.GLElement.EVisibility;
 import org.caleydo.core.view.opengl.layout2.GLGraphics;
+import org.caleydo.core.view.opengl.layout2.geom.Rect;
 import org.caleydo.core.view.opengl.layout2.util.PickingPool;
 import org.caleydo.view.domino.api.model.EDirection;
 import org.caleydo.view.domino.api.model.typed.MultiTypedSet;
@@ -25,13 +29,14 @@ import org.caleydo.view.domino.api.model.typed.TypedCollections;
 import org.caleydo.view.domino.api.model.typed.TypedGroupList;
 import org.caleydo.view.domino.api.model.typed.TypedSet;
 import org.caleydo.view.domino.internal.INodeLocator;
+import org.caleydo.view.domino.internal.MiniMapCanvas.IHasMiniMap;
 import org.caleydo.view.domino.internal.band.IBandHost.SourceTarget;
 
 /**
  * @author Samuel Gratzl
  *
  */
-public abstract class ABand implements ILabeled {
+public abstract class ABand implements ILabeled, IHasMiniMap {
 	protected static final List<SelectionType> SELECTION_TYPES = Arrays.asList(SelectionType.SELECTION,
 			SelectionType.MOUSE_OVER);
 
@@ -128,8 +133,10 @@ public abstract class ABand implements ILabeled {
 		return overviewRoute().intersects(bounds);
 	}
 
-
-	public abstract void renderMiniMap(GLGraphics g);
+	@Override
+	public Rect getBoundingBox() {
+		return overviewRoute().getBoundingBox();
+	}
 
 	public final void render(GLGraphics g, float w, float h, IBandHost host) {
 		switch (mode) {
@@ -258,6 +265,11 @@ public abstract class ABand implements ILabeled {
 		void renderRoute(GLGraphics g, IBandHost host, int nrBands);
 
 		/**
+		 * @return
+		 */
+		Rect getBoundingBox();
+
+		/**
 		 * @param bounds
 		 * @return
 		 */
@@ -276,5 +288,15 @@ public abstract class ABand implements ILabeled {
 	 */
 	public EDirection getAttachingDirection(SourceTarget type) {
 		return type.select(sDim, tDim);
+	}
+
+	@Override
+	public Vec2f getLocation() {
+		return new Vec2f(0, 0);
+	}
+
+	@Override
+	public EVisibility getVisibility() {
+		return EVisibility.VISIBLE;
 	}
 }

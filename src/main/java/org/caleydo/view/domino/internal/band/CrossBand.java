@@ -309,6 +309,11 @@ public class CrossBand extends ABand {
 		}
 
 		@Override
+		public Rect getBoundingBox() {
+			return bounds;
+		}
+
+		@Override
 		public String getLabel() {
 			return label;
 		}
@@ -421,6 +426,11 @@ public class CrossBand extends ABand {
 		@Override
 		public boolean intersects(Rectangle2D bounds) {
 			return this.bounds.asRectangle2D().intersects(bounds);
+		}
+
+		@Override
+		public Rect getBoundingBox() {
+			return bounds;
 		}
 	}
 }

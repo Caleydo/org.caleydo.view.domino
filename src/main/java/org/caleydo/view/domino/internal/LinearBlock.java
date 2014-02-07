@@ -5,7 +5,8 @@
  *******************************************************************************/
 package org.caleydo.view.domino.internal;
 
-import java.awt.geom.Rectangle2D;
+import gleem.linalg.Vec2f;
+
 import java.util.AbstractCollection;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -94,14 +95,14 @@ public class LinearBlock extends AbstractCollection<Node> {
 		return stratified && sortCriteria.get(0) == node;
 	}
 
-	public Rectangle2D getBounds() {
-		Rectangle2D r = null;
+	public Rect getBounds() {
+		assert nodes.size() > 0;
+		Vec2f shift = nodes.get(0).getBlock().getLocation();
+		Rect r = nodes.get(0).getDetachedRectBounds();
 		for (Node elem : nodes) {
-			if (r == null) {
-				r = elem.getDetachedRectBounds().asRectangle2D();
-			} else
-				Rectangle2D.union(r, elem.getDetachedRectBounds().asRectangle2D(), r);
+			r = Rect.union(r, elem.getDetachedRectBounds());
 		}
+		r.xy(shift.plus(r.xy()));
 		return r;
 	}
 

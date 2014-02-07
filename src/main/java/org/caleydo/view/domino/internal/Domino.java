@@ -13,25 +13,22 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.caleydo.core.data.selection.SelectionCommands;
 import org.caleydo.core.data.selection.SelectionType;
 import org.caleydo.core.event.EventListenerManager.DeepScan;
 import org.caleydo.core.event.EventPublisher;
 import org.caleydo.core.util.base.ICallback;
-import org.caleydo.core.util.color.Color;
 import org.caleydo.core.view.opengl.canvas.IGLKeyListener;
 import org.caleydo.core.view.opengl.canvas.IGLMouseListener.IMouseEvent;
 import org.caleydo.core.view.opengl.layout2.GLElement;
 import org.caleydo.core.view.opengl.layout2.GLElementContainer;
-import org.caleydo.core.view.opengl.layout2.GLGraphics;
 import org.caleydo.core.view.opengl.layout2.IGLElementContext;
-import org.caleydo.core.view.opengl.layout2.basic.ScrollingDecorator;
 import org.caleydo.core.view.opengl.layout2.dnd.EDnDType;
 import org.caleydo.core.view.opengl.layout2.dnd.IDnDItem;
 import org.caleydo.core.view.opengl.layout2.dnd.IDragGLSource.IDragEvent;
 import org.caleydo.core.view.opengl.layout2.dnd.IDragInfo;
 import org.caleydo.core.view.opengl.layout2.dnd.IDropGLTarget;
 import org.caleydo.core.view.opengl.layout2.geom.Rect;
-import org.caleydo.core.view.opengl.layout2.layout.GLLayouts;
 import org.caleydo.core.view.opengl.layout2.layout.IGLLayout2;
 import org.caleydo.core.view.opengl.layout2.layout.IGLLayoutElement;
 import org.caleydo.core.view.opengl.picking.IPickingListener;
@@ -56,6 +53,7 @@ import org.caleydo.view.domino.internal.undo.MoveBlockCmd;
 import org.caleydo.view.domino.internal.undo.RemoveNodeCmd;
 import org.caleydo.view.domino.internal.undo.RemoveNodeGroupCmd;
 import org.caleydo.view.domino.internal.undo.ZoomCmd;
+import org.eclipse.swt.SWT;
 
 import com.google.common.collect.ImmutableList;
 
@@ -69,11 +67,10 @@ public class Domino extends GLElementContainer implements IDropGLTarget, IPickin
 	private final Blocks blocks;
 	private final ToolBar toolBar;
 	private final LeftToolBar leftToolBar;
-	private final DominoCanvas content;
+	private final MiniMapCanvas content;
 	private SelectLayer select;
 	private DragElement currentlyDraggedVis;
 	private boolean showDebugInfos = false;
-	private boolean showMiniMap = false;
 	private boolean showBlockLabels = true;
 
 	private EToolState tool = EToolState.MOVE;
@@ -97,30 +94,25 @@ public class Domino extends GLElementContainer implements IDropGLTarget, IPickin
 		this.leftToolBar.setSize(24, -1);
 		this.add(leftToolBar);
 
-		this.content = new DominoCanvas(GLLayouts.LAYERS);
+		this.content = new MiniMapCanvas();
 		content.setVisibility(EVisibility.PICKABLE);
 		content.onPick(new IPickingListener() {
-
 			@Override
 			public void pick(Pick pick) {
 				if (pick.getPickingMode() == PickingMode.MOUSE_OUT)
 					removePlaceholder();
 			}
 		});
-		ScrollingDecorator scroll = ScrollingDecorator.wrap(content, 10);
-		this.add(scroll);
+		this.add(content);
 
-		// fakeData();
 		this.blocks = new Blocks(selections);
-		scroll.setMinSizeProvider(blocks);
-		scroll.setAutoResetViewport(false);
-		blocks.setzDelta(0.1f);
 		content.add(blocks);
+		blocks.setzDelta(0.1f);
 
 		this.bands = new Bands(selections);
 		this.bands.setVisibility(EVisibility.PICKABLE);
 		this.bands.setzDelta(0.01f);
-		this.bands.onPick(this);
+		this.bands.onPick(this); // here for the placeholders
 		content.add(this.bands);
 
 		selections.onNodeGroupSelectionChanges(new ICallback<SelectionType>() {
@@ -210,6 +202,7 @@ public class Domino extends GLElementContainer implements IDropGLTarget, IPickin
 			break;
 		case MOUSE_OUT:
 			context.getMouseLayer().removeDropTarget(this);
+			content.stopAutoShift();
 			break;
 		case MOUSE_WHEEL:
 			if (event.getWheelRotation() != 0)
@@ -217,12 +210,24 @@ public class Domino extends GLElementContainer implements IDropGLTarget, IPickin
 			break;
 		case DRAG_DETECTED:
 			pick.setDoDragging(true);
-			this.select = new SelectLayer(bands.toRelative(pick.getPickedPoint()));
-			content.add(this.select);
+			if (!event.isAltDown()) {
+				this.select = new SelectLayer(blocks.toRelative(pick.getPickedPoint()));
+				content.add(this.select);
+			} else {
+				context.getSWTLayer().setCursor(SWT.CURSOR_HAND);
+			}
 			break;
 		case DRAGGED:
 			if (pick.isDoDragging() && this.select != null) {
 				this.select.dragTo(pick.getDx(), pick.getDy(), event.isCtrlDown());
+			} else if (pick.isDoDragging() && event.isAltDown()) {
+				content.shiftViewport(-pick.getDx(), -pick.getDy());
+			}
+			break;
+		case CLICKED:
+			if (!event.isCtrlDown()) {
+				// clear selection
+				SelectionCommands.clearSelections();
 			}
 			break;
 		case MOUSE_RELEASED:
@@ -230,11 +235,8 @@ public class Domino extends GLElementContainer implements IDropGLTarget, IPickin
 				this.select.dragTo(pick.getDx(), pick.getDy(), event.isCtrlDown());
 				content.remove(this.select);
 				this.select = null;
-			} else {
-				// clear selection
-				selections.clear(SelectionType.SELECTION, (Block) null);
-				selections.clear(SelectionType.SELECTION, (NodeGroup) null);
 			}
+			context.getSWTLayer().setCursor(-1);
 			break;
 		default:
 			break;
@@ -272,6 +274,7 @@ public class Domino extends GLElementContainer implements IDropGLTarget, IPickin
 			Node node = Nodes.extract(item);
 			dropNode(pos, node, null);
 		}
+		content.stopAutoShift();
 	}
 
 	private Block dropNode(Vec2f pos, Node node, NodeGroup groupToRemove) {
@@ -308,7 +311,7 @@ public class Domino extends GLElementContainer implements IDropGLTarget, IPickin
 			b.setLocation(loc.x() + shift.x(), loc.y() + shift.y());
 		}
 		bands.relayout();
-		content.getParent().relayout();
+		content.relayout();
 	}
 
 	private Vec2f toDropPosition(IDnDItem item) {
@@ -380,6 +383,8 @@ public class Domino extends GLElementContainer implements IDropGLTarget, IPickin
 		if (currentlyDraggedVis != null) {
 			blocks.snapDraggedVis(currentlyDraggedVis);
 		}
+
+		content.autoShift(item.getMousePos());
 	}
 
 	@Override
@@ -412,46 +417,6 @@ public class Domino extends GLElementContainer implements IDropGLTarget, IPickin
 	 */
 	public NodeSelections getSelections() {
 		return selections;
-	}
-
-	@Override
-	protected void renderImpl(GLGraphics g, float w, float h) {
-		super.renderImpl(g, w, h);
-
-		if (showMiniMap) {
-			g.incZ();
-			g.save().move(w * 0.8f - 10, h * 0.8f - 10);
-			renderMiniMap(g, w * 0.2f, h * 0.2f);
-
-			g.restore();
-			g.decZ();
-		}
-	}
-
-	private void renderMiniMap(GLGraphics g, float w, float h) {
-		g.color(Color.WHITE).fillRect(0, 0, w, h);
-		g.color(Color.BLACK).drawRect(0, 0, w, h);
-		Vec2f size = getSize();
-		computeMiniMapFactor(g, size, w, h);
-
-		blocks.renderMiniMap(g);
-		bands.renderMiniMap(g);
-
-		final ScrollingDecorator s = (ScrollingDecorator) content.getParent();
-		if (s != null) {
-			Rect clip = s.getClipingArea();
-			g.color(Color.BLACK).drawRect(clip.x(), clip.y(), clip.width(), clip.height());
-		}
-	}
-
-	private void computeMiniMapFactor(GLGraphics g, Vec2f size, float w, float h) {
-		float wi = w / size.x();
-		float hi = h / size.y();
-		if (wi < hi) {
-			g.move(0, (h - size.y() * wi) * 0.5f).gl.glScalef(wi, wi, 1);
-		} else {
-			g.move((w - size.x() * hi) * 0.5f, 0).gl.glScalef(hi, hi, 1);
-		}
 	}
 
 	/**
@@ -505,8 +470,7 @@ public class Domino extends GLElementContainer implements IDropGLTarget, IPickin
 	}
 
 	public void toggleShowMiniMap() {
-		this.showMiniMap = !showMiniMap;
-		repaint();
+		this.content.toggleShowMiniMap();
 	}
 
 	/**

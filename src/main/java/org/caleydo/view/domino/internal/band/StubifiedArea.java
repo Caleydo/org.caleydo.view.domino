@@ -12,6 +12,7 @@ import java.awt.geom.Rectangle2D;
 import java.util.List;
 
 import org.caleydo.core.view.opengl.layout2.GLGraphics;
+import org.caleydo.core.view.opengl.layout2.geom.Rect;
 import org.caleydo.core.view.opengl.util.spline.TesselationRenderer;
 import org.caleydo.view.domino.internal.band.BandLine.IBandArea;
 
@@ -83,5 +84,10 @@ public class StubifiedArea implements IBandArea {
 	@Override
 	public boolean intersects(Rectangle2D bounds) {
 		return shapeA.intersects(bounds) || shapeB.intersects(bounds);
+	}
+
+	@Override
+	public Rect getBoundingBox() {
+		return Rect.union(new Rect(shapeA.getBounds2D()), new Rect(shapeB.getBounds2D()));
 	}
 }

@@ -8,6 +8,7 @@ package org.caleydo.view.domino.internal;
 import gleem.linalg.Vec2f;
 
 import java.awt.geom.Rectangle2D;
+import java.util.List;
 import java.util.Set;
 
 import org.caleydo.core.data.selection.SelectionType;
@@ -16,8 +17,11 @@ import org.caleydo.core.util.collection.Pair;
 import org.caleydo.core.view.opengl.layout2.GLElement;
 import org.caleydo.core.view.opengl.layout2.GLElementContainer;
 import org.caleydo.core.view.opengl.layout2.GLGraphics;
-import org.caleydo.core.view.opengl.layout2.basic.ScrollingDecorator.IHasMinSize;
+import org.caleydo.core.view.opengl.layout2.IGLElementContext;
 import org.caleydo.core.view.opengl.layout2.geom.Rect;
+import org.caleydo.core.view.opengl.layout2.layout.IGLLayout2;
+import org.caleydo.core.view.opengl.layout2.layout.IGLLayoutElement;
+import org.caleydo.view.domino.internal.MiniMapCanvas.IHasMiniMap;
 import org.caleydo.view.domino.internal.dnd.DragElement;
 
 import com.google.common.collect.Iterables;
@@ -27,10 +31,17 @@ import com.google.common.collect.Sets;
  * @author Samuel Gratzl
  *
  */
-public class Blocks extends GLElementContainer implements IHasMinSize, ICallback<SelectionType> {
+public class Blocks extends GLElementContainer implements ICallback<SelectionType>, IHasMiniMap, IGLLayout2 {
 
+	private final ICallback<MiniMapCanvas> viewportchange = new ICallback<MiniMapCanvas>() {
+		@Override
+		public void on(MiniMapCanvas data) {
+			updateAccordingToMiniMap();
+		}
+	};
 	public Blocks(NodeSelections selections) {
 		selections.onBlockSelectionChanges(this);
+		setLayout(this);
 	}
 
 	@Override
@@ -51,6 +62,47 @@ public class Blocks extends GLElementContainer implements IHasMinSize, ICallback
 			}
 		}
 	}
+
+	@Override
+	protected void init(IGLElementContext context) {
+		super.init(context);
+		if (getParent() instanceof MiniMapCanvas) {
+			MiniMapCanvas c = (MiniMapCanvas) getParent();
+			c.addOnViewPortChange(viewportchange);
+		}
+	}
+
+	@Override
+	protected void takeDown() {
+		if (getParent() instanceof MiniMapCanvas) {
+			MiniMapCanvas c = (MiniMapCanvas) getParent();
+			c.removeOnViewPortChange(viewportchange);
+		}
+		super.takeDown();
+	}
+
+	void updateAccordingToMiniMap() {
+		// MiniMapCanvas c = (MiniMapCanvas) getParent();
+		// Rectangle2D r = c.getClippingRect().asRectangle2D();
+		// EVisibility ifVisible = findParent(Domino.class).getTool() == EToolState.BANDS ? EVisibility.PICKABLE
+		// : EVisibility.VISIBLE;
+		// Vec2f loc = getLocation();
+		// for (Block elem : getBlocks()) {
+		// Rect b = elem.getRectBounds().clone();
+		// b.xy(b.xy().plus(loc));
+		// boolean v = r.intersects(b.asRectangle2D());
+		// elem.setVisibility(v ? ifVisible : EVisibility.HIDDEN);
+		// }
+	}
+
+	@Override
+	public boolean doLayout(List<? extends IGLLayoutElement> children, float w, float h, IGLLayoutElement parent,
+			int deltaTimeMs) {
+		if (getParent() instanceof MiniMapCanvas)
+			updateAccordingToMiniMap();
+		return false;
+	}
+
 
 	/**
 	 * @param sel
@@ -102,6 +154,32 @@ public class Blocks extends GLElementContainer implements IHasMinSize, ICallback
 		if (r == null)
 			return new Vec2f(100, 100);
 		return new Vec2f((float) r.getMaxX(), (float) r.getMaxY());
+	}
+
+	@Override
+	public Rect getBoundingBox() {
+		Rect r = null;
+		for(Block b : getBlocks()) {
+			if (r == null)
+				r = shiftedBoundingBox(b);
+			else {
+				r = Rect.union(r, shiftedBoundingBox(b));
+			}
+		}
+		return r;
+	}
+
+	/**
+	 * @param b
+	 * @return
+	 */
+	private Rect shiftedBoundingBox(Block b) {
+		Rect bb = b.getBoundingBox();
+		Vec2f loc = b.getLocation();
+		if (bb != null) {
+			bb.xy(bb.xy().plus(loc));
+		}
+		return bb;
 	}
 
 	/**
@@ -169,6 +247,7 @@ public class Blocks extends GLElementContainer implements IHasMinSize, ICallback
 		}
 	}
 
+	@Override
 	public void renderMiniMap(GLGraphics g) {
 		for(Block block : getBlocks()) {
 			Vec2f loc = block.getLocation();

@@ -26,6 +26,7 @@ import org.caleydo.core.view.opengl.layout2.dnd.IDragGLSource;
 import org.caleydo.core.view.opengl.layout2.dnd.IDragInfo;
 import org.caleydo.core.view.opengl.picking.Pick;
 import org.caleydo.view.domino.api.model.typed.TypedSet;
+import org.caleydo.view.domino.internal.MiniMapCanvas.IManuallyShifted;
 import org.caleydo.view.domino.internal.band.ABand;
 import org.caleydo.view.domino.internal.dnd.ADragInfo;
 import org.caleydo.view.domino.internal.dnd.SetDragInfo;
@@ -41,8 +42,10 @@ import com.google.common.collect.Maps;
  * @author Samuel Gratzl
  *
  */
-public class Bands extends ABands implements IDragGLSource, ICallback<SelectionType> {
+public class Bands extends ABands implements IDragGLSource, ICallback<SelectionType>, IManuallyShifted {
 	private int currentDragPicking;
+
+	private Vec2f shift = new Vec2f(0, 0);
 
 	public Bands(NodeSelections selections) {
 		selections.onBlockSelectionChanges(this);
@@ -52,7 +55,13 @@ public class Bands extends ABands implements IDragGLSource, ICallback<SelectionT
 	public void on(SelectionType data) {
 		if (data == SelectionType.SELECTION && findParent(Domino.class).getTool() == EToolState.BANDS)
 			relayout();
+	}
 
+	@Override
+	public void setShift(float x, float y) {
+		shift.setX(x);
+		shift.setY(y);
+		repaintAll();
 	}
 
 	@Override
@@ -71,11 +80,12 @@ public class Bands extends ABands implements IDragGLSource, ICallback<SelectionT
 			blocks = domino.getBlocks();
 		else {
 			blocks = ImmutableList.copyOf(domino.getSelections().getBlockSelection(SelectionType.SELECTION));
-			if (blocks.size() < 2) // less than 2 -> show all bands
-				blocks = domino.getBlocks();
 		}
 
 		final int length = blocks.size();
+
+		if (length <= 1)
+			return;
 
 		// create bands
 		Collection<Rectangle2D> bounds = new ArrayList<>();
@@ -83,7 +93,7 @@ public class Bands extends ABands implements IDragGLSource, ICallback<SelectionT
 			final Block block = blocks.get(i);
 			block.createBandsTo(blocks.subList(i + 1, length), bands);
 			for (LinearBlock b : block.getLinearBlocks())
-				bounds.add(shrink(block.getAbsoluteBounds(b).asRectangle2D()));
+				bounds.add(shrink(b.getBounds().asRectangle2D()));
 		}
 
 		// collected the bounds check what we have to stubify
@@ -166,9 +176,7 @@ public class Bands extends ABands implements IDragGLSource, ICallback<SelectionT
 
 	@Override
 	protected Vec2f getShift() {
-		Vec2f xy = getAbsoluteLocation();
-		xy.sub(findParent(DominoCanvas.class).getAbsoluteLocation());
-		return xy;
+		return shift;
 	}
 
 

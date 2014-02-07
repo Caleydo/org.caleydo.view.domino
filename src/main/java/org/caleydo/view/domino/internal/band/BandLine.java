@@ -136,6 +136,11 @@ public class BandLine {
 
 	public interface IBandArea extends ITesselatedPolygon {
 		boolean intersects(Rectangle2D bounds);
+
+		/**
+		 * @return
+		 */
+		Rect getBoundingBox();
 	}
 
 	/**
