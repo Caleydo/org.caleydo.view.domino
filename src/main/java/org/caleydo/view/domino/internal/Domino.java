@@ -211,7 +211,8 @@ public class Domino extends GLElementContainer implements IDropGLTarget, IPickin
 			break;
 		case MOUSE_WHEEL:
 			if (event.getWheelRotation() != 0)
-				undo.push(new ZoomCmd(ScaleLogic.shiftLogic(event, new Vec2f(100, 100))));
+				undo.push(new ZoomCmd(ScaleLogic.shiftLogic(event, new Vec2f(100, 100)), blocks.toRelative(pick
+						.getPickedPoint())));
 			break;
 		case DRAG_DETECTED:
 			pick.setDoDragging(true);
@@ -248,8 +249,8 @@ public class Domino extends GLElementContainer implements IDropGLTarget, IPickin
 		}
 	}
 
-	public void zoom(Vec2f shift) {
-		blocks.zoom(shift);
+	public void zoom(Vec2f shift, Vec2f mousePos) {
+		blocks.zoom(shift, mousePos);
 		bands.relayout();
 	}
 

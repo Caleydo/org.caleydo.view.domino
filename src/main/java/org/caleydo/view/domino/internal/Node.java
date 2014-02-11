@@ -349,7 +349,7 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 			break;
 		case MOUSE_WHEEL:
 			Vec2f shift = ScaleLogic.shiftLogic((IMouseEvent) pick, getSize());
-			findParent(Domino.class).getUndo().push(new ZoomCmd(this, shift));
+			findParent(Domino.class).getUndo().push(new ZoomCmd(this, shift, null));
 			break;
 		default:
 			break;

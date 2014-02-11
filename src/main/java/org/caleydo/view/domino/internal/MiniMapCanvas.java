@@ -305,7 +305,20 @@ public class MiniMapCanvas extends GLElementContainer implements IGLLayout2, ISc
 			IMouseEvent event = (IMouseEvent) pick;
 			UndoStack undo = MiniMapCanvas.this.findParent(Domino.class).getUndo();
 			if (event.getWheelRotation() != 0)
-				undo.push(new ZoomCmd(ScaleLogic.shiftLogic(event, new Vec2f(100, 100))));
+				undo.push(new ZoomCmd(ScaleLogic.shiftLogic(event, new Vec2f(100, 100)), toMousePos(pick
+						.getPickedPoint())));
+		}
+
+		/**
+		 * @param pickedPoint
+		 * @return
+		 */
+		private Vec2f toMousePos(Vec2f pos) {
+			pos = toRelative(pos);
+			Rect p = getPaintingCanvas();
+			pos = pos.times(1.f / MINI_MAP_FACTOR);
+			pos.minus(p.xy());
+			return pos;
 		}
 
 		@Override

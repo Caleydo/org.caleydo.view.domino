@@ -145,13 +145,37 @@ public class Blocks extends GLElementContainer implements ICallback<SelectionTyp
 		}
 	}
 
-	public void zoom(Vec2f shift) {
+	public void zoom(Vec2f shift, Vec2f mousePos) {
 		for (Block block : getBlocks()) {
 			block.zoom(shift, null);
+			shiftZoomLocation(block, mousePos, shift);
 		}
-		for (Ruler ruler : rulers())
+		for (Ruler ruler : rulers()) {
 			ruler.zoom(shift);
+			shiftZoomLocation(ruler, mousePos, shift);
+		}
 		getParent().getParent().relayout();
+	}
+
+	private void shiftZoomLocation(GLElement elem, Vec2f mousePos, Vec2f shift) {
+		Rect b = elem.getRectBounds();
+		if (b.contains(mousePos)) // inner
+			return;
+
+		float x = b.x();
+		float y = b.y();
+
+		if (mousePos.x() < b.x())
+			x += shift.x();
+		else if (mousePos.x() > b.x2())
+			x -= shift.x();
+
+		if (mousePos.y() < b.y())
+			y += shift.y();
+		else if (mousePos.y() > b.y2())
+			y -= shift.y();
+
+		elem.setLocation(x, y);
 	}
 
 	@Override
