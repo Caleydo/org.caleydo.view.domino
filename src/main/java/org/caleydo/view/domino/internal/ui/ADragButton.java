@@ -12,13 +12,14 @@ import org.caleydo.core.view.opengl.layout2.dnd.IDnDItem;
 import org.caleydo.core.view.opengl.layout2.dnd.IDragGLSource;
 import org.caleydo.core.view.opengl.layout2.dnd.IDragInfo;
 import org.caleydo.core.view.opengl.picking.Pick;
-import org.caleydo.view.domino.internal.Node;
+import org.caleydo.view.domino.internal.Domino;
+import org.caleydo.view.domino.internal.dnd.ADragInfo;
 
 /**
  * a button which can be dragged
- * 
+ *
  * @author Samuel Gratzl
- * 
+ *
  */
 public abstract class ADragButton extends AGLButton implements IDragGLSource {
 	@Override
@@ -67,22 +68,14 @@ public abstract class ADragButton extends AGLButton implements IDragGLSource {
 	}
 
 	@Override
-	public IDragInfo startSWTDrag(IDragEvent event) {
-		return new org.caleydo.view.domino.internal.dnd.NodeDragInfo(event.getMousePos(), createNode());
-	}
-
-	/**
-	 * @return
-	 */
-	protected abstract Node createNode();
-
-	@Override
 	public void onDropped(IDnDItem info) {
 
 	}
 
 	@Override
 	public GLElement createUI(IDragInfo info) {
+		if (info instanceof ADragInfo)
+			return ((ADragInfo) info).createUI(findParent(Domino.class));
 		return null;
 	}
 }

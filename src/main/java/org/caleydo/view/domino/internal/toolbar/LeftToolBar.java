@@ -31,6 +31,7 @@ import org.caleydo.view.domino.internal.Resources;
 import org.caleydo.view.domino.internal.UndoStack;
 import org.caleydo.view.domino.internal.tourguide.ui.EntityTypeSelector;
 import org.caleydo.view.domino.internal.ui.DragLabelButton;
+import org.caleydo.view.domino.internal.ui.DragRulerButton;
 import org.caleydo.view.domino.internal.ui.DragSelectionButton;
 
 import com.google.common.collect.Iterables;
@@ -70,6 +71,10 @@ public class LeftToolBar extends GLElementContainer implements IGLLayout2, ISele
 			DragSelectionButton b = new DragSelectionButton(manager);
 			this.add(b);
 			b.setEnabled(false);
+
+			DragRulerButton r = new DragRulerButton(manager);
+			this.add(r);
+
 			selections.add(manager);
 		}
 	}
@@ -217,6 +222,14 @@ public class LeftToolBar extends GLElementContainer implements IGLLayout2, ISele
 		for (DragSelectionButton b : Iterables.filter(this, DragSelectionButton.class)) {
 			if (b.getManager() == manager) {
 				b.setNumberOfElements(manager.getNumberOfElements(SelectionType.SELECTION));
+			}
+		}
+	}
+
+	public void onShowHideRuler(IDCategory category, boolean show) {
+		for (DragRulerButton b : Iterables.filter(this, DragRulerButton.class)) {
+			if (b.getIDCategory() == category) {
+				b.setEnabled(!show);
 			}
 		}
 	}

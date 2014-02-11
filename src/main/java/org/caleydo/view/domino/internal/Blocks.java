@@ -12,8 +12,11 @@ import java.util.List;
 import java.util.Set;
 
 import org.caleydo.core.data.selection.SelectionType;
+import org.caleydo.core.id.IDCategory;
+import org.caleydo.core.id.IDType;
 import org.caleydo.core.util.base.ICallback;
 import org.caleydo.core.util.collection.Pair;
+import org.caleydo.core.util.color.Color;
 import org.caleydo.core.view.opengl.layout2.GLElement;
 import org.caleydo.core.view.opengl.layout2.GLElementContainer;
 import org.caleydo.core.view.opengl.layout2.GLGraphics;
@@ -21,8 +24,10 @@ import org.caleydo.core.view.opengl.layout2.IGLElementContext;
 import org.caleydo.core.view.opengl.layout2.geom.Rect;
 import org.caleydo.core.view.opengl.layout2.layout.IGLLayout2;
 import org.caleydo.core.view.opengl.layout2.layout.IGLLayoutElement;
+import org.caleydo.view.domino.api.model.typed.util.BitSetSet;
 import org.caleydo.view.domino.internal.MiniMapCanvas.IHasMiniMap;
 import org.caleydo.view.domino.internal.dnd.DragElement;
+import org.caleydo.view.domino.internal.ui.Ruler;
 
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
@@ -114,6 +119,7 @@ public class Blocks extends GLElementContainer implements ICallback<SelectionTyp
 	}
 
 	public void addBlock(Block b) {
+
 		this.add(b);
 		final Domino domino = findParent(Domino.class);
 		if (domino.getTool() == EToolState.BANDS) {
@@ -124,6 +130,10 @@ public class Blocks extends GLElementContainer implements ICallback<SelectionTyp
 
 	public Iterable<Block> getBlocks() {
 		return Iterables.filter(this, Block.class);
+	}
+
+	public Iterable<Ruler> rulers() {
+		return Iterables.filter(this, Ruler.class);
 	}
 
 	/**
@@ -139,6 +149,8 @@ public class Blocks extends GLElementContainer implements ICallback<SelectionTyp
 		for (Block block : getBlocks()) {
 			block.zoom(shift, null);
 		}
+		for (Ruler ruler : rulers())
+			ruler.zoom(shift);
 		getParent().getParent().relayout();
 	}
 
@@ -165,6 +177,12 @@ public class Blocks extends GLElementContainer implements ICallback<SelectionTyp
 			else {
 				r = Rect.union(r, shiftedBoundingBox(b));
 			}
+		}
+		for (Ruler b : rulers()) {
+			if (r == null)
+				r = b.getRectBounds();
+			else
+				r = Rect.union(r, b.getRectBounds());
 		}
 		return r;
 	}
@@ -257,5 +275,78 @@ public class Blocks extends GLElementContainer implements ICallback<SelectionTyp
 						bounds.height());
 			}
 		}
+		for (Ruler ruler : rulers()) {
+			g.color(Color.LIGHT_GRAY).fillRect(ruler.getRectBounds());
+		}
+	}
+
+	/**
+	 * @param category
+	 * @param shift
+	 */
+	public void moveRuler(IDCategory category, Vec2f shift) {
+		for (Ruler ruler : rulers()) {
+			if (ruler.getIDCategory().equals(category)) {
+				ruler.shiftLocation(shift);
+				break;
+			}
+		}
+		getParent().getParent().relayout();
+	}
+
+	/**
+	 * @param category
+	 * @param scale
+	 */
+	public void zoomRuler(IDCategory category, float scale) {
+		for (Ruler ruler : rulers()) {
+			if (ruler.getIDCategory().equals(category)) {
+				ruler.zoom(scale);
+				break;
+			}
+		}
+		for (Block block : getBlocks()) {
+			block.zoom(category, scale);
+		}
+	}
+
+	/**
+	 * @param idCategory
+	 * @return
+	 */
+	public boolean hasRuler(IDCategory category) {
+		for (Ruler ruler : rulers()) {
+			if (ruler.getIDCategory().equals(category)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	/**
+	 * @param ruler
+	 */
+	public void addRuler(Ruler ruler) {
+		add(ruler);
+	}
+
+	/**
+	 * @param ruler
+	 */
+	public void removeRuler(Ruler ruler) {
+		remove(ruler);
+
+	}
+
+	/**
+	 * @param category
+	 * @return
+	 */
+	public int getVisibleItemCount(IDCategory category) {
+		IDType primary = category.getPrimaryMappingType();
+		Set<Integer> ids = new BitSetSet();
+		for (Block block : getBlocks())
+			block.addVisibleItems(category, ids, primary);
+		return ids.size();
 	}
 }

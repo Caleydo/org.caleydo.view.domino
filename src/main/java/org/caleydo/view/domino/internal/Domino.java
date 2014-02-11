@@ -17,6 +17,7 @@ import org.caleydo.core.data.selection.SelectionCommands;
 import org.caleydo.core.data.selection.SelectionType;
 import org.caleydo.core.event.EventListenerManager.DeepScan;
 import org.caleydo.core.event.EventPublisher;
+import org.caleydo.core.id.IDCategory;
 import org.caleydo.core.util.base.ICallback;
 import org.caleydo.core.view.opengl.canvas.IGLKeyListener;
 import org.caleydo.core.view.opengl.canvas.IGLMouseListener.IMouseEvent;
@@ -41,15 +42,19 @@ import org.caleydo.view.domino.internal.dnd.DragElement;
 import org.caleydo.view.domino.internal.dnd.MultiNodeGroupDragInfo;
 import org.caleydo.view.domino.internal.dnd.NodeDragInfo;
 import org.caleydo.view.domino.internal.dnd.NodeGroupDragInfo;
+import org.caleydo.view.domino.internal.dnd.RulerDragInfo;
 import org.caleydo.view.domino.internal.dnd.TablePerspectiveRemoveDragCreator;
 import org.caleydo.view.domino.internal.event.HideNodeEvent;
 import org.caleydo.view.domino.internal.toolbar.DynamicToolBar;
 import org.caleydo.view.domino.internal.toolbar.LeftToolBar;
 import org.caleydo.view.domino.internal.toolbar.ToolBar;
+import org.caleydo.view.domino.internal.ui.Ruler;
 import org.caleydo.view.domino.internal.undo.AddLazyBlockCmd;
 import org.caleydo.view.domino.internal.undo.AddLazyMultiBlockCmd;
+import org.caleydo.view.domino.internal.undo.AddRulerCmd;
 import org.caleydo.view.domino.internal.undo.CmdComposite;
 import org.caleydo.view.domino.internal.undo.MoveBlockCmd;
+import org.caleydo.view.domino.internal.undo.MoveRulerCmd;
 import org.caleydo.view.domino.internal.undo.RemoveNodeCmd;
 import org.caleydo.view.domino.internal.undo.RemoveNodeGroupCmd;
 import org.caleydo.view.domino.internal.undo.ZoomCmd;
@@ -248,6 +253,11 @@ public class Domino extends GLElementContainer implements IDropGLTarget, IPickin
 		bands.relayout();
 	}
 
+	public void zoom(IDCategory category, float scale) {
+		blocks.zoomRuler(category, scale);
+		bands.relayout();
+	}
+
 	@Override
 	public boolean canSWTDrop(IDnDItem item) {
 		return item.getInfo() instanceof ADragInfo || Nodes.canExtract(item);
@@ -257,7 +267,9 @@ public class Domino extends GLElementContainer implements IDropGLTarget, IPickin
 	public void onDrop(IDnDItem item) {
 		IDragInfo info = item.getInfo();
 		final Vec2f pos = toDropPosition(item);
-		if (info instanceof NodeGroupDragInfo) {
+		if (info instanceof RulerDragInfo) {
+			dropRuler(pos, ((RulerDragInfo) info).getRuler());
+		} else if (info instanceof NodeGroupDragInfo) {
 			NodeGroupDragInfo g = (NodeGroupDragInfo) info;
 			dropNode(pos, g.getGroup().toNode(), item.getType() == EDnDType.MOVE ? g.getGroup() : null);
 		} else if (info instanceof NodeDragInfo) {
@@ -275,6 +287,23 @@ public class Domino extends GLElementContainer implements IDropGLTarget, IPickin
 			dropNode(pos, node, null);
 		}
 		content.stopAutoShift();
+	}
+
+	/**
+	 * @param pos
+	 * @param ruler
+	 */
+	private void dropRuler(Vec2f pos, Ruler ruler) {
+		Vec2f shift = pos.minus(ruler.getLocation());
+		if (!blocks.hasRuler(ruler.getIDCategory())) {
+			ruler.setLocation(pos.x(), pos.y());
+			undo.push(new AddRulerCmd(ruler));
+		} else
+			undo.push(new MoveRulerCmd(ruler.getIDCategory(), shift));
+	}
+
+	public void moveRuler(IDCategory category, Vec2f shift) {
+		blocks.moveRuler(category, shift);
 	}
 
 	private Block dropNode(Vec2f pos, Node node, NodeGroup groupToRemove) {
@@ -656,4 +685,31 @@ public class Domino extends GLElementContainer implements IDropGLTarget, IPickin
 		placeAt(neighbor, dir, preview);
 	}
 
+	/**
+	 * @param ruler
+	 */
+	public void addRuler(Ruler ruler) {
+		blocks.addRuler(ruler);
+		leftToolBar.onShowHideRuler(ruler.getIDCategory(), true);
+	}
+
+	/**
+	 * @param ruler
+	 */
+	public void removeRuler(Ruler ruler) {
+		blocks.removeRuler(ruler);
+		leftToolBar.onShowHideRuler(ruler.getIDCategory(), false);
+	}
+
+	public boolean isRulerVisible(IDCategory category) {
+		return blocks.hasRuler(category);
+	}
+
+	/**
+	 * @param idCategory
+	 * @return
+	 */
+	public int getVisibleItemCount(IDCategory category) {
+		return blocks.getVisibleItemCount(category);
+	}
 }

@@ -13,10 +13,13 @@ import org.caleydo.core.data.selection.SelectionType;
 import org.caleydo.core.view.opengl.layout.Column.VAlign;
 import org.caleydo.core.view.opengl.layout2.GLElement;
 import org.caleydo.core.view.opengl.layout2.GLGraphics;
+import org.caleydo.core.view.opengl.layout2.dnd.IDragInfo;
+import org.caleydo.core.view.opengl.layout2.dnd.IDragGLSource.IDragEvent;
 import org.caleydo.core.view.opengl.layout2.renderer.IGLRenderer;
 import org.caleydo.view.domino.api.model.typed.TypedSet;
 import org.caleydo.view.domino.internal.Node;
 import org.caleydo.view.domino.internal.data.StratificationDataValue;
+import org.caleydo.view.domino.internal.dnd.NodeDragInfo;
 
 /**
  * @author Samuel Gratzl
@@ -36,9 +39,12 @@ public class DragSelectionButton extends ADragButton implements IGLRenderer {
 	private String getLabel(SelectionManager manager) {
 		return manager.getIDType().getIDCategory().getCategoryName();
 	}
-
 	@Override
-	protected Node createNode() {
+	public IDragInfo startSWTDrag(IDragEvent event) {
+		return new NodeDragInfo(event.getMousePos(), createNode());
+	}
+
+	private Node createNode() {
 		Set<Integer> elements = manager.getElements(SelectionType.SELECTION);
 		TypedSet data = new TypedSet(elements, manager.getIDType());
 		StratificationDataValue d = new StratificationDataValue(getLabel(manager), data, EDimension.DIMENSION);

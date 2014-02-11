@@ -7,9 +7,11 @@ package org.caleydo.view.domino.internal.ui;
 
 import org.caleydo.core.id.IDCategory;
 import org.caleydo.core.view.opengl.layout.Column.VAlign;
+import org.caleydo.core.view.opengl.layout2.dnd.IDragInfo;
 import org.caleydo.core.view.opengl.layout2.renderer.GLRenderers;
 import org.caleydo.view.domino.internal.Node;
 import org.caleydo.view.domino.internal.data.LabelDataValues;
+import org.caleydo.view.domino.internal.dnd.NodeDragInfo;
 
 /**
  * @author Samuel Gratzl
@@ -25,8 +27,7 @@ public class DragLabelButton extends ADragButton {
 	}
 
 	@Override
-	protected Node createNode() {
-		return new Node(data);
+	public IDragInfo startSWTDrag(IDragEvent event) {
+		return new NodeDragInfo(event.getMousePos(), new Node(data));
 	}
-
 }

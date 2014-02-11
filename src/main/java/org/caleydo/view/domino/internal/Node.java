@@ -181,6 +181,7 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 			this.scaleFactors.put(entry.getKey(), entry.getValue().copy());
 	}
 
+
 	/**
 	 * @param d
 	 * @param r
@@ -614,6 +615,29 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 		}
 		updateSize(false);
 		relayout();
+	}
+
+	/**
+	 * @param opposite
+	 * @param scale
+	 */
+	public void setDataScaleFactor(EDimension dim, float scale) {
+		String type = "data";
+		Vec2f s;
+		if (this.scaleFactors.containsKey(type))
+			s = this.scaleFactors.get(type);
+		else
+			s = new Vec2f(1, 1);
+		if (dim.isHorizontal())
+			s.setX(scale);
+		else
+			s.setY(scale);
+
+		this.scaleFactors.put(type, s);
+		if (GLElementFactories.getMetaData(getVisualizationType()).getScaleType() == EVisScaleType.DATADEPENDENT) {
+			updateSize(false);
+			relayout();
+		}
 	}
 
 	private float[] getSizes(EDimension dim) {

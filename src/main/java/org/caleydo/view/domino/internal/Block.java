@@ -21,7 +21,9 @@ import org.apache.commons.lang.StringUtils;
 import org.caleydo.core.data.collection.EDimension;
 import org.caleydo.core.data.selection.SelectionType;
 import org.caleydo.core.event.EventListenerManager.ListenTo;
+import org.caleydo.core.id.IDCategory;
 import org.caleydo.core.id.IDType;
+import org.caleydo.core.id.IIDTypeMapper;
 import org.caleydo.core.util.base.Labels;
 import org.caleydo.core.util.collection.Pair;
 import org.caleydo.core.util.color.Color;
@@ -41,6 +43,7 @@ import org.caleydo.core.view.opengl.picking.IPickingListener;
 import org.caleydo.core.view.opengl.picking.Pick;
 import org.caleydo.core.view.opengl.util.spline.TesselatedPolygons;
 import org.caleydo.view.domino.api.model.EDirection;
+import org.caleydo.view.domino.api.model.typed.MappingCaches;
 import org.caleydo.view.domino.api.model.typed.TypedGroupList;
 import org.caleydo.view.domino.internal.band.ABand;
 import org.caleydo.view.domino.internal.band.BandFactory;
@@ -51,6 +54,7 @@ import org.caleydo.view.domino.internal.dnd.ADragInfo;
 import org.caleydo.view.domino.internal.dnd.BlockDragInfo;
 import org.caleydo.view.domino.internal.event.HideNodeEvent;
 
+import com.google.common.cache.LoadingCache;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSet.Builder;
 import com.google.common.collect.Iterables;
@@ -520,6 +524,23 @@ public class Block extends GLElementContainer implements IGLLayout2, IPickingLis
 				updateShifts(node);
 			realign();
 		}
+		updateBlock();
+	}
+
+	public void zoom(IDCategory category, float scale) {
+		boolean any = false;
+		for (LinearBlock l : linearBlocks) {
+			if (!category.isOfCategory(l.getIdType()))
+				continue;
+			for (Node n : l)
+				n.setDataScaleFactor(l.getDim().opposite(), scale);
+			for (Node node : l)
+				updateShifts(node);
+			any = true;
+		}
+		if (!any)
+			return;
+		realign();
 		updateBlock();
 	}
 
@@ -998,6 +1019,21 @@ public class Block extends GLElementContainer implements IGLLayout2, IPickingLis
 			builder.add(b.getIdType());
 		}
 		return builder.build();
+	}
+
+	public void addVisibleItems(IDCategory category, Set<Integer> ids, IDType target) {
+		LoadingCache<IDType, IIDTypeMapper<Integer, Integer>> cache = MappingCaches.create(null, target);
+		for (LinearBlock b : linearBlocks) {
+			if (category.isOfCategory(b.getIdType())) {
+				TypedGroupList bids = b.getData();
+				if (target.equals(bids.getIdType()))
+					ids.addAll(bids);
+				else {
+					Set<Integer> converted = cache.getUnchecked(bids.getIdType()).apply(bids);
+					ids.addAll(converted);
+				}
+			}
+		}
 	}
 
 }

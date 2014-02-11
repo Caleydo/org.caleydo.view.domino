@@ -78,6 +78,8 @@ public class Resources {
 	public static final URL ICON_UNDO_CLEAR = icon("arrow_undo_clear.png");
 
 
+	public static final URL ICON_RULER = icon("measure.png");
+	public static final URL ICON_RULER_DISABLED = icon("measure_disabled.png");
 	/**
 	 * @param string
 	 * @return

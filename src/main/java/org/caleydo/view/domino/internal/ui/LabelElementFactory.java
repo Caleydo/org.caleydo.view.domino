@@ -209,7 +209,7 @@ public class LabelElementFactory implements IGLElementFactory2 {
 		public GLElementDimensionDesc getDesc(EDimension dim) {
 			if (data.isEmpty())
 				return GLElementDimensionDesc.newFix(100).minimum(50).build();
-			return GLElementDimensionDesc.newCountDependent(10).minimum(10).build();
+			return GLElementDimensionDesc.newCountDependent(10).build();
 		}
 
 		@Override
