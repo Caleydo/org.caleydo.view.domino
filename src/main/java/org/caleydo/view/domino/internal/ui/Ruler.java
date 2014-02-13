@@ -161,7 +161,7 @@ public class Ruler extends GLElementContainer implements IDragGLSource, IPicking
 		relayout();
 	}
 
-	void renderMarkers(GLGraphics g, float w, float h, float f) {
+	private void renderMarkers(GLGraphics g, float w, float h, float f) {
 		int markerDelta = determineMarkerStep(maxElements, dim.select(w, h));
 		for (int i = 0; i <= maxElements; i += markerDelta) {
 			float v = f * i;
@@ -179,7 +179,7 @@ public class Ruler extends GLElementContainer implements IDragGLSource, IPicking
 		renderMarkerLabels(g, w, h, f, markerDelta);
 	}
 
-	void renderMarkerLabels(GLGraphics g, float w, float h, float f, int markerDelta) {
+	private void renderMarkerLabels(GLGraphics g, float w, float h, float f, int markerDelta) {
 		int drawLabelsDelta = markerDelta * Math.round((float) Math.ceil(dim.select(30, 10) / (f * markerDelta)));
 		final float hi = dim.isHorizontal() ? Math.min(h * 0.5f, 10) : Math.min(f * drawLabelsDelta, 10);
 		for (int i = 0; i < maxElements; i += drawLabelsDelta) {
@@ -197,7 +197,7 @@ public class Ruler extends GLElementContainer implements IDragGLSource, IPicking
 		}
 	}
 
-	void renderBaseAxis(GLGraphics g, float w, float h) {
+	private void renderBaseAxis(GLGraphics g, float w, float h) {
 		final String label = getLabel(manager);
 		if (dim.isHorizontal()) {
 			g.drawLine(0, 0, w, 0);
@@ -210,7 +210,7 @@ public class Ruler extends GLElementContainer implements IDragGLSource, IPicking
 		}
 	}
 
-	void renderSelection(GLGraphics g, float w, float h, float f) {
+	private void renderSelection(GLGraphics g, float w, float h, float f) {
 		int items = getNumSelectedItems();
 		if (items > 0) {
 			g.color(SelectionType.SELECTION.getColor());
@@ -223,7 +223,6 @@ public class Ruler extends GLElementContainer implements IDragGLSource, IPicking
 	}
 
 	private static int determineMarkerStep(int maxElements, float size) {
-		float f = size / maxElements;
 		if (maxElements <= 100)
 			return 10; // 10x
 		if (maxElements <= 250)

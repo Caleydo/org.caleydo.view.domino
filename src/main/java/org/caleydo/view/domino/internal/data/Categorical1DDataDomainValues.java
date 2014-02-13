@@ -93,7 +93,8 @@ public class Categorical1DDataDomainValues extends A1DDataDomainValues {
 		b.put(Histogram.class, hist);
 		b.put("distribution.largestBin", maxBinSize);
 		b.put("distribution.colors", getHistColors(hist, data));
-		b.put("distribution.labels", getHistLabels(hist, data));
+		final String[] labels = getHistLabels(hist, data);
+		b.put("distribution.labels", labels);
 
 		final Function<Integer, Double> toNormalized = new Function<Integer, Double>() {
 			@Override
@@ -107,6 +108,7 @@ public class Categorical1DDataDomainValues extends A1DDataDomainValues {
 		b.put("min", 0);
 		b.put("max", 1);
 		b.put(IDoubleList.class, list);
+		b.put("axis.markers", labels);
 	}
 
 	protected Color[] getHistColors(Histogram hist, TypedList data) {

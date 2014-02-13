@@ -104,14 +104,16 @@ public class StratificationDataValue implements IDataValues, Function<Integer, C
 				return (double) indexOf(input);
 			}
 		};
-		b.put("index2double", toIndex);
+		b.put("id2double", toIndex);
 		b.put("id2color", this);
 		final Histogram hist = createHist(data);
 		b.put(Histogram.class, hist);
 		b.put("distribution.colors", getHistColors(hist, data));
-		b.put("distribution.labels", getHistLabels(hist, data));
+		final String[] labels = getHistLabels(hist, data);
+		b.put("distribution.labels", labels);
 		b.put("distribution.largestBin", maxBinSize);
 		b.put(IDoubleList.class, new MappedDoubleList<>(data, toIndex));
+		b.put("axis.markers", labels);
 	}
 
 	/**
