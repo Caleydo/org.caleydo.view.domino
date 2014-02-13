@@ -41,7 +41,7 @@ import com.google.common.collect.Iterables;
  *
  */
 public class MiniMapCanvas extends GLElementContainer implements IGLLayout2, IScrollBarCallback {
-	private static final int AUTO_SHIFT_AREA = 100;
+	private static final int AUTO_SHIFT_AREA = 50;
 	private static final int AUTO_SHIFT = 25;
 	private static final int AUTO_SHIFT_TIMER = 150;
 

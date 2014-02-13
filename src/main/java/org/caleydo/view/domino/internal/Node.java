@@ -32,6 +32,7 @@ import org.caleydo.core.view.opengl.layout2.GLElement;
 import org.caleydo.core.view.opengl.layout2.GLElementContainer;
 import org.caleydo.core.view.opengl.layout2.GLGraphics;
 import org.caleydo.core.view.opengl.layout2.IGLElementContext;
+import org.caleydo.core.view.opengl.layout2.IMouseLayer;
 import org.caleydo.core.view.opengl.layout2.IPopupLayer;
 import org.caleydo.core.view.opengl.layout2.dnd.EDnDType;
 import org.caleydo.core.view.opengl.layout2.dnd.IDnDItem;
@@ -335,13 +336,11 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 	public void pick(Pick pick) {
 		switch (pick.getPickingMode()) {
 		case MOUSE_OVER:
-			System.out.println(toString() + " add drop target");
 			context.getMouseLayer().addDropTarget(this);
 			mouseOver = true;
 			repaint();
 			break;
 		case MOUSE_OUT:
-			System.out.println(toString() + " remove drop target");
 			context.getMouseLayer().removeDropTarget(this);
 			dropSetOperation = null;
 			mouseOver = false;
@@ -358,7 +357,6 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 
 	@Override
 	public boolean canSWTDrop(IDnDItem item) {
-		System.out.println(toString() + " can SWT DROP");
 		if (has(EDimension.DIMENSION) && has(EDimension.RECORD))
 			return false;
 		Node b = toNode(item);
@@ -470,7 +468,6 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 
 	@Override
 	protected void takeDown() {
-		System.out.println(toString() + " takeDown");
 		context.getMouseLayer().removeDropTarget(this);
 		super.takeDown();
 	}
@@ -1108,6 +1105,13 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 	@ListenTo(sendToMe = true)
 	private void onHideNodeEvent(HideNodeEvent event) {
 		setVisibility(EVisibility.HIDDEN);
+
+		// remove all children drag sources
+		final IMouseLayer m = context.getMouseLayer();
+		for (NodeGroup g : nodeGroups()) {
+			m.removeDragSource(g);
+		}
+		m.removeDropTarget(this);
 	}
 	/**
 	 *
