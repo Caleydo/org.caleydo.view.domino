@@ -218,6 +218,8 @@ public class Domino extends GLElementContainer implements IDropGLTarget, IPickin
 		case DRAG_DETECTED:
 			pick.setDoDragging(true);
 			if (!event.isAltDown()) {
+				if (this.select != null)
+					content.remove(this.select);
 				this.select = new SelectLayer(blocks.toRelative(pick.getPickedPoint()));
 				content.add(this.select);
 			} else {
