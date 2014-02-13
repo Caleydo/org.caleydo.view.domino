@@ -11,6 +11,7 @@ import java.awt.geom.Rectangle2D;
 import java.util.List;
 import java.util.Set;
 
+import org.caleydo.core.data.collection.EDimension;
 import org.caleydo.core.data.selection.SelectionType;
 import org.caleydo.core.id.IDCategory;
 import org.caleydo.core.id.IDType;
@@ -372,5 +373,25 @@ public class Blocks extends GLElementContainer implements ICallback<SelectionTyp
 		for (Block block : getBlocks())
 			block.addVisibleItems(category, ids, primary);
 		return ids.size();
+	}
+
+	/**
+	 * @param block
+	 * @param dim
+	 * @return
+	 */
+	public List<Block> explode(Block block, EDimension dim) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	/**
+	 * @param blocks
+	 * @param dim
+	 * @return
+	 */
+	public Block combine(List<Block> blocks, EDimension dim) {
+		// TODO Auto-generated method stub
+		return null;
 	}
 }

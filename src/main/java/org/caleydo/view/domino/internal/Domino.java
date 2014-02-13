@@ -13,6 +13,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.caleydo.core.data.collection.EDimension;
 import org.caleydo.core.data.selection.SelectionCommands;
 import org.caleydo.core.data.selection.SelectionType;
 import org.caleydo.core.event.EventListenerManager.DeepScan;
@@ -712,5 +713,27 @@ public class Domino extends GLElementContainer implements IDropGLTarget, IPickin
 	 */
 	public int getVisibleItemCount(IDCategory category) {
 		return blocks.getVisibleItemCount(category);
+	}
+
+	/**
+	 * @param block
+	 * @param dim
+	 * @return
+	 */
+	public List<Block> explode(Block block, EDimension dim) {
+		List<Block> r = blocks.explode(block, dim);
+		bands.relayout();
+		return r;
+	}
+
+	/**
+	 * @param blocks2
+	 * @param dim
+	 * @return
+	 */
+	public Block combine(List<Block> blocks, EDimension dim) {
+		Block r = this.blocks.combine(blocks, dim);
+		bands.relayout();
+		return r;
 	}
 }
