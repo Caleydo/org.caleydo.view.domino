@@ -176,8 +176,12 @@ public class Block extends GLElementContainer implements IGLLayout2, IPickingLis
 		if (this.fadeOut == fadeOut)
 			return;
 		this.fadeOut = fadeOut;
-		if (fadeOut)
+		if (fadeOut) {
 			this.fadeOutTime = 300;
+			this.setzDelta(-4.f);
+		} else {
+			this.setzDelta(0);
+		}
 		repaint();
 	}
 
