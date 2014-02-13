@@ -56,6 +56,7 @@ public class LabelDataValues implements IDataValues {
 		EDimension dim = EDimension.get(g == dimData);
 		b.put(TypedList.class, g);
 		b.put(EDimension.class, dim);
+		b.set("labels.boxHighlights");
 	}
 
 	@Override

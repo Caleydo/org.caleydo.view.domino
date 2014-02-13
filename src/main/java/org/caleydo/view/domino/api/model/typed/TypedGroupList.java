@@ -55,6 +55,8 @@ public class TypedGroupList extends TypedList implements ITypedGroupCollection {
 			acc.addAll(s);
 			groups.add(s);
 		}
+		if (groups.isEmpty())
+			return new TypedGroupSet(TypedGroups.createUngroupedGroup(TypedCollections.empty(getIdType())));
 		return new TypedGroupSet(groups);
 	}
 

@@ -24,6 +24,7 @@ import org.caleydo.core.view.opengl.layout2.GLElement;
 import org.caleydo.core.view.opengl.layout2.GLGraphics;
 import org.caleydo.core.view.opengl.layout2.geom.Rect;
 import org.caleydo.core.view.opengl.layout2.layout.IGLLayoutElement;
+import org.caleydo.core.view.opengl.util.text.ETextStyle;
 import org.caleydo.view.domino.api.model.EDirection;
 import org.caleydo.view.domino.api.model.typed.IMultiTypedCollection;
 import org.caleydo.view.domino.api.model.typed.ITypedComparator;
@@ -535,9 +536,7 @@ public class LinearBlock extends AbstractCollection<Node> {
 		} else {
 			// shift it
 			float angle = 45f; // TODO find out
-			g.save().move(x, y - textSize - 5).gl.glRotatef(-angle, 0, 0, 1);
-			g.drawText(text, 0, 0, 400, textSize);
-			g.restore();
+			g.drawRotatedText(text, x, y - textSize - 5, 400, textSize, VAlign.LEFT, ETextStyle.PLAIN, -angle);
 		}
 	}
 

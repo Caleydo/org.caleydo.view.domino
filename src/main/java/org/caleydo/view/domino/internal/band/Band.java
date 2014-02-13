@@ -174,7 +174,7 @@ public class Band extends ABand {
 			for (SelectionType type : SELECTION_TYPES) {
 				int sS = host.getSelected(sShared, type).size();
 				int tS = host.getSelected(tShared, type).size();
-				if (sS > 0 && tS > 0) {
+				if (sS > 0 || tS > 0) {
 					final Color c = type.getColor();
 					g.color(c.r, c.g, c.b, 0.5f);
 					if (sS == sShared.size() && tS == tShared.size())

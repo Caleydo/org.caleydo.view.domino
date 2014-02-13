@@ -43,7 +43,7 @@ public class DataTourGuideDataMode extends ATourGuideDataMode {
 
 	@Override
 	public Iterable<? extends ADataDomainQuery> createDataDomainQueries() {
-		return Iterables.concat(super.createDataDomainQueries(), createLabelQueries());
+		return super.createDataDomainQueries(); // , createLabelQueries());
 	}
 
 	private Iterable<ADataDomainQuery> createLabelQueries() {

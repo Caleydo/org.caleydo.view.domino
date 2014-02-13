@@ -5,8 +5,13 @@
  *******************************************************************************/
 package org.caleydo.view.domino.internal.ui;
 
+import gleem.linalg.Vec2f;
+
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.BitSet;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
@@ -20,14 +25,19 @@ import org.caleydo.core.id.IDMappingManagerRegistry;
 import org.caleydo.core.id.IDType;
 import org.caleydo.core.id.IIDTypeMapper;
 import org.caleydo.core.util.color.Color;
+import org.caleydo.core.view.opengl.canvas.IGLMouseListener.IMouseEvent;
 import org.caleydo.core.view.opengl.layout.Column.VAlign;
 import org.caleydo.core.view.opengl.layout2.GLElement;
 import org.caleydo.core.view.opengl.layout2.GLGraphics;
-import org.caleydo.core.view.opengl.layout2.PickableGLElement;
+import org.caleydo.core.view.opengl.layout2.IGLElementContext;
 import org.caleydo.core.view.opengl.layout2.manage.GLElementDimensionDesc;
 import org.caleydo.core.view.opengl.layout2.manage.GLElementFactoryContext;
 import org.caleydo.core.view.opengl.layout2.manage.IGLElementFactory2;
+import org.caleydo.core.view.opengl.picking.IPickingLabelProvider;
+import org.caleydo.core.view.opengl.picking.IPickingListener;
 import org.caleydo.core.view.opengl.picking.Pick;
+import org.caleydo.core.view.opengl.util.spline.TesselatedPolygons;
+import org.caleydo.core.view.opengl.util.text.ETextStyle;
 import org.caleydo.view.domino.api.model.typed.TypedList;
 
 import com.google.common.base.Function;
@@ -55,7 +65,8 @@ public class LabelElementFactory implements IGLElementFactory2 {
 			l = new TypedList(data, idType);
 		@SuppressWarnings("unchecked")
 		Function<Integer, String> toString = context.get("id2string", Function.class, null);
-		return new LabelElement(dim, l, toString, context.get("align", VAlign.class, VAlign.LEFT));
+		boolean boxHighlights = context.is("boxHighlights");
+		return new LabelElement(dim, l, toString, context.get("align", VAlign.class, VAlign.LEFT), boxHighlights);
 	}
 
 	@Override
@@ -75,8 +86,14 @@ public class LabelElementFactory implements IGLElementFactory2 {
 		return null;
 	}
 
-	private static final class LabelElement extends PickableGLElement implements
-			MultiSelectionManagerMixin.ISelectionMixinCallback {
+	private static final class LabelElement extends GLElement implements
+			MultiSelectionManagerMixin.ISelectionMixinCallback, IPickingLabelProvider, IPickingListener {
+		/**
+		 *
+		 */
+		private static final int MAX_TEXT_SIZE = 16;
+
+		private static final int MIN_TEXT_SIZE = 6;
 
 		private final EDimension dim;
 		private final TypedList data;
@@ -85,16 +102,111 @@ public class LabelElementFactory implements IGLElementFactory2 {
 
 		@DeepScan
 		private final MultiSelectionManagerMixin selections = new MultiSelectionManagerMixin(this);
+		private final boolean boxHighlights;
 
-		public LabelElement(EDimension dim, TypedList data, Function<Integer, String> toString, VAlign align) {
+		private float selectStart = Float.NaN;
+		private float selectEndPrev = Float.NaN;
+		private float selectEnd = Float.NaN;
+
+		public LabelElement(EDimension dim, TypedList data, Function<Integer, String> toString, VAlign align,
+				boolean boxHighlights) {
 			this.dim = dim;
 			this.data = data;
 			this.align = align;
+			this.boxHighlights = boxHighlights;
 
 			selections.add(new SelectionManager(data.getIdType()));
 			this.labels = toString == null ? toLabels(data) : toLabels(data, toString);
+
+			setVisibility(EVisibility.PICKABLE);
+			onPick(this);
 		}
 
+		@Override
+		protected void init(IGLElementContext context) {
+			onPick(context.getSWTLayer().createTooltip(this));
+			super.init(context);
+		}
+
+		@Override
+		public String getLabel(Pick pick) {
+			if (data.isEmpty())
+				return null;
+			Vec2f xy = toRelative(pick.getPickedPoint());
+			float ratio = dim.select(xy) / dim.select(getSize());
+			int index = (int) (ratio * (data.size() - 1));
+			return labels.get(index);
+		}
+
+		@Override
+		public void pick(Pick pick) {
+			if (data.isEmpty())
+				return;
+			SelectionManager manager = selections.get(0);
+			Vec2f xy = toRelative(pick.getPickedPoint());
+			float v = dim.select(xy) / dim.select(getSize());
+			boolean ctrlDown = ((IMouseEvent) pick).isCtrlDown();
+			switch (pick.getPickingMode()) {
+			case MOUSE_MOVED:
+				int index = Math.min((int) (v * (data.size() - 1)), data.size() - 1);
+				{
+					manager.clearSelection(SelectionType.MOUSE_OVER);
+					manager.addToType(SelectionType.MOUSE_OVER, data.get(index));
+					selections.fireSelectionDelta(manager);
+					repaint();
+				}
+				break;
+			case DRAG_DETECTED:
+				pick.setDoDragging(true);
+				selectStart = selectEndPrev = v;
+				if (!ctrlDown) {
+					manager.clearSelection(SelectionType.SELECTION);
+					selections.fireSelectionDelta(manager);
+					repaint();
+				}
+				break;
+			case DRAGGED:
+				if (pick.isDoDragging()) {
+					selectEnd = v;
+					updateSelections(manager, ctrlDown);
+				}
+				break;
+			case MOUSE_RELEASED:
+				if (pick.isDoDragging()) {
+					selectEnd = v;
+					updateSelections(manager, ctrlDown);
+					selectStart = selectEnd = selectEndPrev = Float.NaN;
+				}
+				break;
+			default:
+				break;
+			}
+		}
+
+		private void updateSelections(SelectionManager manager, boolean ctrlDown) {
+			if (!ctrlDown) {
+				manager.clearSelection(SelectionType.SELECTION);
+				update(manager, selectStart, selectEnd, false);
+			} else {
+				update(manager, selectEnd, selectEndPrev, true);
+			}
+			selections.fireSelectionDelta(manager);
+			selectEndPrev = selectEnd;
+			repaint();
+		}
+
+		private void update(SelectionManager manager, float a, float b, boolean toggle) {
+			int min = (int) (Math.min(a, b) * (data.size() - 1));
+			int max = (int) (Math.max(a, b) * (data.size() - 1));
+			for (int i = min; i <= max; ++i) {
+				final Integer id = data.get(i);
+				boolean add = !toggle || !manager.checkStatus(SelectionType.SELECTION, id);
+				if (add)
+					manager.addToType(SelectionType.SELECTION, id);
+				else
+					manager.removeFromType(SelectionType.SELECTION, id);
+			}
+		}
 		/**
 		 * @param dimData2
 		 * @return
@@ -124,6 +236,7 @@ public class LabelElementFactory implements IGLElementFactory2 {
 		@Override
 		protected void renderImpl(GLGraphics g, float w, float h) {
 			g.color(Color.WHITE).fillRect(0, 0, w, h);
+			g.color(Color.BLACK).drawRect(1, 1, w - 2, h - 2);
 
 			if (data.isEmpty()) {
 				g.drawText("Labels", 0, (h - 12) * 0.5f, w, 12, VAlign.CENTER);
@@ -146,70 +259,253 @@ public class LabelElementFactory implements IGLElementFactory2 {
 		 */
 		private void renderLabels(GLGraphics g, float w, float h) {
 			SelectionManager manager = selections.get(data.getIdType());
-			Set<Integer> mouseOvers = manager.getElements(SelectionType.MOUSE_OVER);
-			Set<Integer> selected = manager.getElements(SelectionType.SELECTION);
+			BitSet mouseOvers = toBitSet(manager.getElements(SelectionType.MOUSE_OVER));
+			BitSet selected = toBitSet(manager.getElements(SelectionType.SELECTION));
 			final int size = data.size();
-			if ((h / size) > 8)
-				renderUniform(g,w,h, mouseOvers, selected);
+			if ((h / size) > MIN_TEXT_SIZE) {
+				renderUniform(g, w, h);
+				renderSelection(g, w, h, mouseOvers, selected);
+			} else if (boxHighlights && (!mouseOvers.isEmpty() || !selected.isEmpty())) {
+				renderBoxHighlights(g, w, h, mouseOvers, selected);
+			} else {
+				final float textHeight = Math.min(w - 20, 14);
+				g.drawRotatedText("No Space", 10, h, h, textHeight, VAlign.CENTER, ETextStyle.PLAIN, -90);
+				renderSelection(g, w, h, mouseOvers, selected);
+			}
 		}
 
-			// Set<Integer> toHighlight = ImmutableSet.copyOf(Sets.intersection(Sets.union(mouseOvers, selected),
-			// data.asSet()));
-			// else if (toHighlight)
-			//
-			//
-			// float hi = h / size;
-			// if (hi >= 4)
-			// if (hi >= 3) {
-			// for (int i = 0; i < size; ++i) {
-			// String l = recLabels.get(i);
-			// Integer id = recData.get(i);
-			// if (selected.contains(id)) {
-			// g.color(SelectionType.SELECTION.getColor().brighter()).fillRect(0, i * hi, w, hi);
-			// } else if (mouseOvers.contains(id)) {
-			// g.color(SelectionType.MOUSE_OVER.getColor().brighter()).fillRect(0, i * hi, w, hi);
-			// }
-			// float ti = Math.min(hi - 1, 16);
-			// g.drawText(l, 0, i * hi + (hi - ti) * 0.5f, w, ti);
-			// }
-			// }
+		/**
+		 * @param elements
+		 * @return
+		 */
+		private BitSet toBitSet(Set<Integer> elements) {
+			BitSet s = new BitSet(data.size());
+			for (Integer elem : elements) {
+				int i = data.indexOf(elem);
+				if (i >= 0)
+					s.set(i);
+			}
+			return s;
+		}
 
-		private void renderUniform(GLGraphics g, float w, float h, Set<Integer> mouseOvers, Set<Integer> selected) {
+		private void renderBoxHighlights(GLGraphics g, float w, float h, BitSet mouseOvers, BitSet selected) {
+			final int size = data.size();
+			final float datahi = h / size;
+			selected.andNot(mouseOvers);
+			BitSet any = (BitSet) mouseOvers.clone();
+			any.or(selected);
+
+			final int anyS = any.cardinality();
+			float hi = h / anyS;
+			if (hi > MIN_TEXT_SIZE) {
+				// render boxes
+				float ti = Math.min(hi, MAX_TEXT_SIZE);
+				List<Block> blocks = new ArrayList<>();
+				addAll(mouseOvers, blocks, h, ti, datahi, true);
+				addAll(selected, blocks, h, ti, datahi, false);
+
+				Collections.sort(blocks);
+
+				optimize(blocks, h);
+
+				for (Block block : blocks) {
+					block.render(g, w, labels, align);
+				}
+			} else
+				renderSelection(g, w, h, mouseOvers, selected);
+		}
+
+		/**
+		 * @param set
+		 * @param blocks
+		 * @param h
+		 * @param ti
+		 * @param hi
+		 */
+		private void addAll(BitSet set, List<Block> blocks, float h, float ti, float datahi, boolean mouseOver) {
+			for (int index = set.nextSetBit(0); index != -1; index = set.nextSetBit(index + 1)) {
+				float y2 = datahi * index;
+				int start = index;
+				while (set.get(index + 1))
+					index++;
+				final float th = ti * (index - start + 1);
+				final float dh = datahi * (index - start + 1);
+				final float y = Math.max(0, Math.min(y2 - (th - dh) * 0.5f, h - th));
+				blocks.add(new Block(y, th, y2, dh, mouseOver, start, index + 1));
+			}
+		}
+
+		/**
+		 * @param blocks
+		 */
+		private void optimize(List<Block> blocks, float h) {
+			final int size = blocks.size();
+			Block prev = blocks.get(0);
+			for (int i = 1; i < size; ++i) {
+				Block b = blocks.get(i);
+				final boolean notLast = i < (size - 1);
+				float toMoveUp = prev.y2() - b.y;
+				prev = b;
+				if (toMoveUp > 0 && (!notLast || (blocks.get(i + 1).y - b.y2()) > toMoveUp)) { // move me down, if I'm
+																								// the last one
+					toMoveUp -= moveDown(blocks, i, toMoveUp, h);
+				}
+				if (toMoveUp > 0) {
+					// move me 50% up
+					float upMoved = moveUp(blocks, i, toMoveUp * 0.5f);
+					// move rest down
+					float movedDown = 0;
+					if (notLast)
+						movedDown = moveDown(blocks, i + 1, toMoveUp - upMoved, h);
+					// can't move all down
+					if ((movedDown + upMoved) < toMoveUp)
+						// move rest up again
+						moveUp(blocks, i, toMoveUp - (movedDown + upMoved));
+				}
+			}
+		}
+
+		private float moveUp(List<Block> blocks, int index, float up) {
+			Block b = blocks.get(index);
+			final boolean first = index == 0;
+			if (first)
+				up = Math.min(b.y, up);
+			b.move(-up);
+			if (!first) {
+				Block prev = blocks.get(index - 1);
+				if (prev.y2() >= b.y) {
+					// move the other up
+					final float toMove = prev.y2() - b.y;
+					float up2 = moveUp(blocks, index - 1, toMove);
+					if (up2 < toMove) { // can't move the previous up
+						up = up2; // move me down again as much as needed
+						b.move(toMove - up2);
+					}
+				}
+			}
+			return up;
+		}
+
+		private float moveDown(List<Block> blocks, int index, float down, float h) {
+			Block b = blocks.get(index);
+			final boolean last = index == (blocks.size() - 1);
+			if (last)
+				down = Math.min(h - b.y2(), down);
+			b.move(down);
+			if (!last) {
+				Block next = blocks.get(index + 1);
+				if (next.y <= b.y2()) {
+					// move the other down
+					final float toMove = b.y2() - next.y2();
+					float down2 = moveDown(blocks, index + 1, toMove, h);
+					if (down2 < toMove) { // can't move the other down
+						down = down2; // move we up again as much as needed
+						b.move(-(toMove - down2));
+					}
+				}
+			}
+			return down;
+		}
+
+		private static class Block implements Comparable<Block> {
+			float y;
+			final float h;
+			final float dy;
+			final float dh;
+			private final boolean mouseOver;
+			private final int start, end;
+
+			public Block(float y, float h, float dy, float dh, boolean mouseOver, int start, int end) {
+				this.y = y;
+				this.h = h;
+				this.dy = dy;
+				this.dh = dh;
+				this.mouseOver = mouseOver;
+				this.start = start;
+				this.end = end;
+			}
+
+			public float y2() {
+				return y + h;
+			}
+
+			public void move(float dy) {
+				this.y += dy;
+			}
+
+			public void render(GLGraphics g, float w, List<String> labels, VAlign align) {
+				renderPointingBox(g, mouseOver, y, h, dy, dh, w, align);
+				g.drawText(labels.subList(start, end), 2, y, w - 2, h - 1, 1, align, ETextStyle.PLAIN);
+			}
+
+			@Override
+			public int compareTo(Block o) {
+				return Float.compare(y, o.y);
+			}
+		}
+
+		private void renderUniform(GLGraphics g, float w, float h) {
 			final int size = data.size();
 			float hi = h / size;
 			for (int i = 0; i < size; ++i) {
 				String l = labels.get(i);
-				Integer id = data.get(i);
-				if (selected.contains(id)) {
-					g.color(SelectionType.SELECTION.getColor().brighter()).fillRect(0, i * hi, w, hi);
-				} else if (mouseOvers.contains(id)) {
-					g.color(SelectionType.MOUSE_OVER.getColor().brighter()).fillRect(0, i * hi, w, hi);
-				}
-				float ti = Math.min(hi - 1, 16);
-				g.drawText(l, 0, i * hi + (hi - ti) * 0.5f, w, ti, align);
+				float ti = Math.min(hi - 1, MAX_TEXT_SIZE);
+				g.drawText(l, 2, i * hi + (hi - ti) * 0.5f, w - 4, ti, align);
 			}
 		}
 
-		@Override
-		protected void onMouseMoved(Pick pick) {
-
-			super.onMouseMoved(pick);
+		private void renderSelection(GLGraphics g, float w, float h, BitSet mouseOvers, BitSet selected) {
+			final float hi = h / data.size();
+			selected.andNot(mouseOvers);
+			renderSelection(g, w, h, hi, selected, SelectionType.SELECTION);
+			renderSelection(g, w, h, hi, mouseOvers, SelectionType.MOUSE_OVER);
 		}
 
-		@Override
-		protected void onClicked(Pick pick) {
+		private static void renderPointingBox(GLGraphics g, boolean mouseOver, float y, float h, float y2, float h2,
+				float w, VAlign valign) {
+			SelectionType type = mouseOver ? SelectionType.MOUSE_OVER : SelectionType.SELECTION;
+			g.color(type.getColor().brighter());
 
-			super.onClicked(pick);
+			float o1 = 15;
+			float w1 = w - 15;
+			List<Vec2f> points;
+			switch (valign) {
+			case LEFT:
+				points = Arrays.asList(new Vec2f(0, y), new Vec2f(w1, y), new Vec2f(w, y2), new Vec2f(w, y2 + h2),
+						new Vec2f(w1, y + h), new Vec2f(0, y + h));
+				break;
+			case RIGHT:
+				points = Arrays.asList(new Vec2f(o1, y), new Vec2f(w, y), new Vec2f(w, y + h), new Vec2f(o1, y + h),
+						new Vec2f(0, y2 + h2), new Vec2f(0, y2));
+				break;
+			default:
+				points = Arrays.asList(new Vec2f(o1, y), new Vec2f(w, y), new Vec2f(w1, y), new Vec2f(w, y2),
+						new Vec2f(w, y2 + h2), new Vec2f(w1, y + h), new Vec2f(0, y2 + h2), new Vec2f(0, y2));
+				break;
+			}
+			g.fillPolygon(TesselatedPolygons.polygon2(points));
 		}
+
+
+		private static void renderSelection(GLGraphics g, float w, float h, float hi, BitSet set, SelectionType type) {
+			g.color(type.getColor().brighter());
+			for (int i = set.nextSetBit(0); i != -1; i = set.nextSetBit(i + 1)) {
+				int start = i;
+				while (set.get(i + 1))
+					i++;
+				g.fillRect(0, start * hi, w, hi * (i + 1 - start));
+			}
+		}
+
 
 		/**
 		 * @param dim
 		 * @return
 		 */
 		public GLElementDimensionDesc getDesc(EDimension dim) {
-			if (data.isEmpty())
+			if (data.isEmpty() || dim != this.dim)
 				return GLElementDimensionDesc.newFix(100).minimum(50).build();
-			return GLElementDimensionDesc.newCountDependent(10).build();
+			return GLElementDimensionDesc.newCountDependent(boxHighlights ? 1 : 10).build();
 		}
 
 		@Override
