@@ -71,6 +71,7 @@ public class Block extends GLElementContainer implements IGLLayout2, IPickingLis
 	 *
 	 */
 	static final float DETACHED_OFFSET = 50.f;
+	private static final float EXPLODE_SPACE = 50f;
 
 	private final List<LinearBlock> linearBlocks = new ArrayList<>();
 
@@ -122,7 +123,6 @@ public class Block extends GLElementContainer implements IGLLayout2, IPickingLis
 	public void clearItems(SelectionType type, IDType idType, Collection<Integer> ids) {
 		bands.clear(type, idType, ids);
 	}
-
 
 	@Override
 	public void pick(Pick pick) {
@@ -453,7 +453,8 @@ public class Block extends GLElementContainer implements IGLLayout2, IPickingLis
 	@Override
 	protected void init(IGLElementContext context) {
 		super.init(context);
-		updateSize();
+		realign();
+		updateBlock();
 	}
 
 	public void updatedNode(Node node, float wasDetached, float isDetached) {
@@ -698,7 +699,9 @@ public class Block extends GLElementContainer implements IGLLayout2, IPickingLis
 
 
 	private void updateBands() {
-		findDomino().updateBands();
+		final Domino d = findDomino();
+		if (d != null)
+			d.updateBands();
 		bands.relayout();
 	}
 
@@ -1038,6 +1041,115 @@ public class Block extends GLElementContainer implements IGLLayout2, IPickingLis
 				}
 			}
 		}
+	}
+
+	/**
+	 * @param dim
+	 * @return
+	 */
+	public List<Block> explode(EDimension dim) {
+		Node first = Iterables.getFirst(nodes(), null);
+		LinearBlock b = getBlock(first, dim.opposite());
+		assert b != null;
+		TypedGroupList data = b.getData();
+		final int groups = data.getGroups().size();
+		List<Block> r = new ArrayList<>(groups);
+		final EDirection dir = EDirection.getPrimary(dim.opposite()).opposite();
+
+		Rect bounds = getRectBounds().clone();
+
+		float shift = EXPLODE_SPACE * (groups - 1);
+		if (dim.isHorizontal()) {
+			bounds.x(bounds.x() - shift * 0.5f);
+		} else {
+			bounds.y(bounds.y() - shift * 0.5f);
+		}
+
+		float f = dim.select(bounds.size()) / data.size();
+		float offset = 0;
+		final List<Node> sort = b.getSortCriteria();
+
+		for(int i = 0; i < groups; ++i) {
+			Node prev = extractGroup(i, dim, b.get(0));
+			List<Node> sort2 = new ArrayList<>(sort);
+			int si;
+			if ((si = sort.indexOf(b.get(0))) >= 0)
+				sort2.set(si, prev);
+			Block act = new Block(prev);
+			for (int j = 1; j < b.size(); ++j) {
+				Node node = extractGroup(i, dim, b.get(j));
+				if ((si = sort.indexOf(b.get(j))) >= 0)
+					sort2.set(si, node);
+				act.addNode(prev, dir, node);
+				prev = node;
+			}
+			int gsize = data.getGroups().get(i).size();
+			if (dim.isHorizontal())
+				act.setLocation(bounds.x() + offset, bounds.y());
+			else
+				act.setLocation(bounds.x(), bounds.y() + offset);
+			offset += f * gsize + EXPLODE_SPACE;
+			act.restoreSorting(prev, dim, sort2, true);
+			r.add(act);
+		}
+		return r;
+	}
+
+	public Block combine(List<Block> with, EDimension dim) {
+		Node first = Iterables.getFirst(nodes(), null);
+		LinearBlock b = getBlock(first, dim.opposite());
+		assert b != null;
+
+		final EDirection dir = EDirection.getPrimary(dim.opposite()).opposite();
+
+		Vec2f loc = getLocation();
+		if (dim.isDimension())
+			loc.setX(loc.x() + EXPLODE_SPACE * 0.5f);
+		else
+			loc.setY(loc.y() + EXPLODE_SPACE * 0.5f);
+
+		final List<Node> sort = b.getSortCriteria();
+
+		List<Node> sort2 = new ArrayList<>(sort);
+		Block r = null;
+		Node prev = null;
+		for (Node node : b) {
+			Node parent = node.getOrigin(); // as we have the tracing information
+			int si;
+			if ((si = sort.indexOf(node)) >= 0)
+				sort2.set(si, parent);
+			if (r == null)
+				r = new Block(parent);
+			else
+				r.addNode(prev, dir, parent);
+			prev = parent;
+		}
+		assert r != null;
+		r.restoreSorting(prev, dim, sort2, true);
+		r.setLocation(loc.x(), loc.y());
+		return r;
+	}
+
+	private static Node extractGroup(int group, EDimension dim, Node node) {
+		final List<NodeGroup> gs = node.getGroupNeighbors(EDirection.getPrimary(dim.opposite()));
+		NodeGroup g = gs.get(group);
+		return g.toNode();
+	}
+
+	public boolean canExplode(EDimension dim) {
+		LinearBlock b = null;
+		for (LinearBlock bi : linearBlocks) {
+			if (bi.getDim() == dim.opposite()) {
+				if (b == null)
+					b = bi;
+				else
+					return false; // multiple in this dir
+			}
+		}
+		if (b == null)
+			return false;
+		// more than one group
+		return b.getData().getGroups().size() > 1;
 	}
 
 }

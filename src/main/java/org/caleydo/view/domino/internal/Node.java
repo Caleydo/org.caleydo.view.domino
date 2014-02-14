@@ -610,7 +610,8 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 				old.setY(entry.getValue().y());
 			this.scaleFactors.put(entry.getKey(), old);
 		}
-		updateSize(false);
+		if (context != null)
+			updateSize(false);
 		relayout();
 	}
 

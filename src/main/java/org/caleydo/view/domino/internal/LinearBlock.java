@@ -96,6 +96,13 @@ public class LinearBlock extends AbstractCollection<Node> {
 		return stratified && sortCriteria.get(0) == node;
 	}
 
+	/**
+	 * @return the sortCriteria, see {@link #sortCriteria}
+	 */
+	public List<Node> getSortCriteria() {
+		return Collections.unmodifiableList(sortCriteria);
+	}
+
 	public Rect getBounds() {
 		assert nodes.size() > 0;
 		Vec2f shift = nodes.get(0).getBlock().getLocation();

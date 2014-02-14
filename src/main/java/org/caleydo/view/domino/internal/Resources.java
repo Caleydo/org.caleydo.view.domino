@@ -52,6 +52,9 @@ public class Resources {
 	public static final URL ICON_LIMIT_DATA_DIM = icon("limit_dim.png");
 	public static final URL ICON_LIMIT_DATA_REC = icon("limit.png");
 
+	public static final URL ICON_EXPLODE_REC = icon("dynamite_rec.png");
+	public static final URL ICON_EXPLODE_DIM = icon("dynamite_dim.png");
+
 	public static final URL ICON_STATE_MOVE = icon("transform_move.png");
 	public static final URL ICON_STATE_SELECT = icon("select.png");
 	public static final URL ICON_STATE_BANDS = ICON_MISSING;
@@ -80,6 +83,7 @@ public class Resources {
 
 	public static final URL ICON_RULER = icon("measure.png");
 	public static final URL ICON_RULER_DISABLED = icon("measure_disabled.png");
+
 	/**
 	 * @param string
 	 * @return

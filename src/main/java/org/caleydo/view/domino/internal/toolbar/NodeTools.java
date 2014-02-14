@@ -27,6 +27,7 @@ import org.caleydo.view.domino.internal.NodeSelections;
 import org.caleydo.view.domino.internal.Resources;
 import org.caleydo.view.domino.internal.UndoStack;
 import org.caleydo.view.domino.internal.undo.ChangeVisTypeToCmd;
+import org.caleydo.view.domino.internal.undo.ExplodeSlicesCmd;
 import org.caleydo.view.domino.internal.undo.LimitToNodeCmd;
 import org.caleydo.view.domino.internal.undo.MergeGroupsCmd;
 import org.caleydo.view.domino.internal.undo.RemoveBlockCmd;
@@ -82,6 +83,8 @@ public class NodeTools extends AItemTools {
 			EDimension dim = node.getSingleGroupingDimension();
 			addSingleNode(node);
 
+			if (blocks.size() == 1) // a single node with a single block
+				addBlockActions(blocks);
 			if (dim != null)
 				addButton("Merge Groups", dim.select(Resources.ICON_MERGE_DIM, Resources.ICON_MERGE_REC));
 			if (node.groupCount() == selection.size()) {
@@ -93,9 +96,10 @@ public class NodeTools extends AItemTools {
 		} else if (!blocks.isEmpty()) {
 			if (areAllSingleBlocks(blocks)) {
 				outer: for (EDimension dim : EDimension.values()) {
-					for (Block block : blocks)
+					for (Block block : blocks) {
 						if (!((Node) block.get(0)).has(dim))
 							continue outer;
+					}
 					if (dim.isHorizontal()) {
 						addButton("Sort Dims", Resources.ICON_SORT_DIM);
 						addButton("Stratify Dims", Resources.ICON_SORT_DIM);
@@ -105,12 +109,30 @@ public class NodeTools extends AItemTools {
 					}
 				}
 			}
+			addBlockActions(blocks);
 			addButton("Transpose Blocks", Resources.ICON_TRANSPOSE);
 			addMultiNodes(nodes);
 			if (blocks.size() == 1)
 				addButton("Remove Block", Resources.ICON_DELETE);
 			else
 				addButton("Remove Blocks", Resources.ICON_DELETE_ALL);
+		}
+	}
+
+	void addBlockActions(Set<Block> blocks) {
+		for (EDimension dim : EDimension.values()) {
+			boolean canExplode = true;
+			for (Block block : blocks) {
+				canExplode = canExplode && block.canExplode(dim);
+			}
+
+			if (!canExplode)
+				continue;
+
+			if (dim.isHorizontal())
+				addButton("Explode Dim", Resources.ICON_EXPLODE_DIM);
+			else
+				addButton("Explode Rec", Resources.ICON_EXPLODE_REC);
 		}
 	}
 
@@ -263,6 +285,10 @@ public class NodeTools extends AItemTools {
 		case "Limit Dim":
 		case "Limit Rec":
 			undo.push(new LimitToNodeCmd(node.getNode(), dim));
+			break;
+		case "Explode Dim":
+		case "Explode Rec":
+			undo.push(ExplodeSlicesCmd.multi(NodeSelections.getFullBlocks(selection), dim));
 			break;
 		case "Remove Node":
 			undo.push(new RemoveNodeCmd(node.getNode()));

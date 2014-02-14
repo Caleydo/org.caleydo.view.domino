@@ -5,6 +5,7 @@
  *******************************************************************************/
 package org.caleydo.view.domino.internal.undo;
 
+import java.util.Collection;
 import java.util.List;
 
 import org.caleydo.core.data.collection.EDimension;
@@ -24,10 +25,21 @@ public class ExplodeSlicesCmd implements ICmd {
 		this.dim = dim;
 	}
 
+	public static ICmd multi(Collection<Block> nodes, EDimension dim) {
+		if (nodes.size() == 1)
+			return new ExplodeSlicesCmd(nodes.iterator().next(), dim);
+
+		ICmd[] r = new ICmd[nodes.size()];
+		int i = 0;
+		for (Block n : nodes)
+			r[i++] = new ExplodeSlicesCmd(n, dim);
+		return CmdComposite.chain(r);
+	}
+
 	@Override
 	public ICmd run(Domino domino) {
 		List<Block> blocks = domino.explode(block, dim);
-		return new CombineSlicesCmd(blocks, dim);
+		return CmdComposite.chain(RemoveBlockCmd.multi(blocks), new AddBlockCmd(block));
 	}
 
 	@Override

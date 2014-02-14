@@ -381,17 +381,25 @@ public class Blocks extends GLElementContainer implements ICallback<SelectionTyp
 	 * @return
 	 */
 	public List<Block> explode(Block block, EDimension dim) {
-		// TODO Auto-generated method stub
-		return null;
+		List<Block> blocks = block.explode(dim);
+		remove(block);
+		findParent(Domino.class).getSelections().cleanup(block);
+		for (Block b : blocks) {
+			addBlock(b);
+		}
+		return blocks;
 	}
 
-	/**
-	 * @param blocks
-	 * @param dim
-	 * @return
-	 */
 	public Block combine(List<Block> blocks, EDimension dim) {
-		// TODO Auto-generated method stub
-		return null;
+		final NodeSelections selections = findParent(Domino.class).getSelections();
+
+		Block first = blocks.get(0);
+		Block new_ = first.combine(blocks.subList(1, blocks.size()), dim);
+		for (Block b : blocks) {
+			remove(b);
+			selections.cleanup(b);
+		}
+		addBlock(new_);
+		return new_;
 	}
 }

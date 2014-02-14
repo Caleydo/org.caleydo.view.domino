@@ -42,6 +42,8 @@ public abstract class ADragButton extends AGLButton implements IDragGLSource {
 	public void setEnabled(boolean enabled) {
 		if (isEnabled() == enabled)
 			return;
+		if (!enabled && context != null)
+			context.getMouseLayer().removeDragSource(this);
 		setVisibility(enabled ? EVisibility.PICKABLE : EVisibility.VISIBLE);
 	}
 
