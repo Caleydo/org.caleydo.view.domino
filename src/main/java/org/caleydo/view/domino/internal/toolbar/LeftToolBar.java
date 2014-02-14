@@ -29,6 +29,8 @@ import org.caleydo.view.domino.internal.Domino;
 import org.caleydo.view.domino.internal.EToolState;
 import org.caleydo.view.domino.internal.Resources;
 import org.caleydo.view.domino.internal.UndoStack;
+import org.caleydo.view.domino.internal.tourguide.DataTourGuideAdapter;
+import org.caleydo.view.domino.internal.tourguide.StratifiationTourGuideAdapter;
 import org.caleydo.view.domino.internal.tourguide.ui.EntityTypeSelector;
 import org.caleydo.view.domino.internal.ui.DragLabelButton;
 import org.caleydo.view.domino.internal.ui.DragRulerButton;
@@ -77,7 +79,11 @@ public class LeftToolBar extends GLElementContainer implements IGLLayout2, ISele
 
 			selections.add(manager);
 		}
+
+		this.add(new GLElement());
+		addExtraButtons();
 	}
+
 
 	@Override
 	protected void renderImpl(GLGraphics g, float w, float h) {
@@ -145,6 +151,59 @@ public class LeftToolBar extends GLElementContainer implements IGLLayout2, ISele
 		clearUndo.setTooltip("Clear Undo History");
 		clearUndo.setCallback(callback);
 		this.add(clearUndo);
+	}
+
+	/**
+	 *
+	 */
+	private void addExtraButtons() {
+		final ISelectionCallback callback = new ISelectionCallback() {
+			@Override
+			public void onSelectionChanged(GLButton button, boolean selected) {
+				Domino domino = findParent(Domino.class);
+				switch (button.getTooltip()) {
+				case "Show Tour Guides":
+					DataTourGuideAdapter.show();
+					StratifiationTourGuideAdapter.show();
+					// call again to get focus
+					DataTourGuideAdapter.show();
+					break;
+				case "Show/Hide Debug Infos":
+					domino.setShowDebugInfos(!domino.isShowDebugInfos());
+					break;
+				case "Show/Hide Block Labels":
+					domino.setShowBlockLabels(!domino.isShowBlockLabels());
+					break;
+				case "Show/Hide Mini Map":
+					domino.toggleShowMiniMap();
+					break;
+				}
+			}
+		};
+
+		GLButton b = new GLButton();
+		b.setRenderer(GLRenderers.fillImage(Resources.ICON_MINI_MAP));
+		b.setTooltip("Show/Hide Mini Map");
+		b.setCallback(callback);
+		this.add(b);
+
+		b = new GLButton();
+		b.setRenderer(GLRenderers.fillImage(Resources.ICON));
+		b.setTooltip("Show Tour Guides");
+		b.setCallback(callback);
+		this.add(b);
+
+		b = new GLButton();
+		b.setRenderer(GLRenderers.fillImage(Resources.ICON_SHOW_HIDE_DEBUG));
+		b.setTooltip("Show/Hide Debug Infos");
+		b.setCallback(callback);
+		this.add(b);
+
+		b = new GLButton();
+		b.setRenderer(GLRenderers.fillImage(Resources.ICON_SHOW_HIDE_LABELS));
+		b.setTooltip("Show/Hide Block Labels");
+		b.setCallback(callback);
+		this.add(b);
 	}
 
 	/**

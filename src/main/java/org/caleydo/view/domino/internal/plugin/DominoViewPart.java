@@ -8,10 +8,7 @@ package org.caleydo.view.domino.internal.plugin;
 import org.caleydo.core.view.ARcpGLElementViewPart;
 import org.caleydo.core.view.opengl.canvas.IGLCanvas;
 import org.caleydo.core.view.opengl.layout2.AGLElementView;
-import org.caleydo.view.domino.internal.plugin.action.SettingsAction;
-import org.caleydo.view.domino.internal.plugin.action.ShowTourGuidesAction;
 import org.caleydo.view.domino.internal.serial.SerializedDominoView;
-import org.eclipse.jface.action.IToolBarManager;
 
 /**
  *
@@ -35,12 +32,5 @@ public class DominoViewPart extends ARcpGLElementViewPart {
 	@Override
 	public DominoView getView() {
 		return (DominoView) super.getView();
-	}
-
-	@Override
-	protected void addToolBarContent(IToolBarManager toolBarManager) {
-		toolBarManager.add(new SettingsAction(view));
-		toolBarManager.add(new ShowTourGuidesAction());
-		super.addToolBarContent(toolBarManager);
 	}
 }

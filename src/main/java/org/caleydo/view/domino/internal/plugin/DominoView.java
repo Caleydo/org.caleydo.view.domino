@@ -12,7 +12,6 @@ import org.caleydo.core.data.datadomain.DataSupportDefinitions;
 import org.caleydo.core.data.datadomain.IDataSupportDefinition;
 import org.caleydo.core.data.perspective.table.TablePerspective;
 import org.caleydo.core.event.EventListenerManager.DeepScan;
-import org.caleydo.core.event.EventListenerManager.ListenTo;
 import org.caleydo.core.serialize.ASerializedView;
 import org.caleydo.core.view.opengl.canvas.GLThreadListenerWrapper;
 import org.caleydo.core.view.opengl.canvas.IGLCanvas;
@@ -21,9 +20,6 @@ import org.caleydo.core.view.opengl.layout2.GLElement;
 import org.caleydo.core.view.opengl.layout2.GLElementDecorator;
 import org.caleydo.core.view.opengl.layout2.view.AMultiTablePerspectiveElementView;
 import org.caleydo.view.domino.internal.Domino;
-import org.caleydo.view.domino.internal.event.ToggleShowBlockLabelsEvent;
-import org.caleydo.view.domino.internal.event.ToggleShowDebugInfosEvent;
-import org.caleydo.view.domino.internal.event.ToggleShowMiniMapEvent;
 import org.caleydo.view.domino.internal.serial.SerializedDominoView;
 
 /**
@@ -80,21 +76,6 @@ public class DominoView extends AMultiTablePerspectiveElementView {
 			List<TablePerspective> added, List<TablePerspective> removed) {
 		// domino.removeAll(removed);
 		// domino.addAll(added);
-	}
-
-	@ListenTo(sendToMe = true)
-	private void on(ToggleShowDebugInfosEvent event) {
-		domino.setShowDebugInfos(!domino.isShowDebugInfos());
-	}
-
-	@ListenTo(sendToMe = true)
-	private void on(ToggleShowBlockLabelsEvent event) {
-		domino.setShowBlockLabels(!domino.isShowBlockLabels());
-	}
-
-	@ListenTo(sendToMe = true)
-	private void on(ToggleShowMiniMapEvent event) {
-		domino.toggleShowMiniMap();
 	}
 
 	public void replaceTablePerspectiveInternally(TablePerspective from, TablePerspective to) {

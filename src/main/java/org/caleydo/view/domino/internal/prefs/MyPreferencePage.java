@@ -5,7 +5,6 @@
  ******************************************************************************/
 package org.caleydo.view.domino.internal.prefs;
 
-import org.caleydo.view.tourguide.api.prefs.MyPreferences;
 import org.eclipse.jface.preference.BooleanFieldEditor;
 import org.eclipse.jface.preference.FieldEditorPreferencePage;
 import org.eclipse.swt.widgets.Composite;
