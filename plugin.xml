@@ -82,4 +82,31 @@
             order="35">
       </item>
    </extension>
+   <extension
+         point="org.eclipse.ui.views">
+      <view
+            allowMultiple="true"
+            category="org.caleydo.core.views"
+            class="org.caleydo.view.tourguide.internal.RcpGLTourGuideView"
+            icon="resources/icons/icon.png"
+            id="org.caleydo.view.tool.tourguide"
+            name="LineUp"
+            restorable="false">
+      </view>
+   </extension>
+   <extension
+         point="org.eclipse.core.runtime.preferences">
+      <initializer
+            class="org.caleydo.view.domino.internal.prefs.MyPreferences">
+      </initializer>
+   </extension>
+   <extension
+         point="org.eclipse.ui.preferencePages">
+      <page
+            category="org.caleydo.core.gui.preferences.views"
+            class="org.caleydo.view.domino.internal.prefs.MyPreferencePage"
+            id="org.caleydo.view.domino"
+            name="Domino">
+      </page>
+   </extension>
 </plugin>

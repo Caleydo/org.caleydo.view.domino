@@ -41,6 +41,7 @@ import org.caleydo.view.domino.internal.dnd.ADragInfo;
 import org.caleydo.view.domino.internal.dnd.BlockDragInfo;
 import org.caleydo.view.domino.internal.dnd.NodeDragInfo;
 import org.caleydo.view.domino.internal.dnd.NodeGroupDragInfo;
+import org.caleydo.view.domino.internal.prefs.MyPreferences;
 import org.caleydo.view.domino.internal.ui.PickingBarrier;
 
 import com.google.common.collect.ImmutableList;
@@ -171,7 +172,7 @@ public class NodeGroup extends GLElementDecorator implements ILabeled, IDragGLSo
 	}
 
 	private void selectItems(SelectionType type, boolean additional) {
-		if (findDomino().getTool() != EToolState.BANDS) // no auto select in select and bands mode
+		if (!autoSelectItems()) // no auto select in select and bands mode
 			return;
 		final Block block = findParent(Block.class);
 		for (EDimension dim : parent.dimensions()) {
@@ -180,8 +181,12 @@ public class NodeGroup extends GLElementDecorator implements ILabeled, IDragGLSo
 		}
 	}
 
+	boolean autoSelectItems() {
+		return MyPreferences.isAutoSelectItems() && findDomino().getTool() == EToolState.MOVE;
+	}
+
 	private void clearItems(SelectionType type, boolean additional) {
-		if (findDomino().getTool() != EToolState.BANDS)
+		if (!autoSelectItems())
 			return;
 		final Block block = findParent(Block.class);
 		for (EDimension dim : parent.dimensions()) {
