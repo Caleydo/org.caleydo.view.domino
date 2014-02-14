@@ -26,7 +26,7 @@ public class BandLines {
 	private final static float SHIFT = 10;
 	private final static Vec2f SHIFT_V = new Vec2f(SHIFT, 0);
 
-	public static BandLine create(Rect a, EDimension aDim, Rect b, EDimension bDim) {
+	public static BandLine create(ShearedRect a, EDimension aDim, ShearedRect b, EDimension bDim) {
 		Pair<List<Vec2f>, List<Vec2f>> p;
 		if ((p = createImpl(a, aDim, b, bDim)) != null) { // a -> b
 			return new BandLine(p.getFirst(), p.getSecond(), 2);
@@ -38,9 +38,10 @@ public class BandLines {
 
 	}
 
-	private static Pair<List<Vec2f>, List<Vec2f>> createImpl(Rect a, EDimension aDim, Rect b, EDimension bDim) {
+	private static Pair<List<Vec2f>, List<Vec2f>> createImpl(ShearedRect a, EDimension aDim, ShearedRect b,
+			EDimension bDim) {
 		if (aDim == EDimension.RECORD) {
-			Pair<List<Vec2f>, List<Vec2f>> r = createParallel(rot90(a), rot90(b));
+			Pair<List<Vec2f>, List<Vec2f>> r = createParallel(a.rot90(), b.rot90());
 			if (r != null)
 				return Pair.make(rot90(r.getFirst()), rot90(r.getSecond()));
 			return null;
@@ -49,7 +50,7 @@ public class BandLines {
 		}
 	}
 
-	private static Pair<List<Vec2f>, List<Vec2f>> createParallel(Rect s, Rect t) {
+	private static Pair<List<Vec2f>, List<Vec2f>> createParallel(ShearedRect s, ShearedRect t) {
 		if (s.x2() < t.x() - 40) {
 			return createHorizontal(s, t);
 		} else {
@@ -61,7 +62,7 @@ public class BandLines {
 		return null;
 	}
 
-	private static Pair<List<Vec2f>, List<Vec2f>> createHorizontal(Rect s, Rect t) {
+	private static Pair<List<Vec2f>, List<Vec2f>> createHorizontal(ShearedRect s, ShearedRect t) {
 		return b(shifted(s.x2y(), t.xy()), shifted(s.x2y2(), t.xy2()));
 	}
 
@@ -152,13 +153,5 @@ public class BandLines {
 		for (Vec2f in : curve)
 			r.add(new Vec2f(in.y(), in.x()));
 		return r;
-	}
-
-	/**
-	 * @param sourceB
-	 * @return
-	 */
-	private static Rect rot90(Rect a) {
-		return new Rect(a.y(), a.x(), a.height(), a.width());
 	}
 }

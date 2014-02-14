@@ -8,7 +8,6 @@ package org.caleydo.view.domino.internal.band;
 import gleem.linalg.Vec2f;
 
 import org.caleydo.core.data.collection.EDimension;
-import org.caleydo.core.view.opengl.layout2.geom.Rect;
 import org.caleydo.view.domino.api.model.EDirection;
 import org.caleydo.view.domino.api.model.typed.MultiTypedSet;
 import org.caleydo.view.domino.api.model.typed.TypedGroupList;
@@ -21,7 +20,8 @@ import org.caleydo.view.domino.internal.INodeLocator;
  */
 public class BandFactory {
 
-	public static ABand create(String label, TypedGroupList sData, TypedGroupList tData, Rect ra, Rect rb,
+	public static ABand create(String label, TypedGroupList sData, TypedGroupList tData, ShearedRect ra,
+			ShearedRect rb,
 			final INodeLocator sNodeLocator, final INodeLocator tNodeLocator, final EDimension sDim,
 			final EDimension tDim, String identifier) {
 		MultiTypedSet shared = TypedSets.intersect(sData.asSet(), tData.asSet());

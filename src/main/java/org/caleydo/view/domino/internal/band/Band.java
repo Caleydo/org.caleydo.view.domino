@@ -78,12 +78,8 @@ public class Band extends ABand {
 		this.sLocator = sLocator;
 		this.tLocator = tLocator;
 		overviewRoute.updateBand();
-		if (groupRoutes != null)
-			for (DataRoute r : groupRoutes)
-				r.updateBand();
-		if (detailRoutes != null)
-			for (ADataRoute r : detailRoutes)
-				r.updateBand();
+		groupRoutes = null;
+		detailRoutes = null;
 	}
 
 	@Override

@@ -49,6 +49,7 @@ import org.caleydo.view.domino.internal.band.ABand;
 import org.caleydo.view.domino.internal.band.BandFactory;
 import org.caleydo.view.domino.internal.band.EBandMode;
 import org.caleydo.view.domino.internal.band.IBandHost.SourceTarget;
+import org.caleydo.view.domino.internal.band.ShearedRect;
 import org.caleydo.view.domino.internal.data.VisualizationTypeOracle;
 import org.caleydo.view.domino.internal.dnd.ADragInfo;
 import org.caleydo.view.domino.internal.dnd.BlockDragInfo;
@@ -767,13 +768,13 @@ public class Block extends GLElementContainer implements IGLLayout2, IPickingLis
 		TypedGroupList sData = la.getData();
 		TypedGroupList tData = lb.getData();
 
-		Rect ra = la.getBounds();
-		Rect rb = lb.getBounds();
+		ShearedRect ra = la.getShearedBounds();
+		ShearedRect rb = lb.getShearedBounds();
 
 		String label = la.getNode(true).getLabel() + " x " + lb.getNode(false).getLabel();
 
-		final INodeLocator sNodeLocator = la.getNodeLocator(true);
-		final INodeLocator tNodeLocator = lb.getNodeLocator(false);
+		INodeLocator sNodeLocator = la.getNodeLocator(true); // left one
+		INodeLocator tNodeLocator = lb.getNodeLocator(false); // right one
 		final EDimension sDir = la.getDim().opposite();
 		final EDimension tDir = lb.getDim().opposite();
 
@@ -785,10 +786,16 @@ public class Block extends GLElementContainer implements IGLLayout2, IPickingLis
 		boolean swapped = band.getLocator(SourceTarget.SOURCE) != sNodeLocator;
 		EDirection sdir = band.getAttachingDirection(SourceTarget.SOURCE);
 		EDirection tdir = band.getAttachingDirection(SourceTarget.TARGET);
+		boolean primary = sdir.isPrimaryDirection();
+		boolean redo = false;
 		if (swapped) {
-			band.setLocators(lb.getNodeLocator(sdir.isPrimaryDirection()), la.getNodeLocator(tdir.isPrimaryDirection()));
-		} else {
-			band.setLocators(la.getNodeLocator(sdir.isPrimaryDirection()), lb.getNodeLocator(tdir.isPrimaryDirection()));
+			redo = primary; // since in the original the tNodeLocator is not in the primary dir
+		} else
+			redo = !primary;
+		if (redo) {
+			sNodeLocator = la.getNodeLocator(false); // left one
+			tNodeLocator = lb.getNodeLocator(true); // right one
+			band = BandFactory.create(label, sData, tData, ra, rb, sNodeLocator, tNodeLocator, sDir, tDir, id);
 		}
 
 		EBandMode defaultMode = EBandMode.OVERVIEW;
@@ -978,8 +985,8 @@ public class Block extends GLElementContainer implements IGLLayout2, IPickingLis
 		TypedGroupList sData = s.getDetachedOffset() > 0 ? s.getData(d) : b.getData();
 		TypedGroupList tData = t.getDetachedOffset() > 0 ? t.getData(d) : b.getData();
 
-		Rect ra = s.getRectBounds();
-		Rect rb = t.getRectBounds();
+		ShearedRect ra = new ShearedRect(s.getRectBounds());
+		ShearedRect rb = new ShearedRect(t.getRectBounds());
 		String label = s.getLabel() + " x " + s.getLabel();
 		final INodeLocator sNodeLocator = s.getNodeLocator(d);
 		final INodeLocator tNodeLocator = t.getNodeLocator(d);

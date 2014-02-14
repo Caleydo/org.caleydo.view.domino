@@ -40,6 +40,7 @@ import org.caleydo.view.domino.api.model.typed.TypedSet;
 import org.caleydo.view.domino.api.model.typed.TypedSetGroup;
 import org.caleydo.view.domino.api.model.typed.TypedSets;
 import org.caleydo.view.domino.api.model.typed.util.RepeatingList;
+import org.caleydo.view.domino.internal.band.ShearedRect;
 import org.caleydo.view.domino.internal.data.VisualizationTypeOracle;
 
 import com.google.common.base.Function;
@@ -112,6 +113,27 @@ public class LinearBlock extends AbstractCollection<Node> {
 		}
 		r.xy(shift.plus(r.xy()));
 		return r;
+	}
+
+	/**
+	 * @return
+	 */
+	public ShearedRect getShearedBounds() {
+		Vec2f shift = nodes.get(0).getBlock().getLocation();
+		final Rect r = getNode(true).getDetachedRectBounds().clone();
+		if (size() == 1) {
+			r.xy(shift.plus(r.xy()));
+			return new ShearedRect(r);
+		}
+		Rect first = r;
+		Rect last = getNode(false).getDetachedRectBounds();
+		float x = first.x() + shift.x();
+		float y = first.y() + shift.y();
+		float x2 = last.x2() + shift.x();
+		float y2 = last.y2() + shift.y();
+		float shearX = dim.isHorizontal() ? 0 : last.x2() - first.x2();
+		float shearY = dim.isVertical() ? 0 : last.y2() - first.y2();
+		return new ShearedRect(x, y, x2, y2, shearX, shearY);
 	}
 
 	public IDType getIdType() {

@@ -171,7 +171,7 @@ public class NodeGroup extends GLElementDecorator implements ILabeled, IDragGLSo
 	}
 
 	private void selectItems(SelectionType type, boolean additional) {
-		if (findDomino().getTool() != EToolState.MOVE) // no auto select in select and bands mode
+		if (findDomino().getTool() != EToolState.BANDS) // no auto select in select and bands mode
 			return;
 		final Block block = findParent(Block.class);
 		for (EDimension dim : parent.dimensions()) {
@@ -181,7 +181,7 @@ public class NodeGroup extends GLElementDecorator implements ILabeled, IDragGLSo
 	}
 
 	private void clearItems(SelectionType type, boolean additional) {
-		if (findDomino().getTool() != EToolState.MOVE)
+		if (findDomino().getTool() != EToolState.BANDS)
 			return;
 		final Block block = findParent(Block.class);
 		for (EDimension dim : parent.dimensions()) {
