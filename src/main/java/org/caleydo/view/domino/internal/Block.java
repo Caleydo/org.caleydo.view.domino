@@ -817,9 +817,13 @@ public class Block extends GLElementContainer implements IGLLayout2, IPickingLis
 	private static String toId(Node a, Node b) {
 		int ai = a.getID();
 		int bi = b.getID();
-		if (ai < bi)
-			return ai + "X" + bi;
-		return bi + "X" + ai;
+		String al = ai + "@" + a.getVisualizationType();
+		String bl = bi + "@" + b.getVisualizationType();
+		if (ai < bi) {
+			return al + "X" + bl;
+		} else {
+			return bl + "X" + al;
+		}
 	}
 
 	private static boolean isCompatible(IDType a, IDType b) {
