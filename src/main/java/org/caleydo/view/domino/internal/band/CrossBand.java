@@ -34,6 +34,7 @@ import org.caleydo.view.domino.internal.band.IBandHost.SourceTarget;
 import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.ImmutableMultimap.Builder;
 import com.google.common.collect.Multimap;
+
 /**
  * @author Samuel Gratzl
  *
@@ -61,7 +62,7 @@ public class CrossBand extends ABand {
 			float w = tr * (float) tLocator.apply(EBandMode.OVERVIEW, 0).getSize();
 			float h = sr * (float) sLocator.apply(EBandMode.OVERVIEW, 0).getSize();
 			Rect bounds = new Rect(tLoc.x(), sLoc.y(), w, h);
-			this.overview = new Disc(label, bounds, sShared, tShared);
+			this.overview = new Disc(label, bounds, sShared, tShared, sLoc.x(), tLoc.y());
 		}
 	}
 
@@ -277,17 +278,20 @@ public class CrossBand extends ABand {
 		return b.build();
 	}
 
-	private static class Disc implements IBandRenderAble {
+	private class Disc implements IBandRenderAble {
 		private final String label;
 		private final Rect bounds;
 		private final TypedSet sIds;
 		private final TypedSet tIds;
+		private final float xStart, yStart;
 
-		public Disc(String label, Rect bounds, TypedSet sIds, TypedSet tIds) {
+		public Disc(String label, Rect bounds, TypedSet sIds, TypedSet tIds, float xStart, float yStart) {
 			this.label = label;
 			this.bounds = bounds;
 			this.sIds = sIds;
 			this.tIds = tIds;
+			this.xStart = xStart;
+			this.yStart = yStart;
 		}
 
 		/**
@@ -296,7 +300,36 @@ public class CrossBand extends ABand {
 		public void renderMiniMap(GLGraphics g) {
 			final Color color = EBandMode.OVERVIEW.getColor();
 			g.color(color.r, color.g, color.b, color.a);
-			g.fillRect(bounds);
+			renderBox(g, true, 1.f, 1.f);
+		}
+
+		private void renderBox(GLGraphics g, boolean fill, float wFactor, float hFactor) {
+			if (fill) {
+				if (sDim == EDirection.WEST) {
+					if (tDim == EDirection.NORTH) {
+						g.fillRect(xStart, bounds.y(), bounds.x() - xStart, bounds.height() * hFactor);
+						g.fillRect(bounds.x(), yStart, bounds.width() * wFactor, bounds.y() - yStart + bounds.height()
+								* hFactor);
+					} else {
+						g.fillRect(xStart, bounds.y() + bounds.height() * (1 - hFactor), bounds.x() - xStart,
+								bounds.height() * hFactor);
+						g.fillRect(bounds.x(), bounds.y() + bounds.height() * (1 - hFactor), bounds.width() * wFactor,
+								yStart - bounds.y2() + bounds.height() * hFactor);
+					}
+				} else {
+					if (tDim == EDirection.NORTH) {
+						g.fillRect(bounds.x2(), bounds.y(), xStart - bounds.x2(), bounds.height() * hFactor);
+						g.fillRect(bounds.x() + (bounds.width() * (1 - wFactor)), yStart, bounds.width() * wFactor,
+								bounds.y() - yStart + bounds.height() * hFactor);
+					} else {
+						g.fillRect(bounds.x2(), bounds.y() + bounds.height() * (1 - hFactor), xStart - bounds.x2(),
+								bounds.height() * hFactor);
+						g.fillRect(bounds.x() + (bounds.width() * (1 - wFactor)), bounds.y() + bounds.height()
+								* (1 - hFactor), bounds.width() * wFactor, yStart - bounds.y2() + bounds.height()
+								* hFactor);
+					}
+				}
+			}
 		}
 
 		/**
@@ -322,7 +355,8 @@ public class CrossBand extends ABand {
 		public void renderRoute(GLGraphics g, IBandHost host, int nrItems) {
 			final Color color = EBandMode.OVERVIEW.getColor();
 			g.color(color);
-			g.fillRect(bounds);
+			renderBox(g, true, 1.f, 1.f);
+
 
 			if (g.isPickingPass())
 				return;
@@ -332,13 +366,12 @@ public class CrossBand extends ABand {
 				if (sS > 0 && tS > 0) {
 					final Color c = type.getColor();
 					g.color(c.r, c.g, c.b, 0.5f);
-					g.fillRect(bounds.x(), bounds.y(), bounds.width() * (tS / (float) tIds.size()), bounds.height()
-							* (sS / (float) sIds.size()));
+					renderBox(g, true, (tS / (float) tIds.size()), (sS / (float) sIds.size()));
 				}
 			}
 
 			g.color(color.darker());
-			g.drawRect(bounds.x(), bounds.y(), bounds.width(), bounds.height());
+			renderBox(g, false, 1.f, 1.f);
 		}
 
 		@Override

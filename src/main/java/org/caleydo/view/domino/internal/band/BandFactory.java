@@ -47,21 +47,21 @@ public class BandFactory {
 			if (sDim == EDimension.RECORD) {
 				Vec2f s = ra.x2y();
 				Vec2f t = rb.xy();
-				EDirection sDir = EDirection.getPrimary(sDim);
-				if (s.y() >= t.y())
+				EDirection sDir = EDirection.getPrimary(sDim.opposite());
+				if (s.x() > t.x())
 					sDir = sDir.opposite();
-				EDirection tDir = EDirection.getPrimary(tDim);
-				if (s.x() >= t.x())
+				EDirection tDir = EDirection.getPrimary(tDim.opposite());
+				if (s.y() < t.y())
 					tDir = tDir.opposite();
 				return new CrossBand(label, shared, sData, tData, sNodeLocator, tNodeLocator, s, t, sDir, tDir,
 						identifier);
 			} else {
 				Vec2f s = ra.xy();
 				Vec2f t = rb.x2y();
-				EDirection sDir = EDirection.getPrimary(tDim);
+				EDirection sDir = EDirection.getPrimary(tDim.opposite());
 				if (t.y() >= s.y())
 					sDir = sDir.opposite();
-				EDirection tDir = EDirection.getPrimary(sDim);
+				EDirection tDir = EDirection.getPrimary(sDim.opposite());
 				if (t.x() >= s.x())
 					tDir = tDir.opposite();
 				return new CrossBand(label, shared, tData, sData, tNodeLocator, sNodeLocator, t, s, sDir, tDir,
