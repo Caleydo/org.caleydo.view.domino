@@ -269,8 +269,14 @@ public abstract class ABands extends GLElement implements MultiSelectionManagerM
 				g.incZ(-0.01f);
 				band.renderMiniMap(g);
 				g.incZ(0.01f);
+				g.popName();
+
+				// pop the self id but the band id
+				g.popName();
+				g.pushName(pickingBandPool.get(i));
 				j = band.renderPick(g, w, h, this, pickingBandDetailPool, j);
 				g.popName();
+				g.pushName(pickingID); // FIXME HACK
 			}
 			g.restore();
 			g.incZ(-0.05f);

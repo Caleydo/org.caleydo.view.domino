@@ -33,6 +33,7 @@ import org.caleydo.core.view.opengl.layout2.dnd.IDropGLTarget;
 import org.caleydo.core.view.opengl.layout2.geom.Rect;
 import org.caleydo.core.view.opengl.layout2.layout.IGLLayout2;
 import org.caleydo.core.view.opengl.layout2.layout.IGLLayoutElement;
+import org.caleydo.core.view.opengl.layout2.renderer.GLRenderers;
 import org.caleydo.core.view.opengl.picking.IPickingListener;
 import org.caleydo.core.view.opengl.picking.Pick;
 import org.caleydo.core.view.opengl.picking.PickingMode;
@@ -111,18 +112,15 @@ public class Domino extends GLElementContainer implements IDropGLTarget, IPickin
 		});
 		this.add(content);
 
-		GLElement helper = new GLElement();
-		helper.setVisibility(EVisibility.PICKABLE);
-		helper.onPick(this);
-		helper.setzDelta(0.008f);
-		content.add(helper);
-
 		this.blocks = new Blocks(selections);
 		content.add(blocks);
 		blocks.setzDelta(0.1f);
 
 		this.bands = new Bands(selections);
 		this.bands.setzDelta(0.01f);
+		this.bands.setVisibility(EVisibility.PICKABLE);
+		this.bands.setPicker(GLRenderers.RECT);
+		this.bands.onPick(this);
 		content.add(this.bands);
 
 		selections.onNodeGroupSelectionChanges(new ICallback<SelectionType>() {
