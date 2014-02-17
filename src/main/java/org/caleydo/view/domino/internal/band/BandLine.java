@@ -13,6 +13,7 @@ import java.util.List;
 
 import org.caleydo.core.view.opengl.layout2.geom.Rect;
 import org.caleydo.core.view.opengl.util.spline.ITesselatedPolygon;
+import org.caleydo.view.domino.internal.band.IBandHost.SourceTarget;
 
 import com.google.common.primitives.Floats;
 
@@ -101,6 +102,33 @@ public class BandLine {
 
 		int split = top.size() / 2;
 		return new StubifiedArea(top, bottom, split, this.top.getPercentages(), this.bottom.getPercentages(), 1);
+	}
+
+	public IBandArea computeStub(SourceTarget type, float f1, float f2) {
+		BandLine s = asStubified();
+		final float unmappedShift = 1.5f;
+
+		List<Vec2f> top;
+		List<Vec2f> bottom;
+
+		if (type == SourceTarget.SOURCE) {
+			top = s.computeLine(Math.min(f1, f2), unmappedShift);
+			bottom = s.computeLine(Math.max(f1, f2), unmappedShift);
+			int split = top.size() / 2;
+			top = top.subList(0, split);
+			bottom = bottom.subList(0, split);
+		} else {
+			top = s.computeLine(unmappedShift, Math.min(f1, f2));
+			bottom = s.computeLine(unmappedShift, Math.max(f1, f2));
+			int split = top.size() / 2;
+			top = top.subList(split, top.size());
+			bottom = bottom.subList(split, top.size());
+		}
+		{
+			if (isSimilar(top, bottom))
+				return new PolyAreaLine(top);
+			return new PolyArea(top, bottom);
+		}
 	}
 
 	/**

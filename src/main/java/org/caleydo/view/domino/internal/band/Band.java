@@ -47,8 +47,8 @@ public class Band extends ABand {
 	private BandLine band;
 
 	private final DataRoute overviewRoute;
-	private List<DataRoute> groupRoutes;
-	private List<ADataRoute> detailRoutes;
+	private List<IBandRenderAble> groupRoutes;
+	private List<IBandRenderAble> detailRoutes;
 
 	public Band(BandLine band, String label, MultiTypedSet shared, TypedGroupList sData, TypedGroupList tData,
 			INodeLocator sLocator, INodeLocator tLocator, EDirection sDim, EDirection tDim, String identifier) {
@@ -282,7 +282,7 @@ public class Band extends ABand {
 	}
 
 	@Override
-	protected List<DataRoute> groupRoutes() {
+	protected List<IBandRenderAble> groupRoutes() {
 		if (groupRoutes != null)
 			return groupRoutes;
 		groupRoutes = new ArrayList<>();
@@ -291,11 +291,13 @@ public class Band extends ABand {
 
 		// convert all to the subset of the shared set
 		final List<TypedListGroup> sgroups = sData.getGroups();
-		for (TypedListGroup sGroup : sgroups)
+		for (TypedListGroup sGroup : sgroups) {
 			sSets.add(overviewRoute.sShared.intersect(sGroup.asSet()));
+		}
 		final List<TypedListGroup> tgroups = tData.getGroups();
-		for (TypedListGroup tGroup : tgroups)
+		for (TypedListGroup tGroup : tgroups) {
 			tSets.add(overviewRoute.tShared.intersect(tGroup.asSet()));
+		}
 
 		// starting points for right side groups
 		int[] tinneracc = new int[tgroups.size()];
@@ -337,7 +339,32 @@ public class Band extends ABand {
 				sinneracc += sShared.size();
 				tinneracc[j] += tShared.size();
 			}
+
+			final int notMapped = sgroup.size() - sinneracc;
+			if (notMapped > 0) {
+				TypedSet notMappedIds = sgroup.asSet().difference(overviewRoute.sShared);
+				double s1 = (sgroupLocation.getOffset() + sinneracc * sFactor) * sOverallFactor;
+				double s2 = (sgroupLocation.getOffset2()) * sOverallFactor;
+				groupRoutes.add(new DataNotMappedRoute(sgroup.getLabel() + " x Not Mapped", SourceTarget.SOURCE, s1,
+						s2,
+						notMappedIds));
+			}
 		}
+
+		for (int i = 0; i < tgroups.size(); ++i) {
+			TypedListGroup tgroup = tgroups.get(i);
+			final int notMapped = tgroup.size() - tinneracc[i];
+			if (notMapped <= 0)
+				continue;
+			GLLocation tgroupLocation = tLocator.apply(EBandMode.GROUPS, i);
+			final double tFactor = tgroupLocation.getSize() / tgroup.size();
+			TypedSet notMappedIds = tgroup.asSet().difference(overviewRoute.tShared);
+			double s1 = (tgroupLocation.getOffset() + tinneracc[i] * tFactor) * tOverallFactor;
+			double s2 = tgroupLocation.getOffset2() * tOverallFactor;
+			groupRoutes.add(new DataNotMappedRoute("Not Mapped x " + tgroup.getLabel(), SourceTarget.TARGET, s1, s2,
+					notMappedIds));
+		}
+
 		return groupRoutes;
 	}
 
@@ -345,12 +372,10 @@ public class Band extends ABand {
 	 * @return
 	 */
 	@Override
-	protected List<ADataRoute> detailRoutes() {
+	protected List<IBandRenderAble> detailRoutes() {
 		if (detailRoutes != null)
 			return detailRoutes;
 		detailRoutes = new ArrayList<>();
-		// FIXME using locators and data create routes from 1:1
-
 		TypedList s = shared.sliceList(sData.getIdType());
 		final Multimap<Integer, Integer> slookup = computeLookup(s);
 		TypedList t = shared.sliceList(tData.getIdType());
@@ -516,5 +541,57 @@ public class Band extends ABand {
 			b.put(s.get(i), i);
 		}
 		return b.build();
+	}
+
+	private final class DataNotMappedRoute implements IBandRenderAble {
+
+		private final String label;
+		private final SourceTarget type;
+		private final TypedSet notMapped;
+		private IBandArea base;
+
+		public DataNotMappedRoute(String label, SourceTarget type, double f1, double f2, TypedSet notMapped) {
+			this.label = label;
+			this.type = type;
+			this.notMapped = notMapped;
+			this.base = band.computeStub(type, (float) f1, (float) f2);
+		}
+
+		@Override
+		public String getLabel() {
+			return label;
+		}
+
+		@Override
+		public void renderRoute(GLGraphics g, IBandHost host, int nrBands) {
+			final float alpha = EBandMode.alpha(nrBands);
+			final Color color = mode.getColor();
+			g.color(color.r, color.g, color.b, color.a * alpha);
+
+			g.fillPolygon(base);
+
+			if (g.isPickingPass())
+				return;
+			g.color(color.r, color.g, color.b, color.a * alpha);
+			g.drawPath(base);
+		}
+
+		@Override
+		public Rect getBoundingBox() {
+			return base.getBoundingBox();
+		}
+
+		@Override
+		public boolean intersects(Rectangle2D bounds) {
+			return base.intersects(bounds);
+		}
+
+		@Override
+		public TypedSet asSet(SourceTarget type) {
+			if (this.type == type)
+				return notMapped;
+			return TypedCollections.empty(getIdType(type));
+		}
+
 	}
 }

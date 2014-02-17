@@ -163,7 +163,7 @@ public class TypedSet extends AbstractSet<Integer> implements ITypedCollection {
 		if (that.isEmpty())
 			return this;
 		if (!Objects.equals(this.idType, that.idType)) // not matching id types returning empty set
-			return new TypedSet(Collections.<Integer> emptySet(), idType);
+			return TypedCollections.empty(idType);
 		if (this.wrappee instanceof BitSetSet)
 			return union((BitSetSet) wrappee, that);
 		if (that.wrappee instanceof BitSetSet)
@@ -199,6 +199,17 @@ public class TypedSet extends AbstractSet<Integer> implements ITypedCollection {
 		} else
 			r = Sets.union(this.wrappee, that.wrappee);
 		return r;
+	}
+
+	public TypedSet difference(TypedSet that) {
+		if (this.isEmpty() || that.isEmpty()) // return empty
+			return this;
+		if (!Objects.equals(this.idType, that.idType)) // not matching id types
+			return this;
+		Set<Integer> r = ImmutableSet.copyOf(Sets.difference(this, that));
+		if (r.size() == this.size()) // all shared
+			return this;
+		return new TypedSet(r, idType);
 	}
 
 	public int without(TypedSet that) {
