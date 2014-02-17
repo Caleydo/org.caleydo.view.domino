@@ -33,6 +33,7 @@ import org.caleydo.view.domino.internal.band.IBandHost.SourceTarget;
 
 import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.ImmutableMultimap.Builder;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
 
 /**
@@ -94,6 +95,86 @@ public class CrossBand extends ABand {
 	}
 
 	@Override
+	protected void renderRoutes(GLGraphics g, IBandHost host, Collection<? extends IBandRenderAble> routes) {
+		renderAdapter(g);
+		super.renderRoutes(g, host, routes);
+	}
+
+	private void renderAdapter(GLGraphics g) {
+		g.color(EBandMode.OVERVIEW.getColor());
+		final float hs = (float) sLocator.apply(EBandMode.OVERVIEW, 0).getSize();
+		final float wt = (float) tLocator.apply(EBandMode.OVERVIEW, 0).getSize();
+
+		{
+			float x;
+			float w;
+			final int sGroups = sData.getGroups().size();
+			if (sDim == EDirection.WEST) {
+				x = sLoc.x();
+				w = tLoc.x() - sLoc.x();
+			} else {
+				x = tLoc.x() + wt;
+				w = sLoc.x() - tLoc.x() - wt;
+			}
+			if (mode == EBandMode.DETAIL || sGroups <= 1)
+				g.fillRect(x, sLoc.y(), w, hs);
+			else {
+				for (int i = 0; i < sGroups; ++i) {
+					GLLocation gi = sLocator.apply(EBandMode.GROUPS, i);
+					g.fillRect(x, sLoc.y() + (float) gi.getOffset(), w, (float) gi.getSize());
+				}
+			}
+		}
+		{
+			float y;
+			float h;
+			final int tGroups = tData.getGroups().size();
+			if (tDim == EDirection.NORTH) {
+				y = tLoc.y();
+				h = sLoc.y() - tLoc.y();
+			} else {
+				y = sLoc.y() + hs;
+				h = tLoc.y() - sLoc.y() - hs;
+			}
+			if (mode == EBandMode.DETAIL || tGroups <= 1)
+				g.fillRect(tLoc.x(), y, wt, h);
+			else {
+				for (int i = 0; i < tGroups; ++i) {
+					GLLocation gi = tLocator.apply(EBandMode.GROUPS, i);
+					g.fillRect(tLoc.x() + (float) gi.getOffset(), y, (float) gi.getSize(), h);
+				}
+			}
+		}
+	}
+
+	void renderConnector(GLGraphics g, Rect bounds) {
+		final Color c = SelectionType.MOUSE_OVER.getColor();
+		g.color(c.r, c.g, c.b, 0.5f);
+		float xStart = this.sLoc.x();
+		float yStart = this.tLoc.y();
+		if (sDim == EDirection.WEST)
+			smallRect(g, xStart, bounds.y(), bounds.x() - xStart, bounds.height());
+		else {
+			smallRect(g, bounds.x2(), bounds.y(), xStart - bounds.x2(), bounds.height());
+		}
+		if (tDim == EDirection.NORTH)
+			smallRect(g, bounds.x(), yStart, bounds.width(), bounds.y() - yStart);
+		else {
+			smallRect(g, bounds.x(), bounds.y2(), bounds.width(), yStart - bounds.y2());
+		}
+
+	}
+
+	private static void smallRect(GLGraphics g, float x, float y, float w, float h) {
+		if (w <= 2)
+			g.lineWidth(2).drawLine(x, y, x, y + h).lineWidth(1);
+		else if (h <= 2)
+			g.lineWidth(2).drawLine(x, y, x + w, y).lineWidth(1);
+		else
+			g.fillRect(x, y, w, h);
+	}
+
+	@Override
 	protected List<? extends IBandRenderAble> groupRoutes() {
 		if (groupRoutes != null)
 			return groupRoutes;
@@ -141,7 +222,7 @@ public class CrossBand extends ABand {
 				double w = tShared.size() * tFactor;
 
 				Rect bounds = new Rect((float) x, (float) y, (float) w, (float) h);
-				groupRoutes.add(new MosaicRect(label, bounds, sShared, tShared, EBandMode.GROUPS));
+				groupRoutes.add(new MosaicRect(label, bounds, sShared, tShared));
 			}
 		}
 		return groupRoutes;
@@ -266,7 +347,7 @@ public class CrossBand extends ABand {
 			double w = tloc.getSize();
 			double h = sloc.getSize();
 			Rect bounds = new Rect((float) x, (float) y, (float) w, (float) h);
-			return new MosaicRect(label, bounds, new TypedSet(sIds, s), new TypedSet(tIds, t), EBandMode.DETAIL);
+			return new MosaicRect(label, bounds, new TypedSet(sIds, s), new TypedSet(tIds, t));
 		}
 	}
 
@@ -304,29 +385,46 @@ public class CrossBand extends ABand {
 		}
 
 		private void renderBox(GLGraphics g, boolean fill, float wFactor, float hFactor) {
+			final Rect b = bounds;
 			if (fill) {
 				if (sDim == EDirection.WEST) {
 					if (tDim == EDirection.NORTH) {
-						g.fillRect(xStart, bounds.y(), bounds.x() - xStart, bounds.height() * hFactor);
-						g.fillRect(bounds.x(), yStart, bounds.width() * wFactor, bounds.y() - yStart + bounds.height()
+						g.fillRect(xStart, b.y(), b.x() - xStart, b.height() * hFactor);
+						g.fillRect(b.x(), yStart, b.width() * wFactor, b.y() - yStart + b.height()
 								* hFactor);
 					} else {
-						g.fillRect(xStart, bounds.y() + bounds.height() * (1 - hFactor), bounds.x() - xStart,
-								bounds.height() * hFactor);
-						g.fillRect(bounds.x(), bounds.y() + bounds.height() * (1 - hFactor), bounds.width() * wFactor,
-								yStart - bounds.y2() + bounds.height() * hFactor);
+						g.fillRect(xStart, b.y() + b.height() * (1 - hFactor), b.x() - xStart, b.height() * hFactor);
+						g.fillRect(b.x(), b.y() + b.height() * (1 - hFactor), b.width() * wFactor,
+								yStart - b.y2() + b.height() * hFactor);
 					}
 				} else {
 					if (tDim == EDirection.NORTH) {
-						g.fillRect(bounds.x2(), bounds.y(), xStart - bounds.x2(), bounds.height() * hFactor);
-						g.fillRect(bounds.x() + (bounds.width() * (1 - wFactor)), yStart, bounds.width() * wFactor,
-								bounds.y() - yStart + bounds.height() * hFactor);
+						g.fillRect(b.x2(), b.y(), xStart - b.x2(), b.height() * hFactor);
+						g.fillRect(b.x() + (b.width() * (1 - wFactor)), yStart, b.width() * wFactor,
+								b.y() - yStart + b.height() * hFactor);
 					} else {
-						g.fillRect(bounds.x2(), bounds.y() + bounds.height() * (1 - hFactor), xStart - bounds.x2(),
-								bounds.height() * hFactor);
-						g.fillRect(bounds.x() + (bounds.width() * (1 - wFactor)), bounds.y() + bounds.height()
-								* (1 - hFactor), bounds.width() * wFactor, yStart - bounds.y2() + bounds.height()
+						g.fillRect(b.x2(), b.y() + b.height() * (1 - hFactor), xStart - b.x2(), b.height() * hFactor);
+						g.fillRect(b.x() + (b.width() * (1 - wFactor)), b.y() + b.height() * (1 - hFactor), b.width()
+								* wFactor, yStart - b.y2() + b.height()
 								* hFactor);
+					}
+				}
+			} else {
+				if (sDim == EDirection.WEST) {
+					if (tDim == EDirection.NORTH) {
+						g.drawPath(true, v(xStart, b.y()), b.xy(), v(b.x(), yStart), v(b.x2(), yStart), b.x2y2(),
+								v(xStart, b.y2()));
+					} else {
+						g.drawPath(true, v(xStart, b.y()), b.x2y(), v(b.x2(), yStart), v(b.x(), yStart), b.xy2(),
+								v(xStart, b.y2()));
+					}
+				} else {
+					if (tDim == EDirection.NORTH) {
+						g.drawPath(true, v(b.x(), yStart), v(b.x2(), yStart), b.x2y(), v(xStart, b.y()),
+								v(xStart, b.y2()), b.xy2());
+					} else {
+						g.drawPath(true, b.xy(), v(xStart, b.y()), v(xStart, b.y2()), b.x2y2(), v(b.x2(), yStart),
+								v(b.x(), yStart));
 					}
 				}
 			}
@@ -380,19 +478,21 @@ public class CrossBand extends ABand {
 		}
 	}
 
-	private static class MosaicRect implements IBandRenderAble {
+	static Vec2f v(float x, float y) {
+		return new Vec2f(x, y);
+	}
+
+	private class MosaicRect implements IBandRenderAble {
 		private final String label;
 		private final Rect bounds;
 		private final TypedSet sIds;
 		private final TypedSet tIds;
-		private final EBandMode mode;
 
-		public MosaicRect(String label, Rect bounds, TypedSet sIds, TypedSet tIds, EBandMode mode) {
+		public MosaicRect(String label, Rect bounds, TypedSet sIds, TypedSet tIds) {
 			this.label = label;
 			this.bounds = bounds;
 			this.sIds = sIds;
 			this.tIds = tIds;
-			this.mode = mode;
 		}
 
 		@Override
@@ -420,6 +520,9 @@ public class CrossBand extends ABand {
 					g.color(c.r, c.g, c.b, 0.5f);
 					g.fillRect(bounds.x(), bounds.y(), bounds.width() * (tS / (float) tIds.size()), bounds.height()
 							* (sS / (float) sIds.size()));
+
+					if (type == SelectionType.MOUSE_OVER)
+						renderConnector(g, bounds);
 				}
 			}
 			if (mode == EBandMode.GROUPS) {
@@ -435,12 +538,16 @@ public class CrossBand extends ABand {
 		private void renderPoint(GLGraphics g, IBandHost host) {
 			Color c = mode.getColor();
 
+			boolean hovered = false;
+
 			if (!g.isPickingPass()) {
-				for (SelectionType type : SELECTION_TYPES) {
+				for (SelectionType type : Lists.reverse(SELECTION_TYPES)) {
 					int sS = host.getSelected(sIds, type).size();
 					int tS = host.getSelected(tIds, type).size();
 					if (sS > 0 && tS > 0) {
 						c = type.getColor();
+						if (type == SelectionType.MOUSE_OVER)
+							hovered = true;
 						break;
 					}
 				}
@@ -449,6 +556,9 @@ public class CrossBand extends ABand {
 			g.pointSize(2);
 			g.drawPoint(bounds.x() + bounds.width() * 0.5f, bounds.y() + bounds.height() * 0.5f);
 			g.pointSize(1);
+
+			if (hovered)
+				renderConnector(g, bounds);
 		}
 
 		@Override

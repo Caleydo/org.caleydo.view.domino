@@ -144,34 +144,33 @@ public abstract class ABand implements ILabeled, IHasMiniMap {
 			overviewRoute().renderRoute(g, host, 1);
 			break;
 		case GROUPS:
-			float z = g.z();
 			final Collection<? extends IBandRenderAble> gR = groupRoutes();
 			if (gR.isEmpty()) {
 				mode = EBandMode.OVERVIEW;
 				render(g, w, h, host);
 				return;
 			}
-			for (IBandRenderAble r : gR) {
-				g.incZ(0.0001f);
-				r.renderRoute(g, host, gR.size());
-			}
-			g.incZ(z - g.z());
+			renderRoutes(g, host, gR);
 			break;
 		case DETAIL:
-			z = g.z();
 			final List<? extends IBandRenderAble> lR = detailRoutes();
 			if (lR.isEmpty()) {
 				mode = EBandMode.GROUPS;
 				render(g, w, h, host);
 				return;
 			}
-			for (IBandRenderAble r : lR) {
-				g.incZ(0.0001f);
-				r.renderRoute(g, host, lR.size());
-			}
-			g.incZ(z - g.z());
+			renderRoutes(g, host, lR);
 			break;
 		}
+	}
+
+	protected void renderRoutes(GLGraphics g, IBandHost host, final Collection<? extends IBandRenderAble> routes) {
+		float z = g.z();
+		for (IBandRenderAble r : routes) {
+			g.incZ(0.0001f);
+			r.renderRoute(g, host, routes.size());
+		}
+		g.incZ(z - g.z());
 	}
 
 	/**

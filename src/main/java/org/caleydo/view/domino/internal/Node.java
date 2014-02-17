@@ -950,8 +950,8 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 			@Override
 			public GLLocation apply(int dataIndex) {
 				NodeGroup g = groups.get(dataIndex);
-				double offset = dim.select(g.getLocation());
-				double size = dim.select(g.getSize());
+				double offset = dim.select(g.getLocation()) + BORDER;
+				double size = dim.select(g.getSize()) - BORDER * 2;
 				return new GLLocation(offset, size);
 			}
 
@@ -960,8 +960,8 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 				Set<Integer> r = new TreeSet<>();
 				for (int i = 0; i < groups.size(); ++i) {
 					NodeGroup g = groups.get(i);
-					double offset = dim.select(g.getLocation());
-					double size = dim.select(g.getSize());
+					double offset = dim.select(g.getLocation()) + BORDER;
+					double size = dim.select(g.getSize()) - BORDER * 2;
 					if (offset + size < location.getOffset())
 						continue;
 					if (offset > location.getOffset2())
@@ -983,8 +983,8 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 		for (int i = 0; i < gropus2.size(); ++i) {
 			int size = gropus2.get(i).size();
 			final NodeGroup g = groups.get(i);
-			float loffset = dim.select(g.getLocation());
-			float lsize = dim.select(g.getSize());
+			float loffset = dim.select(g.getLocation()) + BORDER;
+			float lsize = dim.select(g.getSize()) - BORDER * 2;
 			final ILocator loc = g.getLocator(dim);
 			if (GLLocation.NO_LOCATOR == loc) // one no location, all no location
 				return GLLocation.NO_LOCATOR;
