@@ -445,14 +445,14 @@ public class Band extends ABand {
 			double aEnd = a.getOffset2();
 			double bStart = b.getOffset();
 			double bEnd = b.getOffset2();
-			if (c(aEnd, bStart) || c(aStart, bEnd)) // concat each other
-				return true;
 			if (c(aStart, bStart) && c(aEnd, bEnd)) // same
 				return true;
-			if (bStart >= aStart && bStart <= aEnd) // b starts in a
-				return true;
-			if (aStart >= bStart && aStart <= bEnd) // a starts in b
-				return true;
+			// if (c(aEnd, bStart) || c(aStart, bEnd)) // concat each other
+			// return true;
+			// if (bStart >= aStart && bStart <= aEnd) // b starts in a
+			// return true;
+			// if (aStart >= bStart && aStart <= bEnd) // a starts in b
+			// return true;
 			return false;
 		}
 
