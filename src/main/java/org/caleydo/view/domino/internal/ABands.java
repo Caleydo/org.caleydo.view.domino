@@ -64,6 +64,7 @@ public abstract class ABands extends GLElement implements MultiSelectionManagerM
 	 */
 	public ABands() {
 		setVisibility(EVisibility.PICKABLE);
+		setPicker(null);
 	}
 
 	@Override
@@ -175,8 +176,9 @@ public abstract class ABands extends GLElement implements MultiSelectionManagerM
 			return;
 		for (SourceTarget st : SourceTarget.values()) {
 			SelectionManager manager = getOrCreate(route.getIdType(st));
-			if (clear)
+			if (clear) {
 				manager.clearSelection(type);
+			}
 			manager.addToType(type, route.getIds(st, subIndex));
 			selections.fireSelectionDelta(manager);
 		}
@@ -285,7 +287,8 @@ public abstract class ABands extends GLElement implements MultiSelectionManagerM
 		Set<Integer> active = manager.getElements(type);
 		if (active.isEmpty())
 			return new TypedSet(Collections.<Integer> emptySet(), ids.getIdType());
-		return ids.intersect(new TypedSet(active, ids.getIdType()));
+		TypedSet r = ids.intersect(new TypedSet(active, ids.getIdType()));
+		return r;
 	}
 
 	@Override

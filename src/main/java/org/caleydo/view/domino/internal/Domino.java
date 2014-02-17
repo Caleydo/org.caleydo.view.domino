@@ -111,14 +111,18 @@ public class Domino extends GLElementContainer implements IDropGLTarget, IPickin
 		});
 		this.add(content);
 
+		GLElement helper = new GLElement();
+		helper.setVisibility(EVisibility.PICKABLE);
+		helper.onPick(this);
+		helper.setzDelta(0.008f);
+		content.add(helper);
+
 		this.blocks = new Blocks(selections);
 		content.add(blocks);
 		blocks.setzDelta(0.1f);
 
 		this.bands = new Bands(selections);
-		this.bands.setVisibility(EVisibility.PICKABLE);
 		this.bands.setzDelta(0.01f);
-		this.bands.onPick(this); // here for the placeholders
 		content.add(this.bands);
 
 		selections.onNodeGroupSelectionChanges(new ICallback<SelectionType>() {
