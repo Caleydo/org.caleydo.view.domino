@@ -91,6 +91,16 @@ public class TypedGroupList extends TypedList implements ITypedGroupCollection {
 		return groups;
 	}
 
+	public TypedListGroup groupAt(int index) {
+		int acc = 0;
+		for (TypedListGroup group : groups) {
+			acc += group.size();
+			if (acc > index)
+				return group;
+		}
+		return null;
+	}
+
 	@Override
 	public int hashCode() {
 		final int prime = 31;

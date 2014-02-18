@@ -55,6 +55,10 @@ public abstract class ABand implements ILabeled, IHasMiniMap {
 
 	private final String identifier;
 
+	private List<? extends IBandRenderAble> groupRoutes;
+	private List<? extends IBandRenderAble> groupDetailRoutes;
+	private List<? extends IBandRenderAble> detailRoutes;
+
 	public ABand(MultiTypedSet shared, TypedGroupList sData, TypedGroupList tData,
  INodeLocator sLocator,
 			INodeLocator tLocator, EDirection sDim, EDirection tDim, String identifier) {
@@ -72,7 +76,13 @@ public abstract class ABand implements ILabeled, IHasMiniMap {
 		return type.select(sLocator, tLocator);
 	}
 
-	public abstract void setLocators(INodeLocator sLocator, INodeLocator tLocator);
+	public void setLocators(INodeLocator sLocator, INodeLocator tLocator) {
+		this.sLocator = sLocator;
+		this.tLocator = tLocator;
+		groupRoutes = null;
+		groupDetailRoutes = null;
+		detailRoutes = null;
+	}
 	/**
 	 * @return the identifier, see {@link #identifier}
 	 */
@@ -113,6 +123,9 @@ public abstract class ABand implements ILabeled, IHasMiniMap {
 			break;
 		case GROUPS:
 			l = groupRoutes();
+			break;
+		case GROUPED_DETAIL:
+			l = groupDetailRoutes();
 			break;
 		case DETAIL:
 			l = detailRoutes();
@@ -156,6 +169,10 @@ public abstract class ABand implements ILabeled, IHasMiniMap {
 			}
 			renderRoutes(g, host, gR);
 			break;
+		case GROUPED_DETAIL:
+			final Collection<? extends IBandRenderAble> gdR = groupDetailRoutes();
+			renderRoutes(g, host, gdR);
+			break;
 		case DETAIL:
 			final List<? extends IBandRenderAble> lR = detailRoutes();
 			if (lR.isEmpty()) { // auto switch to the previous one
@@ -186,9 +203,29 @@ public abstract class ABand implements ILabeled, IHasMiniMap {
 		return Collections.singletonList(overviewRoute());
 	}
 
-	protected abstract List<? extends IBandRenderAble> groupRoutes();
+	protected final List<? extends IBandRenderAble> groupRoutes() {
+		if (this.groupRoutes != null)
+			return groupRoutes;
+		return groupRoutes = computeGroupRoutes();
+	}
 
-	protected abstract List<? extends IBandRenderAble> detailRoutes();
+	protected abstract List<? extends IBandRenderAble> computeGroupRoutes();
+
+	protected abstract List<? extends IBandRenderAble> computeDetailRoutes();
+
+	protected abstract List<? extends IBandRenderAble> computeGroupDetailRoutes();
+
+	protected final List<? extends IBandRenderAble> detailRoutes() {
+		if (this.detailRoutes != null)
+			return detailRoutes;
+		return detailRoutes = computeDetailRoutes();
+	}
+
+	protected final List<? extends IBandRenderAble> groupDetailRoutes() {
+		if (this.groupDetailRoutes != null)
+			return groupDetailRoutes;
+		return groupDetailRoutes = computeGroupDetailRoutes();
+	}
 
 	public final int renderPick(GLGraphics g, float w, float h, IBandHost host, PickingPool pickingPool, int start) {
 		switch (mode) {
@@ -197,6 +234,9 @@ public abstract class ABand implements ILabeled, IHasMiniMap {
 			break;
 		case GROUPS:
 			start = renderRoutePick(g, host, pickingPool, start, groupRoutes());
+			break;
+		case GROUPED_DETAIL:
+			start = renderRoutePick(g, host, pickingPool, start, groupDetailRoutes());
 			break;
 		case DETAIL:
 			start = renderRoutePick(g, host, pickingPool, start, detailRoutes());
@@ -221,12 +261,38 @@ public abstract class ABand implements ILabeled, IHasMiniMap {
 	 * @param b
 	 */
 	public void changeLevel(boolean increase) {
-		if ((mode == EBandMode.OVERVIEW && !increase))
-			return;
 		boolean detailsThere = canHaveDetailMode();
-		if ((mode == EBandMode.GROUPS && !detailsThere && increase) || (mode == EBandMode.DETAIL && increase))
-			return;
-		mode = EBandMode.values()[this.mode.ordinal() + (increase ? 1 : -1)];
+		boolean hasGroups = sData.getGroups().size() > 1 || tData.getGroups().size() > 1;
+		switch (mode) {
+		case OVERVIEW:
+			if (!increase)
+				return;
+			if (hasGroups)
+				mode = EBandMode.GROUPS;
+			else if (detailsThere)
+				mode = EBandMode.DETAIL;
+			break;
+		case GROUPS:
+			if (!increase)
+				mode = EBandMode.OVERVIEW;
+			else if (detailsThere)
+				mode = EBandMode.GROUPED_DETAIL;
+			break;
+		case GROUPED_DETAIL:
+			if (!increase)
+				mode = EBandMode.GROUPS;
+			else
+				mode = EBandMode.DETAIL;
+			break;
+		case DETAIL:
+			if (increase)
+				return;
+			if (hasGroups)
+				mode = EBandMode.GROUPED_DETAIL;
+			else
+				mode = EBandMode.OVERVIEW;
+			break;
+		}
 	}
 
 	public void setLevel(EBandMode mode) {
@@ -256,6 +322,11 @@ public abstract class ABand implements ILabeled, IHasMiniMap {
 			if (subIndex < 0 || g.size() <= subIndex)
 				return null;
 			return g.get(subIndex);
+		case GROUPED_DETAIL:
+			final List<? extends IBandRenderAble> d = groupDetailRoutes();
+			if (subIndex < 0 || d.size() <= subIndex)
+				return null;
+			return d.get(subIndex);
 		case DETAIL:
 			final List<? extends IBandRenderAble> l = detailRoutes();
 			if (subIndex < 0 || l.size() <= subIndex)

@@ -6,7 +6,7 @@
 package org.caleydo.view.domino.internal.band;
 
 import gleem.linalg.Vec2f;
-import gleem.linalg.Vec3f;
+import gleem.linalg.Vec4f;
 
 import java.awt.Polygon;
 import java.awt.geom.Rectangle2D;
@@ -15,6 +15,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.NavigableSet;
 import java.util.Set;
 import java.util.TreeSet;
@@ -38,10 +39,12 @@ import org.caleydo.view.domino.api.model.typed.TypedSets;
 import org.caleydo.view.domino.internal.INodeLocator;
 import org.caleydo.view.domino.internal.band.IBandHost.SourceTarget;
 
+import com.google.common.collect.ArrayTable;
 import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.ImmutableMultimap.Builder;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Multimap;
+import com.google.common.collect.Table;
 
 /**
  * @author Samuel Gratzl
@@ -50,8 +53,6 @@ import com.google.common.collect.Multimap;
 public class ParaBand extends ABand {
 	final static float SHIFT = 30;
 
-	private List<IBandRenderAble> groupRoutes;
-	private List<IBandRenderAble> detailRoutes;
 	private Band overview;
 	private final List<IBandRenderAble> overviewRoutes = new ArrayList<>(3);
 
@@ -67,8 +68,8 @@ public class ParaBand extends ABand {
 			TypedSet tShared = shared.slice(tData.getIdType());
 			float sr = ((float) sShared.size()) / sData.size();
 			float tr = ((float) tShared.size()) / tData.size();
-			Vec3f sv = toVec3(sLoc, sLocator, sr, 0);
-			Vec3f tv = toVec3(tLoc, tLocator, tr, 0);
+			Vec4f sv = toVec3(sLoc, sLocator, sr, 0);
+			Vec4f tv = toVec3(tLoc, tLocator, tr, 0);
 			this.overview = new Band(label, sShared, tShared, sv, tv);
 
 			overviewRoutes.add(this.overview);
@@ -93,14 +94,14 @@ public class ParaBand extends ABand {
 		return sDim.isHorizontal();
 	}
 
-	private Vec3f toVec3(Vec2f xy, INodeLocator loc, float scale, float move) {
+	private Vec4f toVec3(Vec2f xy, INodeLocator loc, float scale, float move) {
 		GLLocation l = loc.apply(EBandMode.OVERVIEW, 0);
 		if (isHorizontal())
-			return new Vec3f(xy.x(), xy.y() + (float) l.getOffset() + (float) l.getSize() * move, (float) l.getSize()
-					* scale);
+			return new Vec4f(xy.x(), xy.y() + (float) l.getOffset() + (float) l.getSize() * move, (float) l.getSize()
+					* scale, 0);
 		else
-			return new Vec3f(xy.x() + (float) l.getOffset() + (float) l.getSize() * move, xy.y(), (float) l.getSize()
-					* scale);
+			return new Vec4f(xy.x() + (float) l.getOffset() + (float) l.getSize() * move, xy.y(), (float) l.getSize()
+					* scale, 0);
 	}
 
 	@Override
@@ -110,8 +111,7 @@ public class ParaBand extends ABand {
 
 	@Override
 	public void setLocators(INodeLocator sLocator, INodeLocator tLocator) {
-		super.sLocator = sLocator;
-		super.tLocator = tLocator;
+		super.setLocators(sLocator, tLocator);
 		{
 			float sr = ((float) overview.sShared.size()) / sData.size();
 			float tr = ((float) overview.tShared.size()) / tData.size();
@@ -121,18 +121,16 @@ public class ParaBand extends ABand {
 			if (sr < 1) {
 				NotMapped m = (NotMapped) overviewRoutes.get(1);
 				// add a non-mapped indicator
-				Vec3f sv = toVec3(s, sLocator, (1 - sr), sr);
+				Vec4f sv = toVec3(s, sLocator, (1 - sr), sr);
 				overviewRoutes.set(1, new NotMapped(m.getLabel(), m.sShared, m.tShared, SourceTarget.SOURCE, sv));
 			}
 			if (tr < 1) {
 				int index = sr < 1 ? 2 : 1;
 				NotMapped m = (NotMapped) overviewRoutes.get(index);
-				Vec3f tv = toVec3(t, tLocator, (1 - tr), tr);
+				Vec4f tv = toVec3(t, tLocator, (1 - tr), tr);
 				overviewRoutes.set(index, new NotMapped(m.getLabel(), m.sShared, m.tShared, SourceTarget.TARGET, tv));
 			}
 		}
-		groupRoutes = null;
-		detailRoutes = null;
 	}
 
 	@Override
@@ -151,11 +149,8 @@ public class ParaBand extends ABand {
 	}
 
 	@Override
-	protected List<? extends IBandRenderAble> groupRoutes() {
-		if (groupRoutes != null) {
-			return groupRoutes;
-		}
-		groupRoutes = new ArrayList<>();
+	protected List<? extends IBandRenderAble> computeGroupRoutes() {
+		List<IBandRenderAble> groupRoutes = new ArrayList<>();
 
 		List<TypedSet> sSets = new ArrayList<>();
 		List<TypedSet> tSets = new ArrayList<>();
@@ -207,13 +202,13 @@ public class ParaBand extends ABand {
 				double t1 = (tgroupLocation.getOffset() + tinneracc[j] * tFactor);
 				double t2 = t1 + tShared.size() * tFactor;
 				String label = sgroup.getLabel() + " x " + tgroup.getLabel();
-				Vec3f sg, tg;
+				Vec4f sg, tg;
 				if (horizontal) {
-					sg = new Vec3f(this.s.x(), this.s.y() + (float) s1, (float) (s2 - s1));
-					tg = new Vec3f(this.t.x(), this.t.y() + (float) t1, (float) (t2 - t1));
+					sg = new Vec4f(this.s.x(), this.s.y() + (float) s1, (float) (s2 - s1), 0);
+					tg = new Vec4f(this.t.x(), this.t.y() + (float) t1, (float) (t2 - t1), 0);
 				} else {
-					sg = new Vec3f(this.s.x() + (float) s1, this.s.y(), (float) (s2 - s1));
-					tg = new Vec3f(this.t.x() + (float) t1, this.t.y(), (float) (t2 - t1));
+					sg = new Vec4f(this.s.x() + (float) s1, this.s.y(), (float) (s2 - s1), 0);
+					tg = new Vec4f(this.t.x() + (float) t1, this.t.y(), (float) (t2 - t1), 0);
 				}
 				groupRoutes.add(new Band(label, sShared, tShared, sg, tg));
 				sinneracc += sShared.size();
@@ -224,11 +219,11 @@ public class ParaBand extends ABand {
 			if (notMapped > 0) {
 				TypedSet notMappedIds = sgroup.asSet().difference(overview.sShared);
 				double s1 = (sgroupLocation.getOffset() + sinneracc * sFactor);
-				Vec3f s;
+				Vec4f s;
 				if (horizontal)
-					s = new Vec3f(this.s.x(), this.s.y() + (float) s1, (float) (sgroupLocation.getOffset2() - s1));
+					s = new Vec4f(this.s.x(), this.s.y() + (float) s1, (float) (sgroupLocation.getOffset2() - s1), 0);
 				else
-					s = new Vec3f(this.s.x() + (float) s1, this.s.y(), (float) (sgroupLocation.getOffset2() - s1));
+					s = new Vec4f(this.s.x() + (float) s1, this.s.y(), (float) (sgroupLocation.getOffset2() - s1), 0);
 				groupRoutes.add(new NotMapped(sgroup.getLabel() + " x Not Mapped", notMappedIds, tEmpty, SourceTarget.SOURCE, s));
 			}
 		}
@@ -243,11 +238,11 @@ public class ParaBand extends ABand {
 			final double tFactor = tgroupLocation.getSize() / tgroup.size();
 			TypedSet notMappedIds = tgroup.asSet().difference(overview.tShared);
 			double s1 = (tgroupLocation.getOffset() + tinneracc[i] * tFactor);
-			Vec3f s;
+			Vec4f s;
 			if (horizontal)
-				s = new Vec3f(this.t.x(), this.t.y() + (float) s1, (float) (tgroupLocation.getOffset2() - s1));
+				s = new Vec4f(this.t.x(), this.t.y() + (float) s1, (float) (tgroupLocation.getOffset2() - s1), 0);
 			else
-				s = new Vec3f(this.t.x() + (float) s1, this.t.y(), (float) (tgroupLocation.getOffset2() - s1));
+				s = new Vec4f(this.t.x() + (float) s1, this.t.y(), (float) (tgroupLocation.getOffset2() - s1), 0);
 			groupRoutes.add(new NotMapped("Not Mapped x " + tgroup.getLabel(), sEmpty, notMappedIds, SourceTarget.TARGET, s));
 		}
 
@@ -255,11 +250,112 @@ public class ParaBand extends ABand {
 	}
 
 	@Override
-	protected List<? extends IBandRenderAble> detailRoutes() {
-		if (detailRoutes != null) {
-			return detailRoutes;
+	protected List<? extends IBandRenderAble> computeGroupDetailRoutes() {
+		List<IBandRenderAble> detailRoutes = new ArrayList<>();
+
+		TypedList s = shared.sliceList(sData.getIdType());
+		final Multimap<Integer, Integer> slookup = computeLookup(s);
+		TypedList t = shared.sliceList(tData.getIdType());
+		final Multimap<Integer, Integer> tlookup = computeLookup(tData);
+
+		Table<TypedListGroup, TypedListGroup, NavigableSet<LineAcc>> lines = ArrayTable.create(sData.getGroups(),
+				tData.getGroups());
+
+		final List<TypedListGroup> sgroups = sData.getGroups();
+		final List<TypedListGroup> tgroups = tData.getGroups();
+		int i = 0;
+		for (int ig = 0; ig < sgroups.size(); ++ig) {
+			final TypedListGroup sgroup = sgroups.get(ig);
+			Map<TypedListGroup, NavigableSet<LineAcc>> row = lines.row(sgroup);
+			for (int ii = 0; ii < sgroup.size(); ++ii) {
+				i++;
+				Integer sId = sgroup.get(ii);
+				if (sId.intValue() < 0) {
+					continue;
+				}
+				Collection<Integer> indices = slookup.get(sId);
+				if (indices.isEmpty()) { // not shared
+					continue;
+				}
+				GLLocation slocation = sLocator.apply(EBandMode.DETAIL, i);
+				if (!slocation.isDefined()) { // don't know where it is
+					continue;
+				}
+				Vec2f sloc = new Vec2f((float) slocation.getOffset(), (float) slocation.getOffset2());
+
+				for (int sindex : indices) {
+					Integer tId = t.get(sindex);
+					Collection<Integer> tindices = tlookup.get(tId);
+					if (tindices.isEmpty())
+						continue;
+					for (int tindex : tindices) {
+						GLLocation tlocation = tLocator.apply(EBandMode.DETAIL, tindex);
+						if (!tlocation.isDefined())
+							continue;
+						Vec2f tloc = new Vec2f((float) tlocation.getOffset(), (float) tlocation.getOffset2());
+
+						TypedListGroup tgroup = tData.groupAt(tindex);
+
+						NavigableSet<LineAcc> stlines = row.get(tgroup);
+						if (stlines == null)
+							row.put(tgroup, stlines = new TreeSet<LineAcc>());
+
+						final LineAcc l = new LineAcc(sloc, tloc, sId, tId);
+						LineAcc m = stlines.ceiling(l);
+						if (m == null || !m.merge(sloc, tloc, sId, tId))
+							stlines.add(l);
+					}
+				}
+			}
 		}
-		detailRoutes = new ArrayList<>();
+
+		for (int ig = 0; ig < sgroups.size(); ++ig) {
+			final TypedListGroup sgroup = sgroups.get(ig);
+			Map<TypedListGroup, NavigableSet<LineAcc>> row = lines.row(sgroup);
+			GLLocation gLocation = sLocator.apply(EBandMode.GROUPS, ig);
+			float factor = (float) gLocation.getSize() / sgroup.size();
+			int j = 0;
+			for (NavigableSet<LineAcc> stlines : row.values()) {
+				if (stlines == null)
+					continue;
+				for (LineAcc line : stlines) {
+					line.sGroupOffset = (float) gLocation.getOffset() + factor * j - line.s.x();
+					j += line.sIds.size();
+				}
+			}
+		}
+		for (int ig = 0; ig < tgroups.size(); ++ig) {
+			final TypedListGroup tgroup = tgroups.get(ig);
+			Map<TypedListGroup, NavigableSet<LineAcc>> col = lines.column(tgroup);
+			GLLocation gLocation = tLocator.apply(EBandMode.GROUPS, ig);
+			float factor = (float) gLocation.getSize() / tgroup.size();
+			int j = 0;
+			for (NavigableSet<LineAcc> stlines : col.values()) {
+				if (stlines == null)
+					continue;
+				for (LineAcc line : stlines) {
+					line.tGroupOffset = (float) gLocation.getOffset() + factor * j - line.t.x();
+					j += line.tIds.size();
+				}
+			}
+		}
+		{
+			IDType sType = this.sData.getIdType();
+			IDType tType = this.tData.getIdType();
+
+			for (NavigableSet<LineAcc> stlines : lines.values()) {
+				if (stlines == null)
+					continue;
+				for (LineAcc line : stlines)
+					detailRoutes.add(build(line, sType, tType));
+			}
+		}
+		return detailRoutes;
+	}
+
+	@Override
+	protected List<? extends IBandRenderAble> computeDetailRoutes() {
+		List<IBandRenderAble> detailRoutes = new ArrayList<>();
 
 		TypedList s = shared.sliceList(sData.getIdType());
 		final Multimap<Integer, Integer> slookup = computeLookup(s);
@@ -318,14 +414,14 @@ public class ParaBand extends ABand {
 
 		final TypedSet sData = as(acc.sIds, sType);
 		final TypedSet tData = as(acc.tIds, tType);
-		final Vec3f ss;
-		final Vec3f tt;
+		final Vec4f ss;
+		final Vec4f tt;
 		if (isHorizontal()) {
-			ss = new Vec3f(this.s.x(), this.s.y() + acc.s.x(), sh);
-			tt = new Vec3f(this.t.x(), this.t.y() + acc.t.x(), th);
+			ss = new Vec4f(this.s.x(), this.s.y() + acc.s.x(), sh, acc.sGroupOffset);
+			tt = new Vec4f(this.t.x(), this.t.y() + acc.t.x(), th, acc.tGroupOffset);
 		} else {
-			ss = new Vec3f(this.s.x() + acc.s.x(), this.s.y(), sh);
-			tt = new Vec3f(this.t.x() + acc.t.x(), this.t.y(), th);
+			ss = new Vec4f(this.s.x() + acc.s.x(), this.s.y(), sh, acc.sGroupOffset);
+			tt = new Vec4f(this.t.x() + acc.t.x(), this.t.y(), th, acc.tGroupOffset);
 		}
 		String label = StringUtils.join(acc.sIds, ", ") + " x " + StringUtils.join(acc.tIds, ", ");
 
@@ -340,6 +436,8 @@ public class ParaBand extends ABand {
 	}
 
 	private static class LineAcc implements Comparable<LineAcc> {
+		float tGroupOffset;
+		float sGroupOffset;
 		final Vec2f s, t;
 		final Set<Integer> sIds = new HashSet<>(2);
 		final Set<Integer> tIds = new HashSet<>(2);
@@ -427,7 +525,7 @@ public class ParaBand extends ABand {
 		private final List<Vec2f> points;
 		private Polygon shape;
 
-		public Band(String label, TypedSet sData, TypedSet tData, Vec3f s, Vec3f t) {
+		public Band(String label, TypedSet sData, TypedSet tData, Vec4f s, Vec4f t) {
 			super(label, sData, tData);
 
 			this.points = new ArrayList<>(8);
@@ -525,15 +623,14 @@ public class ParaBand extends ABand {
 
 		@Override
 		public boolean intersects(Rectangle2D bounds) {
-			return false;
-			// return shape.intersects(bounds);
+			return shape.intersects(bounds);
 		}
 	}
 
 	private class Line extends ARoute {
 		private Vec2f[] line;
 
-		public Line(String label, TypedSet sData, TypedSet tData, Vec3f s, Vec3f t) {
+		public Line(String label, TypedSet sData, TypedSet tData, Vec4f s, Vec4f t) {
 			super(label, sData, tData);
 
 			this.line= new Vec2f[4];
@@ -541,15 +638,15 @@ public class ParaBand extends ABand {
 				float sy = s.y() + s.z() * 0.5f;
 				float ty = t.y() + t.z() * 0.5f;
 				this.line[0] = new Vec2f(s.x(), sy);
-				this.line[1] = new Vec2f(s.x() + SHIFT, sy);
-				this.line[2] = new Vec2f(t.x() - SHIFT, ty);
+				this.line[1] = new Vec2f(s.x() + SHIFT, sy + s.w());
+				this.line[2] = new Vec2f(t.x() - SHIFT, ty + t.w());
 				this.line[3] = new Vec2f(t.x(), ty);
 			} else {
 				float sx = s.x() + s.z() * 0.5f;
 				float tx = t.x() + t.z() * 0.5f;
 				this.line[0] = new Vec2f(sx, s.y());
-				this.line[1] = new Vec2f(sx, s.y() + SHIFT);
-				this.line[2] = new Vec2f(tx, t.y() - SHIFT);
+				this.line[1] = new Vec2f(sx + s.w(), s.y() + SHIFT);
+				this.line[2] = new Vec2f(tx + t.w(), t.y() - SHIFT);
 				this.line[3] = new Vec2f(tx, t.y());
 			}
 		}
@@ -597,7 +694,7 @@ public class ParaBand extends ABand {
 		private Polygon shape;
 		private SourceTarget type;
 
-		public NotMapped(String label, TypedSet sData, TypedSet tData, SourceTarget type, Vec3f f) {
+		public NotMapped(String label, TypedSet sData, TypedSet tData, SourceTarget type, Vec4f f) {
 			super(label, sData, tData);
 			this.type = type;
 

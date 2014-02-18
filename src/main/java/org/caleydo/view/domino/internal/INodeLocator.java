@@ -42,6 +42,7 @@ class NodeLocator implements INodeLocator {
 		switch (mode) {
 		case OVERVIEW:
 			return node;
+		case GROUPED_DETAIL:
 		case GROUPS:
 			return groupLocator.apply(index);
 		case DETAIL:

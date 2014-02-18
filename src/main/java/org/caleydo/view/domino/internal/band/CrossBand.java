@@ -42,8 +42,6 @@ import com.google.common.collect.Multimap;
  */
 public class CrossBand extends ABand {
 	private final Disc overview;
-	private List<MosaicRect> groupRoutes;
-	private List<MosaicRect> detailRoutes;
 
 	private Vec2f sLoc, tLoc;
 
@@ -65,17 +63,6 @@ public class CrossBand extends ABand {
 			Rect bounds = new Rect(tLoc.x(), sLoc.y(), w, h);
 			this.overview = new Disc(label, bounds, sShared, tShared, sLoc.x(), tLoc.y());
 		}
-	}
-
-	@Override
-	public void setLocators(INodeLocator sLocator, INodeLocator tLocator) {
-		this.sLocator = sLocator;
-		this.tLocator = tLocator;
-		if (this.detailRoutes != null)
-			detailRoutes = null;
-		if (this.groupRoutes != null)
-			groupRoutes = null;
-
 	}
 
 	@Override
@@ -175,10 +162,8 @@ public class CrossBand extends ABand {
 	}
 
 	@Override
-	protected List<? extends IBandRenderAble> groupRoutes() {
-		if (groupRoutes != null)
-			return groupRoutes;
-		groupRoutes = new ArrayList<>();
+	protected List<? extends IBandRenderAble> computeGroupRoutes() {
+		List<IBandRenderAble> groupRoutes = new ArrayList<>();
 		List<TypedSet> sSets = new ArrayList<>();
 		List<TypedSet> tSets = new ArrayList<>();
 		// convert all to the subset of the shared set
@@ -229,10 +214,8 @@ public class CrossBand extends ABand {
 	}
 
 	@Override
-	protected List<? extends IBandRenderAble> detailRoutes() {
-		if (detailRoutes != null)
-			return detailRoutes;
-		detailRoutes = new ArrayList<>();
+	protected List<? extends IBandRenderAble> computeDetailRoutes() {
+		List<IBandRenderAble> detailRoutes = new ArrayList<>();
 		TypedList s = shared.sliceList(sData.getIdType());
 		final Multimap<Integer, Integer> slookup = computeLookup(s);
 		TypedList t = shared.sliceList(tData.getIdType());
@@ -276,11 +259,16 @@ public class CrossBand extends ABand {
 			}
 
 		}
-		flushPoints(points);
+		flushPoints(detailRoutes, points);
 		return detailRoutes;
 	}
 
-	private void flushPoints(Set<PointB> lines) {
+	@Override
+	protected List<? extends IBandRenderAble> computeGroupDetailRoutes() {
+		return detailRoutes();
+	}
+
+	private void flushPoints(List<IBandRenderAble> detailRoutes, Set<PointB> lines) {
 		if (lines.isEmpty())
 			return;
 		final IDType s = this.overview.sIds.getIdType();

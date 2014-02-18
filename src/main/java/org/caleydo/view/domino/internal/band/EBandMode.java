@@ -13,7 +13,7 @@ import org.caleydo.core.view.opengl.util.gleem.IColored;
  *
  */
 public enum EBandMode implements IColored {
-	OVERVIEW, GROUPS, DETAIL;
+	OVERVIEW, GROUPS, GROUPED_DETAIL, DETAIL;
 
 	@Override
 	public Color getColor() {
@@ -22,6 +22,7 @@ public enum EBandMode implements IColored {
 			return new Color(0, 0, 0, 0.08f);
 		case GROUPS:
 			return new Color(0, 0, 0, 0.1f);
+		case GROUPED_DETAIL:
 		case DETAIL:
 			return new Color(0, 0, 0, 0.4f);
 		}

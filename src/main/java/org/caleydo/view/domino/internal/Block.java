@@ -785,7 +785,6 @@ public class Block extends GLElementContainer implements IGLLayout2, IPickingLis
 
 		boolean swapped = band.getLocator(SourceTarget.SOURCE) != sNodeLocator;
 		EDirection sdir = band.getAttachingDirection(SourceTarget.SOURCE);
-		EDirection tdir = band.getAttachingDirection(SourceTarget.TARGET);
 		boolean primary = sdir.isPrimaryDirection();
 		boolean redo = false;
 		if (swapped) {
