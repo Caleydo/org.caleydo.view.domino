@@ -10,6 +10,7 @@ import gleem.linalg.Vec2f;
 import java.awt.geom.Rectangle2D;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -103,10 +104,13 @@ public abstract class ABand implements ILabeled, IHasMiniMap {
 			return Pair.make(TypedCollections.empty(getIdType(SourceTarget.SOURCE)),
 					TypedCollections.empty(getIdType(SourceTarget.TARGET)));
 
-		Iterable<? extends IBandRenderAble> l;
+		Collection<? extends IBandRenderAble> l;
 		switch(mode) {
 		case OVERVIEW:
-			return Pair.make(r.asSet(SourceTarget.SOURCE), r.asSet(SourceTarget.TARGET));
+			l = overviewRoutes();
+			if (l.size() == 1)
+				return Pair.make(r.asSet(SourceTarget.SOURCE), r.asSet(SourceTarget.TARGET));
+			break;
 		case GROUPS:
 			l = groupRoutes();
 			break;
@@ -141,11 +145,11 @@ public abstract class ABand implements ILabeled, IHasMiniMap {
 	public final void render(GLGraphics g, float w, float h, IBandHost host) {
 		switch (mode) {
 		case OVERVIEW:
-			overviewRoute().renderRoute(g, host, 1);
+			renderRoutes(g, host, overviewRoutes());
 			break;
 		case GROUPS:
 			final Collection<? extends IBandRenderAble> gR = groupRoutes();
-			if (gR.isEmpty()) {
+			if (gR.isEmpty()) { // auto switch to the previous one
 				mode = EBandMode.OVERVIEW;
 				render(g, w, h, host);
 				return;
@@ -154,7 +158,7 @@ public abstract class ABand implements ILabeled, IHasMiniMap {
 			break;
 		case DETAIL:
 			final List<? extends IBandRenderAble> lR = detailRoutes();
-			if (lR.isEmpty()) {
+			if (lR.isEmpty()) { // auto switch to the previous one
 				mode = EBandMode.GROUPS;
 				render(g, w, h, host);
 				return;
@@ -178,6 +182,10 @@ public abstract class ABand implements ILabeled, IHasMiniMap {
 	 */
 	protected abstract IBandRenderAble overviewRoute();
 
+	protected List<? extends IBandRenderAble> overviewRoutes() {
+		return Collections.singletonList(overviewRoute());
+	}
+
 	protected abstract List<? extends IBandRenderAble> groupRoutes();
 
 	protected abstract List<? extends IBandRenderAble> detailRoutes();
@@ -185,26 +193,24 @@ public abstract class ABand implements ILabeled, IHasMiniMap {
 	public final int renderPick(GLGraphics g, float w, float h, IBandHost host, PickingPool pickingPool, int start) {
 		switch (mode) {
 		case OVERVIEW:
-			g.pushName(pickingPool.get(start++));
-			overviewRoute().renderRoute(g, host, 1);
-			g.popName();
+			start = renderRoutePick(g, host, pickingPool, start, overviewRoutes());
 			break;
 		case GROUPS:
-			final List<? extends IBandRenderAble> gR = groupRoutes();
-			for (IBandRenderAble r : gR) {
-				g.pushName(pickingPool.get(start++));
-				r.renderRoute(g, host, gR.size());
-				g.popName();
-			}
+			start = renderRoutePick(g, host, pickingPool, start, groupRoutes());
 			break;
 		case DETAIL:
-			final List<? extends IBandRenderAble> dR = detailRoutes();
-			for (IBandRenderAble r : dR) {
-				g.pushName(pickingPool.get(start++));
-				r.renderRoute(g, host, dR.size());
-				g.popName();
-			}
+			start = renderRoutePick(g, host, pickingPool, start, detailRoutes());
 			break;
+		}
+		return start;
+	}
+
+	private int renderRoutePick(GLGraphics g, IBandHost host, PickingPool pickingPool, int start,
+			final List<? extends IBandRenderAble> bands) {
+		for (IBandRenderAble r : bands) {
+			g.pushName(pickingPool.get(start++));
+			r.renderRoute(g, host, bands.size());
+			g.popName();
 		}
 		return start;
 	}
@@ -241,7 +247,10 @@ public abstract class ABand implements ILabeled, IHasMiniMap {
 	private IBandRenderAble getRoute(int subIndex) {
 		switch (mode) {
 		case OVERVIEW:
-			return overviewRoute();
+			final List<? extends IBandRenderAble> o = overviewRoutes();
+			if (subIndex < 0 || o.size() <= subIndex)
+				return overviewRoute();
+			return o.get(subIndex);
 		case GROUPS:
 			final List<? extends IBandRenderAble> g = groupRoutes();
 			if (subIndex < 0 || g.size() <= subIndex)

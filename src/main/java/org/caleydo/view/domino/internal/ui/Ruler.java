@@ -301,7 +301,7 @@ public class Ruler extends GLElementContainer implements IDragGLSource, IPicking
 	protected Node createNode() {
 		Set<Integer> elements = manager.getElements(SelectionType.SELECTION);
 		TypedSet data = new TypedSet(elements, manager.getIDType());
-		StratificationDataValue d = new StratificationDataValue(getLabel(manager), data, EDimension.DIMENSION);
+		StratificationDataValue d = new StratificationDataValue(getLabel(manager), data, this.dim);
 		return new Node(d);
 	}
 

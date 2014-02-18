@@ -28,20 +28,34 @@ public class BandFactory {
 		if (shared.isEmpty())
 			return null;
 		if (sDim == tDim) {
-			BandLine line = BandLines.create(ra, sDim.opposite(), rb, tDim.opposite());
-			if (line == null)
+			final EDirection primary = EDirection.getPrimary(sDim.opposite());
+			if (primary.isHorizontal()) {
+				if (ra.x2() < rb.x() - ParaBand.SHIFT * 3) {
+					Vec2f sLoc = ra.x2y();
+					Vec2f tLoc = rb.xy();
+					return new ParaBand(label, shared, sData, tData, sLoc, tLoc, sNodeLocator, tNodeLocator,
+							primary.opposite(), primary, identifier);
+				} else if (rb.x2() < ra.x() - ParaBand.SHIFT * 3) {
+					Vec2f sLoc = ra.x2y();
+					Vec2f tLoc = rb.xy();
+					return new ParaBand(label, shared, tData, sData, tLoc, sLoc, tNodeLocator, sNodeLocator,
+							primary.opposite(), primary, identifier);
+				}
 				return null;
-			if (line.isInvalid())
+			} else {
+				if (ra.y2() < rb.y() - ParaBand.SHIFT * 3) {
+					Vec2f sLoc = ra.xy2();
+					Vec2f tLoc = rb.xy();
+					return new ParaBand(label, shared, sData, tData, sLoc, tLoc, sNodeLocator, tNodeLocator,
+							primary.opposite(), primary, identifier);
+				} else if (rb.y2() < ra.y() - ParaBand.SHIFT * 3) {
+					Vec2f sLoc = ra.xy();
+					Vec2f tLoc = rb.xy2();
+					return new ParaBand(label, shared, tData, sData, tLoc, sLoc, tNodeLocator, sNodeLocator,
+							primary.opposite(), primary, identifier);
+				}
 				return null;
-			Vec2f sPoint = line.getPoint(true, true);
-			Vec2f tPoint = line.getPoint(false, true);
-			EDirection sDir = EDirection.getPrimary(sDim);
-			if (sDim.opposite().select(sPoint) > sDim.opposite().select(ra.xy()))
-				sDir = sDir.opposite();
-			EDirection tDir = EDirection.getPrimary(tDim);
-			if (tDim.opposite().select(tPoint) > tDim.opposite().select(rb.xy()))
-				tDir = tDir.opposite();
-			return new Band(line, label, shared, sData, tData, sNodeLocator, tNodeLocator, sDir, tDir, identifier);
+			}
 		} else {
 			// cross
 			if (sDim == EDimension.RECORD) {

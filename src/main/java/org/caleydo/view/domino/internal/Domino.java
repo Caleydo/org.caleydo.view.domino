@@ -236,7 +236,7 @@ public class Domino extends GLElementContainer implements IDropGLTarget, IPickin
 			}
 			break;
 		case CLICKED:
-			if (!event.isCtrlDown()) {
+			if (!event.isCtrlDown() && !event.isAltDown() && !event.isShiftDown()) {
 				// clear selection
 				SelectionCommands.clearSelections();
 			}
