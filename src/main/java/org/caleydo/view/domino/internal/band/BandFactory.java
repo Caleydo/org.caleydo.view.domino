@@ -29,26 +29,27 @@ public class BandFactory {
 			return null;
 		if (sDim == tDim) {
 			final EDirection primary = EDirection.getPrimary(sDim.opposite());
+			final float minDistance = ParaBand.SHIFT * 2 + 5;
 			if (primary.isHorizontal()) {
-				if (ra.x2() < rb.x() - ParaBand.SHIFT * 3) {
+				if (ra.x2() < rb.x() - minDistance) {
 					Vec2f sLoc = ra.x2y();
 					Vec2f tLoc = rb.xy();
 					return new ParaBand(label, shared, sData, tData, sLoc, tLoc, sNodeLocator, tNodeLocator,
 							primary.opposite(), primary, identifier);
-				} else if (rb.x2() < ra.x() - ParaBand.SHIFT * 3) {
-					Vec2f sLoc = ra.x2y();
-					Vec2f tLoc = rb.xy();
+				} else if (rb.x2() < ra.x() - minDistance) {
+					Vec2f sLoc = ra.xy();
+					Vec2f tLoc = rb.x2y();
 					return new ParaBand(label, shared, tData, sData, tLoc, sLoc, tNodeLocator, sNodeLocator,
 							primary.opposite(), primary, identifier);
 				}
 				return null;
 			} else {
-				if (ra.y2() < rb.y() - ParaBand.SHIFT * 3) {
+				if (ra.y2() < rb.y() - minDistance) {
 					Vec2f sLoc = ra.xy2();
 					Vec2f tLoc = rb.xy();
 					return new ParaBand(label, shared, sData, tData, sLoc, tLoc, sNodeLocator, tNodeLocator,
 							primary.opposite(), primary, identifier);
-				} else if (rb.y2() < ra.y() - ParaBand.SHIFT * 3) {
+				} else if (rb.y2() < ra.y() - minDistance) {
 					Vec2f sLoc = ra.xy();
 					Vec2f tLoc = rb.xy2();
 					return new ParaBand(label, shared, tData, sData, tLoc, sLoc, tNodeLocator, sNodeLocator,
@@ -70,15 +71,16 @@ public class BandFactory {
 				return new CrossBand(label, shared, sData, tData, sNodeLocator, tNodeLocator, s, t, sDir, tDir,
 						identifier);
 			} else {
-				Vec2f s = ra.xy();
-				Vec2f t = rb.x2y();
+				// swap
+				Vec2f t = ra.xy();
+				Vec2f s = rb.x2y();
 				EDirection sDir = EDirection.getPrimary(tDim.opposite());
-				if (t.y() >= s.y())
+				if (s.x() > t.x())
 					sDir = sDir.opposite();
 				EDirection tDir = EDirection.getPrimary(sDim.opposite());
-				if (t.x() >= s.x())
+				if (s.y() < t.y())
 					tDir = tDir.opposite();
-				return new CrossBand(label, shared, tData, sData, tNodeLocator, sNodeLocator, t, s, sDir, tDir,
+				return new CrossBand(label, shared, tData, sData, tNodeLocator, sNodeLocator, s, t, sDir, tDir,
 						identifier);
 			}
 		}

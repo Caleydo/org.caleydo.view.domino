@@ -51,7 +51,7 @@ import com.google.common.collect.Table;
  *
  */
 public class ParaBand extends ABand {
-	final static float SHIFT = 30;
+	final static float SHIFT = 15;
 
 	private Band overview;
 	private final List<IBandRenderAble> overviewRoutes = new ArrayList<>(3);
@@ -267,8 +267,7 @@ public class ParaBand extends ABand {
 		for (int ig = 0; ig < sgroups.size(); ++ig) {
 			final TypedListGroup sgroup = sgroups.get(ig);
 			Map<TypedListGroup, NavigableSet<LineAcc>> row = lines.row(sgroup);
-			for (int ii = 0; ii < sgroup.size(); ++ii) {
-				i++;
+			for (int ii = 0; ii < sgroup.size(); ++ii, ++i) {
 				Integer sId = sgroup.get(ii);
 				if (sId.intValue() < 0) {
 					continue;

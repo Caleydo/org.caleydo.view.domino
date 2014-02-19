@@ -147,7 +147,11 @@ public abstract class ABand implements ILabeled, IHasMiniMap {
 	}
 
 	public final boolean intersects(Rectangle2D bounds) {
-		return overviewRoute().intersects(bounds);
+		for (IBandRenderAble r : overviewRoutes())
+			if (r.intersects(bounds))
+				return true;
+		return false;
+		// return overviewRoute().intersects(bounds);
 	}
 
 	@Override

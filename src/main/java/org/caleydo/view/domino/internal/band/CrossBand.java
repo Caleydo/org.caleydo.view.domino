@@ -424,7 +424,25 @@ public class CrossBand extends ABand {
 		 */
 		@Override
 		public boolean intersects(Rectangle2D bound) {
-			return bounds.asRectangle2D().intersects(bound);
+			final Rect b = bounds;
+			if (b.asRectangle2D().intersects(bound))
+				return true;
+			if (sDim == EDirection.WEST) {
+				if (new Rect(xStart, b.y(), b.x() - xStart, b.height()).asRectangle2D().intersects(bound))
+					return true;
+			} else {
+				if (new Rect(b.x2(), b.y(), xStart - b.x2(), b.height()).asRectangle2D().intersects(bound))
+					return true;
+			}
+
+			if (tDim == EDirection.NORTH) {
+				if (new Rect(b.x(), yStart, b.width(), b.y() - yStart).asRectangle2D().intersects(bound))
+					return true;
+			} else {
+				if (new Rect(b.x(), b.y2(), b.width(), yStart - b.y2()).asRectangle2D().intersects(bound))
+					return true;
+			}
+			return false;
 		}
 
 		@Override

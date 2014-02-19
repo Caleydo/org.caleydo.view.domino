@@ -32,6 +32,8 @@ import org.caleydo.core.view.opengl.layout2.GLGraphics;
 import org.caleydo.core.view.opengl.layout2.IGLElementContext;
 import org.caleydo.core.view.opengl.layout2.manage.GLElementDimensionDesc;
 import org.caleydo.core.view.opengl.layout2.manage.GLElementFactoryContext;
+import org.caleydo.core.view.opengl.layout2.manage.GLLocation;
+import org.caleydo.core.view.opengl.layout2.manage.GLLocation.ILocator;
 import org.caleydo.core.view.opengl.layout2.manage.IGLElementFactory2;
 import org.caleydo.core.view.opengl.picking.IPickingLabelProvider;
 import org.caleydo.core.view.opengl.picking.IPickingListener;
@@ -41,6 +43,8 @@ import org.caleydo.core.view.opengl.util.text.ETextStyle;
 import org.caleydo.view.domino.api.model.typed.TypedList;
 
 import com.google.common.base.Function;
+import com.google.common.collect.DiscreteDomains;
+import com.google.common.collect.Ranges;
 /**
  * @author Samuel Gratzl
  *
@@ -87,7 +91,7 @@ public class LabelElementFactory implements IGLElementFactory2 {
 	}
 
 	private static final class LabelElement extends GLElement implements
-			MultiSelectionManagerMixin.ISelectionMixinCallback, IPickingLabelProvider, IPickingListener {
+			MultiSelectionManagerMixin.ISelectionMixinCallback, IPickingLabelProvider, IPickingListener, ILocator {
 		/**
 		 *
 		 */
@@ -505,7 +509,28 @@ public class LabelElementFactory implements IGLElementFactory2 {
 		public GLElementDimensionDesc getDesc(EDimension dim) {
 			if (data.isEmpty() || dim != this.dim)
 				return GLElementDimensionDesc.newFix(100).minimum(50).build();
-			return GLElementDimensionDesc.newCountDependent(boxHighlights ? 1 : 10).build();
+			return GLElementDimensionDesc.newCountDependent(boxHighlights ? 1 : 10).locateUsing(this).build();
+		}
+
+		@Override
+		public GLLocation apply(int dataIndex) {
+			float size = dim.select(getSize());
+			float per = size / this.data.size();
+			return new GLLocation(dataIndex * per, per);
+		}
+
+		@Override
+		public GLLocation apply(Integer input) {
+			return GLLocation.applyPrimitive(this, input);
+		}
+
+		@Override
+		public Set<Integer> unapply(GLLocation location) {
+			float size = dim.select(getSize());
+			float per = size / this.data.size();
+			int start = (int)Math.floor(location.getOffset() / per);
+			int end = (int)Math.ceil(location.getOffset2() / per);
+			return Ranges.closed(start, end).asSet(DiscreteDomains.integers());
 		}
 
 		@Override
