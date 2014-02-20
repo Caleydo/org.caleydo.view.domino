@@ -88,7 +88,7 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 
 	private final Node origin;
 	private final Node[] neighbors = new Node[4];
-	private final String label;
+	private String label;
 
 	private IDataValues data;
 
@@ -477,6 +477,14 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 	@Override
 	public String getLabel() {
 		return label;
+	}
+
+	/**
+	 * @param label
+	 *            setter, see {@link label}
+	 */
+	public void setLabel(String label) {
+		this.label = label;
 	}
 
 	public void setData(EDimension dim, TypedGroupList data) {

@@ -46,24 +46,30 @@ public class MergeNodesCmd implements ICmd {
 		TypedGroupList b = with.getData(dim);
 		TypedGroupSet r;
 		IDataValues data = node.getDataValues();
+		String old = node.getLabel();
+		String label;
 		switch (op) {
 		case INTERSECTION:
 			r = TypedGroups.intersect(a, b);
+			label = node.getLabel() + " \u2229 " + with.getLabel();
 			break;
 		case UNION:
 			r = TypedGroups.union(a, b);
 			// we need a new data as we have the super set
-			data = new StratificationDataValue(getLabel(), r, dim);
+			label = node.getLabel() + " \u222A " + with.getLabel();
+			data = new StratificationDataValue(label, r, dim);
 			break;
 		case DIFFERENCE:
 			r = TypedGroups.difference(a, b);
+			label = node.getLabel() + " \\ " + with.getLabel();
 			break;
 		default:
 			throw new IllegalStateException();
 		}
+		node.setLabel(label);
 		node.setDataValues(data);
 		node.setUnderlyingData(dim, r);
-		return new MergeUndoCmd(readd, dim, a, data);
+		return new MergeUndoCmd(readd, dim, a, data, old);
 	}
 
 	private class MergeUndoCmd implements ICmd {
@@ -71,18 +77,21 @@ public class MergeNodesCmd implements ICmd {
 		private final EDimension dim;
 		private final TypedGroupSet ori;
 		private final IDataValues data;
+		private final String label;
 
-		public MergeUndoCmd(ICmd readd, EDimension dim, TypedGroupSet ori, IDataValues data) {
+		public MergeUndoCmd(ICmd readd, EDimension dim, TypedGroupSet ori, IDataValues data, String label) {
 			this.readd = readd;
 			this.dim = dim;
 			this.ori = ori;
 			this.data = data;
+			this.label = label;
 		}
 
 		@Override
 		public ICmd run(Domino domino) {
 			node.setDataValues(data);
 			node.setUnderlyingData(dim, ori);
+			node.setLabel(label);
 			if (readd != null)
 				readd.run(domino);
 			return MergeNodesCmd.this;

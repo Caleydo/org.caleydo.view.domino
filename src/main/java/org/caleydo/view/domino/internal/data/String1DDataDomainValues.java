@@ -67,6 +67,11 @@ public class String1DDataDomainValues extends A1DDataDomainValues {
 	}
 
 	@Override
+	public boolean apply(String input) {
+		return !"distribution.bar".equals(input);
+	}
+
+	@Override
 	public int compare(EDimension dim, int a, int b, TypedSet otherData) {
 		if (dim != main)
 			return 0;
