@@ -84,6 +84,7 @@ public class Block extends GLElementContainer implements IGLLayout2, IPickingLis
 	private final OffsetShifts offsets = new OffsetShifts();
 
 	private final BlockBands bands = new BlockBands();
+	private final List<BlockGroup> groups = new ArrayList<>();
 
 	private final IDragGLSource source = new IDragGLSource() {
 		@Override
@@ -800,7 +801,8 @@ public class Block extends GLElementContainer implements IGLLayout2, IPickingLis
 		EBandMode defaultMode = EBandMode.OVERVIEW;
 		if (sData.getGroups().size() > 1 || tData.getGroups().size() > 1)
 			defaultMode = EBandMode.GROUPS;
-		else if (sNodeLocator.hasLocator(EBandMode.DETAIL) && tNodeLocator.hasLocator(EBandMode.DETAIL))
+		else if (sNodeLocator.hasLocator(EBandMode.DETAIL) && tNodeLocator.hasLocator(EBandMode.DETAIL)
+				&& sData.size() < 1000 && tData.size() < 1000)
 			defaultMode = EBandMode.DETAIL;
 		band.setLevel(defaultMode);
 
@@ -875,9 +877,7 @@ public class Block extends GLElementContainer implements IGLLayout2, IPickingLis
 		r = new Rectangle2D.Double(r.getX() - l.x(), r.getY() - l.y(), r.getWidth(), r.getHeight());
 		if (tool == EToolState.BANDS) {
 			if (getOutlineShape().intersects(r)) {
-				final NodeSelections domino = findDomino().getSelections();
-				if (!domino.isSelected(SelectionType.SELECTION, this))
-					domino.select(SelectionType.SELECTION, this, true);
+				selectMe();
 				repaint();
 			}
 		} else {
@@ -887,6 +887,24 @@ public class Block extends GLElementContainer implements IGLLayout2, IPickingLis
 				}
 			}
 		}
+	}
+
+	/**
+	 *
+	 */
+	private void selectMe() {
+		final NodeSelections domino = findDomino().getSelections();
+		if (partOfGroup()) {
+			selectAllBlocksInGroup(domino);
+		} else if (!domino.isSelected(SelectionType.SELECTION, this))
+			domino.select(SelectionType.SELECTION, this, true);
+	}
+
+	/**
+	 *
+	 */
+	private void selectAllBlocksInGroup(NodeSelections selections) {
+		groups.get(groups.size() - 1).selectAllBlocks(selections);
 	}
 
 	/**
@@ -1162,4 +1180,21 @@ public class Block extends GLElementContainer implements IGLLayout2, IPickingLis
 		return b.getData().getGroups().size() > 1;
 	}
 
+	/**
+	 * @param blockGroup
+	 */
+	public void groupBy(BlockGroup group) {
+		this.groups.add(group);
+	}
+
+	/**
+	 * @param blockGroup
+	 */
+	public void ungroupBy(BlockGroup group) {
+		this.groups.remove(group);
+	}
+
+	public boolean partOfGroup() {
+		return !groups.isEmpty();
+	}
 }

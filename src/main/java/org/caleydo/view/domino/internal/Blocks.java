@@ -18,6 +18,7 @@ import org.caleydo.core.id.IDType;
 import org.caleydo.core.util.base.ICallback;
 import org.caleydo.core.util.collection.Pair;
 import org.caleydo.core.util.color.Color;
+import org.caleydo.core.view.opengl.layout.Column.VAlign;
 import org.caleydo.core.view.opengl.layout2.GLElement;
 import org.caleydo.core.view.opengl.layout2.GLElementContainer;
 import org.caleydo.core.view.opengl.layout2.GLGraphics;
@@ -298,10 +299,18 @@ public class Blocks extends GLElementContainer implements ICallback<SelectionTyp
 				Rect bounds = n.getRectBounds();
 				g.color(n.getColor()).fillRect(loc.x() + bounds.x(), loc.y() + bounds.y(), bounds.width(),
 						bounds.height());
+				String label = n.getLabel();
+				float hi = Math.min(10, bounds.height());
+				g.drawText(label, loc.x() + bounds.x(), loc.y() + bounds.y() + (bounds.height() - hi) * 0.5f,
+						bounds.width(), hi, VAlign.CENTER);
 			}
 		}
 		for (Ruler ruler : rulers()) {
-			g.color(Color.LIGHT_GRAY).fillRect(ruler.getRectBounds());
+			final Rect bounds = ruler.getRectBounds();
+			g.color(Color.LIGHT_GRAY).fillRect(bounds);
+			float hi = Math.min(10, bounds.height());
+			g.drawText(ruler.getIDCategory().getCategoryName(), bounds.x(), bounds.y() + (bounds.height() - hi) * 0.5f,
+					bounds.width(), hi, VAlign.CENTER);
 		}
 	}
 
