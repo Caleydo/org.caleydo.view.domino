@@ -27,6 +27,7 @@ import org.caleydo.core.util.color.Color;
 import org.caleydo.core.view.opengl.layout2.GLGraphics;
 import org.caleydo.core.view.opengl.layout2.geom.Rect;
 import org.caleydo.core.view.opengl.layout2.manage.GLLocation;
+import org.caleydo.core.view.opengl.util.gleem.ColoredVec2f;
 import org.caleydo.core.view.opengl.util.spline.TesselatedPolygons;
 import org.caleydo.view.domino.api.model.EDirection;
 import org.caleydo.view.domino.api.model.typed.MultiTypedSet;
@@ -79,13 +80,13 @@ public class ParaBand extends ABand {
 				TypedSet sNotMapped = sData.asSet().difference(sShared);
 				sv = toVec3(sLoc, sLocator, (1 - sr), sr);
 				overviewRoutes.add(new NotMapped(split[0] + " x Not Mapped", sNotMapped, TypedCollections.empty(tData
-						.getIdType()), SourceTarget.SOURCE, sv));
+						.getIdType()), SourceTarget.SOURCE, sv, toVec3(t, tLocator, 1, 0)));
 			}
 			if (tr < 1) {
 				TypedSet tNotMapped = tData.asSet().difference(tShared);
 				tv = toVec3(tLoc, tLocator, (1 - tr), tr);
 				overviewRoutes.add(new NotMapped("Not Mapped x " + split[1], TypedCollections.empty(sData.getIdType()),
-						tNotMapped, SourceTarget.TARGET, tv));
+						tNotMapped, SourceTarget.TARGET, toVec3(s, sLocator, 1, 0), tv));
 			}
 		}
 	}
@@ -122,13 +123,15 @@ public class ParaBand extends ABand {
 				NotMapped m = (NotMapped) overviewRoutes.get(1);
 				// add a non-mapped indicator
 				Vec4f sv = toVec3(s, sLocator, (1 - sr), sr);
-				overviewRoutes.set(1, new NotMapped(m.getLabel(), m.sShared, m.tShared, SourceTarget.SOURCE, sv));
+				overviewRoutes.set(1, new NotMapped(m.getLabel(), m.sShared, m.tShared, SourceTarget.SOURCE, sv,
+						toVec3(t, tLocator, 1, 0)));
 			}
 			if (tr < 1) {
 				int index = sr < 1 ? 2 : 1;
 				NotMapped m = (NotMapped) overviewRoutes.get(index);
 				Vec4f tv = toVec3(t, tLocator, (1 - tr), tr);
-				overviewRoutes.set(index, new NotMapped(m.getLabel(), m.sShared, m.tShared, SourceTarget.TARGET, tv));
+				overviewRoutes.set(index, new NotMapped(m.getLabel(), m.sShared, m.tShared, SourceTarget.TARGET,
+						toVec3(t, tLocator, 1, 0), tv));
 			}
 		}
 	}
@@ -173,6 +176,9 @@ public class ParaBand extends ABand {
 		final TypedSet sEmpty = TypedCollections.empty(sData.getIdType());
 
 		final boolean horizontal = isHorizontal();
+
+		Vec4f sTotal = toVec3(this.s, sLocator, 1, 0);
+		Vec4f tTotal = toVec3(this.t, tLocator, 1, 0);
 
 		// for each left groups check all right groups
 		for (int i = 0; i < sgroups.size(); ++i) {
@@ -224,7 +230,8 @@ public class ParaBand extends ABand {
 					s = new Vec4f(this.s.x(), this.s.y() + (float) s1, (float) (sgroupLocation.getOffset2() - s1), 0);
 				else
 					s = new Vec4f(this.s.x() + (float) s1, this.s.y(), (float) (sgroupLocation.getOffset2() - s1), 0);
-				groupRoutes.add(new NotMapped(sgroup.getLabel() + " x Not Mapped", notMappedIds, tEmpty, SourceTarget.SOURCE, s));
+				groupRoutes.add(new NotMapped(sgroup.getLabel() + " x Not Mapped", notMappedIds, tEmpty,
+						SourceTarget.SOURCE, s, tTotal));
 			}
 		}
 
@@ -243,7 +250,8 @@ public class ParaBand extends ABand {
 				s = new Vec4f(this.t.x(), this.t.y() + (float) s1, (float) (tgroupLocation.getOffset2() - s1), 0);
 			else
 				s = new Vec4f(this.t.x() + (float) s1, this.t.y(), (float) (tgroupLocation.getOffset2() - s1), 0);
-			groupRoutes.add(new NotMapped("Not Mapped x " + tgroup.getLabel(), sEmpty, notMappedIds, SourceTarget.TARGET, s));
+			groupRoutes.add(new NotMapped("Not Mapped x " + tgroup.getLabel(), sEmpty, notMappedIds,
+					SourceTarget.TARGET, sTotal, s));
 		}
 
 		return groupRoutes;
@@ -690,47 +698,45 @@ public class ParaBand extends ABand {
 
 	private class NotMapped extends ARoute {
 		private final List<Vec2f> points;
-		private Polygon shape;
-		private SourceTarget type;
+		private final Polygon shape;
+		private final SourceTarget type;
+		private final float fz;
 
-		public NotMapped(String label, TypedSet sData, TypedSet tData, SourceTarget type, Vec4f f) {
+		public NotMapped(String label, TypedSet sData, TypedSet tData, SourceTarget type, Vec4f s, Vec4f t) {
 			super(label, sData, tData);
 			this.type = type;
 
-			this.points = new ArrayList<>(6);
+			this.points = new ArrayList<>(5);
 			this.shape = new Polygon();
-			final float s = Math.min(SHIFT, f.z());
+			this.fz = type.select(s, t).z();
+			float a = 0.5f;
 			if (isHorizontal()) {
 				if (type == SourceTarget.SOURCE) {
-					addPoint(f.x(), f.y());
-					addPoint(f.x() + SHIFT + s, f.y());
-					addPoint(f.x() + SHIFT + s, f.y() + f.z() + s);
-					addPoint(f.x() + SHIFT, f.y() + f.z() + s);
-					addPoint(f.x() + SHIFT, f.y() + f.z());
-					addPoint(f.x(), f.y() + f.z());
+					addPoint(s.x(), s.y());
+					addPoint(s.x() + SHIFT, s.y());
+					addPoint(s.x() * (1.f - a) + t.x() * a, (s.y() + s.z() * 0.5f) * (1 - a) + (t.y() + t.z()) * a);
+					addPoint(s.x() + SHIFT, s.y() + s.z());
+					addPoint(s.x(), s.y() + s.z());
 				} else {
-					addPoint(f.x(), f.y());
-					addPoint(f.x(), f.y() + f.z());
-					addPoint(f.x() - SHIFT, f.y() + f.z());
-					addPoint(f.x() - SHIFT, f.y() + f.z() + s);
-					addPoint(f.x() - SHIFT - s, f.y() + f.z() + s);
-					addPoint(f.x() - SHIFT - s, f.y());
+					addPoint(t.x(), t.y() + t.z());
+					addPoint(t.x() - SHIFT, t.y() + t.z());
+					addPoint(t.x() * (1.f - a) + s.x() * a, (t.y() + t.z() * 0.5f) * (1 - a) + (s.y() + s.z()) * a);
+					addPoint(t.x() - SHIFT, t.y());
+					addPoint(t.x(), t.y());
 				}
 			} else {
 				if (type == SourceTarget.SOURCE) {
-					addPoint(f.x(), f.y());
-					addPoint(f.x(), f.y() + SHIFT + s);
-					addPoint(f.x() + f.z() + s, f.y() + SHIFT + s);
-					addPoint(f.x() + f.z() + s, f.y() + SHIFT);
-					addPoint(f.x() + f.z(), f.y() + SHIFT);
-					addPoint(f.x() + f.z(), f.y());
+					addPoint(s.x(), s.y());
+					addPoint(s.x(), s.y() + SHIFT);
+					addPoint((s.x() + s.z() * 0.5f) * (1 - a) + (t.x() + t.z()) * a, s.y() * (1.f - a) + t.y() * a);
+					addPoint(s.x() + s.z(), s.y() + SHIFT);
+					addPoint(s.x() + s.z(), s.y());
 				} else {
-					addPoint(f.x(), f.y());
-					addPoint(f.x() + f.z(), f.y());
-					addPoint(f.x() + f.z(), f.y() - SHIFT);
-					addPoint(f.x() + f.z() + s, f.y() - SHIFT);
-					addPoint(f.x() + f.z() + s, f.y() - SHIFT - s);
-					addPoint(f.x(), f.y() - SHIFT - s);
+					addPoint(t.x() + t.z(), t.y());
+					addPoint(t.x() + t.z(), t.y() - SHIFT);
+					addPoint((t.x() + t.z() * 0.5f) * (1 - a) + (s.x() + s.z()) * a, t.y() * (1.f - a) + s.y() * a);
+					addPoint(t.x(), t.y() - SHIFT);
+					addPoint(t.x(), t.y());
 				}
 			}
 		}
@@ -750,58 +756,53 @@ public class ParaBand extends ABand {
 			Color color = mode.getColor();
 			final float alpha = EBandMode.alpha(nrBands);
 			g.color(color.r, color.g, color.b, color.a * alpha);
-			g.fillPolygon(TesselatedPolygons.polygon2(points));
-
-			boolean horizontal = isHorizontal();
-			Vec2f f = points.get(0);
-			Vec2f f2 = points.get(type.select(5, 1));
-			float fz = horizontal ? f2.y() - f.y() : f2.x() - f.x();
-			final float s = Math.min(SHIFT, fz);
+			final Collection<Vec2f> colored = colored(points, color, alpha);
+			g.fillPolygon(TesselatedPolygons.polygon2(colored));
 
 			for (SelectionType type : SELECTION_TYPES) {
 				final TypedSet d = this.type.select(sShared, tShared);
 				int se = host.getSelected(d, type).size();
 				if (se > 0) {
 					Color c = type.getColor();
-					g.color(c.r, c.g, c.b, c.a * alpha);
 					List<Vec2f> p = new ArrayList<>(6);
 					float sf = se / (float) d.size();
 
-					p.add(points.get(0));
-					if (horizontal) {
-						if (this.type == SourceTarget.SOURCE) {
-							p.add(new Vec2f(f.x() + SHIFT + s*sf, f.y()));
-							p.add(new Vec2f(f.x() + SHIFT + s*sf, f.y() + fz*sf + s*sf));
-							p.add(new Vec2f(f.x() + SHIFT, f.y() + fz*sf + s*sf));
-							p.add(new Vec2f(f.x() + SHIFT, f.y() + fz*sf));
-							p.add(new Vec2f(f.x(), f.y() + fz*sf));
-						} else {
-							p.add(new Vec2f(f.x(), f.y() + fz*sf));
-							p.add(new Vec2f(f.x() - SHIFT, f.y() + fz*sf));
-							p.add(new Vec2f(f.x() - SHIFT, f.y() + fz*sf + s*sf));
-							p.add(new Vec2f(f.x() - SHIFT - s*sf, f.y() + fz*sf + s*sf));
-							p.add(new Vec2f(f.x() - SHIFT - s*sf, f.y()));
-						}
+					float shiftX = isHorizontal() ? 0 : -fz * (1 - sf);
+					float shiftY = !isHorizontal() ? 0 : -fz * (1 - sf);
+
+					if (this.type == SourceTarget.SOURCE) {
+						p.add(points.get(0));
+						p.add(points.get(1));
+						p.add(points.get(2));
+						p.add(shifted(points.get(3), shiftX, shiftY));
+						p.add(shifted(points.get(4), shiftX, shiftY));
 					} else {
-						if (this.type == SourceTarget.SOURCE) {
-							p.add(new Vec2f(f.x(), f.y() + SHIFT + s*sf));
-							p.add(new Vec2f(f.x() + fz*sf + s*sf, f.y() + SHIFT + s*sf));
-							p.add(new Vec2f(f.x() + fz*sf + s*sf, f.y() + SHIFT));
-							p.add(new Vec2f(f.x() + fz*sf, f.y() + SHIFT));
-							p.add(new Vec2f(f.x() + fz*sf, f.y()));
-						} else {
-							p.add(new Vec2f(f.x() + fz*sf, f.y()));
-							p.add(new Vec2f(f.x() + fz*sf, f.y() - SHIFT));
-							p.add(new Vec2f(f.x() + fz*sf + s*sf, f.y() - SHIFT));
-							p.add(new Vec2f(f.x() + fz*sf + s*sf, f.y() - SHIFT - s*sf));
-							p.add(new Vec2f(f.x(), f.y() - SHIFT - s*sf));
-						}
+						p.add(shifted(points.get(0), shiftX, shiftY));
+						p.add(shifted(points.get(1), shiftX, shiftY));
+						p.add(points.get(2));
+						p.add(points.get(3));
+						p.add(points.get(4));
 					}
-					g.fillPolygon(TesselatedPolygons.polygon2(p));
+					g.fillPolygon(TesselatedPolygons.polygon2(colored(p, c, alpha)));
 				}
 			}
-			g.color(color.r, color.g, color.b, color.a * alpha);
-			g.drawPath(points, true);
+			g.drawPath(colored, true);
+		}
+
+		private Vec2f shifted(Vec2f v, float dx, float dy) {
+			return new Vec2f(v.x() + dx, v.y() + dy);
+		}
+
+		private Collection<Vec2f> colored(List<Vec2f> points, Color color, float alpha) {
+			assert points.size() == 5;
+			alpha *= color.a;
+			Vec2f[] r = new Vec2f[5];
+			r[0] = new ColoredVec2f(points.get(0), new Color(color.r, color.g, color.b, alpha));
+			r[1] = new ColoredVec2f(points.get(1), new Color(color.r, color.g, color.b, alpha * .5f));
+			r[2] = new ColoredVec2f(points.get(2), new Color(color.r, color.g, color.b, 0));
+			r[3] = new ColoredVec2f(points.get(3), new Color(color.r, color.g, color.b, alpha * .5f));
+			r[4] = new ColoredVec2f(points.get(4), new Color(color.r, color.g, color.b, alpha));
+			return Arrays.asList(r);
 		}
 
 		@Override

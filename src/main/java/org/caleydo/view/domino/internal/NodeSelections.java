@@ -183,15 +183,23 @@ public class NodeSelections {
 	}
 
 	public static Node getSingleNode(Set<NodeGroup> selection) {
+		return getSingleNode(selection, true);
+	}
+
+	public static Node getSingleNode(Set<NodeGroup> selection, boolean checkFull) {
 		if (selection.isEmpty())
 			return null;
-		Set<Node> nodes = getFullNodes(selection);
+		Set<Node> nodes = getNodes(selection, checkFull);
 		if (nodes.size() == 1)
 			return nodes.iterator().next();
 		return null;
 	}
 
 	public static Set<Node> getFullNodes(Set<NodeGroup> selection) {
+		return getNodes(selection, true);
+	}
+
+	private static Set<Node> getNodes(Set<NodeGroup> selection, boolean checkFull) {
 		if (selection.isEmpty())
 			return Collections.emptySet();
 		Multiset<Node> nodes = HashMultiset.create();
@@ -199,11 +207,13 @@ public class NodeSelections {
 			Node n = group.getNode();
 			nodes.add(n);
 		}
-		for (Iterator<Node> it = nodes.elementSet().iterator(); it.hasNext();) {
-			Node node = it.next();
-			final int expected = node.groupCount();
-			if (expected != nodes.count(node)) {
-				it.remove();// not all groups
+		if (checkFull) {
+			for (Iterator<Node> it = nodes.elementSet().iterator(); it.hasNext();) {
+				Node node = it.next();
+				final int expected = node.groupCount();
+				if (expected != nodes.count(node)) {
+					it.remove();// not all groups
+				}
 			}
 		}
 		return nodes.elementSet();

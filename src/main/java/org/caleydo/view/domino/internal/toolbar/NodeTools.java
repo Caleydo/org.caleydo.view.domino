@@ -80,13 +80,10 @@ public class NodeTools extends AItemTools {
 		Set<Block> blocks = NodeSelections.getFullBlocks(selection);
 		if (nodes.size() == 1) {
 			Node node = nodes.iterator().next();
-			EDimension dim = node.getSingleGroupingDimension();
 			addSingleNode(node);
 
 			if (blocks.size() == 1) // a single node with a single block
 				addBlockActions(blocks);
-			if (dim != null)
-				addButton("Merge Groups", dim.select(Resources.ICON_MERGE_DIM, Resources.ICON_MERGE_REC));
 			if (node.groupCount() == selection.size()) {
 				addButton("Remove Node", Resources.ICON_DELETE_ALL);
 			}
@@ -116,6 +113,13 @@ public class NodeTools extends AItemTools {
 				addButton("Remove Block", Resources.ICON_DELETE);
 			else
 				addButton("Remove Blocks", Resources.ICON_DELETE_ALL);
+		} else {
+			Node node = NodeSelections.getSingleNode(selection, false);
+			if (node != null) {
+				EDimension dim = node.getSingleGroupingDimension();
+				if (dim != null)
+					addButton("Merge Groups", dim.select(Resources.ICON_MERGE_DIM, Resources.ICON_MERGE_REC));
+			}
 		}
 	}
 
