@@ -513,6 +513,18 @@ public class LinearBlock extends AbstractCollection<Node> {
 		return c;
 	}
 
+	public int getSortPriority(Node node) {
+		return sortCriteria.indexOf(node);
+	}
+
+	public boolean isLimitedTo(Node node) {
+		return node == dataSelection;
+	}
+
+	public int getSortPriorities() {
+		return this.sortCriteria.size();
+	}
+
 	public String getStateString(Node node) {
 		int index = sortCriteria.indexOf(node);
 		boolean limited = dataSelection == node;

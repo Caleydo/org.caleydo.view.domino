@@ -1197,4 +1197,48 @@ public class Block extends GLElementContainer implements IGLLayout2, IPickingLis
 	public boolean partOfGroup() {
 		return !groups.isEmpty();
 	}
+
+	/**
+	 * @param g
+	 */
+	public void renderMiniMap(GLGraphics g) {
+		Vec2f loc = getLocation();
+		g.move(loc.x(), loc.y());
+		boolean single = nodeCount() == 1;
+
+		for (Node n : nodes()) {
+			Rect bounds = n.getRectBounds();
+			g.color(n.getColor()).fillRect(bounds);
+			String label = n.getLabel();
+			float hi = Math.min(10, bounds.height());
+			// g.drawText(label, bounds.x(), bounds.y() + (bounds.height() - hi) * 0.5f, bounds.width(), hi,
+			// VAlign.CENTER);
+			if (single)
+				continue;
+			for (EDimension dim : n.dimensions()) {
+				LinearBlock b = getBlock(n, dim.opposite());
+				if (b != null && b.size() > 1) {
+					int p = b.getSortPriority(n);
+					boolean limitedTo = b.isLimitedTo(n);
+					if (p < 0 && !limitedTo)
+						continue;
+					int max = b.getSortPriorities();
+					g.lineWidth(p < 0 ? 1 : max - p);
+					boolean s = b.isStratisfied() && p == 0;
+					g.lineStippled(limitedTo);
+					g.color(s ? Color.RED : Color.BLACK);
+					if (dim.isVertical()) {
+						g.drawLine(bounds.x(), bounds.y(), bounds.x2(), bounds.y());
+						g.drawLine(bounds.x(), bounds.y2(), bounds.x2(), bounds.y2());
+					} else {
+						g.drawLine(bounds.x(), bounds.y(), bounds.x(), bounds.y2());
+						g.drawLine(bounds.x2(), bounds.y(), bounds.x2(), bounds.y2());
+					}
+				}
+			}
+		}
+		g.lineStippled(false);
+		g.lineWidth(1);
+		g.move(-loc.x(), -loc.y());
+	}
 }

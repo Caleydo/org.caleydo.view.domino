@@ -294,16 +294,7 @@ public class Blocks extends GLElementContainer implements ICallback<SelectionTyp
 	@Override
 	public void renderMiniMap(GLGraphics g) {
 		for(Block block : getBlocks()) {
-			Vec2f loc = block.getLocation();
-			for (Node n : block.nodes()) {
-				Rect bounds = n.getRectBounds();
-				g.color(n.getColor()).fillRect(loc.x() + bounds.x(), loc.y() + bounds.y(), bounds.width(),
-						bounds.height());
-				String label = n.getLabel();
-				float hi = Math.min(10, bounds.height());
-				g.drawText(label, loc.x() + bounds.x(), loc.y() + bounds.y() + (bounds.height() - hi) * 0.5f,
-						bounds.width(), hi, VAlign.CENTER);
-			}
+			block.renderMiniMap(g);
 		}
 		for (Ruler ruler : rulers()) {
 			final Rect bounds = ruler.getRectBounds();
