@@ -199,7 +199,7 @@ public abstract class APlaceholder extends PickableGLElement implements IDropGLT
 	@Override
 	protected void renderImpl(GLGraphics g, float w, float h) {
 		final Color c = getColor();
-		if (preview != null) {
+		if (preview != null && preview.getRepresentableSwitcher() != null) {
 			Rect selectionRect = getSelectionRect(w, h);
 			w = selectionRect.width();
 			h = selectionRect.height();
@@ -258,7 +258,7 @@ public abstract class APlaceholder extends PickableGLElement implements IDropGLT
 
 	@Override
 	protected void renderPickImpl(GLGraphics g, float w, float h) {
-		if (getVisibility() == EVisibility.PICKABLE && preview != null) {
+		if (getVisibility() == EVisibility.PICKABLE && preview != null && preview.getRepresentableSwitcher() != null) {
 			g.fillRect(getSelectionRect(w, h));
 		}
 		super.renderPickImpl(g, w, h);

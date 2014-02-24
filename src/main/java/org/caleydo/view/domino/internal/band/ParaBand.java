@@ -709,7 +709,7 @@ public class ParaBand extends ABand {
 			this.points = new ArrayList<>(5);
 			this.shape = new Polygon();
 			this.fz = type.select(s, t).z();
-			float a = 0.5f;
+			float a = 0.3f;
 			if (isHorizontal()) {
 				if (type == SourceTarget.SOURCE) {
 					addPoint(s.x(), s.y());

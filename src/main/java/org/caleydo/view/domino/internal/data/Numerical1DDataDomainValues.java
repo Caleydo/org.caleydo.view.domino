@@ -165,6 +165,9 @@ public class Numerical1DDataDomainValues extends A1DDataDomainValues {
 
 		b.put("hbar.id2color", new AlternatingColors(Color.BLACK, Color.LIGHT_GRAY, even(data)));
 		// b.set("kaplanmaier.fillCurve");
+
+		b.set("boxandwhiskers.showOutliers");
+		b.set("boxandwhiskers.showMinMax");
 	}
 
 	/**
