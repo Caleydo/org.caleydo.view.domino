@@ -646,12 +646,10 @@ public class Domino extends GLElementContainer implements IDropGLTarget, IPickin
 			moveSelection(EDirection.NORTH, f);
 		else if (e.isKey(ESpecialKey.DOWN))
 			moveSelection(EDirection.SOUTH, f);
-		else if (e.isControlDown() && (e.isKey('z') || e.isKey('Z')))
-			undo.undo();
-		else if (e.isControlDown() && (e.isKey('y') || e.isKey('Y')))
-			undo.redo();
 		else if (e.isControlDown() && (e.isKey('a') || e.isKey('A')))
 			selectAll();
+		this.leftToolBar.keyPressed(e);
+		this.toolBar.keyPressed(e);
 	}
 
 	/**

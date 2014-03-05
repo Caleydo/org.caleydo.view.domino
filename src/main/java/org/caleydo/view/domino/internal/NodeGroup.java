@@ -10,6 +10,7 @@ import java.util.Set;
 import org.caleydo.core.data.collection.EDimension;
 import org.caleydo.core.data.selection.SelectionType;
 import org.caleydo.core.util.base.ILabeled;
+import org.caleydo.core.util.color.Color;
 import org.caleydo.core.view.opengl.canvas.EDetailLevel;
 import org.caleydo.core.view.opengl.canvas.IGLMouseListener.IMouseEvent;
 import org.caleydo.core.view.opengl.layout.Column.VAlign;
@@ -261,6 +262,7 @@ public class NodeGroup extends GLElementDecorator implements ILabeled, IDragGLSo
 			g.color(SelectionType.SELECTION.getColor()).drawRect(0, 0, w, h);
 		else if (selections.isSelected(SelectionType.MOUSE_OVER, this))
 			g.color(SelectionType.MOUSE_OVER.getColor()).drawRect(0, 0, w, h);
+		g.color(Color.LIGHT_GRAY).lineWidth(1).drawRect(0, 0, w, h);
 		g.lineWidth(1);
 
 

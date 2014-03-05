@@ -15,6 +15,7 @@ import org.caleydo.core.event.EventListenerManager.DeepScan;
 import org.caleydo.core.id.IDCategory;
 import org.caleydo.core.util.base.ICallback;
 import org.caleydo.core.util.color.Color;
+import org.caleydo.core.view.opengl.canvas.IGLKeyListener.IKeyEvent;
 import org.caleydo.core.view.opengl.layout2.GLElement;
 import org.caleydo.core.view.opengl.layout2.GLElementContainer;
 import org.caleydo.core.view.opengl.layout2.GLGraphics;
@@ -248,6 +249,33 @@ public class LeftToolBar extends GLElementContainer implements IGLLayout2, ISele
 			b.setTooltip(tool.getLabel());
 			c.add(b);
 			this.add(b);
+		}
+	}
+
+	/**
+	 * @param e
+	 */
+	public void keyPressed(IKeyEvent e) {
+		if (e.isKey('m') || e.isKey('M'))
+			setTool(EToolState.MOVE);
+		else if (e.isKey('s') || e.isKey('S'))
+			setTool(EToolState.SELECT);
+		else if (e.isKey('b') || e.isKey('B'))
+			setTool(EToolState.BANDS);
+		else if (e.isControlDown() && (e.isKey('z') || e.isKey('Z')))
+			undo.undo();
+		else if (e.isControlDown() && (e.isKey('y') || e.isKey('Y')))
+			undo.redo();
+
+	}
+
+	/**
+	 * @param move
+	 */
+	private void setTool(EToolState tool) {
+		for (GLButton b : Iterables.filter(this, GLButton.class)) {
+			if (b.getLayoutDataAs(EToolState.class, null) == tool)
+				b.setSelected(true);
 		}
 	}
 

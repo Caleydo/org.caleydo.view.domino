@@ -14,6 +14,8 @@ import org.caleydo.core.data.selection.SelectionType;
 import org.caleydo.core.util.base.ICallback;
 import org.caleydo.core.util.base.Labels;
 import org.caleydo.core.view.contextmenu.AContextMenuItem;
+import org.caleydo.core.view.opengl.canvas.IGLKeyListener.ESpecialKey;
+import org.caleydo.core.view.opengl.canvas.IGLKeyListener.IKeyEvent;
 import org.caleydo.core.view.opengl.layout.Column.VAlign;
 import org.caleydo.core.view.opengl.layout2.GLElement;
 import org.caleydo.core.view.opengl.layout2.GLElementContainer;
@@ -95,5 +97,22 @@ public class ToolBar extends GLElementContainer implements ICallback<SelectionTy
 
 	public List<AContextMenuItem> asContextMenu() {
 		return tools == null ? Collections.<AContextMenuItem> emptyList() : tools.asContextMenu();
+	}
+
+	/**
+	 *
+	 */
+	private void triggerDelete() {
+		if (this.tools == null)
+			return;
+		this.tools.triggerDelete();
+	}
+
+	/**
+	 * @param e
+	 */
+	public void keyPressed(IKeyEvent e) {
+		if (e.isKey(ESpecialKey.DELETE))
+			triggerDelete();
 	}
 }

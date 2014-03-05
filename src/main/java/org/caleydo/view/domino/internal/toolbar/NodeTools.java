@@ -38,6 +38,8 @@ import org.caleydo.view.domino.internal.undo.SortByNodesCmd;
 import org.caleydo.view.domino.internal.undo.TransposeBlocksCmd;
 
 import com.google.common.collect.HashMultiset;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multiset;
 
@@ -263,6 +265,18 @@ public class NodeTools extends AItemTools {
 		addButton("Open Details", Resources.ICON_FOCUS);
 	}
 
+	/**
+	 *
+	 */
+	public void triggerDelete() {
+		Set<String> toTest = ImmutableSet.of("Remove Node", "Remove Nodes", "Remove Block", "Remove Blocks");
+		for (GLButton b : Iterables.filter(this, GLButton.class)) {
+			if (toTest.contains(b.getTooltip())) {
+				b.setSelected(true);
+				break;
+			}
+		}
+	}
 	@Override
 	public void onSelectionChanged(GLButton button, boolean selected) {
 		NodeGroup node = selection.iterator().next();
@@ -357,4 +371,5 @@ public class NodeTools extends AItemTools {
 		}
 
 	}
+
 }
