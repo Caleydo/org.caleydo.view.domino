@@ -58,7 +58,7 @@ public class DataTourGuideDataMode extends ATourGuideDataMode {
 		if (!DataSupportDefinitions.homogenousTables.apply(dd))
 			return new InhomogenousDataDomainQuery((ATableBasedDataDomain) dd,
  Sets.immutableEnumSet(
-EDataClass.CATEGORICAL, EDataClass.NATURAL_NUMBER, EDataClass.REAL_NUMBER,
+					EDataClass.NATURAL_NUMBER, EDataClass.REAL_NUMBER,
 							EDataClass.UNIQUE_OBJECT));
 		return new DataDomainQuery((ATableBasedDataDomain) dd);
 	}
