@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
 import org.caleydo.core.data.collection.EDataClass;
 import org.caleydo.core.data.datadomain.ATableBasedDataDomain;
@@ -23,10 +24,13 @@ import org.caleydo.view.tourguide.api.model.AScoreRow;
 import org.caleydo.view.tourguide.api.model.InhomogenousDataDomainQuery;
 import org.caleydo.vis.lineup.model.CategoricalRankColumnModel;
 import org.caleydo.vis.lineup.model.IRow;
+import org.caleydo.vis.lineup.model.MultiCategoricalRankColumnModel;
 import org.caleydo.vis.lineup.model.RankTableModel;
 import org.caleydo.vis.lineup.model.StringRankColumnModel;
 
 import com.google.common.base.Function;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
 
@@ -78,6 +82,23 @@ public class DataTourGuideDataMode extends ATourGuideDataMode {
 			}
 
 		}, Arrays.asList("1D", "2D")));
+
+		ImmutableSortedSet.Builder<String> s = ImmutableSortedSet.naturalOrder();
+		for (IDCategory cat : EntityTypeSelector.findAllUsedIDCategories())
+			s.add(cat.getCategoryName());
+		table.add(MultiCategoricalRankColumnModel.createSimple(GLRenderers.drawText("Entity Type"), new Function<IRow, Set<String>>() {
+			@Override
+			public Set<String> apply(IRow input) {
+				if (input instanceof DataDomainScoreRow) {
+					IDCategory a = ((DataDomainScoreRow) input).getIdType().getIDCategory();
+					IDCategory b = ((DataDomainScoreRow) input).getDimensionIdType().getIDCategory();
+					return ImmutableSet.of(a.getCategoryName(),b.getCategoryName());
+						}
+				return ImmutableSet.of(((AScoreRow) input).getIdType().getIDCategory().getCategoryName());
+			}
+
+				}, s.build(), "").setWidth(150));
+
 		table.add(new SizeRankColumnModel("#Records", new Function<IRow, Integer>() {
 			@Override
 			public Integer apply(IRow in) {
