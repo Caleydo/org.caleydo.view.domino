@@ -191,7 +191,7 @@ public abstract class APlaceholder extends PickableGLElement implements IDropGLT
 		float total = dim.select(rect.size());
 		float ratio = (dim.select(l.minus(rect.xy())) - total * 0.1f) / (total * 0.8f);
 		int size = preview.getRepresentableSwitcher().size();
-		return Math.min((int) (ratio * size), size - 1);
+		return Math.max(0, Math.min((int) (ratio * size), size - 1));
 	}
 
 	protected abstract Color getColor();

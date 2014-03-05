@@ -19,18 +19,22 @@ import org.caleydo.view.domino.api.model.EDirection;
 public class FreePlaceholder extends APlaceholder {
 	private static final float FREE_OFFSET = 200;
 	private final EDirection dir;
+	private final boolean transpose;
 
 	public FreePlaceholder(EDirection dir, Rect bounds) {
 		this.dir = dir;
+		this.transpose = false;
 		setBounds(bounds.x(), bounds.y(), bounds.width(), bounds.height());
 	}
 
 	/**
+	 * @param transposed
 	 * @param dir2
 	 * @param n
 	 */
-	public FreePlaceholder(EDirection dir, Node neighbor) {
+	public FreePlaceholder(EDirection dir, Node neighbor, boolean transpose) {
 		this.dir = dir;
+		this.transpose = transpose;
 		Vec2f size = neighbor.getSize();
 		Vec2f loc = neighbor.getAbsoluteLocation();
 		final float c = Block.DETACHED_OFFSET;
@@ -82,6 +86,9 @@ public class FreePlaceholder extends APlaceholder {
 	@Override
 	protected void dropNode(Node node) {
 		Domino domino = findParent(Domino.class);
+		if (transpose) {
+			node.transposeMe();
+		}
 		Block b = new Block(node);
 		Vec2f loc = getLocation();
 		switch (dir) {

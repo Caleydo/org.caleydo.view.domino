@@ -198,7 +198,7 @@ public class LinearBlock extends AbstractCollection<Node> {
 		if (transposed && !normal)
 			r.add(new Placeholder(n, dir, true));
 		if (!dir.isPrimaryDirection())
-			r.add(new FreePlaceholder(dir, n));
+			r.add(new FreePlaceholder(dir, n, transposed));
 	}
 
 	private static boolean isCompatible(IDType a, IDType b) {
