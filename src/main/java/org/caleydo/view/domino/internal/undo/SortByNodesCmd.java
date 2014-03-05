@@ -12,6 +12,7 @@ import org.caleydo.core.data.collection.EDimension;
 import org.caleydo.core.util.collection.Pair;
 import org.caleydo.view.domino.internal.Block;
 import org.caleydo.view.domino.internal.Domino;
+import org.caleydo.view.domino.internal.LinearBlock.ESortingMode;
 import org.caleydo.view.domino.internal.Node;
 
 /**
@@ -48,23 +49,21 @@ public class SortByNodesCmd implements ICmd {
 	@Override
 	public ICmd run(Domino domino) {
 		Block b = node.getBlock();
-		Pair<List<Node>, Boolean> r;
+		List<Pair<Node, ESortingMode>> r;
 		if (stratify)
 			r = b.stratifyBy(node, dim);
 		else
 			r = b.sortBy(node, dim);
 		if (r == null)
 			return null;
-		return new RestoreSortingCmd(r.getFirst(), r.getSecond());
+		return new RestoreSortingCmd(r);
 	}
 
 	private class RestoreSortingCmd implements ICmd {
-		private final List<Node> sortCriteria;
-		private final boolean stratified;
+		private final List<Pair<Node, ESortingMode>> sortCriteria;
 
-		public RestoreSortingCmd(List<Node> sortCriteria, boolean stratified) {
+		public RestoreSortingCmd(List<Pair<Node, ESortingMode>> sortCriteria) {
 			this.sortCriteria = sortCriteria;
-			this.stratified = stratified;
 		}
 
 		@Override
@@ -75,10 +74,10 @@ public class SortByNodesCmd implements ICmd {
 		@Override
 		public ICmd run(Domino domino) {
 			Block b = node.getBlock();
-			Pair<List<Node>, Boolean> r = b.restoreSorting(node, dim, sortCriteria, stratified);
+			List<Pair<Node, ESortingMode>> r = b.restoreSorting(node, dim, sortCriteria);
 			if (r == null)
 				return null;
-			return new RestoreSortingCmd(r.getFirst(), r.getSecond());
+			return new RestoreSortingCmd(r);
 		}
 
 	}

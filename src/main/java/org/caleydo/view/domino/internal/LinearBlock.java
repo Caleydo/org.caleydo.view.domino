@@ -56,18 +56,35 @@ public class LinearBlock extends AbstractCollection<Node> {
 	private EDimension dim;
 	private final List<Node> nodes = new ArrayList<>();
 
-	private final List<Node> sortCriteria = new ArrayList<>(2);
+	public enum ESortingMode {
+		INC, DEC, STRATIFY;
+
+		/**
+		 * @return
+		 */
+		public ESortingMode next() {
+			switch (this) {
+			case INC:
+				return DEC;
+			case DEC:
+				return null;
+			case STRATIFY:
+				return INC;
+			}
+			throw new IllegalStateException();
+		}
+	}
+
+	private final List<Pair<Node, ESortingMode>> sortCriteria = new ArrayList<>(2);
 	private Node dataSelection = null;
 
-	private boolean stratified = false;
 	private MultiTypedList data;
 
 	public LinearBlock(EDimension dim, Node node) {
 		this.dim = dim;
 		this.nodes.add(node);
-		this.sortCriteria.add(node);
+		this.sortCriteria.add(Pair.make(node, stratifyByDefault(node) ? ESortingMode.STRATIFY : ESortingMode.INC));
 		this.dataSelection = node;
-		this.stratified = stratifyByDefault(node);
 		update();
 		apply();
 		updateNeighbors();
@@ -90,17 +107,24 @@ public class LinearBlock extends AbstractCollection<Node> {
 	}
 
 	public boolean isStratisfied() {
-		return stratified;
+		return sortCriteria.get(0).getSecond() == ESortingMode.STRATIFY;
 	}
 
 	public boolean isStratisfied(Node node) {
-		return stratified && sortCriteria.get(0) == node;
+		return isStratisfied() && getFirstSortingCriteria() == node;
+	}
+
+	public ESortingMode getSortingMode(Node node) {
+		int index = getSortPriority(node);
+		if (index < 0)
+			return null;
+		return sortCriteria.get(index).getSecond();
 	}
 
 	/**
 	 * @return the sortCriteria, see {@link #sortCriteria}
 	 */
-	public List<Node> getSortCriteria() {
+	public List<Pair<Node, ESortingMode>> getSortCriteria() {
 		return Collections.unmodifiableList(sortCriteria);
 	}
 
@@ -225,7 +249,7 @@ public class LinearBlock extends AbstractCollection<Node> {
 			dataSelection = nodes.size() == 1 ? nodes.get(0) : null;
 		}
 		if (sortCriteria.isEmpty() && !nodes.isEmpty())
-			sortCriteria.add(nodes.get(0));
+			sortCriteria.add(Pair.make(nodes.get(0), ESortingMode.INC));
 		update();
 		apply();
 		return index;
@@ -251,7 +275,7 @@ public class LinearBlock extends AbstractCollection<Node> {
 		else
 			this.nodes.add(index + 1, node);
 
-		sortCriteria.add(node);
+		sortCriteria.add(Pair.make(node, ESortingMode.INC));
 		update();
 		apply();
 	}
@@ -333,10 +357,14 @@ public class LinearBlock extends AbstractCollection<Node> {
 	}
 
 	private List<ITypedComparator> asComparators(final EDimension dim) {
-		return ImmutableList.copyOf(Iterables.transform(sortCriteria, new Function<Node, ITypedComparator>() {
+		return ImmutableList.copyOf(Iterables.transform(sortCriteria,
+				new Function<Pair<Node, ESortingMode>, ITypedComparator>() {
 			@Override
-			public ITypedComparator apply(Node input) {
-				return input.getComparator(dim);
+					public ITypedComparator apply(Pair<Node, ESortingMode> input) {
+						ITypedComparator c = input.getFirst().getComparator(dim);
+						if (input.getSecond() == ESortingMode.DEC)
+							c = TypedCollections.reverseOrder(c);
+						return c;
 			}
 		}));
 	}
@@ -359,7 +387,9 @@ public class LinearBlock extends AbstractCollection<Node> {
 	private List<? extends ITypedGroup> asGroupList() {
 		if (!isStratisfied())
 			return Collections.singletonList(ungrouped(data.size()));
-		final Node sortedBy = sortCriteria.get(0);
+		final Node sortedBy = getFirstSortingCriteria();
+		// FIXME
+		final ESortingMode sortingMode = sortCriteria.get(0).getSecond();
 		final Node selected = dataSelection;
 
 		List<TypedSetGroup> groups = sortedBy.getUnderlyingData(dim.opposite()).getGroups();
@@ -421,7 +451,7 @@ public class LinearBlock extends AbstractCollection<Node> {
 		if (dataSelection != null) // use this as we have no missing values here
 			return dataSelection.getData(dim.opposite());
 		// best guess the first sorting criteria
-		return sortCriteria.get(0).getData(dim.opposite());
+		return getFirstSortingCriteria().getData(dim.opposite());
 	}
 
 	Node getNode(boolean first) {
@@ -433,9 +463,8 @@ public class LinearBlock extends AbstractCollection<Node> {
 		return n.getNodeLocator(dim.opposite());
 	}
 
-	public Pair<List<Node>, Boolean> sortBy(List<Node> sortCriteria, boolean stratified) {
-		Pair<List<Node>, Boolean> act = Pair.make((List<Node>) new ArrayList<>(this.sortCriteria), this.stratified);
-		this.stratified = stratified;
+	public List<Pair<Node, ESortingMode>> sortBy(List<Pair<Node, ESortingMode>> sortCriteria) {
+		List<Pair<Node, ESortingMode>> act = new ArrayList<>(this.sortCriteria);
 		this.sortCriteria.clear();
 		this.sortCriteria.addAll(sortCriteria);
 		update();
@@ -447,33 +476,29 @@ public class LinearBlock extends AbstractCollection<Node> {
 	 * @param node
 	 * @param forceStratify
 	 */
-	public Pair<List<Node>, Boolean> sortBy(Node node, boolean forceStratify) {
-		Pair<List<Node>, Boolean> act = Pair.make((List<Node>) new ArrayList<>(sortCriteria), stratified);
+	public List<Pair<Node, ESortingMode>> sortBy(Node node, ESortingMode mode) {
+		List<Pair<Node, ESortingMode>> act = new ArrayList<>(this.sortCriteria);
+
+		int index = getSortPriority(node);
+		ESortingMode actMode = index < 0 ? null : sortCriteria.get(index).getSecond();
+		if (actMode == mode)
+			mode = mode == null ? ESortingMode.INC : mode.next();
+
 		if (nodes.size() == 1) {
-			this.stratified = !this.stratified;
+			this.sortCriteria.set(0, Pair.make(getFirstSortingCriteria(), mode));
 			update();
 			apply();
 			return act;
 		}
-		int index = sortCriteria.indexOf(node);
-		if (index == 0 && stratified) {
-			stratified = false;
-		} else if (index == 0 && forceStratify)
-			stratified = true;
-		else if (index == 0)
-			sortCriteria.remove(index);
-		if (index != 0) {
-			sortCriteria.add(0, node);
-			this.stratified = true;
-		} else if (sortCriteria.isEmpty()) {
-			for (Node n : nodes)
-				if (n != node) {
-					sortCriteria.add(n);
-					stratified = true;
-					break;
-				}
-		}
 
+		if (mode == ESortingMode.STRATIFY) {
+			// reset first
+			sortCriteria.set(0, Pair.make(getFirstSortingCriteria(), ESortingMode.INC));
+		}
+		if (index >= 0)
+			sortCriteria.remove(index);
+		if (mode != null)
+			sortCriteria.add(0, Pair.make(node, mode));
 		update();
 		apply();
 		return act;
@@ -499,7 +524,7 @@ public class LinearBlock extends AbstractCollection<Node> {
 	 * @return
 	 */
 	public Color getStateColor(Node node) {
-		int index = sortCriteria.indexOf(node);
+		int index = getSortPriority(node);
 		boolean limited = dataSelection == node;
 		boolean stratified = index == 0 && isStratisfied();
 		boolean sorted = index != -1;
@@ -514,7 +539,15 @@ public class LinearBlock extends AbstractCollection<Node> {
 	}
 
 	public int getSortPriority(Node node) {
-		return sortCriteria.indexOf(node);
+		for (int i = 0; i < sortCriteria.size(); ++i)
+			if (sortCriteria.get(i).getFirst() == node)
+				return i;
+		return -1;
+	}
+
+	private Pair<Node, ESortingMode> getSorting(Node node) {
+		int index = getSortPriority(node);
+		return index < 0 ? null : sortCriteria.get(index);
 	}
 
 	public boolean isLimitedTo(Node node) {
@@ -526,7 +559,7 @@ public class LinearBlock extends AbstractCollection<Node> {
 	}
 
 	public String getStateString(Node node) {
-		int index = sortCriteria.indexOf(node);
+		int index = getSortPriority(node);
 		boolean limited = dataSelection == node;
 		boolean stratified = index == 0 && isStratisfied();
 		StringBuilder b = new StringBuilder();
@@ -555,7 +588,7 @@ public class LinearBlock extends AbstractCollection<Node> {
 		if (dim.isHorizontal()) {
 			Node last = getNode(false);
 			Rect b = last.getRectBounds();
-			for (NodeGroup group : sortCriteria.get(0).getGroupNeighbors(EDirection.EAST)) {
+			for (NodeGroup group : getFirstSortingCriteria().getGroupNeighbors(EDirection.EAST)) {
 				Rect bg = group.getRectBounds();
 				g.drawText(group.getLabel(), b.x2() + 10, b.y() + bg.y() + (bg.height() - textSize) * 0.5f, 400,
 						textSize);
@@ -563,11 +596,15 @@ public class LinearBlock extends AbstractCollection<Node> {
 		} else {
 			Node first = getNode(true);
 			Rect b = first.getRectBounds();
-			for (NodeGroup group : sortCriteria.get(0).getGroupNeighbors(EDirection.NORTH)) {
+			for (NodeGroup group : getFirstSortingCriteria().getGroupNeighbors(EDirection.NORTH)) {
 				Rect bg = group.getRectBounds();
 				renderVerticalText(g, group.getLabel(), b.x() + bg.x(), b.y(), bg.width(), textSize);
 			}
 		}
+	}
+
+	private Node getFirstSortingCriteria() {
+		return sortCriteria.get(0).getFirst();
 	}
 
 	private static void renderVerticalText(GLGraphics g, String text, float x, float y, float w, float textSize) {

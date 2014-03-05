@@ -45,6 +45,7 @@ import org.caleydo.core.view.opengl.util.spline.TesselatedPolygons;
 import org.caleydo.view.domino.api.model.EDirection;
 import org.caleydo.view.domino.api.model.typed.MappingCaches;
 import org.caleydo.view.domino.api.model.typed.TypedGroupList;
+import org.caleydo.view.domino.internal.LinearBlock.ESortingMode;
 import org.caleydo.view.domino.internal.band.ABand;
 import org.caleydo.view.domino.internal.band.BandFactory;
 import org.caleydo.view.domino.internal.band.EBandMode;
@@ -711,33 +712,37 @@ public class Block extends GLElementContainer implements IGLLayout2, IPickingLis
 	 * @param node
 	 * @param dim
 	 */
-	public Pair<List<Node>, Boolean> sortByImpl(Node node, EDimension dim, boolean forceStratify) {
+	public List<Pair<Node, ESortingMode>> sortByImpl(Node node, EDimension dim, ESortingMode mode) {
 		LinearBlock block = getBlock(node, dim.opposite());
 		if (block == null)
 			return null;
-		Pair<List<Node>, Boolean> old = block.sortBy(node, forceStratify);
+		if (mode == null) {
+			ESortingMode old = block.getSortingMode(node);
+			mode = old == null ? ESortingMode.INC : old.next();
+		}
+		List<Pair<Node, ESortingMode>> old = block.sortBy(node, mode);
 		realign();
 		updateBlock();
 		return old;
 	}
 
-	public Pair<List<Node>, Boolean> sortBy(Node node, EDimension dim) {
-		return sortByImpl(node, dim, false);
+	public List<Pair<Node, ESortingMode>> sortBy(Node node, EDimension dim) {
+		return sortByImpl(node, dim, null);
 	}
 
-	public Pair<List<Node>, Boolean> restoreSorting(Node node, EDimension dim, List<Node> sortCriteria,
-			boolean stratified) {
+	public List<Pair<Node, ESortingMode>> restoreSorting(Node node, EDimension dim,
+			List<Pair<Node, ESortingMode>> sortCriteria) {
 		LinearBlock block = getBlock(node, dim.opposite());
 		if (block == null)
 			return null;
-		Pair<List<Node>, Boolean> old = block.sortBy(sortCriteria, stratified);
+		List<Pair<Node, ESortingMode>> old = block.sortBy(sortCriteria);
 		realign();
 		updateBlock();
 		return old;
 	}
 
-	public Pair<List<Node>, Boolean> stratifyBy(Node node, EDimension dim) {
-		return sortByImpl(node, dim, true);
+	public List<Pair<Node, ESortingMode>> stratifyBy(Node node, EDimension dim) {
+		return sortByImpl(node, dim, ESortingMode.STRATIFY);
 	}
 
 	public Node limitTo(Node node, EDimension dim) {
@@ -1095,19 +1100,21 @@ public class Block extends GLElementContainer implements IGLLayout2, IPickingLis
 
 		float f = dim.select(bounds.size()) / data.size();
 		float offset = 0;
-		final List<Node> sort = b.getSortCriteria();
+		final List<Pair<Node, ESortingMode>> sort = b.getSortCriteria();
 
 		for(int i = 0; i < groups; ++i) {
 			Node prev = extractGroup(i, dim, b.get(0));
-			List<Node> sort2 = new ArrayList<>(sort);
+			List<Pair<Node, ESortingMode>> sort2 = new ArrayList<>(sort);
 			int si;
-			if ((si = sort.indexOf(b.get(0))) >= 0)
-				sort2.set(si, prev);
+			for (ESortingMode m : ESortingMode.values())
+				if ((si = sort.indexOf(Pair.make(b.get(0), m))) >= 0)
+					sort2.set(si, Pair.make(prev, m));
 			Block act = new Block(prev);
 			for (int j = 1; j < b.size(); ++j) {
 				Node node = extractGroup(i, dim, b.get(j));
-				if ((si = sort.indexOf(b.get(j))) >= 0)
-					sort2.set(si, node);
+				for (ESortingMode m : ESortingMode.values())
+					if ((si = sort.indexOf(Pair.make(b.get(j), m))) >= 0)
+						sort2.set(si, Pair.make(node, m));
 				act.addNode(prev, dir, node);
 				prev = node;
 			}
@@ -1117,7 +1124,7 @@ public class Block extends GLElementContainer implements IGLLayout2, IPickingLis
 			else
 				act.setLocation(bounds.x(), bounds.y() + offset);
 			offset += f * gsize + EXPLODE_SPACE;
-			act.restoreSorting(prev, dim, sort2, true);
+			act.restoreSorting(prev, dim, sort2);
 			r.add(act);
 		}
 		return r;
@@ -1136,16 +1143,17 @@ public class Block extends GLElementContainer implements IGLLayout2, IPickingLis
 		else
 			loc.setY(loc.y() + EXPLODE_SPACE * 0.5f);
 
-		final List<Node> sort = b.getSortCriteria();
+		final List<Pair<Node, ESortingMode>> sort = b.getSortCriteria();
 
-		List<Node> sort2 = new ArrayList<>(sort);
+		List<Pair<Node, ESortingMode>> sort2 = new ArrayList<>(sort);
 		Block r = null;
 		Node prev = null;
 		for (Node node : b) {
 			Node parent = node.getOrigin(); // as we have the tracing information
 			int si;
-			if ((si = sort.indexOf(node)) >= 0)
-				sort2.set(si, parent);
+			for (ESortingMode m : ESortingMode.values())
+				if ((si = sort.indexOf(Pair.make(node, m))) >= 0)
+					sort2.set(si, Pair.make(parent, m));
 			if (r == null)
 				r = new Block(parent);
 			else
@@ -1153,7 +1161,7 @@ public class Block extends GLElementContainer implements IGLLayout2, IPickingLis
 			prev = parent;
 		}
 		assert r != null;
-		r.restoreSorting(prev, dim, sort2, true);
+		r.restoreSorting(prev, dim, sort2);
 		r.setLocation(loc.x(), loc.y());
 		return r;
 	}

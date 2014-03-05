@@ -118,4 +118,18 @@ public final class TypedCollections {
 		return new TypedComparator(c, idType);
 	}
 
+	public static ITypedComparator reverseOrder(final ITypedComparator c) {
+		return new ITypedComparator() {
+			@Override
+			public int compare(Integer o1, Integer o2) {
+				return -1 * c.compare(o1, o2);
+			}
+
+			@Override
+			public IDType getIdType() {
+				return c.getIdType();
+			}
+		};
+	}
+
 }
