@@ -273,7 +273,7 @@ public class LabelElementFactory implements IGLElementFactory2 {
 				renderBoxHighlights(g, w, h, mouseOvers, selected);
 			} else {
 				final float textHeight = Math.min(w - 20, 14);
-				g.drawRotatedText("No Space", 10, h, h, textHeight, VAlign.CENTER, ETextStyle.PLAIN, -90);
+				g.drawRotatedText("No Space", w - 10, 0, h, textHeight, VAlign.CENTER, ETextStyle.PLAIN, 90);
 				renderSelection(g, w, h, mouseOvers, selected);
 			}
 		}

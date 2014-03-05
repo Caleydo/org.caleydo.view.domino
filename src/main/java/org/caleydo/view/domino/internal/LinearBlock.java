@@ -84,7 +84,7 @@ public class LinearBlock extends AbstractCollection<Node> {
 		this.dim = dim;
 		this.nodes.add(node);
 		this.sortCriteria.add(Pair.make(node, stratifyByDefault(node) ? ESortingMode.STRATIFY : ESortingMode.INC));
-		this.dataSelection = node;
+		this.dataSelection = node.getData(dim.opposite()).size() <= 1 ? null : node;
 		update();
 		apply();
 		updateNeighbors();
