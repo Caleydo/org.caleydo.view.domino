@@ -560,13 +560,15 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 		super.init(context);
 		if (!scaleFactors.containsKey(DATA_SCALE_FACTOR)) {
 			Vec2f size = findParent(MiniMapCanvas.class).getSize();
-			scaleFactors.put(DATA_SCALE_FACTOR, initialScaleFactors(size, dimData.size(), recData.size()));
+			final Vec2f v = initialScaleFactors(size, dimData.size(), recData.size());
+			scaleFactors.put(DATA_SCALE_FACTOR, v);
 		}
 		updateSize(false);
 	}
 
 
 	private void updateSize(boolean adaptDetached) {
+		verifyScaleFactors();
 		Vec2f new_ = addBorders(scaleSize(originalSize()));
 
 		setSize(new_.x(), new_.y());
@@ -603,9 +605,7 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 
 	private Vec2f getScaleFactor() {
 		Vec2f scale;
-		String type = getVisualizationType();
-		if (GLElementFactories.getMetaData(type).getScaleType() == EVisScaleType.DATADEPENDENT)
-			type = DATA_SCALE_FACTOR;
+		String type = getScaleFactorKey();
 		if (this.scaleFactors.containsKey(type))
 			scale = this.scaleFactors.get(type);
 		else
@@ -1226,6 +1226,7 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 		findBlock().updatedNode(Node.this, was, getDetachedOffset());
 	}
 
+
 	public float getDetachedOffset() {
 		if (isPreviewing)
 			return Block.DETACHED_OFFSET * 2;
@@ -1282,15 +1283,43 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 
 		float sx = new_.x() / raw.x();
 		float sy = new_.y() / raw.y();
-		String type = getVisualizationType();
-		final IGLElementMetaData metaData = GLElementFactories.getMetaData(type);
-		if (metaData != null && metaData.getScaleType() == EVisScaleType.DATADEPENDENT)
-			type = DATA_SCALE_FACTOR;
+		String type = getScaleFactorKey();
 		scaleFactors.put(type, new Vec2f(sx, sy));
 
 		new_ = addBorders(new_);
 		setSize(new_.x(), new_.y());
 		relayout();
+	}
+
+	/**
+	 *
+	 */
+	private void verifyScaleFactors() {
+		String type = getScaleFactorKey();
+		if (!scaleFactors.containsKey(type))
+			return; // no stored scale factors -> valid
+
+		final GLElementFactorySwitcher switcher = getRepresentableSwitcher();
+		if (switcher == null)
+			return;
+		GLElementDimensionDesc dimDesc = switcher.getActiveDesc(EDimension.DIMENSION);
+		GLElementDimensionDesc recDesc = switcher.getActiveDesc(EDimension.RECORD);
+
+		Vec2f scaleSize = scaleSize(originalSize().copy());
+		// not allowed to change reset
+		Vec2f scale = scaleFactors.get(type);
+		if (!dimDesc.isValid(scaleSize.x(), dimData.size()))
+			scale.setX(1);
+		if (!recDesc.isValid(scaleSize.y(), recData.size()))
+			scale.setY(1);
+	}
+
+	private String getScaleFactorKey() {
+		String type = getVisualizationType();
+		final IGLElementMetaData metaData = GLElementFactories.getMetaData(type);
+		if (metaData != null && metaData.getScaleType() == EVisScaleType.DATADEPENDENT)
+			type = DATA_SCALE_FACTOR;
+		return type;
 	}
 
 	public void shiftTo(EDimension dim, float v) {
