@@ -18,6 +18,7 @@ import org.caleydo.core.id.IDType;
 import org.caleydo.core.util.base.ICallback;
 import org.caleydo.core.util.collection.Pair;
 import org.caleydo.core.util.color.Color;
+import org.caleydo.core.util.function.DoubleStatistics;
 import org.caleydo.core.view.opengl.layout.Column.VAlign;
 import org.caleydo.core.view.opengl.layout2.GLElement;
 import org.caleydo.core.view.opengl.layout2.GLElementContainer;
@@ -353,6 +354,15 @@ public class Blocks extends GLElementContainer implements ICallback<SelectionTyp
 	 */
 	public void addRuler(Ruler ruler) {
 		add(ruler);
+		// guess the initial ruler scaling as the mean of all the available ones
+		DoubleStatistics.Builder b = DoubleStatistics.builder();
+		for (Block block : getBlocks()) {
+			block.scaleFactors(ruler.getIDCategory(), b);
+		}
+		DoubleStatistics stats = b.build();
+		if (stats.getN() > 0) {
+			ruler.zoom((float) stats.getMean());
+		}
 	}
 
 	/**

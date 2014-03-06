@@ -144,9 +144,6 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 		this.recUnderlying = recGroups;
 		if (origin != null)
 			copyScaleFactors(origin);
-		else {
-			Vec2f scale = initialSize(dimGroups.size(), recGroups.size());
-		}
 		// guessShift(dimGroups.size(), recGroups.size());
 		setData(fixList(dimGroups), fixList(recGroups));
 		init();
@@ -196,20 +193,17 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 	 * @param r
 	 * @return
 	 */
-	public static Vec2f initialSize(float d, float r) {
-		final float c = 1000;
-		if (d < c && r < c)
+	public static Vec2f initialScaleFactors(Vec2f viewSize, float d, float r) {
+		final float factor = 0.5f;
+		float maxw = viewSize.x() * factor;
+		float maxh = viewSize.y() * factor;
+		if (d < maxw && r < maxh)
 			return new Vec2f(1, 1);
-		float aspectRatio = (d) / r;
-		float di, ri;
-		if (d > r) {
-			di = c;
-			ri = di / aspectRatio;
-		} else {
-			ri = c;
-			di = ri * aspectRatio;
-		}
-		return new Vec2f(di / d, ri / r);
+
+		float fw = maxw / d;
+		float fh = maxh / r;
+		float f = Math.min(fw, fh);
+		return new Vec2f(f, f);
 	}
 
 	/**
@@ -564,6 +558,10 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 	@Override
 	protected void init(IGLElementContext context) {
 		super.init(context);
+		if (!scaleFactors.containsKey(DATA_SCALE_FACTOR)) {
+			Vec2f size = findParent(MiniMapCanvas.class).getSize();
+			scaleFactors.put(DATA_SCALE_FACTOR, initialScaleFactors(size, dimData.size(), recData.size()));
+		}
 		updateSize(false);
 	}
 
@@ -651,6 +649,13 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 			updateSize(false);
 			relayout();
 		}
+	}
+
+	public float getDataScaleFactor(EDimension dim) {
+		if (this.scaleFactors.containsKey(DATA_SCALE_FACTOR))
+			return dim.select(this.scaleFactors.get(DATA_SCALE_FACTOR));
+		else
+			return 1;
 	}
 
 	private float[] getSizes(EDimension dim) {

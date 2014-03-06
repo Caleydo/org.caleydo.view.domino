@@ -27,6 +27,7 @@ import org.caleydo.core.id.IIDTypeMapper;
 import org.caleydo.core.util.base.Labels;
 import org.caleydo.core.util.collection.Pair;
 import org.caleydo.core.util.color.Color;
+import org.caleydo.core.util.function.DoubleStatistics;
 import org.caleydo.core.view.opengl.canvas.IGLMouseListener.IMouseEvent;
 import org.caleydo.core.view.opengl.layout2.GLElement;
 import org.caleydo.core.view.opengl.layout2.GLElementContainer;
@@ -550,6 +551,16 @@ public class Block extends GLElementContainer implements IGLLayout2, IPickingLis
 			return;
 		realign();
 		updateBlock();
+	}
+
+	public void scaleFactors(IDCategory category, DoubleStatistics.Builder builder) {
+		for (LinearBlock l : linearBlocks) {
+			if (!category.isOfCategory(l.getIdType()))
+				continue;
+			for (Node n : l) {
+				builder.add(n.getDataScaleFactor(l.getDim().opposite()));
+			}
+		}
 	}
 
 	/**
