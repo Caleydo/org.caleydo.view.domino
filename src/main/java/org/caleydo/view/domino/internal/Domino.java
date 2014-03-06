@@ -219,20 +219,27 @@ public class Domino extends GLElementContainer implements IDropGLTarget, IPickin
 			break;
 		case DRAG_DETECTED:
 			pick.setDoDragging(true);
-			if (!event.isAltDown()) {
+			if (isPanning(event)) {
+				context.getSWTLayer().setCursor(SWT.CURSOR_HAND);
+			} else {
 				if (this.select != null)
 					content.remove(this.select);
 				this.select = new SelectLayer(blocks.toRelative(pick.getPickedPoint()));
 				content.add(this.select);
-			} else {
-				context.getSWTLayer().setCursor(SWT.CURSOR_HAND);
 			}
 			break;
 		case DRAGGED:
-			if (pick.isDoDragging() && this.select != null) {
-				this.select.dragTo(pick.getDx(), pick.getDy(), event.isCtrlDown());
-			} else if (pick.isDoDragging() && event.isAltDown()) {
-				content.shiftViewport(-pick.getDx(), -pick.getDy());
+			if (pick.isDoDragging() || !pick.isAnyDragging()) {
+				if (!pick.isDoDragging()) {
+					pick.setDoDragging(true);
+					if (isPanning(event))
+						context.getSWTLayer().setCursor(SWT.CURSOR_HAND);
+				}
+				if (pick.isDoDragging() && this.select != null) {
+					this.select.dragTo(pick.getDx(), pick.getDy(), event.isCtrlDown());
+				} else if (isPanning(event)) {
+					content.shiftViewport(-pick.getDx(), -pick.getDy());
+				}
 			}
 			break;
 		case CLICKED:
@@ -252,6 +259,10 @@ public class Domino extends GLElementContainer implements IDropGLTarget, IPickin
 		default:
 			break;
 		}
+	}
+
+	private static boolean isPanning(IMouseEvent event) {
+		return event.isAltDown() || event.isButtonDown(2);
 	}
 
 	public void zoom(Vec2f shift, Vec2f mousePos) {

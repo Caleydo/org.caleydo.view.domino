@@ -82,6 +82,11 @@ import com.google.common.collect.Sets;
  */
 public class Node extends GLElementContainer implements IGLLayout2, ILabeled, IDropGLTarget, IPickingListener,
 		IUniqueObject {
+	/**
+	 *
+	 */
+	private static final String DATA_SCALE_FACTOR = "data";
+
 	static final float BORDER = 1;
 
 	private final int id = IDCreator.createVMUniqueID(Node.class);
@@ -139,6 +144,9 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 		this.recUnderlying = recGroups;
 		if (origin != null)
 			copyScaleFactors(origin);
+		else {
+			Vec2f scale = initialSize(dimGroups.size(), recGroups.size());
+		}
 		// guessShift(dimGroups.size(), recGroups.size());
 		setData(fixList(dimGroups), fixList(recGroups));
 		init();
@@ -189,9 +197,9 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 	 * @return
 	 */
 	public static Vec2f initialSize(float d, float r) {
-		final float c = 250;
+		final float c = 1000;
 		if (d < c && r < c)
-			return new Vec2f(d, r);
+			return new Vec2f(1, 1);
 		float aspectRatio = (d) / r;
 		float di, ri;
 		if (d > r) {
@@ -201,7 +209,7 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 			ri = c;
 			di = ri * aspectRatio;
 		}
-		return new Vec2f(di, ri);
+		return new Vec2f(di / d, ri / r);
 	}
 
 	/**
@@ -599,7 +607,7 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 		Vec2f scale;
 		String type = getVisualizationType();
 		if (GLElementFactories.getMetaData(type).getScaleType() == EVisScaleType.DATADEPENDENT)
-			type = "data";
+			type = DATA_SCALE_FACTOR;
 		if (this.scaleFactors.containsKey(type))
 			scale = this.scaleFactors.get(type);
 		else
@@ -628,10 +636,9 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 	 * @param scale
 	 */
 	public void setDataScaleFactor(EDimension dim, float scale) {
-		String type = "data";
 		Vec2f s;
-		if (this.scaleFactors.containsKey(type))
-			s = this.scaleFactors.get(type);
+		if (this.scaleFactors.containsKey(DATA_SCALE_FACTOR))
+			s = this.scaleFactors.get(DATA_SCALE_FACTOR);
 		else
 			s = new Vec2f(1, 1);
 		if (dim.isHorizontal())
@@ -639,7 +646,7 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 		else
 			s.setY(scale);
 
-		this.scaleFactors.put(type, s);
+		this.scaleFactors.put(DATA_SCALE_FACTOR, s);
 		if (GLElementFactories.getMetaData(getVisualizationType()).getScaleType() == EVisScaleType.DATADEPENDENT) {
 			updateSize(false);
 			relayout();
@@ -1271,8 +1278,9 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 		float sx = new_.x() / raw.x();
 		float sy = new_.y() / raw.y();
 		String type = getVisualizationType();
-		if (GLElementFactories.getMetaData(type).getScaleType() == EVisScaleType.DATADEPENDENT)
-			type = "data";
+		final IGLElementMetaData metaData = GLElementFactories.getMetaData(type);
+		if (metaData != null && metaData.getScaleType() == EVisScaleType.DATADEPENDENT)
+			type = DATA_SCALE_FACTOR;
 		scaleFactors.put(type, new Vec2f(sx, sy));
 
 		new_ = addBorders(new_);
