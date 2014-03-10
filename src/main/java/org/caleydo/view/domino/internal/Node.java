@@ -58,7 +58,6 @@ import org.caleydo.view.domino.api.model.typed.TypedGroupList;
 import org.caleydo.view.domino.api.model.typed.TypedGroupSet;
 import org.caleydo.view.domino.api.model.typed.TypedList;
 import org.caleydo.view.domino.api.model.typed.TypedListGroup;
-import org.caleydo.view.domino.api.model.typed.TypedSet;
 import org.caleydo.view.domino.api.model.typed.TypedSetGroup;
 import org.caleydo.view.domino.internal.data.IDataValues;
 import org.caleydo.view.domino.internal.data.TransposedDataValues;
@@ -878,11 +877,7 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 	}
 
 	public boolean has(EDimension dim) {
-		return !TypedCollections.isInvalid(get(dim));
-	}
-
-	public TypedSet get(EDimension dim) {
-		return dim.select(this.dimUnderlying, this.recUnderlying);
+		return !TypedCollections.isInvalid(getUnderlyingData(dim));
 	}
 
 	/**
@@ -890,7 +885,7 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 	 * @return
 	 */
 	public IDType getIdType(EDimension dim) {
-		return get(dim).getIdType();
+		return getUnderlyingData(dim).getIdType();
 	}
 
 	public TypedGroupSet getUnderlyingData(EDimension dim) {
@@ -899,30 +894,30 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 
 	public int compare(EDimension dim, int a, int b) {
 		// check existence
-		TypedSet data = get(dim);
-		boolean hasA = a >= 0 && data.contains(a);
-		boolean hasB = b >= 0 && data.contains(b);
-		int r;
-		if ((r = Boolean.compare(!hasA, !hasB)) != 0)
-			return r;
-		if (!hasA && !hasB)
-			return 0;
-		// check groups
 		TypedGroupSet groups = getUnderlyingData(dim);
-		int groupA = indexOf(groups, a);
-		int groupB = indexOf(groups, b);
-		if ((r = Integer.compare(groupA, groupB)) != 0)
-			return r;
-
+		if (!groups.isEmpty()) {
+			boolean hasA = a >= 0 && groups.contains(a);
+			boolean hasB = b >= 0 && groups.contains(b);
+			int r;
+			if ((r = Boolean.compare(!hasA, !hasB)) != 0)
+				return r;
+			if (!hasA && !hasB)
+				return 0;
+			// check groups
+			int groupA = indexOf(groups, a);
+			int groupB = indexOf(groups, b);
+			if ((r = Integer.compare(groupA, groupB)) != 0)
+				return r;
+		}
 		// check values
-		return this.data.compare(dim, a, b, get(dim.opposite()));
+		return this.data.compare(dim, a, b, getUnderlyingData(dim.opposite()));
 	}
 
 	public ITypedComparator getComparator(final EDimension dim) {
 		return new ITypedComparator() {
 			@Override
 			public IDType getIdType() {
-				return get(dim).getIdType();
+				return getUnderlyingData(dim).getIdType();
 			}
 
 			@Override

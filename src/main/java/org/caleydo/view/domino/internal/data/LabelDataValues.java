@@ -7,9 +7,14 @@ package org.caleydo.view.domino.internal.data;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Objects;
+import java.util.Set;
 
+import org.apache.commons.lang.StringUtils;
 import org.caleydo.core.data.collection.EDimension;
 import org.caleydo.core.id.IDCategory;
+import org.caleydo.core.id.IDMappingManagerRegistry;
+import org.caleydo.core.id.IIDTypeMapper;
 import org.caleydo.core.util.color.Color;
 import org.caleydo.core.view.opengl.layout2.manage.GLElementFactoryContext.Builder;
 import org.caleydo.view.domino.api.model.typed.TypedCollections;
@@ -24,10 +29,15 @@ import org.caleydo.view.domino.api.model.typed.TypedSet;
 public class LabelDataValues implements IDataValues {
 	private final IDCategory category;
 	private final TypedGroupSet data;
+	private final IIDTypeMapper<Integer, String> mapper;
 
 	public LabelDataValues(IDCategory category) {
 		this.category = category;
 		data = TypedGroupSet.createUngrouped(TypedCollections.empty(category.getPrimaryMappingType()));
+
+		this.mapper = IDMappingManagerRegistry.get().getIDMappingManager(category)
+				.getIDTypeMapper(data.getIdType(), category.getHumanReadableIDType());
+
 	}
 
 	@Override
@@ -42,7 +52,9 @@ public class LabelDataValues implements IDataValues {
 
 	@Override
 	public int compare(EDimension dim, int a, int b, TypedSet otherData) {
-		return 0;
+		String av = get(a);
+		String bv = get(b);
+		return Objects.compare(av, bv, String.CASE_INSENSITIVE_ORDER);
 	}
 
 	@Override
@@ -77,5 +89,12 @@ public class LabelDataValues implements IDataValues {
 	@Override
 	public void onSelectionChanged(boolean selected) {
 
+	}
+
+	public String get(int id) {
+		Set<String> r = mapper.apply(id);
+		if (r == null)
+			return "Unnamed";
+		return StringUtils.join(r, ", ");
 	}
 }
