@@ -9,7 +9,10 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Set;
 
+import org.caleydo.core.data.collection.EDataClass;
 import org.caleydo.core.data.collection.EDimension;
+import org.caleydo.core.data.collection.table.NumericalTable;
+import org.caleydo.core.data.datadomain.DataSupportDefinitions;
 import org.caleydo.core.data.perspective.table.TablePerspective;
 import org.caleydo.core.util.collection.Pair;
 import org.caleydo.core.util.color.Color;
@@ -28,8 +31,9 @@ import com.google.common.collect.Sets;
  *
  */
 public class Numerical2DDataDomainValues extends ADataDomainDataValues {
-	private TypedGroupSet recGroups;
-	private TypedGroupSet dimGroups;
+	private final TypedGroupSet recGroups;
+	private final TypedGroupSet dimGroups;
+	private final boolean isInteger;
 
 	/**
 	 * @param t
@@ -39,6 +43,7 @@ public class Numerical2DDataDomainValues extends ADataDomainDataValues {
 		// Pair<TypedGroupSet, TypedGroupSet> r = extractGroups(t);
 		this.recGroups = TypedGroupSet.createUngrouped(TypedSet.of(t.getRecordPerspective().getVirtualArray()));
 		this.dimGroups = TypedGroupSet.createUngrouped(TypedSet.of(t.getDimensionPerspective().getVirtualArray()));
+		this.isInteger = DataSupportDefinitions.dataClass(EDataClass.NATURAL_NUMBER).apply(t);
 	}
 
 	@Override
@@ -49,6 +54,22 @@ public class Numerical2DDataDomainValues extends ADataDomainDataValues {
 	@Override
 	public void fill(Builder b, TypedList dimData, TypedList recData) {
 		super.fillHeatMap(b, dimData, recData);
+	}
+
+	@Override
+	public Float getRaw(Integer dimensionID, Integer recordID) {
+		Object r = super.getRaw(dimensionID, recordID);
+		if (r instanceof Float)
+			return (Float) r;
+		if (r instanceof Integer && isInteger) {
+			Integer i = (Integer) r;
+			if (i.intValue() == Integer.MIN_VALUE)
+				return Float.NaN;
+			return i.floatValue();
+		}
+		if (r instanceof Number)
+			return ((Number) r).floatValue();
+		return Float.NaN;
 	}
 
 	/**
@@ -92,6 +113,16 @@ public class Numerical2DDataDomainValues extends ADataDomainDataValues {
 	@Override
 	public Collection<String> getDefaultVisualization() {
 		return Collections.singleton("heatmap");
+	}
+
+	public double getMin() {
+		NumericalTable t = (NumericalTable) getDataDomain().getTable();
+		return t.getMin();
+	}
+
+	public double getMax() {
+		NumericalTable t = (NumericalTable) getDataDomain().getTable();
+		return t.getMax();
 	}
 
 }

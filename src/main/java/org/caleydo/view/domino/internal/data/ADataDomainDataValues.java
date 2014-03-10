@@ -109,7 +109,7 @@ public abstract class ADataDomainDataValues implements IDataValues, Function2<In
 		return new Color(color[0], color[1], color[2], 1.0f);
 	}
 
-	private static boolean isInvalid(Integer id) {
+	static boolean isInvalid(Integer id) {
 		return id == null || id.intValue() < 0;
 	}
 
