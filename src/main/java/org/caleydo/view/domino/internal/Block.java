@@ -211,8 +211,9 @@ public class Block extends GLElementContainer implements IGLLayout2, IPickingLis
 			g.color(Color.BLUE).drawRect(0, 0, w, h);
 
 		if (domino.isShowBlockLabels()) {
-			for (LinearBlock b : linearBlocks)
+			for (LinearBlock b : linearBlocks) {
 				b.renderLabels(g);
+			}
 		}
 
 		NodeSelections selections = domino.getSelections();

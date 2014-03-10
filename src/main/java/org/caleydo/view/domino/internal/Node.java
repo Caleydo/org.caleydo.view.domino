@@ -561,6 +561,11 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 		if (!scaleFactors.containsKey(DATA_SCALE_FACTOR)) {
 			Vec2f size = findParent(MiniMapCanvas.class).getSize();
 			final Vec2f v = initialScaleFactors(size, dimData.size(), recData.size());
+
+			Blocks blocks = findParent(Blocks.class);
+			v.setX(blocks.getRulerScale(this.dimUnderlying.getIdType(), v.x()));
+			v.setY(blocks.getRulerScale(this.recUnderlying.getIdType(), v.y()));
+
 			scaleFactors.put(DATA_SCALE_FACTOR, v);
 		}
 		updateSize(false);

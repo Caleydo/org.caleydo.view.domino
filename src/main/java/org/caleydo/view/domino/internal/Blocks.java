@@ -412,4 +412,17 @@ public class Blocks extends GLElementContainer implements ICallback<SelectionTyp
 		addBlock(new_);
 		return new_;
 	}
+
+	/**
+	 * @param idType
+	 * @param x
+	 * @return
+	 */
+	public float getRulerScale(IDType idType, float default_) {
+		for (Ruler ruler : rulers()) {
+			if (ruler.getIDCategory().isOfCategory(idType))
+				return ruler.getScaleFactor();
+		}
+		return default_;
+	}
 }

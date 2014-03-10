@@ -142,7 +142,8 @@ public class Categorical1DDataDomainValues extends A1DDataDomainValues {
 	@Override
 	public boolean apply(String input) {
 		return super.apply(input)
-				&& !Arrays.asList("labels", "distribution.bar", "kaplanmaier", "boxandwhiskers").contains(input);
+				&& !Arrays.asList("labels", "distribution.bar", "kaplanmaier", "boxandwhiskers", "hbar")
+						.contains(input);
 	}
 
 }

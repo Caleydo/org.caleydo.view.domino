@@ -348,4 +348,11 @@ public class Ruler extends GLElementContainer implements IDragGLSource, IPicking
 		this.scaleFactor = scale;
 		updateSize();
 	}
+
+	/**
+	 * @return the scaleFactor, see {@link #scaleFactor}
+	 */
+	public float getScaleFactor() {
+		return scaleFactor;
+	}
 }
