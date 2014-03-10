@@ -79,6 +79,7 @@ public class Domino extends GLElementContainer implements IDropGLTarget, IPickin
 	private DragElement currentlyDraggedVis;
 	private boolean showDebugInfos = false;
 	private boolean showBlockLabels = true;
+	private boolean showGroupLabels = true;
 
 	private EToolState tool = EToolState.MOVE;
 
@@ -180,12 +181,24 @@ public class Domino extends GLElementContainer implements IDropGLTarget, IPickin
 		return showBlockLabels;
 	}
 
+	public boolean isShowGroupLabels() {
+		return showGroupLabels;
+	}
+
 	/**
 	 * @param showBlockLabels
 	 *            setter, see {@link showBlockLabels}
 	 */
 	public void setShowBlockLabels(boolean showBlockLabels) {
 		this.showBlockLabels = showBlockLabels;
+	}
+
+	/**
+	 * @param showBlockLabels
+	 *            setter, see {@link showBlockLabels}
+	 */
+	public void setShowGroupLabels(boolean showGroupLabels) {
+		this.showGroupLabels = showGroupLabels;
 	}
 
 	/**

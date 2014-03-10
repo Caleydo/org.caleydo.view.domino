@@ -212,7 +212,12 @@ public class Block extends GLElementContainer implements IGLLayout2, IPickingLis
 
 		if (domino.isShowBlockLabels()) {
 			for (LinearBlock b : linearBlocks) {
-				b.renderLabels(g);
+				b.renderNodeLabels(g);
+			}
+		}
+		if (domino.isShowGroupLabels()) {
+			for (LinearBlock b : linearBlocks) {
+				b.renderGroupLabels(g);
 			}
 		}
 

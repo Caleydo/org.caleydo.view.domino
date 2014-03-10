@@ -572,8 +572,8 @@ public class LinearBlock extends AbstractCollection<Node> {
 		return b.toString();
 	}
 
-	public void renderLabels(GLGraphics g) {
-		final float textSize = 14;
+	public void renderNodeLabels(GLGraphics g) {
+		final float textSize = Constants.LABEL_SIZE;
 		// FIXME
 		for (Node node : nodes) {
 			if (node.has(dim)) // handled by another
@@ -585,6 +585,10 @@ public class LinearBlock extends AbstractCollection<Node> {
 				renderVerticalText(g, node.getLabel(), b.x(), b.y(), b.width(), textSize);
 			}
 		}
+	}
+
+	public void renderGroupLabels(GLGraphics g) {
+		final float textSize = Constants.LABEL_SIZE;
 		if (dim.isHorizontal()) {
 			Node last = getNode(false);
 			Rect b = last.getRectBounds();

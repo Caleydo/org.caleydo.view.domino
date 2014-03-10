@@ -175,6 +175,9 @@ public class LeftToolBar extends GLElementContainer implements IGLLayout2, ISele
 				case "Show/Hide Block Labels":
 					domino.setShowBlockLabels(!domino.isShowBlockLabels());
 					break;
+				case "Show/Hide Group Labels":
+					domino.setShowGroupLabels(!domino.isShowGroupLabels());
+					break;
 				case "Show/Hide Mini Map":
 					domino.toggleShowMiniMap();
 					break;
@@ -203,6 +206,12 @@ public class LeftToolBar extends GLElementContainer implements IGLLayout2, ISele
 		b = new GLButton();
 		b.setRenderer(GLRenderers.fillImage(Resources.ICON_SHOW_HIDE_LABELS));
 		b.setTooltip("Show/Hide Block Labels");
+		b.setCallback(callback);
+		this.add(b);
+
+		b = new GLButton();
+		b.setRenderer(GLRenderers.fillImage(Resources.ICON_SHOW_HIDE_LABELS));
+		b.setTooltip("Show/Hide Group Labels");
 		b.setCallback(callback);
 		this.add(b);
 	}
