@@ -92,12 +92,9 @@ public class LabelElementFactory implements IGLElementFactory2 {
 
 	private static final class LabelElement extends GLElement implements
 			MultiSelectionManagerMixin.ISelectionMixinCallback, IPickingLabelProvider, IPickingListener, ILocator {
-		/**
-		 *
-		 */
 		private static final int MAX_TEXT_SIZE = 16;
-
 		private static final int MIN_TEXT_SIZE = 6;
+		private static final int PADDING = 4;
 
 		private final EDimension dim;
 		private final TypedList data;
@@ -239,10 +236,10 @@ public class LabelElementFactory implements IGLElementFactory2 {
 
 		@Override
 		protected void renderImpl(GLGraphics g, float w, float h) {
-			g.color(Color.WHITE).fillRect(0, 0, w, h);
-			g.color(Color.BLACK).drawRect(1, 1, w - 2, h - 2);
 
 			if (data.isEmpty()) {
+				g.color(Color.WHITE).fillRect(0, 0, w, h);
+				g.color(Color.BLACK).drawRect(1, 1, w - 2, h - 2);
 				g.drawText("Labels", 0, (h - 12) * 0.5f, w, 12, VAlign.CENTER);
 				return;
 			}
@@ -439,7 +436,9 @@ public class LabelElementFactory implements IGLElementFactory2 {
 
 			public void render(GLGraphics g, float w, List<String> labels, VAlign align) {
 				renderPointingBox(g, mouseOver, y, h, dy, dh, w, align);
-				g.drawText(labels.subList(start, end), 2, y, w - 2, h - 1, 1, align, ETextStyle.PLAIN);
+				float x = align == VAlign.RIGHT ? 0 : PADDING;
+				float wi = w - x - (align == VAlign.LEFT ? 0 : PADDING);
+				g.drawText(labels.subList(start, end), x, y, wi, h - 1, 1, align, ETextStyle.PLAIN);
 			}
 
 			@Override
@@ -451,10 +450,12 @@ public class LabelElementFactory implements IGLElementFactory2 {
 		private void renderUniform(GLGraphics g, float w, float h) {
 			final int size = data.size();
 			float hi = h / size;
+			float ti = Math.min(hi - 1, MAX_TEXT_SIZE);
+			float x = align == VAlign.RIGHT ? 0 : PADDING;
+			float wi = w - x - (align == VAlign.LEFT ? 0 : PADDING);
 			for (int i = 0; i < size; ++i) {
 				String l = labels.get(i);
-				float ti = Math.min(hi - 1, MAX_TEXT_SIZE);
-				g.drawText(l, 2, i * hi + (hi - ti) * 0.5f, w - 4, ti, align);
+				g.drawText(l, x, i * hi + (hi - ti) * 0.5f, wi, ti, align);
 			}
 		}
 

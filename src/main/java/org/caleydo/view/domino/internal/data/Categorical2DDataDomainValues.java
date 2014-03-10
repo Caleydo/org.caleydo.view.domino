@@ -55,7 +55,7 @@ public class Categorical2DDataDomainValues extends ADataDomainDataValues {
 	}
 
 	@Override
-	public void fill(Builder b, TypedList dimData, TypedList recData) {
+	public void fill(Builder b, TypedList dimData, TypedList recData, boolean[] existNeigbhor) {
 		super.fillHeatMap(b, dimData, recData);
 	}
 	/**

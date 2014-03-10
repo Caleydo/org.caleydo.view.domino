@@ -16,7 +16,9 @@ import org.caleydo.core.id.IDCategory;
 import org.caleydo.core.id.IDMappingManagerRegistry;
 import org.caleydo.core.id.IIDTypeMapper;
 import org.caleydo.core.util.color.Color;
+import org.caleydo.core.view.opengl.layout.Column.VAlign;
 import org.caleydo.core.view.opengl.layout2.manage.GLElementFactoryContext.Builder;
+import org.caleydo.view.domino.api.model.EDirection;
 import org.caleydo.view.domino.api.model.typed.TypedCollections;
 import org.caleydo.view.domino.api.model.typed.TypedGroupSet;
 import org.caleydo.view.domino.api.model.typed.TypedList;
@@ -63,12 +65,23 @@ public class LabelDataValues implements IDataValues {
 	}
 
 	@Override
-	public void fill(Builder b, TypedList dimData, TypedList recData) {
+	public void fill(Builder b, TypedList dimData, TypedList recData, boolean[] existNeigbhor) {
 		TypedList g = dimData.isEmpty() ? recData : dimData;
 		EDimension dim = EDimension.get(g == dimData);
 		b.put(TypedList.class, g);
 		b.put(EDimension.class, dim);
 		b.set("labels.boxHighlights");
+
+		VAlign align;
+		boolean r = existNeigbhor[dim.select(EDirection.NORTH, EDirection.EAST).ordinal()];
+		boolean l = existNeigbhor[dim.select(EDirection.SOUTH, EDirection.WEST).ordinal()];
+		if (r && l)
+			align = VAlign.CENTER;
+		else if (r)
+			align = VAlign.RIGHT;
+		else
+			align = VAlign.LEFT;
+		b.put("align", align);
 	}
 
 	@Override

@@ -52,7 +52,7 @@ public abstract class A1DDataDomainValues extends ADataDomainDataValues implemen
 	}
 
 	@Override
-	public void fill(Builder b, TypedList dimData, TypedList recData) {
+	public void fill(Builder b, TypedList dimData, TypedList recData, boolean[] existNeigbhor) {
 		EDimension dim = main;
 		TypedList data = main.select(dimData, recData);
 		boolean transposed = data.getIdType() == this.singleGroup.getIdType();

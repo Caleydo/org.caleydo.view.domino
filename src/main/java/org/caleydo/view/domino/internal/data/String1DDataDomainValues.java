@@ -12,7 +12,9 @@ import java.util.Objects;
 import org.caleydo.core.data.collection.EDimension;
 import org.caleydo.core.data.perspective.table.TablePerspective;
 import org.caleydo.core.data.perspective.variable.Perspective;
+import org.caleydo.core.view.opengl.layout.Column.VAlign;
 import org.caleydo.core.view.opengl.layout2.manage.GLElementFactoryContext.Builder;
+import org.caleydo.view.domino.api.model.EDirection;
 import org.caleydo.view.domino.api.model.typed.TypedGroupSet;
 import org.caleydo.view.domino.api.model.typed.TypedList;
 import org.caleydo.view.domino.api.model.typed.TypedSet;
@@ -48,15 +50,29 @@ public class String1DDataDomainValues extends A1DDataDomainValues {
 	}
 
 	@Override
-	public void fill(Builder b, TypedList dimData, TypedList recData) {
-		super.fill(b, dimData, recData);
-
+	public void fill(Builder b, TypedList dimData, TypedList recData, boolean[] existNeigbhor) {
+		super.fill(b, dimData, recData, existNeigbhor);
+		EDimension dim = main;
 		TypedList data = main.select(dimData, recData);
 		boolean transposed = data.getIdType() == this.singleGroup.getIdType();
 		if (transposed) {
-			data = main.opposite().select(dimData, recData);
+			dim = dim.opposite();
 		}
+		VAlign align;
+		boolean r = existNeigbhor[dim.select(EDirection.EAST, EDirection.NORTH).ordinal()];
+		boolean l = existNeigbhor[dim.select(EDirection.WEST, EDirection.SOUTH).ordinal()];
+		if (r && l)
+			align = VAlign.CENTER;
+		else if (r)
+			align = VAlign.RIGHT;
+		else
+			align = VAlign.LEFT;
+		b.put("align", align);
+	}
 
+	@Override
+	protected void fill(Builder b, TypedList data) {
+		super.fill(b, data);
 		final Function<Integer, String> toString = new Function<Integer, String>() {
 			@Override
 			public String apply(Integer input) {

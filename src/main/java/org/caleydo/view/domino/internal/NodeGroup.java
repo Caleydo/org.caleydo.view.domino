@@ -91,7 +91,7 @@ public class NodeGroup extends GLElementDecorator implements ILabeled, IDragGLSo
 		Builder b = GLElementFactoryContext.builder();
 		final Node parent = getNode();
 		final IDataValues data = parent.getDataValues();
-		data.fill(b, dimData, recData);
+		data.fill(b, dimData, recData, getNeighborExistence());
 		// if free high else medium
 		b.put(EDetailLevel.class,
 				parent.isAlone(EDimension.DIMENSION) && parent.isAlone(EDimension.RECORD) ? EDetailLevel.HIGH
@@ -103,6 +103,16 @@ public class NodeGroup extends GLElementDecorator implements ILabeled, IDragGLSo
 		GLElementFactorySwitcher s = new GLElementFactorySwitcher(extensions, ELazyiness.DESTROY);
 		parent.selectDefaultVisualization(s);
 		barrier.setContent(s);
+	}
+
+	/**
+	 * @return
+	 */
+	private boolean[] getNeighborExistence() {
+		boolean[] r = new boolean[4];
+		for (EDirection dir : EDirection.values())
+			r[dir.ordinal()] = getNeighbor(dir) != null;
+		return r;
 	}
 
 	GLElementFactorySwitcher getSwitcher() {
@@ -212,8 +222,6 @@ public class NodeGroup extends GLElementDecorator implements ILabeled, IDragGLSo
 	public void setData(TypedListGroup dimData, TypedListGroup recData) {
 		this.dimData = dimData;
 		this.recData = recData;
-		for (int i = 0; i < 4; ++i)
-			neighbors[i] = null;
 		build();
 	}
 
@@ -229,8 +237,8 @@ public class NodeGroup extends GLElementDecorator implements ILabeled, IDragGLSo
 	public String getLabel() {
 		StringBuilder b = new StringBuilder();
 		b.append(getNode().getLabel());
-		boolean isDim = !TypedGroups.isUngrouped(dimData);
-		boolean isRec = !TypedGroups.isUngrouped(recData);
+		boolean isDim = dimData != null && !TypedGroups.isUngrouped(dimData);
+		boolean isRec = recData != null && !TypedGroups.isUngrouped(recData);
 		if (isDim && !isRec)
 			b.append(" ").append(dimData.getLabel());
 		else if (isRec && !isDim) {
@@ -355,6 +363,8 @@ public class NodeGroup extends GLElementDecorator implements ILabeled, IDragGLSo
 		d.getSelections().clear(SelectionType.MOUSE_OVER, (NodeGroup) null);
 		d.getSelections().clear(SelectionType.SELECTION, this);
 
+		resetNeighbors();
+
 	}
 
 	public void select(EDirection dir) {
@@ -387,5 +397,18 @@ public class NodeGroup extends GLElementDecorator implements ILabeled, IDragGLSo
 	 */
 	public void reset() {
 
+	}
+
+	/**
+	 *
+	 */
+	public void resetNeighbors() {
+		for (int i = 0; i < neighbors.length; ++i)
+			neighbors[i] = null;
+	}
+
+	@Override
+	public String toString() {
+		return getLabel();
 	}
 }

@@ -82,7 +82,7 @@ public class StratificationDataValue implements IDataValues, Function<Integer, C
 	}
 
 	@Override
-	public void fill(Builder b, TypedList dimData, TypedList recData) {
+	public void fill(Builder b, TypedList dimData, TypedList recData, boolean[] existNeigbhor) {
 		final boolean swapped = dimData.getIdType() != getDefaultGroups(EDimension.DIMENSION).getIdType();
 
 		final EDimension dir = swapped ? main.opposite() : main;

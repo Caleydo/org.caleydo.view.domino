@@ -502,33 +502,35 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 		updateGroupNodes(dimData, recData);
 	}
 
-	private void updateGroupNodes(TypedGroupList dimData, TypedGroupList recData) {
-		final List<TypedListGroup> dimGroups = dimData.getGroups();
-		final List<TypedListGroup> recGroups = recData.getGroups();
+	public void prepareData(EDimension dim, int groups) {
+		prepareData(dim.select(groups, dimData.getGroups().size()), dim.select(recData.getGroups().size(), groups));
+	}
 
+	public void prepareData(int dimGroups, int recGroups) {
+		final int total = dimGroups * recGroups;
+		// 1. reset and create
+		for (int i = 0; i < total; ++i) {
+			final NodeGroup child = getOrCreate(i);
+			child.setVisibility(EVisibility.PICKABLE);
+			child.resetNeighbors();
+		}
+
+		// 2. update neighbors
 		int n = 0;
-		List<NodeGroup> left = new ArrayList<>();
-		for (TypedListGroup dimGroup : dimGroups) {
+		NodeGroup[] left = new NodeGroup[recGroups];
+		for (int i = 0; i < dimGroups; ++i) {
 			NodeGroup above = null;
-			int i = 0;
-			for (TypedListGroup recGroup : recGroups) {
-				final NodeGroup child = getOrCreate(n);
-				child.setVisibility(EVisibility.PICKABLE);
-				n++;
-				child.setData(dimGroup, recGroup);
+			for (int j = 0; j < recGroups; ++j) {
+				final NodeGroup child = getOrCreate(n++);
 				child.setNeighbor(EDirection.NORTH, above);
 				if (above != null)
 					above.setNeighbor(EDirection.SOUTH, child);
 				above = child;
-				if (left.size() > i) {
-					left.get(i).setNeighbor(EDirection.EAST, child);
-					child.setNeighbor(EDirection.WEST, left.get(i));
+				if (i > 0) {
+					left[j].setNeighbor(EDirection.EAST, child);
+					child.setNeighbor(EDirection.WEST, left[j]);
 				}
-				if (i < left.size())
-					left.set(i++, child);
-				else
-					left.add(i++, child);
-
+				left[j] = child;
 			}
 		}
 
@@ -540,6 +542,21 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 					g.setVisibility(EVisibility.NONE);
 				}
 				// subList.clear(); // don't clear just hide
+			}
+		}
+	}
+
+	private void updateGroupNodes(TypedGroupList dimData, TypedGroupList recData) {
+		final List<TypedListGroup> dimGroups = dimData.getGroups();
+		final List<TypedListGroup> recGroups = recData.getGroups();
+
+		int n = 0;
+
+		// 2. set data
+		for (TypedListGroup dimGroup : dimGroups) {
+			for (TypedListGroup recGroup : recGroups) {
+				final NodeGroup child = getOrCreate(n++);
+				child.setData(dimGroup, recGroup);
 			}
 		}
 

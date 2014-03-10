@@ -372,16 +372,21 @@ public class LinearBlock extends AbstractCollection<Node> {
 	public void apply() {
 		List<? extends ITypedGroup> g = asGroupList();
 
+		int ngroups = g.size();
+		{
+			Node bak = nodes.get(0);
+			bak.prepareData(dim.opposite(), ngroups);
+			for (Node node : nodes.subList(1, nodes.size())) {
+				node.prepareData(dim.opposite(), ngroups);
+				node.updateNeighbor(EDirection.getPrimary(dim), bak);
+				bak = node;
+			}
+		}
 		for (Node node : nodes) {
 			final TypedList slice = data.slice(node.getIdType(dim.opposite()));
 			node.setData(dim.opposite(), TypedGroupList.create(slice, g));
 		}
-		{
-			Node bak = nodes.get(0);
-			for (Node node : nodes.subList(1, nodes.size())) {
-				node.updateNeighbor(EDirection.getPrimary(dim), bak);
-			}
-		}
+
 	}
 
 	private List<? extends ITypedGroup> asGroupList() {

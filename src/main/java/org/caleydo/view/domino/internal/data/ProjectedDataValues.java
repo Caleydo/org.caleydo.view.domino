@@ -116,7 +116,7 @@ public class ProjectedDataValues implements IDataValues, INumerical1DContainer,F
 	}
 
 	@Override
-	public void fill(Builder b, TypedList dimData, TypedList recData) {
+	public void fill(Builder b, TypedList dimData, TypedList recData, boolean[] existNeigbhor) {
 		EDimension dim = along.opposite();
 		TypedList data = along.opposite().select(dimData, recData);
 		boolean transposed = data.getIdType() == this.singleGroup.getIdType();
