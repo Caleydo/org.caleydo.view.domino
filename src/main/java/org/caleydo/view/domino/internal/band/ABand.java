@@ -6,8 +6,11 @@
 package org.caleydo.view.domino.internal.band;
 
 import gleem.linalg.Vec2f;
+import gleem.linalg.Vec4f;
 
+import java.awt.Polygon;
 import java.awt.geom.Rectangle2D;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -20,10 +23,13 @@ import org.caleydo.core.data.selection.SelectionType;
 import org.caleydo.core.id.IDType;
 import org.caleydo.core.util.base.ILabeled;
 import org.caleydo.core.util.collection.Pair;
+import org.caleydo.core.util.color.Color;
 import org.caleydo.core.view.opengl.layout2.GLElement.EVisibility;
 import org.caleydo.core.view.opengl.layout2.GLGraphics;
 import org.caleydo.core.view.opengl.layout2.geom.Rect;
 import org.caleydo.core.view.opengl.layout2.util.PickingPool;
+import org.caleydo.core.view.opengl.util.gleem.ColoredVec2f;
+import org.caleydo.core.view.opengl.util.spline.TesselatedPolygons;
 import org.caleydo.view.domino.api.model.EDirection;
 import org.caleydo.view.domino.api.model.typed.MultiTypedSet;
 import org.caleydo.view.domino.api.model.typed.TypedCollections;
@@ -38,6 +44,7 @@ import org.caleydo.view.domino.internal.band.IBandHost.SourceTarget;
  *
  */
 public abstract class ABand implements ILabeled, IHasMiniMap {
+	final static float SHIFT = 15;
 	protected static final List<SelectionType> SELECTION_TYPES = Arrays.asList(SelectionType.SELECTION,
 			SelectionType.MOUSE_OVER);
 
@@ -146,7 +153,7 @@ public abstract class ABand implements ILabeled, IHasMiniMap {
 				getIdType(SourceTarget.TARGET)));
 	}
 
-	public final boolean intersects(Rectangle2D bounds) {
+	public boolean intersects(Rectangle2D bounds) {
 		for (IBandRenderAble r : overviewRoutes())
 			if (r.intersects(bounds))
 				return true;
@@ -381,5 +388,150 @@ public abstract class ABand implements ILabeled, IHasMiniMap {
 	@Override
 	public EVisibility getVisibility() {
 		return EVisibility.VISIBLE;
+	}
+
+	protected abstract class ARelation implements IBandRenderAble {
+		private final String label;
+		protected final TypedSet sShared, tShared;
+
+		public ARelation(String label, TypedSet sData, TypedSet tData) {
+			this.label = label;
+			this.sShared = sData;
+			this.tShared = tData;
+		}
+
+		/**
+		 * @return the label, see {@link #label}
+		 */
+		@Override
+		public final String getLabel() {
+			return label;
+		}
+
+		@Override
+		public final TypedSet asSet(SourceTarget type) {
+			return type.select(sShared, tShared);
+		}
+
+	}
+
+	protected class NotMapped extends ARelation {
+		private final List<Vec2f> points;
+		private final Polygon shape;
+		private final SourceTarget type;
+		private final float fz;
+		private final EDirection dir;
+
+		public NotMapped(String label, TypedSet sData, TypedSet tData, SourceTarget type, Vec4f s, Vec4f t,
+				EDirection dir) {
+			super(label, sData, tData);
+			this.type = type;
+			this.dir = dir;
+
+			this.points = new ArrayList<>(5);
+			this.shape = new Polygon();
+			this.fz = type.select(s, t).z();
+			float a = 0.3f;
+			if (dir.isHorizontal()) {
+				float sh = dir == EDirection.WEST ? +SHIFT : -SHIFT;
+				if (type == SourceTarget.SOURCE) {
+					addPoint(s.x(), s.y());
+					addPoint(s.x() + sh, s.y());
+					addPoint(s.x() * (1.f - a) + t.x() * a, (s.y() + s.z() * 0.5f) * (1 - a) + (t.y() + t.z()) * a);
+					addPoint(s.x() + sh, s.y() + s.z());
+					addPoint(s.x(), s.y() + s.z());
+				} else {
+					addPoint(t.x(), t.y() + t.z());
+					addPoint(t.x() - sh, t.y() + t.z());
+					addPoint(t.x() * (1.f - a) + s.x() * a, (t.y() + t.z() * 0.5f) * (1 - a) + (s.y() + s.z()) * a);
+					addPoint(t.x() - sh, t.y());
+					addPoint(t.x(), t.y());
+				}
+			} else {
+				float sh = dir == EDirection.NORTH ? -SHIFT : +SHIFT;
+				if (type == SourceTarget.SOURCE) {
+					addPoint(s.x(), s.y());
+					addPoint(s.x(), s.y() + sh);
+					addPoint((s.x() + s.z() * 0.5f) * (1 - a) + (t.x() + t.z()) * a, s.y() * (1.f - a) + t.y() * a);
+					addPoint(s.x() + s.z(), s.y() + sh);
+					addPoint(s.x() + s.z(), s.y());
+				} else {
+					addPoint(t.x() + t.z(), t.y());
+					addPoint(t.x() + t.z(), t.y() - sh);
+					addPoint((t.x() + t.z() * 0.5f) * (1 - a) + (s.x() + s.z()) * a, t.y() * (1.f - a) + s.y() * a);
+					addPoint(t.x(), t.y() - sh);
+					addPoint(t.x(), t.y());
+				}
+			}
+		}
+
+		@Override
+		public Rect getBoundingBox() {
+			return new Rect(shape.getBounds2D());
+		}
+
+		private void addPoint(float x, float y) {
+			points.add(new Vec2f(x, y));
+			shape.addPoint((int) x, (int) y);
+		}
+
+		@Override
+		public void renderRoute(GLGraphics g, IBandHost host, int nrBands) {
+			Color color = mode.getColor();
+			final float alpha = EBandMode.alpha(nrBands);
+			g.color(color.r, color.g, color.b, color.a * alpha);
+			final Collection<Vec2f> colored = colored(points, color, alpha);
+			g.fillPolygon(TesselatedPolygons.polygon2(colored));
+
+			for (SelectionType type : SELECTION_TYPES) {
+				final TypedSet d = this.type.select(sShared, tShared);
+				int se = host.getSelected(d, type).size();
+				if (se > 0) {
+					Color c = type.getColor();
+					List<Vec2f> p = new ArrayList<>(6);
+					float sf = se / (float) d.size();
+
+					float shiftX = dir.isHorizontal() ? 0 : -fz * (1 - sf);
+					float shiftY = dir.isVertical() ? 0 : -fz * (1 - sf);
+
+					if (this.type == SourceTarget.SOURCE) {
+						p.add(points.get(0));
+						p.add(points.get(1));
+						p.add(points.get(2));
+						p.add(shifted(points.get(3), shiftX, shiftY));
+						p.add(shifted(points.get(4), shiftX, shiftY));
+					} else {
+						p.add(shifted(points.get(0), shiftX, shiftY));
+						p.add(shifted(points.get(1), shiftX, shiftY));
+						p.add(points.get(2));
+						p.add(points.get(3));
+						p.add(points.get(4));
+					}
+					g.fillPolygon(TesselatedPolygons.polygon2(colored(p, c, alpha)));
+				}
+			}
+			g.drawPath(colored, true);
+		}
+
+		private Vec2f shifted(Vec2f v, float dx, float dy) {
+			return new Vec2f(v.x() + dx, v.y() + dy);
+		}
+
+		private Collection<Vec2f> colored(List<Vec2f> points, Color color, float alpha) {
+			assert points.size() == 5;
+			alpha *= color.a;
+			Vec2f[] r = new Vec2f[5];
+			r[0] = new ColoredVec2f(points.get(0), new Color(color.r, color.g, color.b, alpha));
+			r[1] = new ColoredVec2f(points.get(1), new Color(color.r, color.g, color.b, alpha * .5f));
+			r[2] = new ColoredVec2f(points.get(2), new Color(color.r, color.g, color.b, 0));
+			r[3] = new ColoredVec2f(points.get(3), new Color(color.r, color.g, color.b, alpha * .5f));
+			r[4] = new ColoredVec2f(points.get(4), new Color(color.r, color.g, color.b, alpha));
+			return Arrays.asList(r);
+		}
+
+		@Override
+		public boolean intersects(Rectangle2D bounds) {
+			return shape.intersects(bounds);
+		}
 	}
 }

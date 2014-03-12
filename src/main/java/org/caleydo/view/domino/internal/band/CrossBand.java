@@ -6,6 +6,7 @@
 package org.caleydo.view.domino.internal.band;
 
 import gleem.linalg.Vec2f;
+import gleem.linalg.Vec4f;
 
 import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
@@ -23,6 +24,7 @@ import org.caleydo.core.view.opengl.layout2.geom.Rect;
 import org.caleydo.core.view.opengl.layout2.manage.GLLocation;
 import org.caleydo.view.domino.api.model.EDirection;
 import org.caleydo.view.domino.api.model.typed.MultiTypedSet;
+import org.caleydo.view.domino.api.model.typed.TypedCollections;
 import org.caleydo.view.domino.api.model.typed.TypedGroupList;
 import org.caleydo.view.domino.api.model.typed.TypedList;
 import org.caleydo.view.domino.api.model.typed.TypedListGroup;
@@ -41,7 +43,8 @@ import com.google.common.collect.Multimap;
  *
  */
 public class CrossBand extends ABand {
-	private final Disc overview;
+	private Disc overview;
+	private final List<IBandRenderAble> overviewRoutes = new ArrayList<>(3);
 
 	private Vec2f sLoc, tLoc;
 
@@ -50,6 +53,7 @@ public class CrossBand extends ABand {
 			String identifier) {
 		super(shared, sData, tData, sLocator, tLocator, sDir, tDir, identifier + sDir.asDim().select("CH", "CV"));
 
+		assert sDir.asDim().isHorizontal();
 		this.sLoc = s;
 		this.tLoc = t;
 
@@ -58,10 +62,92 @@ public class CrossBand extends ABand {
 			TypedSet tShared = shared.slice(tData.getIdType());
 			float sr = ((float) sShared.size()) / sData.size();
 			float tr = ((float) tShared.size()) / tData.size();
-			float w = tr * (float) tLocator.apply(EBandMode.OVERVIEW, 0).getSize();
-			float h = sr * (float) sLocator.apply(EBandMode.OVERVIEW, 0).getSize();
-			Rect bounds = new Rect(tLoc.x(), sLoc.y(), w, h);
+			final float wtotal = (float) tLocator.apply(EBandMode.OVERVIEW, 0).getSize();
+			final float htotal = (float) sLocator.apply(EBandMode.OVERVIEW, 0).getSize();
+			boolean s_top = this.tDim == EDirection.SOUTH;
+			boolean t_left = this.sDim == EDirection.EAST;
+			Rect bounds = new Rect(tLoc.x() + (t_left ? ((1 - tr) * wtotal) : 0), sLoc.y()
+					+ (!s_top ? 0 : (1 - sr) * htotal), tr * wtotal, sr * htotal);
 			this.overview = new Disc(label, bounds, sShared, tShared, sLoc.x(), tLoc.y());
+
+			overviewRoutes.add(this.overview);
+
+			String[] split = label.split(" x ");
+			Vec4f sv, tv;
+			if (sr < 1) {
+				// add a non-mapped indicator
+				TypedSet sNotMapped = sData.asSet().difference(sShared);
+				final float s_y = sLoc.y() + (s_top ? 0 : (sr * htotal));
+				if (this.sDim == EDirection.WEST) {
+					sv = new Vec4f(tLoc.x(), s_y, (1 - sr) * htotal, 0);
+					tv = new Vec4f(tLoc.x() + wtotal, s_y, 0, 0);
+				} else {
+					sv = new Vec4f(tLoc.x() + wtotal, s_y, (1 - sr) * htotal, 0);
+					tv = new Vec4f(tLoc.x(), s_y, 0, 0);
+				}
+				overviewRoutes.add(new NotMapped(split[0] + " x Not Mapped", sNotMapped, TypedCollections.empty(tData
+						.getIdType()), SourceTarget.SOURCE, sv, tv, sDim));
+			}
+			if (tr < 1) {
+				TypedSet tNotMapped = tData.asSet().difference(tShared);
+				final float t_x = tLoc.x() + (t_left ? 0 : (tr * wtotal));
+				if (this.tDim == EDirection.SOUTH) {
+					sv = new Vec4f(t_x, sLoc.y(), 0, 0);
+					tv = new Vec4f(t_x, sLoc.y() + htotal, (1 - tr) * wtotal, 0);
+				} else {
+					sv = new Vec4f(t_x, sLoc.y() + htotal, 0, 0);
+					tv = new Vec4f(t_x, sLoc.y(), (1 - tr) * wtotal, 0);
+				}
+				overviewRoutes.add(new NotMapped("Not Mapped x " + split[1], TypedCollections.empty(sData.getIdType()),
+						tNotMapped, SourceTarget.TARGET, sv, tv, tDim));
+			}
+		}
+	}
+
+	@Override
+	public void setLocators(INodeLocator sLocator, INodeLocator tLocator) {
+		super.setLocators(sLocator, tLocator);
+		{
+			float sr = ((float) overview.sShared.size()) / sData.size();
+			float tr = ((float) overview.tShared.size()) / tData.size();
+			final float wtotal = (float) tLocator.apply(EBandMode.OVERVIEW, 0).getSize();
+			final float htotal = (float) sLocator.apply(EBandMode.OVERVIEW, 0).getSize();
+			boolean s_top = this.tDim == EDirection.SOUTH;
+			boolean t_left = this.sDim == EDirection.EAST;
+			Rect bounds = new Rect(tLoc.x() + (t_left ? ((1 - tr) * wtotal) : 0), sLoc.y()
+					+ (!s_top ? 0 : (1 - sr) * htotal), tr * wtotal, sr * htotal);
+			this.overview = new Disc(overview.getLabel(), bounds, overview.sShared, overview.tShared, sLoc.x(),
+					tLoc.y());
+			overviewRoutes.set(0, this.overview);
+			Vec4f sv, tv;
+			if (sr < 1) {
+				NotMapped m = (NotMapped) overviewRoutes.get(1);
+				// add a non-mapped indicator
+				final float s_y = sLoc.y() + (s_top ? 0 : (sr * htotal));
+				if (this.sDim == EDirection.WEST) {
+					sv = new Vec4f(tLoc.x(), s_y, (1 - sr) * htotal, 0);
+					tv = new Vec4f(tLoc.x() + wtotal, s_y, 0, 0);
+				} else {
+					sv = new Vec4f(tLoc.x() + wtotal, s_y, (1 - sr) * htotal, 0);
+					tv = new Vec4f(tLoc.x(), s_y, 0, 0);
+				}
+				overviewRoutes
+						.add(new NotMapped(m.getLabel(), m.sShared, m.tShared, SourceTarget.SOURCE, sv, tv, sDim));
+			}
+			if (tr < 1) {
+				int index = sr < 1 ? 2 : 1;
+				NotMapped m = (NotMapped) overviewRoutes.get(index);
+				final float t_x = tLoc.x() + (t_left ? 0 : (tr * wtotal));
+				if (this.tDim == EDirection.SOUTH) {
+					sv = new Vec4f(t_x, sLoc.y(), 0, 0);
+					tv = new Vec4f(t_x, sLoc.y() + htotal, (1 - tr) * wtotal, 0);
+				} else {
+					sv = new Vec4f(t_x, sLoc.y() + htotal, 0, 0);
+					tv = new Vec4f(t_x, sLoc.y(), (1 - tr) * wtotal, 0);
+				}
+				overviewRoutes
+						.add(new NotMapped(m.getLabel(), m.sShared, m.tShared, SourceTarget.TARGET, sv, tv, tDim));
+			}
 		}
 	}
 
@@ -82,9 +168,24 @@ public class CrossBand extends ABand {
 	}
 
 	@Override
+	protected List<? extends IBandRenderAble> overviewRoutes() {
+		return overviewRoutes;
+	}
+
+	@Override
 	protected void renderRoutes(GLGraphics g, IBandHost host, Collection<? extends IBandRenderAble> routes) {
 		renderAdapter(g);
 		super.renderRoutes(g, host, routes);
+	}
+
+	@Override
+	public boolean intersects(Rectangle2D bounds) {
+		if (super.intersects(bounds))
+			return true;
+		// TODO check adapter
+
+		return false;
+		// return overviewRoute().intersects(bounds);
 	}
 
 	private void renderAdapter(GLGraphics g) {
@@ -169,10 +270,10 @@ public class CrossBand extends ABand {
 		// convert all to the subset of the shared set
 		final List<TypedListGroup> sgroups = sData.getGroups();
 		for (TypedListGroup sGroup : sgroups)
-			sSets.add(overview.sIds.intersect(sGroup.asSet()));
+			sSets.add(overview.sShared.intersect(sGroup.asSet()));
 		final List<TypedListGroup> tgroups = tData.getGroups();
 		for (TypedListGroup tGroup : tgroups)
-			tSets.add(overview.tIds.intersect(tGroup.asSet()));
+			tSets.add(overview.tShared.intersect(tGroup.asSet()));
 
 		// for each left groups check all right groups
 		for (int i = 0; i < sgroups.size(); ++i) {
@@ -271,8 +372,8 @@ public class CrossBand extends ABand {
 	private void flushPoints(List<IBandRenderAble> detailRoutes, Set<PointB> lines) {
 		if (lines.isEmpty())
 			return;
-		final IDType s = this.overview.sIds.getIdType();
-		final IDType t = this.overview.tIds.getIdType();
+		final IDType s = this.overview.sShared.getIdType();
+		final IDType t = this.overview.tShared.getIdType();
 		for (PointB line : lines)
 			detailRoutes.add(line.create(s, t));
 		lines.clear();
@@ -347,18 +448,11 @@ public class CrossBand extends ABand {
 		return b.build();
 	}
 
-	private class Disc implements IBandRenderAble {
-		private final String label;
-		private final Rect bounds;
-		private final TypedSet sIds;
-		private final TypedSet tIds;
+	private class Disc extends MosaicRect {
 		private final float xStart, yStart;
 
 		public Disc(String label, Rect bounds, TypedSet sIds, TypedSet tIds, float xStart, float yStart) {
-			this.label = label;
-			this.bounds = bounds;
-			this.sIds = sIds;
-			this.tIds = tIds;
+			super(label, bounds, sIds, tIds);
 			this.xStart = xStart;
 			this.yStart = yStart;
 		}
@@ -424,63 +518,50 @@ public class CrossBand extends ABand {
 		 */
 		@Override
 		public boolean intersects(Rectangle2D bound) {
-			final Rect b = bounds;
-			if (b.asRectangle2D().intersects(bound))
+			if (super.intersects(bound))
 				return true;
-			if (sDim == EDirection.WEST) {
-				if (new Rect(xStart, b.y(), b.x() - xStart, b.height()).asRectangle2D().intersects(bound))
-					return true;
-			} else {
-				if (new Rect(b.x2(), b.y(), xStart - b.x2(), b.height()).asRectangle2D().intersects(bound))
-					return true;
-			}
-
-			if (tDim == EDirection.NORTH) {
-				if (new Rect(b.x(), yStart, b.width(), b.y() - yStart).asRectangle2D().intersects(bound))
-					return true;
-			} else {
-				if (new Rect(b.x(), b.y2(), b.width(), yStart - b.y2()).asRectangle2D().intersects(bound))
-					return true;
-			}
+			final Rect b = bounds;
+			// FIXME wrong
+			// if (sDim == EDirection.WEST) {
+			// if (new Rect(xStart, b.y(), b.x() - xStart, b.height()).asRectangle2D().intersects(bound))
+			// return true;
+			// } else {
+			// if (new Rect(b.x2(), b.y(), xStart - b.x2(), b.height()).asRectangle2D().intersects(bound))
+			// return true;
+			// }
+			//
+			// if (tDim == EDirection.NORTH) {
+			// if (new Rect(b.x(), yStart, b.width(), b.y() - yStart).asRectangle2D().intersects(bound))
+			// return true;
+			// } else {
+			// if (new Rect(b.x(), b.y2(), b.width(), yStart - b.y2()).asRectangle2D().intersects(bound))
+			// return true;
+			// }
 			return false;
 		}
 
 		@Override
-		public Rect getBoundingBox() {
-			return bounds;
-		}
-
-		@Override
-		public String getLabel() {
-			return label;
-		}
-
-		@Override
 		public void renderRoute(GLGraphics g, IBandHost host, int nrItems) {
-			final Color color = EBandMode.OVERVIEW.getColor();
-			g.color(color);
-			renderBox(g, true, 1.f, 1.f);
-
-
-			if (g.isPickingPass())
-				return;
-			for (SelectionType type : SELECTION_TYPES) {
-				int sS = host.getSelected(sIds, type).size();
-				int tS = host.getSelected(tIds, type).size();
-				if (sS > 0 && tS > 0) {
-					final Color c = type.getColor();
-					g.color(c.r, c.g, c.b, 0.5f);
-					renderBox(g, true, (tS / (float) tIds.size()), (sS / (float) sIds.size()));
-				}
-			}
-
-			g.color(color.darker());
-			renderBox(g, false, 1.f, 1.f);
-		}
-
-		@Override
-		public TypedSet asSet(SourceTarget type) {
-			return type.select(sIds, tIds);
+			super.renderRoute(g, host, nrItems);
+			// final Color color = EBandMode.OVERVIEW.getColor();
+			// g.color(color);
+			// renderBox(g, true, 1.f, 1.f);
+			//
+			//
+			// if (g.isPickingPass())
+			// return;
+			// for (SelectionType type : SELECTION_TYPES) {
+			// int sS = host.getSelected(sShared, type).size();
+			// int tS = host.getSelected(tShared, type).size();
+			// if (sS > 0 && tS > 0) {
+			// final Color c = type.getColor();
+			// g.color(c.r, c.g, c.b, 0.5f);
+			// renderBox(g, true, (tS / (float) tShared.size()), (sS / (float) sShared.size()));
+			// }
+			// }
+			//
+			// g.color(color.darker());
+			// renderBox(g, false, 1.f, 1.f);
 		}
 	}
 
@@ -488,22 +569,12 @@ public class CrossBand extends ABand {
 		return new Vec2f(x, y);
 	}
 
-	private class MosaicRect implements IBandRenderAble {
-		private final String label;
-		private final Rect bounds;
-		private final TypedSet sIds;
-		private final TypedSet tIds;
+	private class MosaicRect extends ARelation {
+		protected final Rect bounds;
 
 		public MosaicRect(String label, Rect bounds, TypedSet sIds, TypedSet tIds) {
-			this.label = label;
+			super(label, sIds, tIds);
 			this.bounds = bounds;
-			this.sIds = sIds;
-			this.tIds = tIds;
-		}
-
-		@Override
-		public String getLabel() {
-			return label;
 		}
 
 		@Override
@@ -519,13 +590,13 @@ public class CrossBand extends ABand {
 			if (g.isPickingPass())
 				return;
 			for (SelectionType type : SELECTION_TYPES) {
-				int sS = host.getSelected(sIds, type).size();
-				int tS = host.getSelected(tIds, type).size();
+				int sS = host.getSelected(sShared, type).size();
+				int tS = host.getSelected(tShared, type).size();
 				if (sS > 0 && tS > 0) {
 					final Color c = type.getColor();
 					g.color(c.r, c.g, c.b, 0.5f);
-					g.fillRect(bounds.x(), bounds.y(), bounds.width() * (tS / (float) tIds.size()), bounds.height()
-							* (sS / (float) sIds.size()));
+					g.fillRect(bounds.x(), bounds.y(), bounds.width() * (tS / (float) tShared.size()), bounds.height()
+							* (sS / (float) sShared.size()));
 
 					if (type == SelectionType.MOUSE_OVER)
 						renderConnector(g, bounds);
@@ -548,8 +619,8 @@ public class CrossBand extends ABand {
 
 			if (!g.isPickingPass()) {
 				for (SelectionType type : Lists.reverse(SELECTION_TYPES)) {
-					int sS = host.getSelected(sIds, type).size();
-					int tS = host.getSelected(tIds, type).size();
+					int sS = host.getSelected(sShared, type).size();
+					int tS = host.getSelected(tShared, type).size();
 					if (sS > 0 && tS > 0) {
 						c = type.getColor();
 						if (type == SelectionType.MOUSE_OVER)
@@ -565,11 +636,6 @@ public class CrossBand extends ABand {
 
 			if (hovered)
 				renderConnector(g, bounds);
-		}
-
-		@Override
-		public TypedSet asSet(SourceTarget type) {
-			return type.select(sIds, tIds);
 		}
 
 		@Override

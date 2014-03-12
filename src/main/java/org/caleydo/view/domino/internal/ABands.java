@@ -176,10 +176,13 @@ public abstract class ABands extends GLElement implements MultiSelectionManagerM
 			return;
 		for (SourceTarget st : SourceTarget.values()) {
 			SelectionManager manager = getOrCreate(route.getIdType(st));
+			final TypedSet ids = route.getIds(st, subIndex);
+			if (ids.isEmpty())
+				continue;
 			if (clear) {
 				manager.clearSelection(type);
 			}
-			manager.addToType(type, route.getIds(st, subIndex));
+			manager.addToType(type, ids);
 			selections.fireSelectionDelta(manager);
 		}
 		repaint();

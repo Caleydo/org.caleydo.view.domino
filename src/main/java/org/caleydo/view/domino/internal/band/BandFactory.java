@@ -29,7 +29,7 @@ public class BandFactory {
 			return null;
 		if (sDim == tDim) {
 			final EDirection primary = EDirection.getPrimary(sDim.opposite());
-			final float minDistance = ParaBand.SHIFT * 2 + 5;
+			final float minDistance = ABand.SHIFT * 2 + 5;
 			if (primary.isHorizontal()) {
 				if (ra.x2() < rb.x() - minDistance) {
 					Vec2f sLoc = ra.x2y();
@@ -68,6 +68,10 @@ public class BandFactory {
 				EDirection tDir = EDirection.getPrimary(tDim.opposite());
 				if (s.y() < t.y())
 					tDir = tDir.opposite();
+				if (sDir == EDirection.EAST)
+					s = ra.xy();
+				if (tDir == EDirection.NORTH)
+					t = rb.xy2();
 				return new CrossBand(label, shared, sData, tData, sNodeLocator, tNodeLocator, s, t, sDir, tDir,
 						identifier);
 			} else {
@@ -80,6 +84,10 @@ public class BandFactory {
 				EDirection tDir = EDirection.getPrimary(sDim.opposite());
 				if (s.y() < t.y())
 					tDir = tDir.opposite();
+				if (sDir == EDirection.EAST)
+					s = rb.xy();
+				if (tDir == EDirection.NORTH)
+					t = ra.xy2();
 				return new CrossBand(label, shared, tData, sData, tNodeLocator, sNodeLocator, s, t, sDir, tDir,
 						identifier);
 			}
