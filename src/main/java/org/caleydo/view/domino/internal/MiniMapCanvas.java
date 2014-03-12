@@ -125,6 +125,7 @@ public class MiniMapCanvas extends GLElementContainer implements IGLLayout2, ISc
 		return new Rect(shift.x(), shift.y(), s.x() - scrollBarWidth, s.y() - scrollBarWidth);
 	}
 
+
 	public Rect getPaintingCanvas() {
 		Vec2f s = getSize();
 		Rect r = new Rect(shift.x(), shift.y(), s.x() - scrollBarWidth, s.y() - scrollBarWidth);
@@ -148,6 +149,32 @@ public class MiniMapCanvas extends GLElementContainer implements IGLLayout2, ISc
 		for (IManuallyShifted m : Iterables.filter(this, IManuallyShifted.class))
 			m.setShift(shift.x(), shift.y());
 		fireViewPortChange();
+	}
+
+	/**
+	 * @param rectBounds
+	 */
+	public void scrollInfoView(Rect bounds) {
+		Rect visible = getClippingRect();
+		// already visible
+		if (visible.contains(bounds))
+			return;
+		float xShift = 0;
+
+		// offset to the border
+		final int offset = 30;
+
+		if (bounds.x() > visible.x2())
+			xShift = bounds.x2() + offset - visible.x2();
+		else if (bounds.x2() < visible.x())
+			xShift = bounds.x() - offset - visible.x();
+
+		float yShift = 0;
+		if (bounds.y() > visible.y2())
+			yShift = bounds.y2() + offset - visible.y2();
+		else if (bounds.y2() < visible.y())
+			yShift = bounds.y() - offset - visible.y();
+		shiftViewport(xShift, yShift);
 	}
 
 	@Override

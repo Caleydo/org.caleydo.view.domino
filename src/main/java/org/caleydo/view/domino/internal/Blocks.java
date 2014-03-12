@@ -311,12 +311,9 @@ public class Blocks extends GLElementContainer implements ICallback<SelectionTyp
 	 * @param shift
 	 */
 	public void moveRuler(IDCategory category, Vec2f shift) {
-		for (Ruler ruler : rulers()) {
-			if (ruler.getIDCategory().equals(category)) {
-				ruler.shiftLocation(shift);
-				break;
-			}
-		}
+		Ruler r = getRuler(category);
+		if (r != null)
+			r.shiftLocation(shift);
 		getParent().getParent().relayout();
 	}
 
@@ -419,10 +416,21 @@ public class Blocks extends GLElementContainer implements ICallback<SelectionTyp
 	 * @return
 	 */
 	public float getRulerScale(IDType idType, float default_) {
+		Ruler r = getRuler(idType.getIDCategory());
+		if (r == null)
+			return default_;
+		return r.getScaleFactor();
+	}
+
+	/**
+	 * @param category
+	 * @return
+	 */
+	public Ruler getRuler(IDCategory category) {
 		for (Ruler ruler : rulers()) {
-			if (ruler.getIDCategory().isOfCategory(idType))
-				return ruler.getScaleFactor();
+			if (ruler.getIDCategory().equals(category))
+				return ruler;
 		}
-		return default_;
+		return null;
 	}
 }

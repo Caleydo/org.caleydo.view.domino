@@ -325,7 +325,7 @@ public class LeftToolBar extends GLElementContainer implements IGLLayout2, ISele
 	public void onShowHideRuler(IDCategory category, boolean show) {
 		for (DragRulerButton b : Iterables.filter(this, DragRulerButton.class)) {
 			if (b.getIDCategory() == category) {
-				b.setEnabled(!show);
+				b.setDragMode(!show);
 			}
 		}
 	}

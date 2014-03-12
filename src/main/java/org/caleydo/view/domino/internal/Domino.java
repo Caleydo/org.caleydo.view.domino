@@ -762,4 +762,14 @@ public class Domino extends GLElementContainer implements IDropGLTarget, IPickin
 		bands.relayout();
 		return r;
 	}
+
+	/**
+	 * @param idCategory
+	 */
+	public void scrollRulerIntoView(IDCategory category) {
+		Ruler r = this.blocks.getRuler(category);
+		if (r == null)
+			return;
+		this.content.scrollInfoView(r.getRectBounds());
+	}
 }
