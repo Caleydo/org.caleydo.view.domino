@@ -51,11 +51,6 @@ public class StratifiationTourGuideAdapter extends ATourGuideAdapter implements 
 	}
 
 	@Override
-	protected IDragGLSource createDragSource(AScoreRow row) {
-		return new DragRowSource(row);
-	}
-
-	@Override
 	public void on(IDCategory data) {
 		this.activeCategory = data;
 		if (vis != null)

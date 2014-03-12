@@ -95,20 +95,20 @@ public abstract class ATourGuideAdapter implements ITourGuideAdapter {
 		case MOUSE_OVER:
 			if (dragSource != null) {
 				m.removeDragSource(dragSource);
+				dragSource = null;
 			}
-			m.addDragSource(dragSource = createDragSource(row));
+			m.addDragSource(dragSource = new DragRowSource(row));
 			break;
 		case MOUSE_OUT:
-			if (dragSource != null)
+			if (dragSource != null) {
 				m.removeDragSource(dragSource);
+			}
 			dragSource = null;
 			break;
 		default:
 			break;
 		}
 	}
-
-	protected abstract IDragGLSource createDragSource(AScoreRow row);
 
 	@Override
 	public final String getPartName() {
