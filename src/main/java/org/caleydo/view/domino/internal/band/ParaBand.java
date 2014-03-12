@@ -159,6 +159,8 @@ public class ParaBand extends ABand {
 		List<TypedSet> sSets = new ArrayList<>();
 		List<TypedSet> tSets = new ArrayList<>();
 
+		EDirection which = sDim.isHorizontal() ? tDim : sDim;
+
 		// convert all to the subset of the shared set
 		final List<TypedListGroup> sgroups = sData.getGroups();
 		for (TypedListGroup sGroup : sgroups) {
@@ -232,7 +234,7 @@ public class ParaBand extends ABand {
 				else
 					s = new Vec4f(this.s.x() + (float) s1, this.s.y(), (float) (sgroupLocation.getOffset2() - s1), 0);
 				groupRoutes.add(new NotMapped(sgroup.getLabel() + " x Not Mapped", notMappedIds, tEmpty,
-						SourceTarget.SOURCE, s, tTotal, sDim));
+						SourceTarget.SOURCE, s, tTotal, which));
 			}
 		}
 
@@ -252,7 +254,7 @@ public class ParaBand extends ABand {
 			else
 				s = new Vec4f(this.t.x() + (float) s1, this.t.y(), (float) (tgroupLocation.getOffset2() - s1), 0);
 			groupRoutes.add(new NotMapped("Not Mapped x " + tgroup.getLabel(), sEmpty, notMappedIds,
-					SourceTarget.TARGET, sTotal, s, sDim));
+					SourceTarget.TARGET, sTotal, s, which));
 		}
 
 		return groupRoutes;

@@ -10,6 +10,7 @@ import gleem.linalg.Vec4f;
 
 import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
@@ -18,6 +19,7 @@ import java.util.Set;
 import org.apache.commons.lang.StringUtils;
 import org.caleydo.core.data.selection.SelectionType;
 import org.caleydo.core.id.IDType;
+import org.caleydo.core.util.collection.Pair;
 import org.caleydo.core.util.color.Color;
 import org.caleydo.core.view.opengl.layout2.GLGraphics;
 import org.caleydo.core.view.opengl.layout2.geom.Rect;
@@ -73,35 +75,62 @@ public class CrossBand extends ABand {
 			overviewRoutes.add(this.overview);
 
 			String[] split = label.split(" x ");
-			Vec4f sv, tv;
 			if (sr < 1) {
 				// add a non-mapped indicator
 				TypedSet sNotMapped = sData.asSet().difference(sShared);
-				final float s_y = sLoc.y() + (s_top ? 0 : (sr * htotal));
-				if (this.sDim == EDirection.WEST) {
-					sv = new Vec4f(tLoc.x(), s_y, (1 - sr) * htotal, 0);
-					tv = new Vec4f(tLoc.x() + wtotal, s_y, 0, 0);
-				} else {
-					sv = new Vec4f(tLoc.x() + wtotal, s_y, (1 - sr) * htotal, 0);
-					tv = new Vec4f(tLoc.x(), s_y, 0, 0);
-				}
+				Pair<Vec4f, Vec4f> r = notMappedConnectors(SourceTarget.SOURCE, sr);
 				overviewRoutes.add(new NotMapped(split[0] + " x Not Mapped", sNotMapped, TypedCollections.empty(tData
-						.getIdType()), SourceTarget.SOURCE, sv, tv, sDim));
+						.getIdType()), SourceTarget.SOURCE, r.getFirst(), r.getSecond(), sDim));
 			}
 			if (tr < 1) {
 				TypedSet tNotMapped = tData.asSet().difference(tShared);
-				final float t_x = tLoc.x() + (t_left ? 0 : (tr * wtotal));
-				if (this.tDim == EDirection.SOUTH) {
-					sv = new Vec4f(t_x, sLoc.y(), 0, 0);
-					tv = new Vec4f(t_x, sLoc.y() + htotal, (1 - tr) * wtotal, 0);
-				} else {
-					sv = new Vec4f(t_x, sLoc.y() + htotal, 0, 0);
-					tv = new Vec4f(t_x, sLoc.y(), (1 - tr) * wtotal, 0);
-				}
+				Pair<Vec4f, Vec4f> r = notMappedConnectors(SourceTarget.TARGET, tr);
 				overviewRoutes.add(new NotMapped("Not Mapped x " + split[1], TypedCollections.empty(sData.getIdType()),
-						tNotMapped, SourceTarget.TARGET, sv, tv, tDim));
+						tNotMapped, SourceTarget.TARGET, r.getFirst(), r.getSecond(), tDim));
 			}
 		}
+	}
+
+	/**
+	 * @param source
+	 * @param ratio
+	 * @return
+	 */
+	private Pair<Vec4f, Vec4f> notMappedConnectors(SourceTarget source, float ratio) {
+		final float wtotal = (float) tLocator.apply(EBandMode.OVERVIEW, 0).getSize();
+		final float htotal = (float) sLocator.apply(EBandMode.OVERVIEW, 0).getSize();
+		if (source == SourceTarget.SOURCE) {
+			return notMappedConnectors(source, (1 - ratio) * htotal, (ratio * htotal), wtotal);
+		} else {
+			return notMappedConnectors(source, (1 - ratio) * wtotal, (ratio * wtotal), htotal);
+		}
+	}
+
+	private Pair<Vec4f, Vec4f> notMappedConnectors(SourceTarget source, float offset, float size, float otherTotal) {
+		boolean s_top = this.tDim == EDirection.SOUTH;
+		boolean t_left = this.sDim == EDirection.EAST;
+
+		Vec4f sv, tv;
+		if (source == SourceTarget.SOURCE) {
+			final float s_y = sLoc.y() + (s_top ? 0 : size);
+			if (this.sDim == EDirection.WEST) {
+				sv = new Vec4f(tLoc.x(), s_y, offset, 0);
+				tv = new Vec4f(tLoc.x() + otherTotal, s_y, 0, 0);
+			} else {
+				sv = new Vec4f(tLoc.x() + otherTotal, s_y, offset, 0);
+				tv = new Vec4f(tLoc.x(), s_y, 0, 0);
+			}
+		} else {
+			final float t_x = tLoc.x() + (t_left ? 0 : size);
+			if (this.tDim == EDirection.SOUTH) {
+				sv = new Vec4f(t_x, sLoc.y(), 0, 0);
+				tv = new Vec4f(t_x, sLoc.y() + otherTotal, offset, 0);
+			} else {
+				sv = new Vec4f(t_x, sLoc.y() + otherTotal, 0, 0);
+				tv = new Vec4f(t_x, sLoc.y(), offset, 0);
+			}
+		}
+		return Pair.make(sv, tv);
 	}
 
 	@Override
@@ -119,34 +148,21 @@ public class CrossBand extends ABand {
 			this.overview = new Disc(overview.getLabel(), bounds, overview.sShared, overview.tShared, sLoc.x(),
 					tLoc.y());
 			overviewRoutes.set(0, this.overview);
-			Vec4f sv, tv;
 			if (sr < 1) {
 				NotMapped m = (NotMapped) overviewRoutes.get(1);
 				// add a non-mapped indicator
-				final float s_y = sLoc.y() + (s_top ? 0 : (sr * htotal));
-				if (this.sDim == EDirection.WEST) {
-					sv = new Vec4f(tLoc.x(), s_y, (1 - sr) * htotal, 0);
-					tv = new Vec4f(tLoc.x() + wtotal, s_y, 0, 0);
-				} else {
-					sv = new Vec4f(tLoc.x() + wtotal, s_y, (1 - sr) * htotal, 0);
-					tv = new Vec4f(tLoc.x(), s_y, 0, 0);
-				}
+				Pair<Vec4f, Vec4f> r = notMappedConnectors(SourceTarget.SOURCE, sr);
 				overviewRoutes
-						.add(new NotMapped(m.getLabel(), m.sShared, m.tShared, SourceTarget.SOURCE, sv, tv, sDim));
+.add(new NotMapped(m.getLabel(), m.sShared, m.tShared, SourceTarget.SOURCE, r.getFirst(),
+						r.getSecond(), sDim));
 			}
 			if (tr < 1) {
 				int index = sr < 1 ? 2 : 1;
 				NotMapped m = (NotMapped) overviewRoutes.get(index);
-				final float t_x = tLoc.x() + (t_left ? 0 : (tr * wtotal));
-				if (this.tDim == EDirection.SOUTH) {
-					sv = new Vec4f(t_x, sLoc.y(), 0, 0);
-					tv = new Vec4f(t_x, sLoc.y() + htotal, (1 - tr) * wtotal, 0);
-				} else {
-					sv = new Vec4f(t_x, sLoc.y() + htotal, 0, 0);
-					tv = new Vec4f(t_x, sLoc.y(), (1 - tr) * wtotal, 0);
-				}
+				Pair<Vec4f, Vec4f> r = notMappedConnectors(SourceTarget.TARGET, tr);
 				overviewRoutes
-						.add(new NotMapped(m.getLabel(), m.sShared, m.tShared, SourceTarget.TARGET, sv, tv, tDim));
+.add(new NotMapped(m.getLabel(), m.sShared, m.tShared, SourceTarget.TARGET, r.getFirst(),
+						r.getSecond(), tDim));
 			}
 		}
 	}
@@ -183,6 +199,35 @@ public class CrossBand extends ABand {
 		if (super.intersects(bounds))
 			return true;
 		// TODO check adapter
+		final float hs = (float) sLocator.apply(EBandMode.OVERVIEW, 0).getSize();
+		final float wt = (float) tLocator.apply(EBandMode.OVERVIEW, 0).getSize();
+
+		{
+			float x;
+			float w;
+			if (sDim == EDirection.WEST) {
+				x = sLoc.x();
+				w = tLoc.x() - sLoc.x();
+			} else {
+				x = tLoc.x() + wt;
+				w = sLoc.x() - tLoc.x() - wt;
+			}
+			if (bounds.intersects(x, sLoc.y(), w, hs))
+				return true;
+		}
+		{
+			float y;
+			float h;
+			if (tDim == EDirection.NORTH) {
+				y = tLoc.y();
+				h = sLoc.y() - tLoc.y();
+			} else {
+				y = sLoc.y() + hs;
+				h = tLoc.y() - sLoc.y() - hs;
+			}
+			if (bounds.intersects(tLoc.x(), y, wt, h))
+				return true;
+		}
 
 		return false;
 		// return overviewRoute().intersects(bounds);
@@ -275,6 +320,15 @@ public class CrossBand extends ABand {
 		for (TypedListGroup tGroup : tgroups)
 			tSets.add(overview.tShared.intersect(tGroup.asSet()));
 
+		// starting points for right side groups
+		int[] tinneracc = new int[tgroups.size()];
+		Arrays.fill(tinneracc, 0);
+
+		final TypedSet tEmpty = TypedCollections.empty(tData.getIdType());
+		final TypedSet sEmpty = TypedCollections.empty(sData.getIdType());
+		final float wtotal = (float) tLocator.apply(EBandMode.OVERVIEW, 0).getSize();
+		final float htotal = (float) sLocator.apply(EBandMode.OVERVIEW, 0).getSize();
+
 		// for each left groups check all right groups
 		for (int i = 0; i < sgroups.size(); ++i) {
 			TypedListGroup sgroup = sgroups.get(i);
@@ -282,6 +336,7 @@ public class CrossBand extends ABand {
 			if (sset.isEmpty())
 				continue;
 			GLLocation sgroupLocation = sLocator.apply(EBandMode.GROUPS, i);
+			int sinneracc = 0;
 			final double sFactor = sgroupLocation.getSize() / sgroup.size();
 			double y = sLoc.y() + sgroupLocation.getOffset();
 
@@ -307,10 +362,41 @@ public class CrossBand extends ABand {
 				double h = sShared.size() * sFactor;
 				double w = tShared.size() * tFactor;
 
-				Rect bounds = new Rect((float) x, (float) y, (float) w, (float) h);
+				Rect bounds = new Rect((float) (x + tinneracc[j] * tFactor), (float) (y + sinneracc * sFactor),
+						(float) w, (float) h);
 				groupRoutes.add(new MosaicRect(label, bounds, sShared, tShared));
+
+				sinneracc += sShared.size();
+				tinneracc[j] += tShared.size();
+			}
+
+			final int notMapped = sgroup.size() - sinneracc;
+			if (notMapped > 0) {
+				TypedSet notMappedIds = sgroup.asSet().difference(overview.sShared);
+				float s1 = (float) (y + sinneracc * sFactor);
+				Pair<Vec4f, Vec4f> r = notMappedConnectors(SourceTarget.SOURCE, s1, (float) (sgroupLocation.getSize())
+						- s1, wtotal);
+				groupRoutes.add(new NotMapped(sgroup.getLabel() + " x Not Mapped", notMappedIds, tEmpty,
+						SourceTarget.SOURCE, r.getFirst(), r.getSecond(), sDim));
 			}
 		}
+
+		for (int i = 0; i < tgroups.size(); ++i) {
+			TypedListGroup tgroup = tgroups.get(i);
+			final int notMapped = tgroup.size() - tinneracc[i];
+			if (notMapped <= 0)
+				continue;
+			GLLocation tgroupLocation = tLocator.apply(EBandMode.GROUPS, i);
+			final double tFactor = tgroupLocation.getSize() / tgroup.size();
+			TypedSet notMappedIds = tgroup.asSet().difference(overview.tShared);
+			double x = tLoc.x() + tgroupLocation.getOffset();
+			float s1 = (float) (x + tinneracc[i] * tFactor);
+			Pair<Vec4f, Vec4f> r = notMappedConnectors(SourceTarget.TARGET, s1,
+					(float) (tgroupLocation.getSize()) - s1, htotal);
+			groupRoutes.add(new NotMapped("Not Mapped x " + tgroup.getLabel(), sEmpty, notMappedIds,
+					SourceTarget.SOURCE, r.getFirst(), r.getSecond(), tDim));
+		}
+
 		return groupRoutes;
 	}
 
@@ -595,11 +681,12 @@ public class CrossBand extends ABand {
 				if (sS > 0 && tS > 0) {
 					final Color c = type.getColor();
 					g.color(c.r, c.g, c.b, 0.5f);
-					g.fillRect(bounds.x(), bounds.y(), bounds.width() * (tS / (float) tShared.size()), bounds.height()
-							* (sS / (float) sShared.size()));
+					Rect b2 = new Rect(bounds.x(), bounds.y(), bounds.width() * (tS / (float) tShared.size()),
+							bounds.height() * (sS / (float) sShared.size()));
+					g.fillRect(b2);
 
 					if (type == SelectionType.MOUSE_OVER)
-						renderConnector(g, bounds);
+						renderConnector(g, b2);
 				}
 			}
 			if (mode == EBandMode.GROUPS) {
