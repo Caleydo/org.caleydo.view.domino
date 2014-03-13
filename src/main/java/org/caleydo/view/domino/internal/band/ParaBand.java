@@ -36,6 +36,7 @@ import org.caleydo.view.domino.api.model.typed.TypedList;
 import org.caleydo.view.domino.api.model.typed.TypedListGroup;
 import org.caleydo.view.domino.api.model.typed.TypedSet;
 import org.caleydo.view.domino.api.model.typed.TypedSets;
+import org.caleydo.view.domino.internal.Constants;
 import org.caleydo.view.domino.internal.INodeLocator;
 import org.caleydo.view.domino.internal.band.IBandHost.SourceTarget;
 
@@ -435,7 +436,7 @@ public class ParaBand extends ABand {
 		}
 		String label = StringUtils.join(acc.sIds, ", ") + " x " + StringUtils.join(acc.tIds, ", ");
 
-		if (sh <= 2 && th <= 2) {
+		if (sh <= Constants.PARALLEL_LINE_SIZE && th <= Constants.PARALLEL_LINE_SIZE) {
 			return new Line(label, sData, tData, ss, tt);
 		} else
 			return new Band(label, sData, tData, ss, tt);
@@ -650,7 +651,9 @@ public class ParaBand extends ABand {
 				}
 			}
 			g.color(c.r, c.g, c.b, c.a * EBandMode.alpha(nrBands));
+			g.lineWidth(Constants.PARALLEL_LINE_SIZE);
 			g.drawPath(false, line);
+			g.lineWidth(1);
 		}
 
 		@Override

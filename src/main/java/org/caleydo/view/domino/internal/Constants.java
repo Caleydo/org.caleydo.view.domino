@@ -11,4 +11,7 @@ package org.caleydo.view.domino.internal;
  */
 public class Constants {
 	public static final float LABEL_SIZE = 14;
+
+	public static final float SCATTER_POINT_SIZE = 4;
+	public static final float PARALLEL_LINE_SIZE = 2;
 }

@@ -18,6 +18,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import javax.media.opengl.GL2ES1;
+
 import org.caleydo.core.data.collection.EDimension;
 import org.caleydo.core.data.selection.SelectionType;
 import org.caleydo.core.id.IDType;
@@ -185,6 +187,8 @@ public abstract class ABand implements ILabeled, IHasMiniMap {
 			renderRoutes(g, host, gdR);
 			break;
 		case DETAIL:
+			boolean smooth = g.gl.glIsEnabled(GL2ES1.GL_POINT_SMOOTH);
+			g.gl.glEnable(GL2ES1.GL_POINT_SMOOTH);
 			final List<? extends IBandRenderAble> lR = detailRoutes();
 			if (lR.isEmpty()) { // auto switch to the previous one
 				mode = EBandMode.GROUPS;
@@ -192,6 +196,8 @@ public abstract class ABand implements ILabeled, IHasMiniMap {
 				return;
 			}
 			renderRoutes(g, host, lR);
+			if (!smooth)
+				g.gl.glDisable(GL2ES1.GL_POINT_SMOOTH);
 			break;
 		}
 	}
