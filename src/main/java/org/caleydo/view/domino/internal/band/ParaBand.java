@@ -517,21 +517,21 @@ public class ParaBand extends ABand {
 			this.shape = new Polygon();
 			if (isHorizontal()) {
 				addPoint(s.x(), s.y());
-				addPoint(s.x() + SHIFT, s.y());
-				addPoint(t.x() - SHIFT, t.y());
+				addPoint(s.x() + SHIFT, s.y() + s.w());
+				addPoint(t.x() - SHIFT, t.y() + t.w());
 				addPoint(t.x(), t.y());
 				addPoint(t.x(), t.y() + t.z());
-				addPoint(t.x() - SHIFT, t.y() + t.z());
-				addPoint(s.x() + SHIFT, s.y() + s.z());
+				addPoint(t.x() - SHIFT, t.y() + t.z() + t.w());
+				addPoint(s.x() + SHIFT, s.y() + s.z() + s.w());
 				addPoint(s.x(), s.y() + s.z());
 			} else {
 				addPoint(s.x(), s.y());
-				addPoint(s.x(), s.y() + SHIFT);
-				addPoint(t.x(), t.y() - SHIFT);
+				addPoint(s.x() + s.w(), s.y() + SHIFT);
+				addPoint(t.x() + t.w(), t.y() - SHIFT);
 				addPoint(t.x(), t.y());
 				addPoint(t.x() + t.z(), t.y());
-				addPoint(t.x() + t.z(), t.y() - SHIFT);
-				addPoint(s.x() + s.z(), s.y() + SHIFT);
+				addPoint(t.x() + t.z() + s.w(), t.y() - SHIFT);
+				addPoint(s.x() + s.z() + t.w(), s.y() + SHIFT);
 				addPoint(s.x() + s.z(), s.y());
 			}
 		}
