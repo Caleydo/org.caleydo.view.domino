@@ -80,6 +80,7 @@ public class String1DDataDomainValues extends A1DDataDomainValues {
 			}
 		};
 		b.put("id2string", toString);
+		b.set("boxHighlights");
 	}
 
 	@Override

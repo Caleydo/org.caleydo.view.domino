@@ -562,6 +562,8 @@ public class ParaBand extends ABand {
 			boolean horizontal = isHorizontal();
 			Vec2f s0 = points.get(0);
 			Vec2f t0 = points.get(3);
+			float sw = horizontal ? (points.get(1).y() - s0.y()) : (points.get(1).x() - s0.x());
+			float tw = horizontal ? (points.get(2).y() - t0.y()) : (points.get(2).x() - t0.x());
 			float sh = horizontal ? points.get(7).y() - s0.y() : points.get(7).x() - s0.x();
 			float th = horizontal ? points.get(4).y() - t0.y() : points.get(4).x() - t0.x();
 
@@ -578,13 +580,13 @@ public class ParaBand extends ABand {
 
 					if (horizontal) {
 						p.add(new Vec2f(t0.x(), t0.y() + th * tf));
-						p.add(new Vec2f(t0.x() - SHIFT, t0.y() + th * tf));
-						p.add(new Vec2f(s0.x() + SHIFT, s0.y() + sh * sf));
+						p.add(new Vec2f(t0.x() - SHIFT, t0.y() + tw + th * tf));
+						p.add(new Vec2f(s0.x() + SHIFT, s0.y() + sw + sh * sf));
 						p.add(new Vec2f(s0.x(), s0.y() + sh * sf));
 					} else {
 						p.add(new Vec2f(t0.x() + th * tf, t0.y()));
-						p.add(new Vec2f(t0.x() + th * tf, t0.y() - SHIFT));
-						p.add(new Vec2f(s0.x() + sh * sf, s0.y() + SHIFT));
+						p.add(new Vec2f(t0.x() + tw + th * tf, t0.y() - SHIFT));
+						p.add(new Vec2f(s0.x() + sw + sh * sf, s0.y() + SHIFT));
 						p.add(new Vec2f(s0.x() + sh * sf, s0.y()));
 					}
 
