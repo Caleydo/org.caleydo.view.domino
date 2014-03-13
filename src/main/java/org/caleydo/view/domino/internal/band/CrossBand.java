@@ -689,7 +689,7 @@ public class CrossBand extends ABand {
 						renderConnector(g, b2);
 				}
 			}
-			if (mode == EBandMode.GROUPS) {
+			if (mode.ordinal() <= EBandMode.GROUPS.ordinal()) {
 				g.color(color.darker());
 				g.drawRect(bounds.x(), bounds.y(), bounds.width(), bounds.height());
 			}
