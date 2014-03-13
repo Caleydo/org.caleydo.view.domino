@@ -595,7 +595,10 @@ public class ParaBand extends ABand {
 				}
 			}
 			g.color(color.r, color.g, color.b, color.a * alpha);
-			g.drawPath(points, true);
+			int shift = mode == EBandMode.GROUPS ? 1 : 0;
+
+			g.drawPath(points.subList(shift, 4 - shift), false);
+			g.drawPath(points.subList(4 + shift, points.size() - shift), false);
 		}
 
 		@Override
