@@ -23,7 +23,7 @@ public class DataTourGuideAdapter extends ATourGuideAdapter {
 
 	@Override
 	public String getLabel() {
-		return "Domino Data";
+		return "Domino Numerical/Matrix Blocks";
 	}
 
 	public static void show() {

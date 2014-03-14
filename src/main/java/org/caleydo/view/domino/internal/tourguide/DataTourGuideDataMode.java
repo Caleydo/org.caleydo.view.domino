@@ -78,15 +78,16 @@ public class DataTourGuideDataMode extends ATourGuideDataMode {
 		table.add(CategoricalRankColumnModel.createSimple(GLRenderers.drawText("Type"), new Function<IRow, String>() {
 			@Override
 			public String apply(IRow input) {
-				return input instanceof DataDomainScoreRow ? "2D" : "1D";
+				return input instanceof DataDomainScoreRow ? "Matrix" : "Numerical";
 			}
 
-		}, Arrays.asList("1D", "2D")));
+		}, Arrays.asList("Numerical", "Matrix")));
 
 		ImmutableSortedSet.Builder<String> s = ImmutableSortedSet.naturalOrder();
 		for (IDCategory cat : EntityTypeSelector.findAllUsedIDCategories())
 			s.add(cat.getCategoryName());
-		table.add(MultiCategoricalRankColumnModel.createSimple(GLRenderers.drawText("Entity Type"), new Function<IRow, Set<String>>() {
+		table.add(MultiCategoricalRankColumnModel.createSimple(GLRenderers.drawText("Item Type"),
+				new Function<IRow, Set<String>>() {
 			@Override
 			public Set<String> apply(IRow input) {
 				if (input instanceof DataDomainScoreRow) {

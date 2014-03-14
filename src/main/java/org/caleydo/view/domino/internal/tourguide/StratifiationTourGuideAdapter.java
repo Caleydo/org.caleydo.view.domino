@@ -9,10 +9,8 @@ import org.caleydo.core.id.IDCategory;
 import org.caleydo.core.id.IDType;
 import org.caleydo.core.util.base.ICallback;
 import org.caleydo.core.view.opengl.layout2.GLElementContainer;
-import org.caleydo.core.view.opengl.layout2.dnd.IDragGLSource;
 import org.caleydo.view.domino.internal.tourguide.ui.EntityTypeSelector;
 import org.caleydo.view.tourguide.api.model.ADataDomainQuery;
-import org.caleydo.view.tourguide.api.model.AScoreRow;
 import org.caleydo.view.tourguide.api.model.ASingleIDDataDomainQuery;
 import org.caleydo.view.tourguide.api.model.InhomogenousDataDomainQuery;
 import org.caleydo.view.tourguide.api.model.StratificationDataDomainQuery;
@@ -33,7 +31,7 @@ public class StratifiationTourGuideAdapter extends ATourGuideAdapter implements 
 
 	@Override
 	public String getLabel() {
-		return "Domino Stratifications";
+		return "Domino Partitioned Blocks";
 	}
 
 	public static void show() {
