@@ -151,6 +151,7 @@ public class Numerical1DMixin {
 
 		b.set("boxandwhiskers.showOutliers");
 		b.set("boxandwhiskers.showMinMax");
+		b.put("sheatmap.frameColor", Color.LIGHT_GRAY);
 	}
 
 	/**

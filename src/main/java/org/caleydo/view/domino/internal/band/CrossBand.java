@@ -5,6 +5,8 @@
  *******************************************************************************/
 package org.caleydo.view.domino.internal.band;
 
+import static org.caleydo.view.domino.internal.band.IBandHost.SourceTarget.SOURCE;
+import static org.caleydo.view.domino.internal.band.IBandHost.SourceTarget.TARGET;
 import gleem.linalg.Vec2f;
 import gleem.linalg.Vec4f;
 
@@ -65,10 +67,10 @@ public class CrossBand extends ABand {
 			TypedSet tShared = shared.slice(tData.getIdType());
 			float sr = ((float) sShared.size()) / sData.size();
 			float tr = ((float) tShared.size()) / tData.size();
-			final float wtotal = (float) tLocator.apply(EBandMode.OVERVIEW, 0).getSize();
-			final float htotal = (float) sLocator.apply(EBandMode.OVERVIEW, 0).getSize();
-			boolean s_top = this.tDim == EDirection.SOUTH;
-			boolean t_left = this.sDim == EDirection.EAST;
+			boolean s_top = this.tDir == EDirection.SOUTH;
+			boolean t_left = this.sDir == EDirection.EAST;
+			final float wtotal = (float) locT(EBandMode.OVERVIEW, 0).getSize();
+			final float htotal = (float) locS(EBandMode.OVERVIEW, 0).getSize();
 			Rect bounds = new Rect(tLoc.x() + (t_left ? ((1 - tr) * wtotal) : 0), sLoc.y()
 					+ (!s_top ? 0 : (1 - sr) * htotal), tr * wtotal, sr * htotal);
 			this.overview = new Disc(label, bounds, sShared, tShared, sLoc.x(), tLoc.y());
@@ -79,15 +81,15 @@ public class CrossBand extends ABand {
 			if (sr < 1) {
 				// add a non-mapped indicator
 				TypedSet sNotMapped = sData.asSet().difference(sShared);
-				Pair<Vec4f, Vec4f> r = notMappedConnectors(SourceTarget.SOURCE, sr);
+				Pair<Vec4f, Vec4f> r = notMappedConnectors(SOURCE, sr);
 				overviewRoutes.add(new NotMapped(split[0] + " x Not Mapped", sNotMapped, TypedCollections.empty(tData
-						.getIdType()), SourceTarget.SOURCE, r.getFirst(), r.getSecond(), sDim));
+						.getIdType()), SOURCE, r.getFirst(), r.getSecond(), sDir));
 			}
 			if (tr < 1) {
 				TypedSet tNotMapped = tData.asSet().difference(tShared);
-				Pair<Vec4f, Vec4f> r = notMappedConnectors(SourceTarget.TARGET, tr);
+				Pair<Vec4f, Vec4f> r = notMappedConnectors(TARGET, tr);
 				overviewRoutes.add(new NotMapped("Not Mapped x " + split[1], TypedCollections.empty(sData.getIdType()),
-						tNotMapped, SourceTarget.TARGET, r.getFirst(), r.getSecond(), tDim));
+						tNotMapped, TARGET, r.getFirst(), r.getSecond(), tDir));
 			}
 		}
 	}
@@ -98,8 +100,8 @@ public class CrossBand extends ABand {
 	 * @return
 	 */
 	private Pair<Vec4f, Vec4f> notMappedConnectors(SourceTarget source, float ratio) {
-		final float wtotal = (float) tLocator.apply(EBandMode.OVERVIEW, 0).getSize();
-		final float htotal = (float) sLocator.apply(EBandMode.OVERVIEW, 0).getSize();
+		final float wtotal = (float) locT(EBandMode.OVERVIEW, 0).getSize();
+		final float htotal = (float) locS(EBandMode.OVERVIEW, 0).getSize();
 		if (source == SourceTarget.SOURCE) {
 			return notMappedConnectors(source, (1 - ratio) * htotal, (ratio * htotal), wtotal);
 		} else {
@@ -108,13 +110,13 @@ public class CrossBand extends ABand {
 	}
 
 	private Pair<Vec4f, Vec4f> notMappedConnectors(SourceTarget source, float offset, float size, float otherTotal) {
-		boolean s_top = this.tDim == EDirection.SOUTH;
-		boolean t_left = this.sDim == EDirection.EAST;
+		boolean s_top = this.tDir == EDirection.SOUTH;
+		boolean t_left = this.sDir == EDirection.EAST;
 
 		Vec4f sv, tv;
 		if (source == SourceTarget.SOURCE) {
 			final float s_y = sLoc.y() + (s_top ? 0 : size);
-			if (this.sDim == EDirection.WEST) {
+			if (this.sDir == EDirection.WEST) {
 				sv = new Vec4f(tLoc.x(), s_y, offset, 0);
 				tv = new Vec4f(tLoc.x() + otherTotal, s_y, 0, 0);
 			} else {
@@ -123,7 +125,7 @@ public class CrossBand extends ABand {
 			}
 		} else {
 			final float t_x = tLoc.x() + (t_left ? 0 : size);
-			if (this.tDim == EDirection.SOUTH) {
+			if (this.tDir == EDirection.SOUTH) {
 				sv = new Vec4f(t_x, sLoc.y(), 0, 0);
 				tv = new Vec4f(t_x, sLoc.y() + otherTotal, offset, 0);
 			} else {
@@ -140,10 +142,10 @@ public class CrossBand extends ABand {
 		{
 			float sr = ((float) overview.sShared.size()) / sData.size();
 			float tr = ((float) overview.tShared.size()) / tData.size();
-			final float wtotal = (float) tLocator.apply(EBandMode.OVERVIEW, 0).getSize();
-			final float htotal = (float) sLocator.apply(EBandMode.OVERVIEW, 0).getSize();
-			boolean s_top = this.tDim == EDirection.SOUTH;
-			boolean t_left = this.sDim == EDirection.EAST;
+			final float wtotal = (float) locT(EBandMode.OVERVIEW, 0).getSize();
+			final float htotal = (float) locS(EBandMode.OVERVIEW, 0).getSize();
+			boolean s_top = this.tDir == EDirection.SOUTH;
+			boolean t_left = this.sDir == EDirection.EAST;
 			Rect bounds = new Rect(tLoc.x() + (t_left ? ((1 - tr) * wtotal) : 0), sLoc.y()
 					+ (!s_top ? 0 : (1 - sr) * htotal), tr * wtotal, sr * htotal);
 			this.overview = new Disc(overview.getLabel(), bounds, overview.sShared, overview.tShared, sLoc.x(),
@@ -155,7 +157,7 @@ public class CrossBand extends ABand {
 				Pair<Vec4f, Vec4f> r = notMappedConnectors(SourceTarget.SOURCE, sr);
 				overviewRoutes
 .add(new NotMapped(m.getLabel(), m.sShared, m.tShared, SourceTarget.SOURCE, r.getFirst(),
-						r.getSecond(), sDim));
+						r.getSecond(), sDir));
 			}
 			if (tr < 1) {
 				int index = sr < 1 ? 2 : 1;
@@ -163,7 +165,7 @@ public class CrossBand extends ABand {
 				Pair<Vec4f, Vec4f> r = notMappedConnectors(SourceTarget.TARGET, tr);
 				overviewRoutes
 .add(new NotMapped(m.getLabel(), m.sShared, m.tShared, SourceTarget.TARGET, r.getFirst(),
-						r.getSecond(), tDim));
+						r.getSecond(), tDir));
 			}
 		}
 	}
@@ -200,13 +202,13 @@ public class CrossBand extends ABand {
 		if (super.intersects(bounds))
 			return true;
 		// TODO check adapter
-		final float hs = (float) sLocator.apply(EBandMode.OVERVIEW, 0).getSize();
-		final float wt = (float) tLocator.apply(EBandMode.OVERVIEW, 0).getSize();
+		final float hs = (float) locS(EBandMode.OVERVIEW, 0).getSize();
+		final float wt = (float) locT(EBandMode.OVERVIEW, 0).getSize();
 
 		{
 			float x;
 			float w;
-			if (sDim == EDirection.WEST) {
+			if (sDir == EDirection.WEST) {
 				x = sLoc.x();
 				w = tLoc.x() - sLoc.x();
 			} else {
@@ -219,7 +221,7 @@ public class CrossBand extends ABand {
 		{
 			float y;
 			float h;
-			if (tDim == EDirection.NORTH) {
+			if (tDir == EDirection.NORTH) {
 				y = tLoc.y();
 				h = sLoc.y() - tLoc.y();
 			} else {
@@ -236,14 +238,14 @@ public class CrossBand extends ABand {
 
 	private void renderAdapter(GLGraphics g) {
 		g.color(EBandMode.OVERVIEW.getColor());
-		final float hs = (float) sLocator.apply(EBandMode.OVERVIEW, 0).getSize();
-		final float wt = (float) tLocator.apply(EBandMode.OVERVIEW, 0).getSize();
+		final float hs = (float) locS(EBandMode.OVERVIEW, 0).getSize();
+		final float wt = (float) locT(EBandMode.OVERVIEW, 0).getSize();
 
 		{
 			float x;
 			float w;
 			final int sGroups = sData.getGroups().size();
-			if (sDim == EDirection.WEST) {
+			if (sDir == EDirection.WEST) {
 				x = sLoc.x();
 				w = tLoc.x() - sLoc.x();
 			} else {
@@ -254,7 +256,7 @@ public class CrossBand extends ABand {
 				g.fillRect(x, sLoc.y(), w, hs);
 			else {
 				for (int i = 0; i < sGroups; ++i) {
-					GLLocation gi = sLocator.apply(EBandMode.GROUPS, i);
+					GLLocation gi = locS(EBandMode.GROUPS, i);
 					g.fillRect(x, sLoc.y() + (float) gi.getOffset(), w, (float) gi.getSize());
 				}
 			}
@@ -263,7 +265,7 @@ public class CrossBand extends ABand {
 			float y;
 			float h;
 			final int tGroups = tData.getGroups().size();
-			if (tDim == EDirection.NORTH) {
+			if (tDir == EDirection.NORTH) {
 				y = tLoc.y();
 				h = sLoc.y() - tLoc.y();
 			} else {
@@ -274,7 +276,7 @@ public class CrossBand extends ABand {
 				g.fillRect(tLoc.x(), y, wt, h);
 			else {
 				for (int i = 0; i < tGroups; ++i) {
-					GLLocation gi = tLocator.apply(EBandMode.GROUPS, i);
+					GLLocation gi = locT(EBandMode.GROUPS, i);
 					g.fillRect(tLoc.x() + (float) gi.getOffset(), y, (float) gi.getSize(), h);
 				}
 			}
@@ -286,12 +288,12 @@ public class CrossBand extends ABand {
 		g.color(c.r, c.g, c.b, 0.5f);
 		float xStart = this.sLoc.x();
 		float yStart = this.tLoc.y();
-		if (sDim == EDirection.WEST)
+		if (sDir == EDirection.WEST)
 			smallRect(g, xStart, bounds.y(), bounds.x() - xStart, bounds.height());
 		else {
 			smallRect(g, bounds.x2(), bounds.y(), xStart - bounds.x2(), bounds.height());
 		}
-		if (tDim == EDirection.NORTH)
+		if (tDir == EDirection.NORTH)
 			smallRect(g, bounds.x(), yStart, bounds.width(), bounds.y() - yStart);
 		else {
 			smallRect(g, bounds.x(), bounds.y2(), bounds.width(), yStart - bounds.y2());
@@ -327,8 +329,8 @@ public class CrossBand extends ABand {
 
 		final TypedSet tEmpty = TypedCollections.empty(tData.getIdType());
 		final TypedSet sEmpty = TypedCollections.empty(sData.getIdType());
-		final float wtotal = (float) tLocator.apply(EBandMode.OVERVIEW, 0).getSize();
-		final float htotal = (float) sLocator.apply(EBandMode.OVERVIEW, 0).getSize();
+		final float wtotal = (float) locT(EBandMode.OVERVIEW, 0).getSize();
+		final float htotal = (float) locS(EBandMode.OVERVIEW, 0).getSize();
 
 		// for each left groups check all right groups
 		for (int i = 0; i < sgroups.size(); ++i) {
@@ -336,7 +338,7 @@ public class CrossBand extends ABand {
 			TypedSet sset = sSets.get(i);
 			if (sset.isEmpty())
 				continue;
-			GLLocation sgroupLocation = sLocator.apply(EBandMode.GROUPS, i);
+			GLLocation sgroupLocation = locS(EBandMode.GROUPS, i);
 			int sinneracc = 0;
 			final double sFactor = sgroupLocation.getSize() / sgroup.size();
 			double y = sLoc.y() + sgroupLocation.getOffset();
@@ -351,7 +353,7 @@ public class CrossBand extends ABand {
 				if (shared.isEmpty()) // nothing shared
 					continue;
 
-				GLLocation tgroupLocation = tLocator.apply(EBandMode.GROUPS, j);
+				GLLocation tgroupLocation = locT(EBandMode.GROUPS, j);
 
 				double x = tLoc.x() + tgroupLocation.getOffset();
 
@@ -378,7 +380,7 @@ public class CrossBand extends ABand {
 				Pair<Vec4f, Vec4f> r = notMappedConnectors(SourceTarget.SOURCE, s1, (float) (sgroupLocation.getSize())
 						- s1, wtotal);
 				groupRoutes.add(new NotMapped(sgroup.getLabel() + " x Not Mapped", notMappedIds, tEmpty,
-						SourceTarget.SOURCE, r.getFirst(), r.getSecond(), sDim));
+						SourceTarget.SOURCE, r.getFirst(), r.getSecond(), sDir));
 			}
 		}
 
@@ -387,7 +389,7 @@ public class CrossBand extends ABand {
 			final int notMapped = tgroup.size() - tinneracc[i];
 			if (notMapped <= 0)
 				continue;
-			GLLocation tgroupLocation = tLocator.apply(EBandMode.GROUPS, i);
+			GLLocation tgroupLocation = locT(EBandMode.GROUPS, i);
 			final double tFactor = tgroupLocation.getSize() / tgroup.size();
 			TypedSet notMappedIds = tgroup.asSet().difference(overview.tShared);
 			double x = tLoc.x() + tgroupLocation.getOffset();
@@ -395,7 +397,7 @@ public class CrossBand extends ABand {
 			Pair<Vec4f, Vec4f> r = notMappedConnectors(SourceTarget.TARGET, s1,
 					(float) (tgroupLocation.getSize()) - s1, htotal);
 			groupRoutes.add(new NotMapped("Not Mapped x " + tgroup.getLabel(), sEmpty, notMappedIds,
-					SourceTarget.SOURCE, r.getFirst(), r.getSecond(), tDim));
+					SourceTarget.SOURCE, r.getFirst(), r.getSecond(), tDir));
 		}
 
 		return groupRoutes;
@@ -420,7 +422,7 @@ public class CrossBand extends ABand {
 			if (indices.isEmpty()) {
 				continue;
 			}
-			GLLocation slocation = sLocator.apply(EBandMode.DETAIL, i);
+			GLLocation slocation = locS(EBandMode.DETAIL, i);
 			if (!slocation.isDefined()) {
 				continue;
 			}
@@ -430,7 +432,7 @@ public class CrossBand extends ABand {
 				if (tindices.isEmpty())
 					continue;
 				for (int tindex : tindices) {
-					GLLocation tlocation = tLocator.apply(EBandMode.DETAIL, tindex);
+					GLLocation tlocation = locT(EBandMode.DETAIL, tindex);
 					if (!tlocation.isDefined())
 						continue;
 					boolean merged = false;
@@ -556,8 +558,8 @@ public class CrossBand extends ABand {
 		private void renderBox(GLGraphics g, boolean fill, float wFactor, float hFactor) {
 			final Rect b = bounds;
 			if (fill) {
-				if (sDim == EDirection.WEST) {
-					if (tDim == EDirection.NORTH) {
+				if (sDir == EDirection.WEST) {
+					if (tDir == EDirection.NORTH) {
 						g.fillRect(xStart, b.y(), b.x() - xStart, b.height() * hFactor);
 						g.fillRect(b.x(), yStart, b.width() * wFactor, b.y() - yStart + b.height()
 								* hFactor);
@@ -567,7 +569,7 @@ public class CrossBand extends ABand {
 								yStart - b.y2() + b.height() * hFactor);
 					}
 				} else {
-					if (tDim == EDirection.NORTH) {
+					if (tDir == EDirection.NORTH) {
 						g.fillRect(b.x2(), b.y(), xStart - b.x2(), b.height() * hFactor);
 						g.fillRect(b.x() + (b.width() * (1 - wFactor)), yStart, b.width() * wFactor,
 								b.y() - yStart + b.height() * hFactor);
@@ -579,8 +581,8 @@ public class CrossBand extends ABand {
 					}
 				}
 			} else {
-				if (sDim == EDirection.WEST) {
-					if (tDim == EDirection.NORTH) {
+				if (sDir == EDirection.WEST) {
+					if (tDir == EDirection.NORTH) {
 						g.drawPath(true, v(xStart, b.y()), b.xy(), v(b.x(), yStart), v(b.x2(), yStart), b.x2y2(),
 								v(xStart, b.y2()));
 					} else {
@@ -588,7 +590,7 @@ public class CrossBand extends ABand {
 								v(xStart, b.y2()));
 					}
 				} else {
-					if (tDim == EDirection.NORTH) {
+					if (tDir == EDirection.NORTH) {
 						g.drawPath(true, v(b.x(), yStart), v(b.x2(), yStart), b.x2y(), v(xStart, b.y()),
 								v(xStart, b.y2()), b.xy2());
 					} else {

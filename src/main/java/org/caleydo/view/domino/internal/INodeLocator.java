@@ -14,7 +14,7 @@ import org.caleydo.view.domino.internal.band.EBandMode;
  *
  */
 public interface INodeLocator {
-	GLLocation apply(EBandMode mode, int index);
+	GLLocation apply(EBandMode mode, int index, boolean topLeft);
 
 	boolean hasLocator(EBandMode mode);
 }
@@ -38,15 +38,15 @@ class NodeLocator implements INodeLocator {
 	}
 
 	@Override
-	public GLLocation apply(EBandMode mode, int index) {
+	public GLLocation apply(EBandMode mode, int index, boolean topLeft) {
 		switch (mode) {
 		case OVERVIEW:
 			return node;
 		case GROUPED_DETAIL:
 		case GROUPS:
-			return groupLocator.apply(index);
+			return groupLocator.apply(index, topLeft);
 		case DETAIL:
-			return detailLocator.apply(index);
+			return detailLocator.apply(index, topLeft);
 		}
 		throw new IllegalStateException();
 	}

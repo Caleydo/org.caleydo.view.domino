@@ -5,6 +5,8 @@
  *******************************************************************************/
 package org.caleydo.view.domino.internal.band;
 
+import static org.caleydo.view.domino.internal.band.IBandHost.SourceTarget.SOURCE;
+import static org.caleydo.view.domino.internal.band.IBandHost.SourceTarget.TARGET;
 import gleem.linalg.Vec2f;
 import gleem.linalg.Vec4f;
 
@@ -46,7 +48,6 @@ import com.google.common.collect.ImmutableMultimap.Builder;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Table;
-
 /**
  * @author Samuel Gratzl
  *
@@ -68,8 +69,8 @@ public class ParaBand extends ABand {
 			TypedSet tShared = shared.slice(tData.getIdType());
 			float sr = ((float) sShared.size()) / sData.size();
 			float tr = ((float) tShared.size()) / tData.size();
-			Vec4f sv = toVec3(sLoc, sLocator, sr, 0);
-			Vec4f tv = toVec3(tLoc, tLocator, tr, 0);
+			Vec4f sv = toVec3(sLoc, SOURCE, sr, 0);
+			Vec4f tv = toVec3(tLoc, TARGET, tr, 0);
 			this.overview = new Band(label, sShared, tShared, sv, tv);
 
 			EDirection which = sDim.isHorizontal() ? tDim : sDim;
@@ -78,27 +79,27 @@ public class ParaBand extends ABand {
 			if (sr < 1) {
 				// add a non-mapped indicator
 				TypedSet sNotMapped = sData.asSet().difference(sShared);
-				sv = toVec3(sLoc, sLocator, (1 - sr), sr);
+				sv = toVec3(sLoc, SOURCE, (1 - sr), sr);
 				overviewRoutes.add(new NotMapped(split[0] + " x Not Mapped", sNotMapped, TypedCollections.empty(tData
-						.getIdType()), SourceTarget.SOURCE, sv, toVec3(t, tLocator, 1, 0), which));
+						.getIdType()), SOURCE, sv, toVec3(t, TARGET, 1, 0), which));
 			}
 			if (tr < 1) {
 				TypedSet tNotMapped = tData.asSet().difference(tShared);
-				tv = toVec3(tLoc, tLocator, (1 - tr), tr);
+				tv = toVec3(tLoc, TARGET, (1 - tr), tr);
 				overviewRoutes.add(new NotMapped("Not Mapped x " + split[1], TypedCollections.empty(sData.getIdType()),
-						tNotMapped, SourceTarget.TARGET, toVec3(s, sLocator, 1, 0), tv, which));
+						tNotMapped, TARGET, toVec3(s, SOURCE, 1, 0), tv, which));
 			}
 		}
 	}
 
 	public boolean isHorizontal() {
-		return sDim.isHorizontal();
+		return sDir.isHorizontal();
 	}
 
 
-	private Vec4f toVec3(Vec2f xy, INodeLocator loc, float scale, float move) {
+	private Vec4f toVec3(Vec2f xy, SourceTarget st, float scale, float move) {
 		// x, y, size, 0
-		GLLocation l = loc.apply(EBandMode.OVERVIEW, 0);
+		GLLocation l = loc(st, EBandMode.OVERVIEW, 0);
 		if (isHorizontal())
 			return new Vec4f(xy.x(), xy.y() + (float) l.getOffset() + (float) l.getSize() * move, (float) l.getSize()
 					* scale, 0);
@@ -119,21 +120,22 @@ public class ParaBand extends ABand {
 			float sr = ((float) overview.sShared.size()) / sData.size();
 			float tr = ((float) overview.tShared.size()) / tData.size();
 			this.overview = new Band(overview.getLabel(), overview.sShared, overview.tShared,
-					toVec3(s, sLocator, sr, 0), toVec3(t, tLocator, tr, 0));
+ toVec3(s, SOURCE, sr, 0),
+					toVec3(t, TARGET, tr, 0));
 			overviewRoutes.set(0, this.overview);
 			if (sr < 1) {
 				NotMapped m = (NotMapped) overviewRoutes.get(1);
 				// add a non-mapped indicator
-				Vec4f sv = toVec3(s, sLocator, (1 - sr), sr);
+				Vec4f sv = toVec3(s, SOURCE, (1 - sr), sr);
 				overviewRoutes.set(1, new NotMapped(m.getLabel(), m.sShared, m.tShared, SourceTarget.SOURCE, sv,
-						toVec3(t, tLocator, 1, 0), sDim));
+						toVec3(t, TARGET, 1, 0), sDir));
 			}
 			if (tr < 1) {
 				int index = sr < 1 ? 2 : 1;
 				NotMapped m = (NotMapped) overviewRoutes.get(index);
-				Vec4f tv = toVec3(t, tLocator, (1 - tr), tr);
+				Vec4f tv = toVec3(t, TARGET, (1 - tr), tr);
 				overviewRoutes.set(index, new NotMapped(m.getLabel(), m.sShared, m.tShared, SourceTarget.TARGET,
-						toVec3(t, tLocator, 1, 0), tv, sDim));
+						toVec3(t, TARGET, 1, 0), tv, sDir));
 			}
 		}
 	}
@@ -160,7 +162,7 @@ public class ParaBand extends ABand {
 		List<TypedSet> sSets = new ArrayList<>();
 		List<TypedSet> tSets = new ArrayList<>();
 
-		EDirection which = sDim.isHorizontal() ? tDim : sDim;
+		EDirection which = sDir.isHorizontal() ? tDir : sDir;
 
 		// convert all to the subset of the shared set
 		final List<TypedListGroup> sgroups = sData.getGroups();
@@ -181,8 +183,8 @@ public class ParaBand extends ABand {
 
 		final boolean horizontal = isHorizontal();
 
-		Vec4f sTotal = toVec3(this.s, sLocator, 1, 0);
-		Vec4f tTotal = toVec3(this.t, tLocator, 1, 0);
+		Vec4f sTotal = toVec3(this.s, SOURCE, 1, 0);
+		Vec4f tTotal = toVec3(this.t, TARGET, 1, 0);
 
 		// for each left groups check all right groups
 		for (int i = 0; i < sgroups.size(); ++i) {
@@ -190,7 +192,7 @@ public class ParaBand extends ABand {
 			TypedSet sset = sSets.get(i);
 			if (sset.isEmpty())
 				continue;
-			GLLocation sgroupLocation = sLocator.apply(EBandMode.GROUPS, i);
+			GLLocation sgroupLocation = locS(EBandMode.GROUPS, i);
 			int sinneracc = 0;
 			final double sFactor = sgroupLocation.getSize() / sgroup.size();
 			for (int j = 0; j < tgroups.size(); ++j) {
@@ -203,7 +205,7 @@ public class ParaBand extends ABand {
 				if (shared.isEmpty()) // nothing shared
 					continue;
 
-				GLLocation tgroupLocation = tLocator.apply(EBandMode.GROUPS, j);
+				GLLocation tgroupLocation = locT(EBandMode.GROUPS, j);
 				final double tFactor = tgroupLocation.getSize() / tgroup.size();
 				TypedSet sShared = shared.slice(sData.getIdType());
 				TypedSet tShared = shared.slice(tData.getIdType());
@@ -245,7 +247,7 @@ public class ParaBand extends ABand {
 			final int notMapped = tgroup.size() - tinneracc[i];
 			if (notMapped <= 0)
 				continue;
-			GLLocation tgroupLocation = tLocator.apply(EBandMode.GROUPS, i);
+			GLLocation tgroupLocation = locT(EBandMode.GROUPS, i);
 			final double tFactor = tgroupLocation.getSize() / tgroup.size();
 			TypedSet notMappedIds = tgroup.asSet().difference(overview.tShared);
 			double s1 = (tgroupLocation.getOffset() + tinneracc[i] * tFactor);
@@ -288,7 +290,7 @@ public class ParaBand extends ABand {
 				if (indices.isEmpty()) { // not shared
 					continue;
 				}
-				GLLocation slocation = sLocator.apply(EBandMode.DETAIL, i);
+				GLLocation slocation = locS(EBandMode.DETAIL, i);
 				if (!slocation.isDefined()) { // don't know where it is
 					continue;
 				}
@@ -300,7 +302,7 @@ public class ParaBand extends ABand {
 					if (tindices.isEmpty())
 						continue;
 					for (int tindex : tindices) {
-						GLLocation tlocation = tLocator.apply(EBandMode.DETAIL, tindex);
+						GLLocation tlocation = locT(EBandMode.DETAIL, tindex);
 						if (!tlocation.isDefined())
 							continue;
 						Vec2f tloc = new Vec2f((float) tlocation.getOffset(), (float) tlocation.getOffset2());
@@ -323,7 +325,7 @@ public class ParaBand extends ABand {
 		for (int ig = 0; ig < sgroups.size(); ++ig) {
 			final TypedListGroup sgroup = sgroups.get(ig);
 			Map<TypedListGroup, NavigableSet<LineAcc>> row = lines.row(sgroup);
-			GLLocation gLocation = sLocator.apply(EBandMode.GROUPS, ig);
+			GLLocation gLocation = locS(EBandMode.GROUPS, ig);
 			float factor = (float) gLocation.getSize() / sgroup.size();
 			int j = 0;
 			for (NavigableSet<LineAcc> stlines : row.values()) {
@@ -338,7 +340,7 @@ public class ParaBand extends ABand {
 		for (int ig = 0; ig < tgroups.size(); ++ig) {
 			final TypedListGroup tgroup = tgroups.get(ig);
 			Map<TypedListGroup, NavigableSet<LineAcc>> col = lines.column(tgroup);
-			GLLocation gLocation = tLocator.apply(EBandMode.GROUPS, ig);
+			GLLocation gLocation = locT(EBandMode.GROUPS, ig);
 			float factor = (float) gLocation.getSize() / tgroup.size();
 			int j = 0;
 			for (NavigableSet<LineAcc> stlines : col.values()) {
@@ -384,7 +386,7 @@ public class ParaBand extends ABand {
 			if (indices.isEmpty()) {
 				continue;
 			}
-			GLLocation slocation = sLocator.apply(EBandMode.DETAIL, i);
+			GLLocation slocation = locS(EBandMode.DETAIL, i);
 			if (!slocation.isDefined()) {
 				continue;
 			}
@@ -395,7 +397,7 @@ public class ParaBand extends ABand {
 				if (tindices.isEmpty())
 					continue;
 				for (int tindex : tindices) {
-					GLLocation tlocation = tLocator.apply(EBandMode.DETAIL, tindex);
+					GLLocation tlocation = locT(EBandMode.DETAIL, tindex);
 					if (!tlocation.isDefined())
 						continue;
 					Vec2f tloc = new Vec2f((float) tlocation.getOffset(), (float) tlocation.getOffset2());

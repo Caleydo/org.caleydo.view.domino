@@ -29,6 +29,7 @@ import org.caleydo.core.util.color.Color;
 import org.caleydo.core.view.opengl.layout2.GLElement.EVisibility;
 import org.caleydo.core.view.opengl.layout2.GLGraphics;
 import org.caleydo.core.view.opengl.layout2.geom.Rect;
+import org.caleydo.core.view.opengl.layout2.manage.GLLocation;
 import org.caleydo.core.view.opengl.layout2.util.PickingPool;
 import org.caleydo.core.view.opengl.util.gleem.ColoredVec2f;
 import org.caleydo.core.view.opengl.util.spline.TesselatedPolygons;
@@ -58,10 +59,10 @@ public abstract class ABand implements ILabeled, IHasMiniMap {
 
 	protected EBandMode mode = EBandMode.GROUPS;
 
-	protected INodeLocator sLocator, tLocator;
+	private INodeLocator sLocator, tLocator;
 
-	protected final EDirection sDim;
-	protected final EDirection tDim;
+	protected final EDirection sDir;
+	protected final EDirection tDir;
 
 	private final String identifier;
 
@@ -77,9 +78,23 @@ public abstract class ABand implements ILabeled, IHasMiniMap {
 		this.tData = tData;
 		this.sLocator = sLocator;
 		this.tLocator = tLocator;
-		this.sDim = sDim;
-		this.tDim = tDim;
+		this.sDir = sDim;
+		this.tDir = tDim;
 		this.identifier = identifier;
+	}
+
+	protected GLLocation locS(EBandMode mode, int id) {
+		return sLocator.apply(mode, id, !sDir.isPrimaryDirection());
+	}
+
+	protected GLLocation loc(SourceTarget st, EBandMode mode, int id) {
+		if (st == SourceTarget.SOURCE)
+			return locS(mode, id);
+		return locT(mode, id);
+	}
+
+	protected GLLocation locT(EBandMode mode, int id) {
+		return tLocator.apply(mode, id, !tDir.isPrimaryDirection());
 	}
 
 	public INodeLocator getLocator(SourceTarget type) {
@@ -115,7 +130,7 @@ public abstract class ABand implements ILabeled, IHasMiniMap {
 	}
 
 	public EDimension getDimension(SourceTarget type) {
-		return type.select(sDim, tDim).asDim();
+		return type.select(sDir, tDir).asDim();
 	}
 
 	public Pair<TypedSet, TypedSet> intersectingIds(Rectangle2D bounds) {
@@ -392,7 +407,7 @@ public abstract class ABand implements ILabeled, IHasMiniMap {
 	 * @return
 	 */
 	public EDirection getAttachingDirection(SourceTarget type) {
-		return type.select(sDim, tDim);
+		return type.select(sDir, tDir);
 	}
 
 	@Override

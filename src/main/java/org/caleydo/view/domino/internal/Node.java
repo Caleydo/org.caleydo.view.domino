@@ -985,7 +985,7 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 		final List<NodeGroup> groups = getGroupNeighbors(EDirection.getPrimary(dim.opposite()));
 		return new GLLocation.ALocator() {
 			@Override
-			public GLLocation apply(int dataIndex) {
+			public GLLocation apply(int dataIndex, boolean topLeft) {
 				NodeGroup g = groups.get(dataIndex);
 				double offset = dim.select(g.getLocation()) + BORDER;
 				double size = dim.select(g.getSize()) - BORDER * 2;
@@ -1032,10 +1032,10 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 		}
 		return new GLLocation.ALocator() {
 			@Override
-			public GLLocation apply(int dataIndex) {
+			public GLLocation apply(int dataIndex, boolean topLeft) {
 				for (GroupLocator loc : locators) {
 					if (loc.in(dataIndex)) {
-						return loc.apply(dataIndex);
+						return loc.apply(dataIndex, topLeft);
 					}
 				}
 				return GLLocation.UNKNOWN;
@@ -1084,8 +1084,8 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 		}
 
 		@Override
-		public GLLocation apply(int dataIndex) {
-			return locator.apply(dataIndex - dataOffset);
+		public GLLocation apply(int dataIndex, boolean topLeft) {
+			return locator.apply(dataIndex - dataOffset, topLeft);
 		}
 
 		@Override

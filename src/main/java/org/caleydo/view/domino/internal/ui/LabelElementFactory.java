@@ -514,15 +514,15 @@ public class LabelElementFactory implements IGLElementFactory2 {
 		}
 
 		@Override
-		public GLLocation apply(int dataIndex) {
+		public GLLocation apply(int dataIndex, boolean topLeft) {
 			float size = dim.select(getSize());
 			float per = size / this.data.size();
 			return new GLLocation(dataIndex * per, per);
 		}
 
 		@Override
-		public GLLocation apply(Integer input) {
-			return GLLocation.applyPrimitive(this, input);
+		public GLLocation apply(Integer input, Boolean topLeft) {
+			return GLLocation.applyPrimitive(this, input, topLeft);
 		}
 
 		@Override
