@@ -57,7 +57,7 @@ public class Resources {
 
 	public static final URL ICON_STATE_MOVE = icon("transform_move.png");
 	public static final URL ICON_STATE_SELECT = icon("select.png");
-	public static final URL ICON_STATE_BANDS = ICON_MISSING;
+	public static final URL ICON_STATE_BANDS = icon("bandmode.png");
 
 	public static final URL ICON_SELECT_REC = icon("select_rec.png");
 	public static final URL ICON_SELECT_DIM = icon("select_dim.png");
