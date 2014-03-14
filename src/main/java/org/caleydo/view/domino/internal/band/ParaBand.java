@@ -593,13 +593,16 @@ public class ParaBand extends ABand {
 					}
 
 					g.fillPolygon(TesselatedPolygons.polygon2(p));
+					renderBandOutline(g, p, 0);
 				}
 			}
 			g.color(color.r, color.g, color.b, color.a * alpha);
-			int shift = mode == EBandMode.GROUPS ? 1 : 0;
+			renderBandOutline(g, points, mode == EBandMode.GROUPS ? 1 : 0);
+		}
 
-			g.drawPath(points.subList(shift, 4 - shift), false);
-			g.drawPath(points.subList(4 + shift, points.size() - shift), false);
+		private void renderBandOutline(GLGraphics g, List<Vec2f> p, int shift) {
+			g.drawPath(p.subList(shift, 4 - shift), false);
+			g.drawPath(p.subList(4 + shift, p.size() - shift), false);
 		}
 
 		@Override
