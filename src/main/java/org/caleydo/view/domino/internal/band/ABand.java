@@ -37,6 +37,7 @@ import org.caleydo.view.domino.api.model.typed.MultiTypedSet;
 import org.caleydo.view.domino.api.model.typed.TypedCollections;
 import org.caleydo.view.domino.api.model.typed.TypedGroupList;
 import org.caleydo.view.domino.api.model.typed.TypedSet;
+import org.caleydo.view.domino.internal.Constants;
 import org.caleydo.view.domino.internal.INodeLocator;
 import org.caleydo.view.domino.internal.MiniMapCanvas.IHasMiniMap;
 import org.caleydo.view.domino.internal.band.IBandHost.SourceTarget;
@@ -183,12 +184,19 @@ public abstract class ABand implements ILabeled, IHasMiniMap {
 			renderRoutes(g, host, gR);
 			break;
 		case GROUPED_DETAIL:
-			final Collection<? extends IBandRenderAble> gdR = groupDetailRoutes();
-			renderRoutes(g, host, gdR);
-			break;
-		case DETAIL:
 			boolean smooth = g.gl.glIsEnabled(GL2ES1.GL_POINT_SMOOTH);
 			g.gl.glEnable(GL2ES1.GL_POINT_SMOOTH);
+			g.pointSize(Constants.SCATTER_POINT_SIZE);
+			final Collection<? extends IBandRenderAble> gdR = groupDetailRoutes();
+			renderRoutes(g, host, gdR);
+			if (!smooth)
+				g.gl.glDisable(GL2ES1.GL_POINT_SMOOTH);
+			g.pointSize(1);
+			break;
+		case DETAIL:
+			smooth = g.gl.glIsEnabled(GL2ES1.GL_POINT_SMOOTH);
+			g.gl.glEnable(GL2ES1.GL_POINT_SMOOTH);
+			g.pointSize(Constants.SCATTER_POINT_SIZE);
 			final List<? extends IBandRenderAble> lR = detailRoutes();
 			if (lR.isEmpty()) { // auto switch to the previous one
 				mode = EBandMode.GROUPS;
@@ -198,6 +206,7 @@ public abstract class ABand implements ILabeled, IHasMiniMap {
 			renderRoutes(g, host, lR);
 			if (!smooth)
 				g.gl.glDisable(GL2ES1.GL_POINT_SMOOTH);
+			g.pointSize(1);
 			break;
 		}
 	}

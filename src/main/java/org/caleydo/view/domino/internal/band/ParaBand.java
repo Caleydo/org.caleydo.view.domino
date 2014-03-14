@@ -436,7 +436,8 @@ public class ParaBand extends ABand {
 		}
 		String label = StringUtils.join(acc.sIds, ", ") + " x " + StringUtils.join(acc.tIds, ", ");
 
-		if (sh <= Constants.PARALLEL_LINE_SIZE && th <= Constants.PARALLEL_LINE_SIZE) {
+		if (mode.compareTo(EBandMode.GROUPED_DETAIL) >= 0) {// sh <= Constants.PARALLEL_LINE_SIZE && th <=
+															// Constants.PARALLEL_LINE_SIZE) {
 			return new Line(label, sData, tData, ss, tt);
 		} else
 			return new Band(label, sData, tData, ss, tt);
@@ -619,7 +620,8 @@ public class ParaBand extends ABand {
 	}
 
 	private class Line extends ARelation {
-		private Vec2f[] line;
+		private final Vec2f[] line;
+		private final boolean renderLeftDot, renderRightDot;
 
 		public Line(String label, TypedSet sData, TypedSet tData, Vec4f s, Vec4f t) {
 			super(label, sData, tData);
@@ -640,6 +642,8 @@ public class ParaBand extends ABand {
 				this.line[2] = new Vec2f(tx + t.w(), t.y() - SHIFT);
 				this.line[3] = new Vec2f(tx, t.y());
 			}
+			renderLeftDot = s.z() >= Constants.SCATTER_POINT_SIZE * 2;
+			renderRightDot = t.z() >= Constants.SCATTER_POINT_SIZE * 2;
 		}
 
 		@Override
@@ -656,6 +660,10 @@ public class ParaBand extends ABand {
 			g.color(c.r, c.g, c.b, c.a * EBandMode.alpha(nrBands));
 			g.lineWidth(Constants.PARALLEL_LINE_SIZE);
 			g.drawPath(false, line);
+			if (renderLeftDot)
+				g.drawPoints(line[0]);
+			if (renderRightDot)
+				g.drawPoints(line[line.length - 1]);
 			g.lineWidth(1);
 		}
 

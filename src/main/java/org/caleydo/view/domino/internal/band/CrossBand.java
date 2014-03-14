@@ -666,7 +666,8 @@ public class CrossBand extends ABand {
 
 		@Override
 		public void renderRoute(GLGraphics g, IBandHost host, int nrItems) {
-			if (bounds.width() <= Constants.SCATTER_POINT_SIZE && bounds.height() <= Constants.SCATTER_POINT_SIZE) {
+			if (mode.compareTo(EBandMode.GROUPED_DETAIL) >= 0
+					|| (bounds.width() <= Constants.SCATTER_POINT_SIZE && bounds.height() <= Constants.SCATTER_POINT_SIZE)) {
 				renderPoint(g, host);
 				return;
 			}
@@ -718,10 +719,7 @@ public class CrossBand extends ABand {
 				}
 			}
 			g.color(c.r, c.g, c.b, 1.f);
-			g.pointSize(Constants.SCATTER_POINT_SIZE);
 			g.drawPoint(bounds.x() + bounds.width() * 0.5f, bounds.y() + bounds.height() * 0.5f);
-			g.pointSize(1);
-
 			if (hovered)
 				renderConnector(g, bounds);
 		}
