@@ -16,6 +16,7 @@ import org.caleydo.core.data.datadomain.DataSupportDefinitions;
 import org.caleydo.core.data.perspective.table.TablePerspective;
 import org.caleydo.core.util.collection.Pair;
 import org.caleydo.core.util.color.Color;
+import org.caleydo.core.util.function.Function2;
 import org.caleydo.core.view.opengl.layout2.manage.GLElementFactoryContext.Builder;
 import org.caleydo.view.domino.api.model.typed.TypedGroupSet;
 import org.caleydo.view.domino.api.model.typed.TypedList;
@@ -35,6 +36,13 @@ public class Numerical2DDataDomainValues extends ADataDomainDataValues {
 	private final TypedGroupSet dimGroups;
 	private final boolean isInteger;
 
+	private final Function2<Integer, Integer, Float> toRaw = new Function2<Integer, Integer, Float>() {
+
+		@Override
+		public Float apply(Integer dimensionID, Integer recordID) {
+			return getRaw(dimensionID, recordID);
+		}
+	};
 	/**
 	 * @param t
 	 */
@@ -54,6 +62,11 @@ public class Numerical2DDataDomainValues extends ADataDomainDataValues {
 	@Override
 	public void fill(Builder b, TypedList dimData, TypedList recData, boolean[] existNeigbhor) {
 		super.fillHeatMap(b, dimData, recData);
+
+		if (dimData.getIdType() != getIDType(EDimension.DIMENSION)) { // swapped
+			b.put("id2double", Functions2s.swap(toRaw));
+		} else
+			b.put("id2double", toRaw);
 	}
 
 	@Override

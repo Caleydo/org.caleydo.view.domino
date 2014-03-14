@@ -10,6 +10,7 @@ import java.util.Set;
 import org.caleydo.core.data.collection.EDimension;
 import org.caleydo.core.data.selection.SelectionType;
 import org.caleydo.core.util.base.ILabeled;
+import org.caleydo.core.util.color.Color;
 import org.caleydo.core.view.opengl.canvas.EDetailLevel;
 import org.caleydo.core.view.opengl.canvas.IGLMouseListener.IMouseEvent;
 import org.caleydo.core.view.opengl.layout.Column.VAlign;
@@ -98,6 +99,13 @@ public class NodeGroup extends GLElementDecorator implements ILabeled, IDragGLSo
 						: EDetailLevel.MEDIUM);
 		b.set("blurNotSelected");
 		b.set("heatmap.forceTextures");
+
+		// see #110 frame colors
+		b.put("kaplanmeier.frameColor", Color.LIGHT_GRAY);
+		b.put("distribution.hist.frameColor", Color.LIGHT_GRAY);
+		b.put("hbar.frameColor", Color.LIGHT_GRAY);
+
+
 		ImmutableList<GLElementSupplier> extensions = GLElementFactories.getExtensions(b.build(), "domino."
  + data.getExtensionID(), data);
 		GLElementFactorySwitcher s = new GLElementFactorySwitcher(extensions, ELazyiness.DESTROY);
