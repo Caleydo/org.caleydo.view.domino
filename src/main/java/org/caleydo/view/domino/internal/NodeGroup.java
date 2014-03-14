@@ -109,6 +109,8 @@ public class NodeGroup extends GLElementDecorator implements ILabeled, IDragGLSo
 		b.put("selection.selected", "AUTO_BLUR_OUTLINE");
 		b.put("selection.mouseover", "AUTO_FILL_OUTLINE");
 
+		b.set("axis.renderOutsideBounds");
+
 		ImmutableList<GLElementSupplier> extensions = GLElementFactories.getExtensions(b.build(), "domino."
  + data.getExtensionID(), data);
 		GLElementFactorySwitcher s = new GLElementFactorySwitcher(extensions, ELazyiness.DESTROY);
