@@ -40,7 +40,6 @@ public class DragRowSource implements IDragGLSource {
 	 * @param row
 	 */
 	public DragRowSource(AScoreRow row) {
-		System.out.println("drag rec: " + row.getLabel());
 		this.row = row;
 	}
 
