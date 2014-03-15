@@ -68,6 +68,8 @@ public abstract class APlaceholder extends PickableGLElement implements IDropGLT
 	public void onDrop(IDnDItem item) {
 		if (preview != null) {
 			final Domino domino = findParent(Domino.class);
+			if (domino == null)
+				return;
 			Node toRemove = null;
 			if (item.getType() != EDnDType.COPY && item.getInfo() instanceof NodeDragInfo) {
 				toRemove = ((NodeDragInfo) item.getInfo()).getNode();

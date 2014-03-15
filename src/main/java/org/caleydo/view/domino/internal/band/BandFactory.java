@@ -23,7 +23,7 @@ public class BandFactory {
 	public static ABand create(String label, TypedGroupList sData, TypedGroupList tData, ShearedRect ra,
 			ShearedRect rb,
 			final INodeLocator sNodeLocator, final INodeLocator tNodeLocator, final EDimension sDim,
-			final EDimension tDim, String identifier) {
+			final EDimension tDim, BandIdentifier id) {
 		MultiTypedSet shared = TypedSets.intersect(sData.asSet(), tData.asSet());
 		if (shared.isEmpty())
 			return null;
@@ -34,26 +34,31 @@ public class BandFactory {
 				if (ra.x2() < rb.x() - minDistance) {
 					Vec2f sLoc = ra.x2y();
 					Vec2f tLoc = rb.xy();
+					id = id.with(true, false);
 					return new ParaBand(label, shared, sData, tData, sLoc, tLoc, sNodeLocator, tNodeLocator,
-							primary.opposite(), primary, identifier);
+							primary.opposite(), primary, id);
 				} else if (rb.x2() < ra.x() - minDistance) {
 					Vec2f sLoc = ra.xy();
 					Vec2f tLoc = rb.x2y();
+					id = id.with(false, true);
 					return new ParaBand(label, shared, tData, sData, tLoc, sLoc, tNodeLocator, sNodeLocator,
-							primary.opposite(), primary, identifier);
+							primary.opposite(), primary, id);
 				}
 				return null;
 			} else {
+				id = id.swap();
 				if (ra.y2() < rb.y() - minDistance) {
 					Vec2f sLoc = ra.xy2();
 					Vec2f tLoc = rb.xy();
+					id = id.with(true, false);
 					return new ParaBand(label, shared, sData, tData, sLoc, tLoc, sNodeLocator, tNodeLocator,
-							primary.opposite(), primary, identifier);
+							primary.opposite(), primary, id);
 				} else if (rb.y2() < ra.y() - minDistance) {
 					Vec2f sLoc = ra.xy();
 					Vec2f tLoc = rb.xy2();
+					id = id.with(false, true);
 					return new ParaBand(label, shared, tData, sData, tLoc, sLoc, tNodeLocator, sNodeLocator,
-							primary.opposite(), primary, identifier);
+							primary.opposite(), primary, id);
 				}
 				return null;
 			}
@@ -72,9 +77,11 @@ public class BandFactory {
 					s = ra.xy();
 				if (tDir == EDirection.NORTH)
 					t = rb.xy2();
+				id = id.with(sDir == EDirection.EAST, tDir == EDirection.NORTH);
 				return new CrossBand(label, shared, sData, tData, sNodeLocator, tNodeLocator, s, t, sDir, tDir,
-						identifier);
+						id);
 			} else {
+				id = id.swap();
 				// swap
 				Vec2f t = ra.xy();
 				Vec2f s = rb.x2y();
@@ -88,8 +95,9 @@ public class BandFactory {
 					s = rb.xy();
 				if (tDir == EDirection.NORTH)
 					t = ra.xy2();
+				id.with(sDir == EDirection.EAST, tDir == EDirection.NORTH);
 				return new CrossBand(label, shared, tData, sData, tNodeLocator, sNodeLocator, s, t, sDir, tDir,
-						identifier);
+						id);
 			}
 		}
 	}

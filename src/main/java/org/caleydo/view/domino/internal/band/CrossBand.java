@@ -55,8 +55,8 @@ public class CrossBand extends ABand {
 
 	public CrossBand(String label, MultiTypedSet shared, TypedGroupList sData, TypedGroupList tData,
 			INodeLocator sLocator, INodeLocator tLocator, Vec2f s, Vec2f t, EDirection sDir, EDirection tDir,
-			String identifier) {
-		super(shared, sData, tData, sLocator, tLocator, sDir, tDir, identifier + sDir.asDim().select("CH", "CV"));
+			BandIdentifier identifier) {
+		super(shared, sData, tData, sLocator, tLocator, sDir, tDir, identifier);
 
 		assert sDir.asDim().isHorizontal();
 		this.sLoc = s;

@@ -80,6 +80,8 @@ public class LinearBlock extends AbstractCollection<Node> {
 
 	private MultiTypedList data;
 
+	private boolean hasLeftBand, hasRightBand;
+
 	public LinearBlock(EDimension dim, Node node) {
 		this.dim = dim;
 		this.nodes.add(node);
@@ -95,6 +97,22 @@ public class LinearBlock extends AbstractCollection<Node> {
 	 */
 	public void transposedMe() {
 		this.dim = dim.opposite();
+	}
+
+	/**
+	 * @param hasLeftBand
+	 *            setter, see {@link hasLeftBand}
+	 */
+	public void setHasLeftBand(boolean hasLeftBand) {
+		this.hasLeftBand = hasLeftBand;
+	}
+
+	/**
+	 * @param hasRightBand
+	 *            setter, see {@link hasRightBand}
+	 */
+	public void setHasRightBand(boolean hasRightBand) {
+		this.hasRightBand = hasRightBand;
 	}
 
 	/**
@@ -577,37 +595,120 @@ public class LinearBlock extends AbstractCollection<Node> {
 		return b.toString();
 	}
 
-	public void renderNodeLabels(GLGraphics g) {
-		final float textSize = Constants.LABEL_SIZE;
+	public void renderNodeLabels(GLGraphics g, Rect bounds) {
+
 		// FIXME
 		for (Node node : nodes) {
-			if (node.has(dim)) // handled by another
+			if (node.has(dim)) {// handled by another
+				if (dim.isHorizontal())
+					render2DLabel(node, g, bounds);
 				continue;
+			}
 			Rect b = node.getRectBounds();
-			if (dim.isVertical()) {
-				g.drawText(node.getLabel(), b.x2() + 10, b.y() + (b.height() - textSize) * 0.5f, 400, textSize);
-			} else {
-				renderVerticalText(g, node.getLabel(), b.x(), b.y(), b.width(), textSize);
+			final String l = node.getLabel();
+			if (dim.isVertical()) { // right
+				renderHorText(l, g, bounds, b);
+			} else { // top
+				renderVertLabel(l, g, bounds, b);
 			}
 		}
 	}
 
-	public void renderGroupLabels(GLGraphics g) {
+	private static void renderHorText(final String l, GLGraphics g, Rect bounds, Rect b) {
+		g.drawText(l, bounds.x2() + 10, b.y() + (b.height() - Constants.LABEL_SIZE) * 0.5f, 400, Constants.LABEL_SIZE);
+		if (bounds.x2() > b.x2() + 5) {
+			g.color(Color.LIGHT_GRAY).drawLine(b.x2() + 5, b.y() + b.height() * 0.5f, bounds.x2(),
+					b.y() + b.height() * 0.5f);
+		}
+	}
+
+	private static void renderVertLabel(final String l, GLGraphics g, Rect bounds, Rect b) {
+		renderVerticalText(g, l, b.x(), bounds.y(), b.width(), Constants.LABEL_SIZE);
+		if (bounds.y() < b.y() - 5) {
+			g.color(Color.LIGHT_GRAY).drawLine(b.x() + b.width() * 0.5f, b.y() - 5, b.x() + b.width() * 0.5f,
+					bounds.y());
+		}
+	}
+
+
+	private static void render2DLabel(Node node, GLGraphics g, Rect bounds) {
+		Rect b = node.getRectBounds();
+		boolean nWest = node.getNeighbor(EDirection.WEST) != null;
+		boolean nEast = node.getNeighbor(EDirection.EAST) != null;
+		boolean nSouth = node.getNeighbor(EDirection.SOUTH) != null;
+		boolean nNorth = node.getNeighbor(EDirection.NORTH) != null;
+		boolean nHor = nWest || nEast;
+		boolean nVer = nNorth || nSouth;
+
+		final String l = node.getLabel();
+		if (!nVer || (nHor && !nNorth)) // north no vertical at all -> north or horizontal neighbors and north is free
+			renderVertLabel(l, g, bounds, b);
+		else if (!nHor || (nVer && !nEast)) // east render right side
+			renderHorText(l, g, bounds, b);
+		else if (!nWest) { // west
+			g.drawText(l, bounds.x() - 10 - 400, b.y() + (b.height() - Constants.LABEL_SIZE) * 0.5f, 400,
+					Constants.LABEL_SIZE, VAlign.RIGHT);
+			if (bounds.x() < b.x() - 5) {
+				g.color(Color.LIGHT_GRAY).drawLine(b.x() - 5, b.y() + b.height() * 0.5f, bounds.x(),
+						b.y() + b.height() * 0.5f);
+			}
+		} else if (!nSouth) { // south
+			renderVerticalDownText(g, l, b.x(), bounds.y2(), b.width(), Constants.LABEL_SIZE);
+			if (bounds.y2() > b.y2() + 5) {
+				g.color(Color.LIGHT_GRAY).drawLine(b.x() + b.width() * 0.5f, b.y2() + 5, b.x() + b.width() * 0.5f,
+						bounds.y2());
+			}
+		}
+		// all corners are filled with neighbors ? -> no idea where to draw the label
+	}
+
+	public void renderGroupLabels(GLGraphics g, Rect bounds) {
 		final float textSize = Constants.LABEL_SIZE;
 		if (dim.isHorizontal()) {
-			Node last = getNode(false);
-			Rect b = last.getRectBounds();
-			for (NodeGroup group : getFirstSortingCriteria().getGroupNeighbors(EDirection.EAST)) {
-				Rect bg = group.getRectBounds();
-				g.drawText(group.getLabel(), b.x2() + 10, b.y() + bg.y() + (bg.height() - textSize) * 0.5f, 400,
-						textSize);
+			List<NodeGroup> labels = getFirstSortingCriteria().getGroupNeighbors(EDirection.WEST);
+			if (labels.size() <= 1)
+				return;
+			if (!hasRightBand || (hasRightBand && hasLeftBand)) {
+				Node last = getNode(false);
+				Rect b = last.getRectBounds();
+				final List<NodeGroup> locations = last.getGroupNeighbors(EDirection.WEST);
+
+				for (int i = 0; i < labels.size(); ++i) {
+					Rect bg = locations.get(i).getRectBounds();
+					g.drawText(labels.get(i).getLabel(), b.x2() + 10, b.y() + bg.y() + (bg.height() - textSize)
+							* 0.5f, 400, textSize);
+				}
+			} else {
+				Node first = getNode(true);
+				Rect b = first.getRectBounds();
+				final List<NodeGroup> locations = first.getGroupNeighbors(EDirection.WEST);
+
+				for (int i = 0; i < labels.size(); ++i) {
+					Rect bg = locations.get(i).getRectBounds();
+					g.drawText(labels.get(i).getLabel(), b.x() - 10 - 400, b.y() + bg.y()
+							+ (bg.height() - textSize) * 0.5f, 400, textSize, VAlign.RIGHT);
+				}
 			}
 		} else {
-			Node first = getNode(true);
-			Rect b = first.getRectBounds();
-			for (NodeGroup group : getFirstSortingCriteria().getGroupNeighbors(EDirection.NORTH)) {
-				Rect bg = group.getRectBounds();
-				renderVerticalText(g, group.getLabel(), b.x() + bg.x(), b.y(), bg.width(), textSize);
+			List<NodeGroup> labels = getFirstSortingCriteria().getGroupNeighbors(EDirection.NORTH);
+			if (labels.size() <= 1)
+				return;
+			if (!hasRightBand || (hasRightBand && hasLeftBand)) {
+				Node first = getNode(true);
+				Rect b = first.getRectBounds();
+				final List<NodeGroup> locations = first.getGroupNeighbors(EDirection.NORTH);
+				for (int i = 0; i < labels.size(); ++i) {
+					Rect bg = locations.get(i).getRectBounds();
+					renderVerticalText(g, labels.get(i).getLabel(), b.x() + bg.x(), b.y(), bg.width(), textSize);
+				}
+			} else {
+				Node first = getNode(false);
+				Rect b = first.getRectBounds();
+				final List<NodeGroup> locations = first.getGroupNeighbors(EDirection.NORTH);
+				for (int i = 0; i < labels.size(); ++i) {
+					Rect bg = locations.get(i).getRectBounds();
+					renderVerticalDownText(g, labels.get(i).getLabel(), b.x() + bg.x(), b.y2(), bg.width(), textSize);
+				}
 			}
 		}
 	}
@@ -624,6 +725,17 @@ public class LinearBlock extends AbstractCollection<Node> {
 			// shift it
 			float angle = 45f; // TODO find out
 			g.drawRotatedText(text, x, y - textSize - 5, 400, textSize, VAlign.LEFT, ETextStyle.PLAIN, -angle);
+		}
+	}
+
+	private static void renderVerticalDownText(GLGraphics g, String text, float x, float y, float w, float textSize) {
+		float tw = g.text.getTextWidth(text, textSize);
+		if (tw < w) {
+			g.drawText(text, x, y + textSize - 10, w, textSize, VAlign.CENTER);
+		} else {
+			// shift it
+			float angle = 45f; // TODO find out
+			g.drawRotatedText(text, x + 10, y + textSize - 10, tw, textSize, VAlign.RIGHT, ETextStyle.PLAIN, angle);
 		}
 	}
 

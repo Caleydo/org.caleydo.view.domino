@@ -49,6 +49,7 @@ import org.caleydo.view.domino.api.model.typed.TypedGroupList;
 import org.caleydo.view.domino.internal.LinearBlock.ESortingMode;
 import org.caleydo.view.domino.internal.band.ABand;
 import org.caleydo.view.domino.internal.band.BandFactory;
+import org.caleydo.view.domino.internal.band.BandIdentifier;
 import org.caleydo.view.domino.internal.band.EBandMode;
 import org.caleydo.view.domino.internal.band.IBandHost.SourceTarget;
 import org.caleydo.view.domino.internal.band.ShearedRect;
@@ -209,15 +210,30 @@ public class Block extends GLElementContainer implements IGLLayout2, IPickingLis
 
 		if (domino.isShowDebugInfos())
 			g.color(Color.BLUE).drawRect(0, 0, w, h);
-
-		if (domino.isShowBlockLabels()) {
-			for (LinearBlock b : linearBlocks) {
-				b.renderNodeLabels(g);
+		if (domino.isShowBlockLabels() || domino.isShowGroupLabels()) {
+			Vec2f xy = new Vec2f(0, 0);
+			Vec2f xy2 = new Vec2f(w, h);
+			for (Vec2f v : outline) {
+				if (v.x() < xy.x())
+					xy.setX(v.x());
+				else if (v.x() > xy2.x())
+					xy2.setX(v.x());
+				if (v.y() < xy.y())
+					xy.setY(v.y());
+				else if (v.y() > xy2.y())
+					xy2.setY(v.y());
 			}
-		}
-		if (domino.isShowGroupLabels()) {
-			for (LinearBlock b : linearBlocks) {
-				b.renderGroupLabels(g);
+			Rect bb = new Rect(xy.x(), xy.y(), xy2.x() - xy.x(), xy2.y() - xy.y());
+
+			if (domino.isShowBlockLabels()) {
+				for (LinearBlock b : linearBlocks) {
+					b.renderNodeLabels(g, bb);
+				}
+			}
+			if (domino.isShowGroupLabels()) {
+				for (LinearBlock b : linearBlocks) {
+					b.renderGroupLabels(g, bb);
+				}
 			}
 		}
 
@@ -226,13 +242,13 @@ public class Block extends GLElementContainer implements IGLLayout2, IPickingLis
 		final boolean mouseOver = selections.isSelected(SelectionType.MOUSE_OVER, this);
 		if (selected || mouseOver) {
 			g.lineWidth(3).color((selected ? SelectionType.SELECTION : SelectionType.MOUSE_OVER).getColor());
-			g.incZ().drawPath(getOutline(), true).decZ();
+			g.incZ().drawPath(outline, true).decZ();
 			g.lineWidth(1);
 		}
 
 
 		if (fadeOut) {
-			fadeOutElements(g, w, h);
+			fadeOutElements(g, w, h, outline);
 		}
 	}
 
@@ -369,11 +385,11 @@ public class Block extends GLElementContainer implements IGLLayout2, IPickingLis
 		return r;
 	}
 
-	private void fadeOutElements(GLGraphics g, float w, float h) {
+	private void fadeOutElements(GLGraphics g, float w, float h, Collection<Vec2f> outline) {
 		final float alpha = 1 - (Math.max(0, fadeOutTime) / 300.f);
 		g.color(1, 1, 1, Math.min(alpha, 0.8f));
 
-		g.incZ(3).fillPolygon(TesselatedPolygons.polygon2(getOutline())).incZ(-3);
+		g.incZ(3).fillPolygon(TesselatedPolygons.polygon2(outline)).incZ(-3);
 	}
 
 
@@ -402,10 +418,11 @@ public class Block extends GLElementContainer implements IGLLayout2, IPickingLis
 	}
 
 	public void addNode(Node neighbor, EDirection dir, Node node) {
-		this.add(node);
 		LinearBlock block = getBlock(neighbor, dir.asDim());
-		if (block == null)
+		if (block == null) {
+			this.add(node);
 			return;
+		}
 		block.add(neighbor, dir, node);
 		EDimension other = dir.asDim().opposite();
 		node.copyScaleFactors(neighbor, other);
@@ -416,6 +433,7 @@ public class Block extends GLElementContainer implements IGLLayout2, IPickingLis
 			setOffset(node, neighbor, Math.max(neighbor.getDetachedOffset(), node.getDetachedOffset()));
 		}
 
+		this.add(node);
 		realign();
 		updateBlock();
 		// shiftBlock(dir, node);
@@ -801,7 +819,7 @@ public class Block extends GLElementContainer implements IGLLayout2, IPickingLis
 		final EDimension sDir = la.getDim().opposite();
 		final EDimension tDir = lb.getDim().opposite();
 
-		String id = toId(la.getNode(true), lb.getNode(false));
+		BandIdentifier id = new BandIdentifier(la, true, lb, false);
 		ABand band = BandFactory.create(label, sData, tData, ra, rb, sNodeLocator, tNodeLocator, sDir, tDir, id);
 		if (band == null)
 			return;
@@ -1033,7 +1051,7 @@ public class Block extends GLElementContainer implements IGLLayout2, IPickingLis
 		String label = s.getLabel() + " x " + s.getLabel();
 		final INodeLocator sNodeLocator = s.getNodeLocator(d);
 		final INodeLocator tNodeLocator = t.getNodeLocator(d);
-		String id = s.getID() + "D" + t.getID();
+		BandIdentifier id = new BandIdentifier(b, true, b, false);
 		ABand band = BandFactory.create(label, sData, tData, ra, rb, sNodeLocator, tNodeLocator, d, d, id);
 		return band;
 	}
@@ -1265,5 +1283,15 @@ public class Block extends GLElementContainer implements IGLLayout2, IPickingLis
 		g.lineStippled(false);
 		g.lineWidth(1);
 		g.move(-loc.x(), -loc.y());
+	}
+
+	/**
+	 *
+	 */
+	public void resetHasBands() {
+		for (LinearBlock b : linearBlocks) {
+			b.setHasLeftBand(false);
+			b.setHasRightBand(false);
+		}
 	}
 }

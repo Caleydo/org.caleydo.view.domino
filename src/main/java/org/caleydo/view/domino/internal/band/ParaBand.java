@@ -60,8 +60,10 @@ public class ParaBand extends ABand {
 	private final Vec2f s, t;
 
 	public ParaBand(String label, MultiTypedSet shared, TypedGroupList sData, TypedGroupList tData,
-			Vec2f sLoc, Vec2f tLoc, INodeLocator sLocator, INodeLocator tLocator, EDirection sDim, EDirection tDim, String identifier) {
-		super(shared, sData, tData, sLocator, tLocator, sDim, tDim, identifier + sDim.asDim().select("H", "V"));
+ Vec2f sLoc,
+			Vec2f tLoc, INodeLocator sLocator, INodeLocator tLocator, EDirection sDim, EDirection tDim,
+			BandIdentifier identifier) {
+		super(shared, sData, tData, sLocator, tLocator, sDim, tDim, identifier);
 		this.s = sLoc;
 		this.t = tLoc;
 		{

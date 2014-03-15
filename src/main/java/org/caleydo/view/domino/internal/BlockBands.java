@@ -16,6 +16,7 @@ import org.caleydo.core.id.IDType;
 import org.caleydo.core.view.opengl.canvas.IGLMouseListener.IMouseEvent;
 import org.caleydo.core.view.opengl.picking.Pick;
 import org.caleydo.view.domino.internal.band.ABand;
+import org.caleydo.view.domino.internal.band.BandIdentifier;
 
 import com.google.common.base.Function;
 import com.google.common.collect.Maps;
@@ -28,10 +29,10 @@ public class BlockBands extends ABands {
 
 	@Override
 	protected void update() {
-		Map<String, ABand> bak = Maps.uniqueIndex(bands, new Function<ABand, String>() {
+		Map<BandIdentifier, ABand> bak = Maps.uniqueIndex(bands, new Function<ABand, BandIdentifier>() {
 			@Override
-			public String apply(ABand input) {
-				return input.getIdentifier();
+			public BandIdentifier apply(ABand input) {
+				return input.getId();
 			}
 		});
 		bands.clear();
@@ -40,8 +41,8 @@ public class BlockBands extends ABands {
 		block.createOffsetBands(bands);
 
 		for (ABand band : bands) {
-			if (bak.containsKey(band.getIdentifier())) {
-				band.initFrom(bak.get(band.getIdentifier()));
+			if (bak.containsKey(band.getId())) {
+				band.initFrom(bak.get(band.getId()));
 			}
 		}
 	}

@@ -6,6 +6,7 @@
 package org.caleydo.view.domino.internal.undo;
 
 import org.caleydo.view.domino.internal.Domino;
+import org.caleydo.view.domino.internal.band.BandIdentifier;
 
 /**
  * @author Samuel Gratzl
@@ -13,14 +14,14 @@ import org.caleydo.view.domino.internal.Domino;
  */
 public class ChangeBandLevelCmd implements ICmd {
 
-	private final String bandIdentifier;
+	private final BandIdentifier bandIdentifier;
 	private final boolean increase;
 
 	/**
 	 * @param identifier
 	 * @param b
 	 */
-	public ChangeBandLevelCmd(String identifier, boolean increase) {
+	public ChangeBandLevelCmd(BandIdentifier identifier, boolean increase) {
 		this.bandIdentifier = identifier;
 		this.increase = increase;
 

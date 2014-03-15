@@ -64,7 +64,7 @@ public abstract class ABand implements ILabeled, IHasMiniMap {
 	protected final EDirection sDir;
 	protected final EDirection tDir;
 
-	private final String identifier;
+	private final BandIdentifier id;
 
 	private List<? extends IBandRenderAble> groupRoutes;
 	private List<? extends IBandRenderAble> groupDetailRoutes;
@@ -74,7 +74,7 @@ public abstract class ABand implements ILabeled, IHasMiniMap {
 
 	public ABand(MultiTypedSet shared, TypedGroupList sData, TypedGroupList tData,
  INodeLocator sLocator,
-			INodeLocator tLocator, EDirection sDim, EDirection tDim, String identifier) {
+			INodeLocator tLocator, EDirection sDim, EDirection tDim, BandIdentifier id) {
 		this.shared = shared;
 		this.sData = sData;
 		this.tData = tData;
@@ -82,7 +82,7 @@ public abstract class ABand implements ILabeled, IHasMiniMap {
 		this.tLocator = tLocator;
 		this.sDir = sDim;
 		this.tDir = tDim;
-		this.identifier = identifier;
+		this.id = id;
 	}
 
 	/**
@@ -125,11 +125,12 @@ public abstract class ABand implements ILabeled, IHasMiniMap {
 		groupDetailRoutes = null;
 		detailRoutes = null;
 	}
+
 	/**
-	 * @return the identifier, see {@link #identifier}
+	 * @return the id, see {@link #id}
 	 */
-	public String getIdentifier() {
-		return identifier;
+	public BandIdentifier getId() {
+		return id;
 	}
 
 	public void initFrom(ABand band) {

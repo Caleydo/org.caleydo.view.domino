@@ -28,6 +28,7 @@ import org.caleydo.core.view.opengl.picking.Pick;
 import org.caleydo.view.domino.api.model.typed.TypedSet;
 import org.caleydo.view.domino.internal.MiniMapCanvas.IManuallyShifted;
 import org.caleydo.view.domino.internal.band.ABand;
+import org.caleydo.view.domino.internal.band.BandIdentifier;
 import org.caleydo.view.domino.internal.dnd.ADragInfo;
 import org.caleydo.view.domino.internal.dnd.SetDragInfo;
 import org.caleydo.view.domino.internal.undo.ChangeBandLevelCmd;
@@ -66,16 +67,21 @@ public class Bands extends ABands implements IDragGLSource, ICallback<SelectionT
 
 	@Override
 	public void update() {
-		Map<String, ABand> bak = Maps.uniqueIndex(bands, new Function<ABand, String>() {
+		Map<BandIdentifier, ABand> bak = Maps.uniqueIndex(bands, new Function<ABand, BandIdentifier>() {
 			@Override
-			public String apply(ABand input) {
-				return input.getIdentifier();
+			public BandIdentifier apply(ABand input) {
+				return input.getId();
 			}
 		});
 		bands.clear();
 		Domino domino = findParent(Domino.class);
 		EToolState tool = domino.getTool();
 		List<Block> blocks;
+
+		for(Block block : domino.getBlocks()) {
+			block.resetHasBands();
+		}
+
 		if (tool != EToolState.BANDS)
 			blocks = domino.getBlocks();
 		else {
@@ -107,11 +113,19 @@ public class Bands extends ABands implements IDragGLSource, ICallback<SelectionT
 						continue outer;
 					}
 				}
-				if (bak.containsKey(band.getIdentifier())) {
-					band.initFrom(bak.get(band.getIdentifier()));
+
+				if (bak.containsKey(band.getId())) {
+					band.initFrom(bak.get(band.getId()));
 				}
 			}
 		}
+
+		for(ABand band : bands) {
+			BandIdentifier id = band.getId();
+			id.updateBandInfo();
+		}
+
+
 		pickingBandPool.ensure(0, bands.size());
 		pickingBandDetailPool.ensure(0, bands.size());
 
@@ -126,7 +140,7 @@ public class Bands extends ABands implements IDragGLSource, ICallback<SelectionT
 		case RIGHT_CLICKED:
 			UndoStack undo = findParent(Domino.class).getUndo();
 			ABand band = getRoute(pick.getObjectID());
-			undo.push(new ChangeBandLevelCmd(band.getIdentifier(), !((IMouseEvent) pick).isCtrlDown()));
+			undo.push(new ChangeBandLevelCmd(band.getId(), !((IMouseEvent) pick).isCtrlDown()));
 			repaint();
 			break;
 		default:

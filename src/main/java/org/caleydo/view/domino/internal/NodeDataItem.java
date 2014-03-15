@@ -157,6 +157,8 @@ public class NodeDataItem implements IDataSetItem {
 			return;
 		float f = 100.f / data.size();
 		for (NodeGroup g : n.getGroupNeighbors(EDirection.getPrimary(dim.opposite()))) {
+			if (g == null)
+				continue;
 			int s = g.getData(dim).size();
 			b.append("\n\t").append(g.getLabel());
 			if (selected.contains(g))
