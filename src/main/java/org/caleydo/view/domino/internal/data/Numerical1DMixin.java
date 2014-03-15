@@ -38,6 +38,7 @@ public class Numerical1DMixin {
 	private final int bins;
 	private final int maxBinSize;
 	private final float min, max;
+	private final int size;
 
 	private final Function<Integer, Double> toRaw = new Function<Integer, Double>() {
 		@Override
@@ -52,6 +53,7 @@ public class Numerical1DMixin {
 		this.min = min;
 		this.max = max;
 		this.maxBinSize = createHist(groups).getLargestValue();
+		this.size = groups.size();
 	}
 
 	public static TypedGroupSet extractGroups(Perspective p, INumerical1DContainer c) {
@@ -125,6 +127,7 @@ public class Numerical1DMixin {
 		b.put("distribution.colors", getHistColors(hist, data));
 		b.put("distribution.labels", getHistLabels(hist, data));
 		b.put("distribution.largestBin", maxBinSize);
+		b.put("distribution.total", size);
 
 		b.put("id2double", toRaw);
 		final MappedDoubleList<Integer> list = new MappedDoubleList<>(data, toRaw);

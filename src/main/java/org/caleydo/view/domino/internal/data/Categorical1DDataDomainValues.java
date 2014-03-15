@@ -92,6 +92,7 @@ public class Categorical1DDataDomainValues extends A1DDataDomainValues {
 		final Histogram hist = createHist(data);
 		b.put(Histogram.class, hist);
 		b.put("distribution.largestBin", maxBinSize);
+		b.put("distribution.total", groups.size());
 		b.put("distribution.colors", getHistColors(hist, data));
 		final String[] labels = getHistLabels(hist, data);
 		b.put("distribution.labels", labels);

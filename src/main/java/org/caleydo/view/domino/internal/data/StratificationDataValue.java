@@ -112,6 +112,7 @@ public class StratificationDataValue implements IDataValues, Function<Integer, C
 		final String[] labels = getHistLabels(hist, data);
 		b.put("distribution.labels", labels);
 		b.put("distribution.largestBin", maxBinSize);
+		b.put("distribution.total", groups.size());
 		b.put(IDoubleList.class, new MappedDoubleList<>(data, toIndex));
 		b.put("axis.markers", labels);
 	}
