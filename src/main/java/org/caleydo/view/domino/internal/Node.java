@@ -196,13 +196,23 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 		final float factor = 0.5f;
 		float maxw = viewSize.x() * factor;
 		float maxh = viewSize.y() * factor;
-		if (d < maxw && r < maxh)
-			return new Vec2f(1, 1);
+		float minw = maxw * 0.5f;
+		float minh = maxh * 0.5f;
+		if (d < minw && r < minh) {
+			float fw = minw / d;
+			float fh = minh / r;
+			float f = Math.min(fw, fh);
+			return new Vec2f(f, f);
+		}
+		if (d > maxw && r > maxh) {
+			float fw = maxw / d;
+			float fh = maxh / r;
+			float f = Math.min(fw, fh);
+			return new Vec2f(f, f);
+		}
+		return new Vec2f(1, 1);
 
-		float fw = maxw / d;
-		float fh = maxh / r;
-		float f = Math.min(fw, fh);
-		return new Vec2f(f, f);
+
 	}
 
 	/**
@@ -578,9 +588,14 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 			Vec2f size = findParent(MiniMapCanvas.class).getSize();
 			final Vec2f v = initialScaleFactors(size, dimData.size(), recData.size());
 
+			scaleFactors.put(DATA_SCALE_FACTOR, v);
 			Blocks blocks = findParent(Blocks.class);
-			v.setX(blocks.getRulerScale(this.dimUnderlying.getIdType(), v.x()));
-			v.setY(blocks.getRulerScale(this.recUnderlying.getIdType(), v.y()));
+			final float sx = blocks.getRulerScale(this.dimUnderlying.getIdType());
+			if (!Float.isNaN(sx))
+				v.setX(sx);
+			final float sy = blocks.getRulerScale(this.recUnderlying.getIdType());
+			if (!Float.isNaN(sy))
+				v.setY(sy);
 
 			scaleFactors.put(DATA_SCALE_FACTOR, v);
 		}

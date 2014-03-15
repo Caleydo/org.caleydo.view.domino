@@ -351,15 +351,21 @@ public class Blocks extends GLElementContainer implements ICallback<SelectionTyp
 	 */
 	public void addRuler(Ruler ruler) {
 		add(ruler);
-		// guess the initial ruler scaling as the mean of all the available ones
-		DoubleStatistics.Builder b = DoubleStatistics.builder();
-		for (Block block : getBlocks()) {
-			block.scaleFactors(ruler.getIDCategory(), b);
-		}
-		DoubleStatistics stats = b.build();
+		final IDCategory idCategory = ruler.getIDCategory();
+		DoubleStatistics stats = getScaleFactorsStats(idCategory);
 		if (stats.getN() > 0) {
 			ruler.zoom((float) stats.getMean());
 		}
+	}
+
+	private DoubleStatistics getScaleFactorsStats(final IDCategory idCategory) {
+		// guess the initial ruler scaling as the mean of all the available ones
+		DoubleStatistics.Builder b = DoubleStatistics.builder();
+		for (Block block : getBlocks()) {
+			block.scaleFactors(idCategory, b);
+		}
+		DoubleStatistics stats = b.build();
+		return stats;
 	}
 
 	/**
@@ -415,11 +421,14 @@ public class Blocks extends GLElementContainer implements ICallback<SelectionTyp
 	 * @param x
 	 * @return
 	 */
-	public float getRulerScale(IDType idType, float default_) {
+	public float getRulerScale(IDType idType) {
 		Ruler r = getRuler(idType.getIDCategory());
-		if (r == null)
-			return default_;
-		return r.getScaleFactor();
+		if (r != null)
+			return r.getScaleFactor();
+		DoubleStatistics stats = getScaleFactorsStats(idType.getIDCategory());
+		if (stats.getN() > 0)
+			return (float) stats.getMean();
+		return Float.NaN;
 	}
 
 	/**
