@@ -70,6 +70,8 @@ public abstract class ABand implements ILabeled, IHasMiniMap {
 	private List<? extends IBandRenderAble> groupDetailRoutes;
 	private List<? extends IBandRenderAble> detailRoutes;
 
+	private int pickingOffset;
+
 	public ABand(MultiTypedSet shared, TypedGroupList sData, TypedGroupList tData,
  INodeLocator sLocator,
 			INodeLocator tLocator, EDirection sDim, EDirection tDim, String identifier) {
@@ -81,6 +83,21 @@ public abstract class ABand implements ILabeled, IHasMiniMap {
 		this.sDir = sDim;
 		this.tDir = tDim;
 		this.identifier = identifier;
+	}
+
+	/**
+	 * @param pickingOffset
+	 *            setter, see {@link pickingOffset}
+	 */
+	public void setPickingOffset(int pickingOffset) {
+		this.pickingOffset = pickingOffset;
+	}
+
+	/**
+	 * @return the pickingOffset, see {@link #pickingOffset}
+	 */
+	public int getPickingOffset() {
+		return pickingOffset;
 	}
 
 	protected GLLocation locS(EBandMode mode, int id) {
@@ -184,10 +201,10 @@ public abstract class ABand implements ILabeled, IHasMiniMap {
 		return overviewRoute().getBoundingBox();
 	}
 
-	public final void render(GLGraphics g, float w, float h, IBandHost host) {
+	public void render(GLGraphics g, float w, float h, IBandHost host) {
 		switch (mode) {
 		case OVERVIEW:
-			renderRoutes(g, host, overviewRoutes());
+			renderRoutes(g, host, overviewRoutes(), true);
 			break;
 		case GROUPS:
 			final Collection<? extends IBandRenderAble> gR = groupRoutes();
@@ -196,14 +213,16 @@ public abstract class ABand implements ILabeled, IHasMiniMap {
 				render(g, w, h, host);
 				return;
 			}
-			renderRoutes(g, host, gR);
+			renderRoutes(g, host, gR, true);
 			break;
 		case GROUPED_DETAIL:
 			boolean smooth = g.gl.glIsEnabled(GL2ES1.GL_POINT_SMOOTH);
 			g.gl.glEnable(GL2ES1.GL_POINT_SMOOTH);
 			g.pointSize(Constants.SCATTER_POINT_SIZE);
 			final Collection<? extends IBandRenderAble> gdR = groupDetailRoutes();
-			renderRoutes(g, host, gdR);
+			if (this instanceof ParaBand) // FIXME hack
+				renderRoutes(g, host, groupRoutes(), false);
+			renderRoutes(g, host, gdR, true);
 			if (!smooth)
 				g.gl.glDisable(GL2ES1.GL_POINT_SMOOTH);
 			g.pointSize(1);
@@ -218,7 +237,7 @@ public abstract class ABand implements ILabeled, IHasMiniMap {
 				render(g, w, h, host);
 				return;
 			}
-			renderRoutes(g, host, lR);
+			renderRoutes(g, host, lR, true);
 			if (!smooth)
 				g.gl.glDisable(GL2ES1.GL_POINT_SMOOTH);
 			g.pointSize(1);
@@ -226,11 +245,13 @@ public abstract class ABand implements ILabeled, IHasMiniMap {
 		}
 	}
 
-	protected void renderRoutes(GLGraphics g, IBandHost host, final Collection<? extends IBandRenderAble> routes) {
+	protected void renderRoutes(GLGraphics g, IBandHost host, final Collection<? extends IBandRenderAble> routes,
+			boolean withSelection) {
 		float z = g.z();
+		final int size = routes.size();
 		for (IBandRenderAble r : routes) {
 			g.incZ(0.0001f);
-			r.renderRoute(g, host, routes.size());
+			r.renderRoute(g, host, size, withSelection);
 		}
 		g.incZ(z - g.z());
 	}
@@ -288,9 +309,10 @@ public abstract class ABand implements ILabeled, IHasMiniMap {
 
 	private int renderRoutePick(GLGraphics g, IBandHost host, PickingPool pickingPool, int start,
 			final List<? extends IBandRenderAble> bands) {
+		final int size = bands.size();
 		for (IBandRenderAble r : bands) {
 			g.pushName(pickingPool.get(start++));
-			r.renderRoute(g, host, bands.size());
+			r.renderRoute(g, host, size, false);
 			g.popName();
 		}
 		return start;
@@ -387,7 +409,7 @@ public abstract class ABand implements ILabeled, IHasMiniMap {
 	}
 
 	protected interface IBandRenderAble extends ILabeled {
-		void renderRoute(GLGraphics g, IBandHost host, int nrBands);
+		void renderRoute(GLGraphics g, IBandHost host, int nrBands, boolean withSelection);
 
 		/**
 		 * @return
@@ -428,11 +450,13 @@ public abstract class ABand implements ILabeled, IHasMiniMap {
 	protected abstract class ARelation implements IBandRenderAble {
 		private final String label;
 		protected final TypedSet sShared, tShared;
+		protected final EBandMode mode;
 
-		public ARelation(String label, TypedSet sData, TypedSet tData) {
+		public ARelation(String label, TypedSet sData, TypedSet tData, EBandMode mode) {
 			this.label = label;
 			this.sShared = sData;
 			this.tShared = tData;
+			this.mode = mode;
 		}
 
 		/**
@@ -458,8 +482,8 @@ public abstract class ABand implements ILabeled, IHasMiniMap {
 		private final EDirection dir;
 
 		public NotMapped(String label, TypedSet sData, TypedSet tData, SourceTarget type, Vec4f s, Vec4f t,
-				EDirection dir) {
-			super(label, sData, tData);
+				EDirection dir, EBandMode mode) {
+			super(label, sData, tData, mode);
 			this.type = type;
 			this.dir = dir;
 
@@ -511,7 +535,7 @@ public abstract class ABand implements ILabeled, IHasMiniMap {
 		}
 
 		@Override
-		public void renderRoute(GLGraphics g, IBandHost host, int nrBands) {
+		public void renderRoute(GLGraphics g, IBandHost host, int nrBands, boolean withSelection) {
 			Color color = mode.getColor();
 			final float alpha = EBandMode.alpha(nrBands);
 			g.color(color.r, color.g, color.b, color.a * alpha);

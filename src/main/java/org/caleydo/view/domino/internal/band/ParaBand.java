@@ -71,7 +71,7 @@ public class ParaBand extends ABand {
 			float tr = ((float) tShared.size()) / tData.size();
 			Vec4f sv = toVec3(sLoc, SOURCE, sr, 0);
 			Vec4f tv = toVec3(tLoc, TARGET, tr, 0);
-			this.overview = new Band(label, sShared, tShared, sv, tv);
+			this.overview = new Band(label, sShared, tShared, sv, tv, EBandMode.OVERVIEW);
 
 			EDirection which = sDim.isHorizontal() ? tDim : sDim;
 			overviewRoutes.add(this.overview);
@@ -81,13 +81,13 @@ public class ParaBand extends ABand {
 				TypedSet sNotMapped = sData.asSet().difference(sShared);
 				sv = toVec3(sLoc, SOURCE, (1 - sr), sr);
 				overviewRoutes.add(new NotMapped(split[0] + " x Not Mapped", sNotMapped, TypedCollections.empty(tData
-						.getIdType()), SOURCE, sv, toVec3(t, TARGET, 1, 0), which));
+						.getIdType()), SOURCE, sv, toVec3(t, TARGET, 1, 0), which, EBandMode.OVERVIEW));
 			}
 			if (tr < 1) {
 				TypedSet tNotMapped = tData.asSet().difference(tShared);
 				tv = toVec3(tLoc, TARGET, (1 - tr), tr);
 				overviewRoutes.add(new NotMapped("Not Mapped x " + split[1], TypedCollections.empty(sData.getIdType()),
-						tNotMapped, TARGET, toVec3(s, SOURCE, 1, 0), tv, which));
+						tNotMapped, TARGET, toVec3(s, SOURCE, 1, 0), tv, which, EBandMode.OVERVIEW));
 			}
 		}
 	}
@@ -121,21 +121,21 @@ public class ParaBand extends ABand {
 			float tr = ((float) overview.tShared.size()) / tData.size();
 			this.overview = new Band(overview.getLabel(), overview.sShared, overview.tShared,
  toVec3(s, SOURCE, sr, 0),
-					toVec3(t, TARGET, tr, 0));
+					toVec3(t, TARGET, tr, 0), EBandMode.OVERVIEW);
 			overviewRoutes.set(0, this.overview);
 			if (sr < 1) {
 				NotMapped m = (NotMapped) overviewRoutes.get(1);
 				// add a non-mapped indicator
 				Vec4f sv = toVec3(s, SOURCE, (1 - sr), sr);
 				overviewRoutes.set(1, new NotMapped(m.getLabel(), m.sShared, m.tShared, SourceTarget.SOURCE, sv,
-						toVec3(t, TARGET, 1, 0), sDir));
+						toVec3(t, TARGET, 1, 0), sDir, EBandMode.OVERVIEW));
 			}
 			if (tr < 1) {
 				int index = sr < 1 ? 2 : 1;
 				NotMapped m = (NotMapped) overviewRoutes.get(index);
 				Vec4f tv = toVec3(t, TARGET, (1 - tr), tr);
 				overviewRoutes.set(index, new NotMapped(m.getLabel(), m.sShared, m.tShared, SourceTarget.TARGET,
-						toVec3(t, TARGET, 1, 0), tv, sDir));
+						toVec3(t, TARGET, 1, 0), tv, sDir, EBandMode.OVERVIEW));
 			}
 		}
 	}
@@ -222,7 +222,7 @@ public class ParaBand extends ABand {
 					sg = new Vec4f(this.s.x() + (float) s1, this.s.y(), (float) (s2 - s1), 0);
 					tg = new Vec4f(this.t.x() + (float) t1, this.t.y(), (float) (t2 - t1), 0);
 				}
-				groupRoutes.add(new Band(label, sShared, tShared, sg, tg));
+				groupRoutes.add(new Band(label, sShared, tShared, sg, tg, EBandMode.GROUPS));
 				sinneracc += sShared.size();
 				tinneracc[j] += tShared.size();
 			}
@@ -237,7 +237,7 @@ public class ParaBand extends ABand {
 				else
 					s = new Vec4f(this.s.x() + (float) s1, this.s.y(), (float) (sgroupLocation.getOffset2() - s1), 0);
 				groupRoutes.add(new NotMapped(sgroup.getLabel() + " x Not Mapped", notMappedIds, tEmpty,
-						SourceTarget.SOURCE, s, tTotal, which));
+						SourceTarget.SOURCE, s, tTotal, which, EBandMode.GROUPS));
 			}
 		}
 
@@ -257,7 +257,7 @@ public class ParaBand extends ABand {
 			else
 				s = new Vec4f(this.t.x() + (float) s1, this.t.y(), (float) (tgroupLocation.getOffset2() - s1), 0);
 			groupRoutes.add(new NotMapped("Not Mapped x " + tgroup.getLabel(), sEmpty, notMappedIds,
-					SourceTarget.TARGET, sTotal, s, which));
+					SourceTarget.TARGET, sTotal, s, which, EBandMode.GROUPS));
 		}
 
 		return groupRoutes;
@@ -360,7 +360,7 @@ public class ParaBand extends ABand {
 				if (stlines == null)
 					continue;
 				for (LineAcc line : stlines)
-					detailRoutes.add(build(line, sType, tType));
+					detailRoutes.add(build(line, sType, tType, EBandMode.GROUPED_DETAIL));
 			}
 		}
 		return detailRoutes;
@@ -415,13 +415,13 @@ public class ParaBand extends ABand {
 			IDType tType = this.tData.getIdType();
 
 			for (LineAcc line : lines) {
-				detailRoutes.add(build(line, sType, tType));
+				detailRoutes.add(build(line, sType, tType, EBandMode.DETAIL));
 			}
 		}
 		return detailRoutes;
 	}
 
-	private IBandRenderAble build(LineAcc acc, IDType sType, IDType tType) {
+	private IBandRenderAble build(LineAcc acc, IDType sType, IDType tType, EBandMode mode) {
 		float sh = acc.s.y() - acc.s.x();
 		float th = acc.t.y() - acc.t.x();
 
@@ -440,9 +440,9 @@ public class ParaBand extends ABand {
 
 		if (mode.compareTo(EBandMode.GROUPED_DETAIL) >= 0) {// sh <= Constants.PARALLEL_LINE_SIZE && th <=
 															// Constants.PARALLEL_LINE_SIZE) {
-			return new Line(label, sData, tData, ss, tt);
+			return new Line(label, sData, tData, ss, tt, mode);
 		} else
-			return new Band(label, sData, tData, ss, tt);
+			return new Band(label, sData, tData, ss, tt, mode);
 	}
 
 	private static TypedSet as(Set<Integer> ids, IDType type) {
@@ -514,8 +514,8 @@ public class ParaBand extends ABand {
 		private final List<Vec2f> points;
 		private Polygon shape;
 
-		public Band(String label, TypedSet sData, TypedSet tData, Vec4f s, Vec4f t) {
-			super(label, sData, tData);
+		public Band(String label, TypedSet sData, TypedSet tData, Vec4f s, Vec4f t, EBandMode mode) {
+			super(label, sData, tData, mode);
 
 			this.points = new ArrayList<>(8);
 			this.shape = new Polygon();
@@ -557,45 +557,47 @@ public class ParaBand extends ABand {
 
 
 		@Override
-		public void renderRoute(GLGraphics g, IBandHost host, int nrBands) {
+		public void renderRoute(GLGraphics g, IBandHost host, int nrBands, boolean withSelection) {
 			Color color = mode.getColor();
 			final float alpha = EBandMode.alpha(nrBands);
 			g.color(color.r, color.g, color.b, color.a * alpha);
 			g.fillPolygon(TesselatedPolygons.polygon2(points));
 
-			boolean horizontal = isHorizontal();
-			Vec2f s0 = points.get(0);
-			Vec2f t0 = points.get(3);
-			float sw = horizontal ? (points.get(1).y() - s0.y()) : (points.get(1).x() - s0.x());
-			float tw = horizontal ? (points.get(2).y() - t0.y()) : (points.get(2).x() - t0.x());
-			float sh = horizontal ? points.get(7).y() - s0.y() : points.get(7).x() - s0.x();
-			float th = horizontal ? points.get(4).y() - t0.y() : points.get(4).x() - t0.x();
+			if (withSelection) {
+				boolean horizontal = isHorizontal();
+				Vec2f s0 = points.get(0);
+				Vec2f t0 = points.get(3);
+				float sw = horizontal ? (points.get(1).y() - s0.y()) : (points.get(1).x() - s0.x());
+				float tw = horizontal ? (points.get(2).y() - t0.y()) : (points.get(2).x() - t0.x());
+				float sh = horizontal ? points.get(7).y() - s0.y() : points.get(7).x() - s0.x();
+				float th = horizontal ? points.get(4).y() - t0.y() : points.get(4).x() - t0.x();
 
-			for (SelectionType type : SELECTION_TYPES) {
-				int s = host.getSelected(sShared, type).size();
-				int t = host.getSelected(tShared, type).size();
-				if (s > 0 && t > 0) {
-					Color c = type.getColor();
-					g.color(c.r, c.g, c.b, c.a * alpha);
-					List<Vec2f> p = new ArrayList<>(8);
-					p.addAll(points.subList(0, 4));
-					float sf = s / (float) sShared.size();
-					float tf = t / (float) tShared.size();
+				for (SelectionType type : SELECTION_TYPES) {
+					int s = host.getSelected(sShared, type).size();
+					int t = host.getSelected(tShared, type).size();
+					if (s > 0 && t > 0) {
+						Color c = type.getColor();
+						g.color(c.r, c.g, c.b, c.a * alpha);
+						List<Vec2f> p = new ArrayList<>(8);
+						p.addAll(points.subList(0, 4));
+						float sf = s / (float) sShared.size();
+						float tf = t / (float) tShared.size();
 
-					if (horizontal) {
-						p.add(new Vec2f(t0.x(), t0.y() + th * tf));
-						p.add(new Vec2f(t0.x() - SHIFT, t0.y() + tw + th * tf));
-						p.add(new Vec2f(s0.x() + SHIFT, s0.y() + sw + sh * sf));
-						p.add(new Vec2f(s0.x(), s0.y() + sh * sf));
-					} else {
-						p.add(new Vec2f(t0.x() + th * tf, t0.y()));
-						p.add(new Vec2f(t0.x() + tw + th * tf, t0.y() - SHIFT));
-						p.add(new Vec2f(s0.x() + sw + sh * sf, s0.y() + SHIFT));
-						p.add(new Vec2f(s0.x() + sh * sf, s0.y()));
+						if (horizontal) {
+							p.add(new Vec2f(t0.x(), t0.y() + th * tf));
+							p.add(new Vec2f(t0.x() - SHIFT, t0.y() + tw + th * tf));
+							p.add(new Vec2f(s0.x() + SHIFT, s0.y() + sw + sh * sf));
+							p.add(new Vec2f(s0.x(), s0.y() + sh * sf));
+						} else {
+							p.add(new Vec2f(t0.x() + th * tf, t0.y()));
+							p.add(new Vec2f(t0.x() + tw + th * tf, t0.y() - SHIFT));
+							p.add(new Vec2f(s0.x() + sw + sh * sf, s0.y() + SHIFT));
+							p.add(new Vec2f(s0.x() + sh * sf, s0.y()));
+						}
+
+						g.fillPolygon(TesselatedPolygons.polygon2(p));
+						renderBandOutline(g, p, 0);
 					}
-
-					g.fillPolygon(TesselatedPolygons.polygon2(p));
-					renderBandOutline(g, p, 0);
 				}
 			}
 			g.color(color.r, color.g, color.b, color.a * alpha);
@@ -628,8 +630,8 @@ public class ParaBand extends ABand {
 		private final Vec2f[] line;
 		private final boolean renderLeftDot, renderRightDot;
 
-		public Line(String label, TypedSet sData, TypedSet tData, Vec4f s, Vec4f t) {
-			super(label, sData, tData);
+		public Line(String label, TypedSet sData, TypedSet tData, Vec4f s, Vec4f t, EBandMode mode) {
+			super(label, sData, tData, mode);
 
 			this.line= new Vec2f[4];
 			if (isHorizontal()) {
@@ -652,14 +654,16 @@ public class ParaBand extends ABand {
 		}
 
 		@Override
-		public void renderRoute(GLGraphics g, IBandHost host, int nrBands) {
+		public void renderRoute(GLGraphics g, IBandHost host, int nrBands, boolean withSelection) {
 			Color c = mode.getColor();
-			for (SelectionType type : SELECTION_TYPES) {
-				int s = host.getSelected(sShared, type).size();
-				int t = host.getSelected(tShared, type).size();
-				if (s > 0 && t > 0) {
-					c = type.getColor();
-					break;
+			if (withSelection) {
+				for (SelectionType type : SELECTION_TYPES) {
+					int s = host.getSelected(sShared, type).size();
+					int t = host.getSelected(tShared, type).size();
+					if (s > 0 && t > 0) {
+						c = type.getColor();
+						break;
+					}
 				}
 			}
 			g.color(c.r, c.g, c.b, c.a * EBandMode.alpha(nrBands));

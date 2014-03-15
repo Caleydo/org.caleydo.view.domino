@@ -83,13 +83,13 @@ public class CrossBand extends ABand {
 				TypedSet sNotMapped = sData.asSet().difference(sShared);
 				Pair<Vec4f, Vec4f> r = notMappedConnectors(SOURCE, sr);
 				overviewRoutes.add(new NotMapped(split[0] + " x Not Mapped", sNotMapped, TypedCollections.empty(tData
-						.getIdType()), SOURCE, r.getFirst(), r.getSecond(), sDir));
+						.getIdType()), SOURCE, r.getFirst(), r.getSecond(), sDir, EBandMode.OVERVIEW));
 			}
 			if (tr < 1) {
 				TypedSet tNotMapped = tData.asSet().difference(tShared);
 				Pair<Vec4f, Vec4f> r = notMappedConnectors(TARGET, tr);
 				overviewRoutes.add(new NotMapped("Not Mapped x " + split[1], TypedCollections.empty(sData.getIdType()),
-						tNotMapped, TARGET, r.getFirst(), r.getSecond(), tDir));
+						tNotMapped, TARGET, r.getFirst(), r.getSecond(), tDir, EBandMode.OVERVIEW));
 			}
 		}
 	}
@@ -157,7 +157,7 @@ public class CrossBand extends ABand {
 				Pair<Vec4f, Vec4f> r = notMappedConnectors(SourceTarget.SOURCE, sr);
 				overviewRoutes
 .add(new NotMapped(m.getLabel(), m.sShared, m.tShared, SourceTarget.SOURCE, r.getFirst(),
-						r.getSecond(), sDir));
+						r.getSecond(), sDir, EBandMode.OVERVIEW));
 			}
 			if (tr < 1) {
 				int index = sr < 1 ? 2 : 1;
@@ -165,7 +165,7 @@ public class CrossBand extends ABand {
 				Pair<Vec4f, Vec4f> r = notMappedConnectors(SourceTarget.TARGET, tr);
 				overviewRoutes
 .add(new NotMapped(m.getLabel(), m.sShared, m.tShared, SourceTarget.TARGET, r.getFirst(),
-						r.getSecond(), tDir));
+						r.getSecond(), tDir, EBandMode.OVERVIEW));
 			}
 		}
 	}
@@ -192,9 +192,9 @@ public class CrossBand extends ABand {
 	}
 
 	@Override
-	protected void renderRoutes(GLGraphics g, IBandHost host, Collection<? extends IBandRenderAble> routes) {
+	public void render(GLGraphics g, float w, float h, IBandHost host) {
 		renderAdapter(g);
-		super.renderRoutes(g, host, routes);
+		super.render(g, w, h, host);
 	}
 
 	@Override
@@ -367,7 +367,7 @@ public class CrossBand extends ABand {
 
 				Rect bounds = new Rect((float) (x + tinneracc[j] * tFactor), (float) (y + sinneracc * sFactor),
 						(float) w, (float) h);
-				groupRoutes.add(new MosaicRect(label, bounds, sShared, tShared));
+				groupRoutes.add(new MosaicRect(label, bounds, sShared, tShared, EBandMode.GROUPS));
 
 				sinneracc += sShared.size();
 				tinneracc[j] += tShared.size();
@@ -380,7 +380,7 @@ public class CrossBand extends ABand {
 				Pair<Vec4f, Vec4f> r = notMappedConnectors(SourceTarget.SOURCE, s1, (float) (sgroupLocation.getSize())
 						- s1, wtotal);
 				groupRoutes.add(new NotMapped(sgroup.getLabel() + " x Not Mapped", notMappedIds, tEmpty,
-						SourceTarget.SOURCE, r.getFirst(), r.getSecond(), sDir));
+						SourceTarget.SOURCE, r.getFirst(), r.getSecond(), sDir, EBandMode.GROUPS));
 			}
 		}
 
@@ -397,7 +397,7 @@ public class CrossBand extends ABand {
 			Pair<Vec4f, Vec4f> r = notMappedConnectors(SourceTarget.TARGET, s1,
 					(float) (tgroupLocation.getSize()) - s1, htotal);
 			groupRoutes.add(new NotMapped("Not Mapped x " + tgroup.getLabel(), sEmpty, notMappedIds,
-					SourceTarget.SOURCE, r.getFirst(), r.getSecond(), tDir));
+					SourceTarget.SOURCE, r.getFirst(), r.getSecond(), tDir, EBandMode.GROUPS));
 		}
 
 		return groupRoutes;
@@ -449,7 +449,7 @@ public class CrossBand extends ABand {
 			}
 
 		}
-		flushPoints(detailRoutes, points);
+		flushPoints(detailRoutes, points, EBandMode.DETAIL);
 		return detailRoutes;
 	}
 
@@ -458,13 +458,13 @@ public class CrossBand extends ABand {
 		return detailRoutes();
 	}
 
-	private void flushPoints(List<IBandRenderAble> detailRoutes, Set<PointB> lines) {
+	private void flushPoints(List<IBandRenderAble> detailRoutes, Set<PointB> lines, EBandMode mode) {
 		if (lines.isEmpty())
 			return;
 		final IDType s = this.overview.sShared.getIdType();
 		final IDType t = this.overview.tShared.getIdType();
 		for (PointB line : lines)
-			detailRoutes.add(line.create(s, t));
+			detailRoutes.add(line.create(s, t, mode));
 		lines.clear();
 	}
 
@@ -518,14 +518,14 @@ public class CrossBand extends ABand {
 			return Math.abs(a - b) < 0.01;
 		}
 
-		public MosaicRect create(IDType s, IDType t) {
+		public MosaicRect create(IDType s, IDType t, EBandMode mode) {
 			String label = StringUtils.join(sIds, ", ") + " x " + StringUtils.join(tIds, ", ");
 			double x = tLoc.x() + tloc.getOffset();
 			double y = sLoc.y() + sloc.getOffset();
 			double w = tloc.getSize();
 			double h = sloc.getSize();
 			Rect bounds = new Rect((float) x, (float) y, (float) w, (float) h);
-			return new MosaicRect(label, bounds, new TypedSet(sIds, s), new TypedSet(tIds, t));
+			return new MosaicRect(label, bounds, new TypedSet(sIds, s), new TypedSet(tIds, t), mode);
 		}
 	}
 
@@ -541,7 +541,7 @@ public class CrossBand extends ABand {
 		private final float xStart, yStart;
 
 		public Disc(String label, Rect bounds, TypedSet sIds, TypedSet tIds, float xStart, float yStart) {
-			super(label, bounds, sIds, tIds);
+			super(label, bounds, sIds, tIds, EBandMode.OVERVIEW);
 			this.xStart = xStart;
 			this.yStart = yStart;
 		}
@@ -630,8 +630,8 @@ public class CrossBand extends ABand {
 		}
 
 		@Override
-		public void renderRoute(GLGraphics g, IBandHost host, int nrItems) {
-			super.renderRoute(g, host, nrItems);
+		public void renderRoute(GLGraphics g, IBandHost host, int nrItems, boolean withSelection) {
+			super.renderRoute(g, host, nrItems, withSelection);
 			// final Color color = EBandMode.OVERVIEW.getColor();
 			// g.color(color);
 			// renderBox(g, true, 1.f, 1.f);
@@ -661,13 +661,13 @@ public class CrossBand extends ABand {
 	private class MosaicRect extends ARelation {
 		protected final Rect bounds;
 
-		public MosaicRect(String label, Rect bounds, TypedSet sIds, TypedSet tIds) {
-			super(label, sIds, tIds);
+		public MosaicRect(String label, Rect bounds, TypedSet sIds, TypedSet tIds, EBandMode mode) {
+			super(label, sIds, tIds, mode);
 			this.bounds = bounds;
 		}
 
 		@Override
-		public void renderRoute(GLGraphics g, IBandHost host, int nrItems) {
+		public void renderRoute(GLGraphics g, IBandHost host, int nrItems, boolean withSelection) {
 			if (mode.compareTo(EBandMode.GROUPED_DETAIL) >= 0
 					|| (bounds.width() <= Constants.SCATTER_POINT_SIZE && bounds.height() <= Constants.SCATTER_POINT_SIZE)) {
 				renderPoint(g, host);

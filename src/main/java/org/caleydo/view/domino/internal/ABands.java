@@ -36,9 +36,6 @@ import org.caleydo.view.domino.internal.MiniMapCanvas.IHasMiniMap;
 import org.caleydo.view.domino.internal.band.ABand;
 import org.caleydo.view.domino.internal.band.IBandHost;
 
-import com.jogamp.common.util.IntIntHashMap;
-import com.jogamp.common.util.IntIntHashMap.Entry;
-
 /**
  * a dedicated layer for the bands for better caching behavior
  *
@@ -55,7 +52,6 @@ public abstract class ABands extends GLElement implements MultiSelectionManagerM
 
 	protected PickingPool pickingBandDetailPool;
 	protected PickingPool pickingBandPool;
-	private final IntIntHashMap pickingOffsets = new IntIntHashMap();
 
 	protected abstract void update();
 
@@ -137,15 +133,16 @@ public abstract class ABands extends GLElement implements MultiSelectionManagerM
 	 * @return
 	 */
 	protected int[] split(int objectID) {
-		Entry last = null;
-		for (Entry entry : pickingOffsets) {
-			if (entry.value > objectID)
+		int last = -1;
+		for (int i = 0; i < bands.size(); ++i) {
+			ABand band = bands.get(i);
+			if (band.getPickingOffset() > objectID)
 				break;
-			last = entry;
+			last = i;
 		}
-		if (last == null)
+		if (last == -1)
 			return null;
-		return new int[] { last.key, objectID - last.value };
+		return new int[] { last, objectID - bands.get(last).getPickingOffset() };
 	}
 
 	/**
@@ -258,33 +255,32 @@ public abstract class ABands extends GLElement implements MultiSelectionManagerM
 		g.color(Color.BLUE);
 		super.renderPickImpl(g, w, h);
 		g.color(Color.BLACK);
-		if (getVisibility() == EVisibility.PICKABLE) {
-			g.incZ(0.05f);
-			g.color(Color.RED);
-			Vec2f loc = getShift();
-			g.save().move(-loc.x(), -loc.y());
-			int j = 0;
-			pickingOffsets.clear();
-			for (int i = 0; i < bands.size(); i++) {
-				pickingOffsets.put(i, j);
-				final ABand band = bands.get(i);
-				g.pushName(pickingBandPool.get(i));
-				g.incZ(-0.01f);
-				band.renderMiniMap(g);
-				g.incZ(0.01f);
-				g.popName();
+		if (getVisibility() != EVisibility.PICKABLE)
+			return;
+		g.incZ(0.05f);
+		g.color(Color.RED);
+		Vec2f loc = getShift();
+		g.save().move(-loc.x(), -loc.y());
+		int j = 0;
+		for (int i = 0; i < bands.size(); i++) {
+			final ABand band = bands.get(i);
+			band.setPickingOffset(j);
+			g.pushName(pickingBandPool.get(i));
+			g.incZ(-0.01f);
+			band.renderMiniMap(g);
+			g.incZ(0.01f);
+			g.popName();
 
-				// pop the self id but the band id
-				g.popName();
-				g.pushName(pickingBandPool.get(i));
-				j = band.renderPick(g, w, h, this, pickingBandDetailPool, j);
-				g.popName();
-				g.pushName(pickingID); // FIXME HACK
-			}
-			g.restore();
-			g.incZ(-0.05f);
-			g.color(Color.BLACK);
+			// pop the self id but the band id
+			g.popName();
+			g.pushName(pickingBandPool.get(i));
+			j = band.renderPick(g, w, h, this, pickingBandDetailPool, j);
+			g.popName();
+			g.pushName(pickingID); // FIXME HACK
 		}
+		g.restore();
+		g.incZ(-0.05f);
+		g.color(Color.BLACK);
 	}
 
 
