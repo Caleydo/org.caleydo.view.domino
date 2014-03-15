@@ -71,8 +71,8 @@ public class String1DDataDomainValues extends A1DDataDomainValues {
 	}
 
 	@Override
-	protected void fill(Builder b, TypedList data, EDimension dim) {
-		super.fill(b, data, dim);
+	protected void fill(Builder b, TypedList data, EDimension dim, boolean[] existNeigbhor) {
+		super.fill(b, data, dim, existNeigbhor);
 		final Function<Integer, String> toString = new Function<Integer, String>() {
 			@Override
 			public String apply(Integer input) {

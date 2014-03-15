@@ -18,6 +18,7 @@ import org.caleydo.core.util.function.IDoubleList;
 import org.caleydo.core.util.function.MappedDoubleList;
 import org.caleydo.core.view.opengl.layout2.manage.GLElementFactoryContext.Builder;
 import org.caleydo.core.view.opengl.util.gleem.IColored;
+import org.caleydo.view.domino.api.model.EDirection;
 import org.caleydo.view.domino.api.model.typed.ITypedCollection;
 import org.caleydo.view.domino.api.model.typed.TypedGroupSet;
 import org.caleydo.view.domino.api.model.typed.TypedList;
@@ -121,7 +122,7 @@ public class Numerical1DMixin {
 		return r;
 	}
 
-	public void fill(Builder b, TypedList data, EDimension dim) {
+	public void fill(Builder b, TypedList data, EDimension dim, boolean[] existNeigbhor) {
 		final Histogram hist = createHist(data);
 		b.put(Histogram.class, hist);
 		b.put("distribution.colors", getHistColors(hist, data));
@@ -137,7 +138,12 @@ public class Numerical1DMixin {
 
 		// FIXME hack, if we have positive and negatives to a centered bar plot
 		if (min < 0 && max > 0)
-			b.put("hbar.center", 0);
+			b.put("hbar.bar.center", 0);
+		else {
+			boolean leftN = existNeigbhor[EDirection.getPrimary(dim.opposite()).ordinal()];
+			boolean rightN = existNeigbhor[EDirection.getPrimary(dim.opposite()).opposite().ordinal()];
+			b.put("hbar.bar.left", (!rightN || (leftN && rightN)));
+		}
 
 		b.put("hbar.id2color", new AlternatingColors(Color.BLACK, Color.LIGHT_GRAY, even(data)));
 		// b.set("kaplanmaier.fillCurve");

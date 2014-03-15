@@ -126,15 +126,15 @@ public class ProjectedDataValues implements IDataValues, INumerical1DContainer,F
 			data = along.select(dimData, recData);
 		}
 		b.put(EDimension.class, dim);
-		fill(b, data, dim);
+		fill(b, data, dim, existNeigbhor);
 	}
 
-	protected void fill(Builder b, TypedList data, EDimension dim) {
+	protected void fill(Builder b, TypedList data, EDimension dim, boolean[] existNeigbhor) {
 		b.put(TypedList.class, data);
 		b.put(IDType.class, data.getIdType());
 		b.put("idType", data.getIdType());
 		b.put("id2color", this);
-		mixin.fill(b, data, dim);
+		mixin.fill(b, data, dim, existNeigbhor);
 	}
 
 	@Override

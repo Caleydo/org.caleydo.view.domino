@@ -87,8 +87,8 @@ public class Categorical1DDataDomainValues extends A1DDataDomainValues {
 	}
 
 	@Override
-	protected void fill(Builder b, TypedList data, EDimension dim) {
-		super.fill(b, data, dim);
+	protected void fill(Builder b, TypedList data, EDimension dim, boolean[] existNeigbhor) {
+		super.fill(b, data, dim, existNeigbhor);
 		final Histogram hist = createHist(data);
 		b.put(Histogram.class, hist);
 		b.put("distribution.largestBin", maxBinSize);

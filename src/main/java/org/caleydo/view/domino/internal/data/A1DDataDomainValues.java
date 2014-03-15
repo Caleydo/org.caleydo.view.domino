@@ -68,7 +68,7 @@ public abstract class A1DDataDomainValues extends ADataDomainDataValues implemen
 			data = main.opposite().select(dimData, recData);
 		}
 		b.put(EDimension.class, dim);
-		fill(b, data, dim);
+		fill(b, data, dim, existNeigbhor);
 	}
 
 	/**
@@ -76,7 +76,7 @@ public abstract class A1DDataDomainValues extends ADataDomainDataValues implemen
 	 * @param data
 	 * @param dim
 	 */
-	protected void fill(Builder b, TypedList data, EDimension dim) {
+	protected void fill(Builder b, TypedList data, EDimension dim, boolean[] existNeigbhor) {
 		b.put(TypedList.class, data);
 		b.put(IDType.class, data.getIdType());
 		b.put("idType", data.getIdType());

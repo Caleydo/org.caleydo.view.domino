@@ -79,9 +79,9 @@ public class Numerical1DDataDomainValues extends A1DDataDomainValues implements 
 
 
 	@Override
-	protected void fill(Builder b, TypedList data, EDimension dim) {
-		super.fill(b, data, dim);
-		mixin.fill(b, data, dim);
+	protected void fill(Builder b, TypedList data, EDimension dim, boolean[] existNeigbhor) {
+		super.fill(b, data, dim, existNeigbhor);
+		mixin.fill(b, data, dim, existNeigbhor);
 	}
 
 	@Override
