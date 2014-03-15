@@ -426,12 +426,15 @@ public class Block extends GLElementContainer implements IGLLayout2, IPickingLis
 		block.add(neighbor, dir, node);
 		EDimension other = dir.asDim().opposite();
 		node.copyScaleFactors(neighbor, other);
-		if (node.has(other.opposite()))
-			linearBlocks.add(new LinearBlock(other, node));
+		if (node.has(other.opposite())) {
+			final LinearBlock b2 = new LinearBlock(other, node);
+			linearBlocks.add(b2);
+		}
 
 		if (neighbor.getDetachedOffset() > 0 || node.getDetachedOffset() > 0) {
 			setOffset(node, neighbor, Math.max(neighbor.getDetachedOffset(), node.getDetachedOffset()));
 		}
+		block.updateNeighbors();
 
 		this.add(node);
 		realign();

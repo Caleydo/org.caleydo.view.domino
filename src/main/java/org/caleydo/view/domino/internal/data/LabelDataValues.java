@@ -73,11 +73,11 @@ public class LabelDataValues implements IDataValues {
 		b.set("labels.boxHighlights");
 
 		VAlign align;
-		boolean r = existNeigbhor[dim.select(EDirection.NORTH, EDirection.EAST).ordinal()];
-		boolean l = existNeigbhor[dim.select(EDirection.SOUTH, EDirection.WEST).ordinal()];
-		if (r && l)
+		boolean leftN = existNeigbhor[dim.select(EDirection.SOUTH, EDirection.WEST).ordinal()];
+		boolean rightN = existNeigbhor[dim.select(EDirection.NORTH, EDirection.EAST).ordinal()];
+		if (rightN && leftN)
 			align = VAlign.CENTER;
-		else if (r)
+		else if (rightN)
 			align = VAlign.RIGHT;
 		else
 			align = VAlign.LEFT;

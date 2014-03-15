@@ -767,9 +767,6 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 	}
 
 	public void setNeighbor(EDirection dir, Node neighbor) {
-		Node bak = this.neighbors[dir.ordinal()];
-		if (bak == neighbor)
-			return;
 		this.neighbors[dir.ordinal()] = neighbor;
 
 		List<NodeGroup> myGroups = getGroupNeighbors(dir);
@@ -784,10 +781,6 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 				g.setNeighbor(dir, null);
 			}
 		}
-
-		// symmetric
-		if (neighbor != null)
-			neighbor.setNeighbor(dir.opposite(), this);
 	}
 
 	public void updateNeighbor(EDirection dir, Node neighbor) {

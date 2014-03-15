@@ -254,12 +254,15 @@ public class LinearBlock extends AbstractCollection<Node> {
 		if (nodes.isEmpty())
 			return 0;
 		// update neighbors
+		final EDirection dir = EDirection.getPrimary(dim);
 		if (index == 0) {
-			nodes.get(0).setNeighbor(EDirection.getPrimary(dim), null);
+			nodes.get(0).setNeighbor(dir, null);
 		} else if (index >= nodes.size()) {
-			nodes.get(index - 1).setNeighbor(EDirection.getPrimary(dim).opposite(), null);
+			nodes.get(index - 1).setNeighbor(dir.opposite(), null);
 		} else {
-			nodes.get(index - 1).setNeighbor(EDirection.getPrimary(dim).opposite(), nodes.get(index));
+			final Node last = nodes.get(index);
+			nodes.get(index - 1).setNeighbor(dir.opposite(), last);
+			last.setNeighbor(dir, nodes.get(index - 1));
 		}
 
 		sortCriteria.remove(node);
@@ -286,7 +289,10 @@ public class LinearBlock extends AbstractCollection<Node> {
 
 		Node old = neighbor.getNeighbor(dir);
 		neighbor.setNeighbor(dir, node);
+		node.setNeighbor(dir.opposite(), neighbor);
 		node.setNeighbor(dir, old);
+		if (old != null)
+			old.setNeighbor(dir.opposite(), node);
 
 		if (dir.isPrimaryDirection())
 			this.nodes.add(index, node);
@@ -304,6 +310,8 @@ public class LinearBlock extends AbstractCollection<Node> {
 		EDirection dir = EDirection.getPrimary(dim);
 		for (Node node : nodes) {
 			node.setNeighbor(dir, prev);
+			if (prev != null)
+				prev.setNeighbor(dir.opposite(), node);
 			prev = node;
 		}
 		nodes.get(nodes.size() - 1).setNeighbor(dir.opposite(), null);
