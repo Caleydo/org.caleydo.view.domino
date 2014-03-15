@@ -306,9 +306,12 @@ public abstract class ABand implements ILabeled, IHasMiniMap {
 		boolean hasGroups = sData.getGroups().size() > 1 || tData.getGroups().size() > 1;
 		switch (mode) {
 		case OVERVIEW:
-			if (!increase)
-				return;
-			if (hasGroups)
+			if (!increase) {
+				if (detailsThere)
+					mode = EBandMode.DETAIL;
+				else if (hasGroups)
+					mode = EBandMode.GROUPED_DETAIL;
+			} else if (hasGroups)
 				mode = EBandMode.GROUPS;
 			else if (detailsThere)
 				mode = EBandMode.DETAIL;
@@ -318,6 +321,8 @@ public abstract class ABand implements ILabeled, IHasMiniMap {
 				mode = EBandMode.OVERVIEW;
 			else if (detailsThere)
 				mode = EBandMode.GROUPED_DETAIL;
+			else
+				mode = EBandMode.OVERVIEW;
 			break;
 		case GROUPED_DETAIL:
 			if (!increase)
@@ -327,8 +332,8 @@ public abstract class ABand implements ILabeled, IHasMiniMap {
 			break;
 		case DETAIL:
 			if (increase)
-				return;
-			if (hasGroups)
+				mode = EBandMode.OVERVIEW;
+			else if (hasGroups)
 				mode = EBandMode.GROUPED_DETAIL;
 			else
 				mode = EBandMode.OVERVIEW;
