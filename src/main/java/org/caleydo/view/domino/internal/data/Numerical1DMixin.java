@@ -9,11 +9,11 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Set;
 
+import org.caleydo.core.data.collection.EDimension;
 import org.caleydo.core.data.collection.Histogram;
 import org.caleydo.core.data.perspective.variable.Perspective;
 import org.caleydo.core.util.base.ILabeled;
 import org.caleydo.core.util.color.Color;
-import org.caleydo.core.util.function.DoubleStatistics;
 import org.caleydo.core.util.function.IDoubleList;
 import org.caleydo.core.util.function.MappedDoubleList;
 import org.caleydo.core.view.opengl.layout2.manage.GLElementFactoryContext.Builder;
@@ -37,7 +37,7 @@ public class Numerical1DMixin {
 	private final INumerical1DContainer c;
 	private final int bins;
 	private final int maxBinSize;
-	private final DoubleStatistics stats;
+	private final float min, max;
 
 	private final Function<Integer, Double> toRaw = new Function<Integer, Double>() {
 		@Override
@@ -46,21 +46,11 @@ public class Numerical1DMixin {
 		}
 	};
 
-	public Numerical1DMixin(INumerical1DContainer c, TypedGroupSet groups) {
-		this(c, groups, createStats(c, groups));
-	}
-
-	private static DoubleStatistics createStats(INumerical1DContainer c, TypedGroupSet groups) {
-		DoubleStatistics.Builder b = DoubleStatistics.builder();
-		for (Integer id : groups)
-			b.add(c.getRaw(id));
-		return b.build();
-	}
-
-	public Numerical1DMixin(INumerical1DContainer c, TypedGroupSet groups, DoubleStatistics stats) {
+	public Numerical1DMixin(INumerical1DContainer c, TypedGroupSet groups, float min, float max) {
 		this.c = c;
 		this.bins = (int) Math.sqrt(groups.size());
-		this.stats = stats;
+		this.min = min;
+		this.max = max;
 		this.maxBinSize = createHist(groups).getLargestValue();
 	}
 
@@ -129,7 +119,7 @@ public class Numerical1DMixin {
 		return r;
 	}
 
-	public void fill(Builder b, TypedList data) {
+	public void fill(Builder b, TypedList data, EDimension dim) {
 		final Histogram hist = createHist(data);
 		b.put(Histogram.class, hist);
 		b.put("distribution.colors", getHistColors(hist, data));
@@ -138,12 +128,12 @@ public class Numerical1DMixin {
 
 		b.put("id2double", toRaw);
 		final MappedDoubleList<Integer> list = new MappedDoubleList<>(data, toRaw);
-		b.put("min", this.stats.getMin());
-		b.put("max", this.stats.getMax());
+		b.put("min", min);
+		b.put("max", max);
 		b.put(IDoubleList.class, list);
 
 		// FIXME hack, if we have positive and negatives to a centered bar plot
-		if (stats.getMin() < 0 && stats.getMax() > 0)
+		if (min < 0 && max > 0)
 			b.put("hbar.center", 0);
 
 		b.put("hbar.id2color", new AlternatingColors(Color.BLACK, Color.LIGHT_GRAY, even(data)));
@@ -152,6 +142,9 @@ public class Numerical1DMixin {
 		b.set("boxandwhiskers.showOutliers");
 		b.set("boxandwhiskers.showMinMax");
 		b.put("sheatmap.frameColor", Color.LIGHT_GRAY);
+
+		if (dim.isVertical())
+			b.set("axis.invertOrder");
 	}
 
 	/**

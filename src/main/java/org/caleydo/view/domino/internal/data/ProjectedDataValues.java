@@ -47,7 +47,8 @@ public class ProjectedDataValues implements IDataValues, INumerical1DContainer,F
 		this.data = r.getFirst();
 		DoubleStatistics stats = r.getSecond();
 		this.normalize = DoubleFunctions.normalize(stats.getMin(), stats.getMax());
-		this.mixin = new Numerical1DMixin(this, getDefaultGroups(along.opposite()), r.getSecond());
+		this.mixin = new Numerical1DMixin(this, getDefaultGroups(along.opposite()), (float) r.getSecond().getMin(),
+				(float) r.getSecond().getMax());
 
 	}
 
@@ -125,15 +126,15 @@ public class ProjectedDataValues implements IDataValues, INumerical1DContainer,F
 			data = along.select(dimData, recData);
 		}
 		b.put(EDimension.class, dim);
-		fill(b, data);
+		fill(b, data, dim);
 	}
 
-	protected void fill(Builder b, TypedList data) {
+	protected void fill(Builder b, TypedList data, EDimension dim) {
 		b.put(TypedList.class, data);
 		b.put(IDType.class, data.getIdType());
 		b.put("idType", data.getIdType());
 		b.put("id2color", this);
-		mixin.fill(b, data);
+		mixin.fill(b, data, dim);
 	}
 
 	@Override

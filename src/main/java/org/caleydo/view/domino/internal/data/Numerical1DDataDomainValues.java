@@ -12,7 +12,9 @@ import org.caleydo.core.data.collection.EDimension;
 import org.caleydo.core.data.datadomain.DataSupportDefinitions;
 import org.caleydo.core.data.perspective.table.TablePerspective;
 import org.caleydo.core.data.perspective.variable.Perspective;
+import org.caleydo.core.io.NumericalProperties;
 import org.caleydo.core.util.color.Color;
+import org.caleydo.core.util.function.DoubleStatistics;
 import org.caleydo.core.view.opengl.layout2.manage.GLElementFactoryContext.Builder;
 import org.caleydo.view.domino.api.model.typed.TypedGroupSet;
 import org.caleydo.view.domino.api.model.typed.TypedList;
@@ -32,7 +34,27 @@ public class Numerical1DDataDomainValues extends A1DDataDomainValues implements 
 		this.groups = Numerical1DMixin.extractGroups(p, this);
 		this.isInteger = DataSupportDefinitions.dataClass(EDataClass.NATURAL_NUMBER).apply(data);
 
-		this.mixin = new Numerical1DMixin(this, groups);
+		Object desc = getDescription();
+		Float min = null, max = null;
+		if (desc instanceof NumericalProperties) {
+			min = ((NumericalProperties) desc).getMin();
+			max = ((NumericalProperties) desc).getMax();
+		}
+		if (min == null || min.isNaN() || max == null || max.isNaN()) {
+			DoubleStatistics stats = createStats(this, groups);
+			if (min == null || min.isNaN())
+				min = (float) stats.getMin();
+			if (max == null || max.isNaN())
+				max = (float) stats.getMax();
+		}
+		this.mixin = new Numerical1DMixin(this, groups, min.floatValue(), max.floatValue());
+	}
+
+	private static DoubleStatistics createStats(INumerical1DContainer c, TypedGroupSet groups) {
+		DoubleStatistics.Builder b = DoubleStatistics.builder();
+		for (Integer id : groups)
+			b.add(c.getRaw(id));
+		return b.build();
 	}
 
 	@Override
@@ -57,9 +79,9 @@ public class Numerical1DDataDomainValues extends A1DDataDomainValues implements 
 
 
 	@Override
-	protected void fill(Builder b, TypedList data) {
-		super.fill(b, data);
-		mixin.fill(b, data);
+	protected void fill(Builder b, TypedList data, EDimension dim) {
+		super.fill(b, data, dim);
+		mixin.fill(b, data, dim);
 	}
 
 	@Override

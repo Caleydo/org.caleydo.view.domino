@@ -51,6 +51,13 @@ public abstract class A1DDataDomainValues extends ADataDomainDataValues implemen
 		return main;
 	}
 
+	protected Object getDescription() {
+		if (main.isRecord())
+			return this.d.getTable().getDataClassSpecificDescription(id.getId(), 0);
+		else
+			return this.d.getTable().getDataClassSpecificDescription(0, id.getId());
+	}
+
 	@Override
 	public void fill(Builder b, TypedList dimData, TypedList recData, boolean[] existNeigbhor) {
 		EDimension dim = main;
@@ -61,14 +68,15 @@ public abstract class A1DDataDomainValues extends ADataDomainDataValues implemen
 			data = main.opposite().select(dimData, recData);
 		}
 		b.put(EDimension.class, dim);
-		fill(b, data);
+		fill(b, data, dim);
 	}
 
 	/**
 	 * @param b
 	 * @param data
+	 * @param dim
 	 */
-	protected void fill(Builder b, TypedList data) {
+	protected void fill(Builder b, TypedList data, EDimension dim) {
 		b.put(TypedList.class, data);
 		b.put(IDType.class, data.getIdType());
 		b.put("idType", data.getIdType());
