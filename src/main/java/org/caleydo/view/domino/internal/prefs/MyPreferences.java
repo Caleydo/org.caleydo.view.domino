@@ -24,10 +24,18 @@ public class MyPreferences extends AbstractPreferenceInitializer {
 	public void initializeDefaultPreferences() {
 		IPreferenceStore store = prefs();
 		store.setDefault("autoselect", true);
+		store.setDefault("blockLabelInGroup", false);
 	}
 
 	public static boolean isAutoSelectItems() {
 		return prefs().getBoolean("autoselect");
+	}
+
+	/**
+	 * @return
+	 */
+	public static boolean showBlockLabelInGroup() {
+		return prefs().getBoolean("blockLabelInGroup");
 	}
 
 }

@@ -249,9 +249,10 @@ public class NodeGroup extends GLElementDecorator implements ILabeled, IDragGLSo
 	@Override
 	public String getLabel() {
 		StringBuilder b = new StringBuilder();
-		b.append(getNode().getLabel());
 		boolean isDim = dimData != null && !TypedGroups.isUngrouped(dimData);
 		boolean isRec = recData != null && !TypedGroups.isUngrouped(recData);
+		if ((!isDim && !isRec) || MyPreferences.showBlockLabelInGroup())
+			b.append(getNode().getLabel());
 		if (isDim && !isRec)
 			b.append(" ").append(dimData.getLabel());
 		else if (isRec && !isDim) {

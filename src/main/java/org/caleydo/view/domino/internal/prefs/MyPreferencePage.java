@@ -25,6 +25,8 @@ public class MyPreferencePage extends FieldEditorPreferencePage implements IWork
 		final Composite parent = getFieldEditorParent();
 
 		addField(new BooleanFieldEditor("autoselect", "Auto Select Items", parent));
+		addField(new BooleanFieldEditor("blockLabelInGroup", "Show Block Label in Groups", parent));
+
 	}
 
 	@Override
