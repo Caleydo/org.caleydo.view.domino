@@ -237,10 +237,18 @@ public class CrossBand extends ABand {
 	}
 
 	private void renderAdapter(GLGraphics g) {
-		g.color(EBandMode.OVERVIEW.getColor());
+		final boolean showAll = mode.compareTo(EBandMode.GROUPED_DETAIL) >= 0;
+		if (showAll)
+			g.color(0, 0, 0, 0.04f);
+		else
+			g.color(EBandMode.OVERVIEW.getColor());
+
 		final float hs = (float) locS(EBandMode.OVERVIEW, 0).getSize();
 		final float wt = (float) locT(EBandMode.OVERVIEW, 0).getSize();
 
+		if (showAll) {
+			g.fillRect(tLoc.x(), sLoc.y(), wt, hs);
+		}
 		{
 			float x;
 			float w;
@@ -252,7 +260,7 @@ public class CrossBand extends ABand {
 				x = tLoc.x() + wt;
 				w = sLoc.x() - tLoc.x() - wt;
 			}
-			if (mode == EBandMode.DETAIL || sGroups <= 1)
+			if (showAll || sGroups <= 1)
 				g.fillRect(x, sLoc.y(), w, hs);
 			else {
 				for (int i = 0; i < sGroups; ++i) {
@@ -272,7 +280,7 @@ public class CrossBand extends ABand {
 				y = sLoc.y() + hs;
 				h = tLoc.y() - sLoc.y() - hs;
 			}
-			if (mode == EBandMode.DETAIL || tGroups <= 1)
+			if (showAll || tGroups <= 1)
 				g.fillRect(tLoc.x(), y, wt, h);
 			else {
 				for (int i = 0; i < tGroups; ++i) {

@@ -142,7 +142,7 @@ public class Numerical1DMixin {
 		else {
 			boolean leftN = existNeigbhor[EDirection.getPrimary(dim.opposite()).ordinal()];
 			boolean rightN = existNeigbhor[EDirection.getPrimary(dim.opposite()).opposite().ordinal()];
-			b.put("hbar.bar.left", (!rightN || (leftN && rightN)));
+			b.put("hbar.bar.left", (!rightN || (leftN && rightN)) && !(dim.isHorizontal() && !leftN && !rightN));
 		}
 
 		b.put("hbar.id2color", new AlternatingColors(Color.BLACK, Color.LIGHT_GRAY, even(data)));

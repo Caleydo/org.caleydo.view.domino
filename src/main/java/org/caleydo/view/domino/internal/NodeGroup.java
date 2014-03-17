@@ -94,6 +94,16 @@ public class NodeGroup extends GLElementDecorator implements ILabeled, IDragGLSo
 		final IDataValues data = parent.getDataValues();
 		data.fill(b, dimData, recData, getNeighborExistence());
 		// if free high else medium
+		initContext(b, parent);
+
+		ImmutableList<GLElementSupplier> extensions = GLElementFactories.getExtensions(b.build(), "domino."
+ + data.getExtensionID(), data);
+		GLElementFactorySwitcher s = new GLElementFactorySwitcher(extensions, ELazyiness.DESTROY);
+		parent.selectDefaultVisualization(s);
+		barrier.setContent(s);
+	}
+
+	private void initContext(Builder b, final Node parent) {
 		b.put(EDetailLevel.class,
 				parent.isAlone(EDimension.DIMENSION) && parent.isAlone(EDimension.RECORD) ? EDetailLevel.HIGH
 						: EDetailLevel.MEDIUM);
@@ -110,12 +120,8 @@ public class NodeGroup extends GLElementDecorator implements ILabeled, IDragGLSo
 		b.put("selection.mouseover", "AUTO_FILL_OUTLINE");
 
 		b.set("axis.renderOutsideBounds");
-
-		ImmutableList<GLElementSupplier> extensions = GLElementFactories.getExtensions(b.build(), "domino."
- + data.getExtensionID(), data);
-		GLElementFactorySwitcher s = new GLElementFactorySwitcher(extensions, ELazyiness.DESTROY);
-		parent.selectDefaultVisualization(s);
-		barrier.setContent(s);
+		// see #122
+		b.put("axis.valueGlyph", "RECT");
 	}
 
 	/**

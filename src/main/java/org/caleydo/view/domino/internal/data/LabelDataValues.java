@@ -44,7 +44,7 @@ public class LabelDataValues implements IDataValues {
 
 	@Override
 	public String getLabel() {
-		return "Labels of " + category.getCategoryName();
+		return category.getCategoryName().toUpperCase();
 	}
 
 	@Override

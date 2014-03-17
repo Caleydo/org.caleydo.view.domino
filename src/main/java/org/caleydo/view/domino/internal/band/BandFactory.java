@@ -77,7 +77,7 @@ public class BandFactory {
 					s = ra.xy();
 				if (tDir == EDirection.NORTH)
 					t = rb.xy2();
-				id = id.with(sDir == EDirection.EAST, tDir == EDirection.NORTH);
+				id = id.with(sDir != EDirection.EAST, tDir != EDirection.NORTH);
 				return new CrossBand(label, shared, sData, tData, sNodeLocator, tNodeLocator, s, t, sDir, tDir,
 						id);
 			} else {
@@ -95,7 +95,7 @@ public class BandFactory {
 					s = rb.xy();
 				if (tDir == EDirection.NORTH)
 					t = ra.xy2();
-				id.with(sDir == EDirection.EAST, tDir == EDirection.NORTH);
+				id.with(sDir != EDirection.EAST, tDir != EDirection.NORTH);
 				return new CrossBand(label, shared, tData, sData, tNodeLocator, sNodeLocator, s, t, sDir, tDir,
 						id);
 			}

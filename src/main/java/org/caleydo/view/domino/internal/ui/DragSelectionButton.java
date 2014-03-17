@@ -46,7 +46,8 @@ public class DragSelectionButton extends ADragButton implements IGLRenderer {
 	private Node createNode() {
 		Set<Integer> elements = manager.getElements(SelectionType.SELECTION);
 		TypedSet data = new TypedSet(elements, manager.getIDType());
-		StratificationDataValue d = new StratificationDataValue(getLabel(manager), data, EDimension.DIMENSION);
+		StratificationDataValue d = new StratificationDataValue("Selected " + getLabel(manager), data,
+				EDimension.DIMENSION);
 		return new Node(d);
 	}
 
