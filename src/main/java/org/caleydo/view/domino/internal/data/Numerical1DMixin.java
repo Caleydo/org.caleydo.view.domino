@@ -27,6 +27,7 @@ import org.caleydo.view.domino.api.model.typed.TypedSetGroup;
 import org.caleydo.view.domino.api.model.typed.util.BitSetSet;
 
 import com.google.common.base.Function;
+import com.google.common.base.Functions;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 
@@ -145,7 +146,9 @@ public class Numerical1DMixin {
 			b.put("hbar.bar.left", (!rightN || (leftN && rightN)) && !(dim.isHorizontal() && !leftN && !rightN));
 		}
 
-		b.put("hbar.id2color", new AlternatingColors(Color.BLACK, Color.LIGHT_GRAY, even(data)));
+		// b.put("hbar.id2color", new AlternatingColors(Color.BLACK, Color.LIGHT_GRAY, even(data)));
+		b.put("hbar.id2color", Functions.constant(Color.BLACK));
+		b.put("hbar.outline", Color.WHITE);
 		// b.set("kaplanmaier.fillCurve");
 
 		b.set("boxandwhiskers.showOutliers");
