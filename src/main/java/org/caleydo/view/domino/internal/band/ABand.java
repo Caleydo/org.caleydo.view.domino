@@ -129,7 +129,7 @@ public abstract class ABand implements ILabeled, IHasMiniMap {
 					/ (float) bsize));
 		else
 			s.append(String.format("|%d| (%.2f%%) |%d| (%.2f%%)", ashared.size(), 100 * ashared.size() / (float) asize,
-					bshared, 100 * bshared.size()
+					bshared.size(), 100 * bshared.size()
 					/ (float) bsize));
 		return s.toString();
 	}
