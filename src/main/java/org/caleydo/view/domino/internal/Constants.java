@@ -14,4 +14,7 @@ public class Constants {
 
 	public static final float SCATTER_POINT_SIZE = 4;
 	public static final float PARALLEL_LINE_SIZE = 2;
+
+	public static final float TARGET_MAX_VIEW_SIZE = 0.5f;
+	public static final float TARGET_MIN_VIEW_SIZE = 0.25f;
 }

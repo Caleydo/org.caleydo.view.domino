@@ -149,7 +149,7 @@ public class LabelElementFactory implements IGLElementFactory2 {
 			boolean ctrlDown = ((IMouseEvent) pick).isCtrlDown();
 			switch (pick.getPickingMode()) {
 			case MOUSE_MOVED:
-				int index = Math.min((int) (v * (data.size() - 1)), data.size() - 1);
+				int index = Math.min((int) (v * (data.size())), data.size() - 1);
 				{
 					manager.clearSelection(SelectionType.MOUSE_OVER);
 					manager.addToType(SelectionType.MOUSE_OVER, data.get(index));
@@ -178,6 +178,11 @@ public class LabelElementFactory implements IGLElementFactory2 {
 					updateSelections(manager, ctrlDown);
 					selectStart = selectEnd = selectEndPrev = Float.NaN;
 				}
+				break;
+			case MOUSE_OUT:
+				manager.clearSelection(SelectionType.MOUSE_OVER);
+				selections.fireSelectionDelta(manager);
+				repaint();
 				break;
 			default:
 				break;

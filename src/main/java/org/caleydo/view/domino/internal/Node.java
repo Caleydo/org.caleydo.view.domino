@@ -195,11 +195,15 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 	public static Vec2f initialScaleFactors(Vec2f viewSize, float d, float r) {
 		if (d <= 1 && r <= 1)
 			return new Vec2f(1, 1);
-		final float factor = 0.5f;
-		float maxw = viewSize.x() * factor;
-		float maxh = viewSize.y() * factor;
-		float minw = maxw * 0.5f;
-		float minh = maxh * 0.5f;
+		if (d <= 1)
+			return new Vec2f(1, initialScaleFactor(viewSize.y(), r));
+		if (r <= 1)
+			return new Vec2f(initialScaleFactor(viewSize.x(), d), 1);
+
+		float maxw = viewSize.x() * Constants.TARGET_MAX_VIEW_SIZE;
+		float maxh = viewSize.y() * Constants.TARGET_MAX_VIEW_SIZE;
+		float minw = viewSize.x() * Constants.TARGET_MIN_VIEW_SIZE;
+		float minh = viewSize.y() * Constants.TARGET_MIN_VIEW_SIZE;
 		if (d < minw && r < minh) {
 			float fw = minw / d;
 			float fh = minh / r;
@@ -215,6 +219,18 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 		return new Vec2f(1, 1);
 
 
+	}
+
+	private static float initialScaleFactor(float view, float f) {
+		float max = view * Constants.TARGET_MAX_VIEW_SIZE;
+		float min = view * Constants.TARGET_MIN_VIEW_SIZE;
+		if (f < min) {
+			return min / f;
+		}
+		if (f > min) {
+			return max / f;
+		}
+		return 1;
 	}
 
 	/**
