@@ -404,7 +404,7 @@ public class LinearBlock extends AbstractCollection<Node> {
 			bak.prepareData(dim.opposite(), ngroups);
 			for (Node node : nodes.subList(1, nodes.size())) {
 				node.prepareData(dim.opposite(), ngroups);
-				node.updateNeighbor(EDirection.getPrimary(dim), bak);
+				node.updateNeighbor(EDirection.getPrimary(dim), bak, dim.opposite(), ngroups);
 				bak = node;
 			}
 		}

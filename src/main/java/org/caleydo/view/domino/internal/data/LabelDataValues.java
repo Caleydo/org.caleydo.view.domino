@@ -49,7 +49,7 @@ public class LabelDataValues implements IDataValues {
 
 	@Override
 	public TypedGroupSet getDefaultGroups(EDimension dim) {
-		return data;
+		return dim.isHorizontal() ? data : TypedGroupSet.createUngrouped(TypedCollections.INVALID_SET);
 	}
 
 	@Override
@@ -66,7 +66,7 @@ public class LabelDataValues implements IDataValues {
 
 	@Override
 	public void fill(Builder b, TypedList dimData, TypedList recData, boolean[] existNeigbhor) {
-		TypedList g = dimData.isEmpty() ? recData : dimData;
+		TypedList g = TypedCollections.isInvalid(dimData.getIdType()) ? recData : dimData;
 		EDimension dim = EDimension.get(g == dimData);
 		b.put(TypedList.class, g);
 		b.put(EDimension.class, dim);

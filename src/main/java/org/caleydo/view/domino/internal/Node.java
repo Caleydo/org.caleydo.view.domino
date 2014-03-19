@@ -193,6 +193,8 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 	 * @return
 	 */
 	public static Vec2f initialScaleFactors(Vec2f viewSize, float d, float r) {
+		if (d <= 1 && r <= 1)
+			return new Vec2f(1, 1);
 		final float factor = 0.5f;
 		float maxw = viewSize.x() * factor;
 		float maxh = viewSize.y() * factor;
@@ -798,10 +800,10 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 		}
 	}
 
-	public void updateNeighbor(EDirection dir, Node neighbor) {
-		List<NodeGroup> myGroups = getGroupNeighbors(dir);
+	public void updateNeighbor(EDirection dir, Node neighbor, EDimension dim, int groups) {
+		List<NodeGroup> myGroups = getGroupNeighbors(dir, dim, groups);
 		List<NodeGroup> neighborGroups = neighbor == null ? Collections.<NodeGroup> emptyList() : neighbor
-				.getGroupNeighbors(dir.opposite());
+				.getGroupNeighbors(dir.opposite(), dim, groups);
 		if (myGroups.size() == neighborGroups.size()) {
 			for (int i = 0; i < myGroups.size(); ++i) {
 				final NodeGroup ng = neighborGroups.get(i);
@@ -827,7 +829,15 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 	public List<NodeGroup> getGroupNeighbors(EDirection dir) {
 		final int dGroups = dimData.getGroups().size();
 		final int rGroups = recData.getGroups().size();
+		return getGroupNeighbors(dir, dGroups, rGroups);
+	}
 
+	public List<NodeGroup> getGroupNeighbors(EDirection dir, EDimension dim, int groups) {
+		return getGroupNeighbors(dir, dim.select(groups, dimData.getGroups().size()),
+				dim.select(recData.getGroups().size(), groups));
+	}
+
+	public List<NodeGroup> getGroupNeighbors(EDirection dir, int dGroups, int rGroups) {
 		int offset = 0;
 		int shift = 1;
 		int size;
@@ -1330,7 +1340,9 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 		GLElementDimensionDesc dimDesc = switcher.getActiveDesc(EDimension.DIMENSION);
 		GLElementDimensionDesc recDesc = switcher.getActiveDesc(EDimension.RECORD);
 
-		Vec2f scaleSize = scaleSize(originalSize().copy());
+		final Vec2f ori = originalSize().copy();
+		Vec2f scaleSize = scaleSize(ori.copy());
+
 		// not allowed to change reset
 		Vec2f scale = scaleFactors.get(type);
 		if (!dimDesc.isValid(scaleSize.x(), dimData.size()))
@@ -1340,10 +1352,20 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 	}
 
 	private String getScaleFactorKey() {
-		String type = getVisualizationType();
+		String ori = getVisualizationType();
+		String type = ori;
 		final IGLElementMetaData metaData = GLElementFactories.getMetaData(type);
 		if (metaData != null && metaData.getScaleType() == EVisScaleType.DATADEPENDENT)
 			type = DATA_SCALE_FACTOR;
+		if (type == DATA_SCALE_FACTOR) {
+			final GLElementFactorySwitcher switcher = getRepresentableSwitcher();
+			if (switcher == null)
+				return type;
+			GLElementDimensionDesc dimDesc = switcher.getActiveDesc(EDimension.DIMENSION);
+			GLElementDimensionDesc recDesc = switcher.getActiveDesc(EDimension.RECORD);
+			if (!dimDesc.isCountDependent() && !recDesc.isCountDependent())
+				type = ori;
+		}
 		return type;
 	}
 
@@ -1373,7 +1395,7 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 	 * @return
 	 */
 	public INodeLocator getNodeLocator(EDimension d) {
-		float offset = d.select(getLocation());
+		float offset = 0;// d.select(getLocation());
 		float size = d.select(getSize());
 		return new NodeLocator(new GLLocation(offset, size), getGroupLocator(d), getLocator(d));
 	}

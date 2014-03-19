@@ -150,7 +150,7 @@ public final class ShearedRect implements Cloneable {
 	@Override
 	public String toString() {
 		StringBuilder builder = new StringBuilder();
-		builder.append("Rect(").append(x).append(',');
+		builder.append("ShearedRect(").append(x).append(',');
 		builder.append(y).append(',');
 		builder.append(x2).append(',');
 		builder.append(y2).append(')');
