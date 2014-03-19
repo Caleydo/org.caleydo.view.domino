@@ -617,7 +617,10 @@ public class LinearBlock extends AbstractCollection<Node> {
 			if (dim.isVertical()) { // right
 				renderHorText(l, g, bounds, b);
 			} else { // top
-				renderVertLabel(l, g, bounds, b);
+				final boolean alone = node.getNeighbor(EDirection.WEST) == null
+						&& node.getNeighbor(EDirection.EAST) == null;
+				renderVertLabel(l, g, bounds, b,
+						alone);
 			}
 		}
 	}
@@ -630,8 +633,8 @@ public class LinearBlock extends AbstractCollection<Node> {
 		}
 	}
 
-	private static void renderVertLabel(final String l, GLGraphics g, Rect bounds, Rect b) {
-		renderVerticalText(g, l, b.x(), bounds.y(), b.width(), Constants.LABEL_SIZE);
+	private static void renderVertLabel(final String l, GLGraphics g, Rect bounds, Rect b, boolean alone) {
+		renderVerticalText(g, l, b.x(), bounds.y(), b.width(), Constants.LABEL_SIZE, alone);
 		if (bounds.y() < b.y() - 5) {
 			g.color(Color.LIGHT_GRAY).drawLine(b.x() + b.width() * 0.5f, b.y() - 5, b.x() + b.width() * 0.5f,
 					bounds.y());
@@ -649,9 +652,11 @@ public class LinearBlock extends AbstractCollection<Node> {
 		boolean nVer = nNorth || nSouth;
 
 		final String l = node.getLabel();
-		if (!nVer || (nHor && !nNorth)) // north no vertical at all -> north or horizontal neighbors and north is free
-			renderVertLabel(l, g, bounds, b);
-		else if (!nHor || (nVer && !nEast)) // east render right side
+		if (!nVer || (nHor && !nNorth)) {// north no vertical at all -> north or horizontal neighbors and north is free
+			final boolean alone = node.getNeighbor(EDirection.WEST) == null
+					&& node.getNeighbor(EDirection.EAST) == null;
+			renderVertLabel(l, g, bounds, b, alone);
+		} else if (!nHor || (nVer && !nEast)) // east render right side
 			renderHorText(l, g, bounds, b);
 		else if (!nWest) { // west
 			g.drawText(l, bounds.x() - 10 - 400, b.y() + (b.height() - Constants.LABEL_SIZE) * 0.5f, 400,
@@ -707,7 +712,7 @@ public class LinearBlock extends AbstractCollection<Node> {
 				final List<NodeGroup> locations = first.getGroupNeighbors(EDirection.NORTH);
 				for (int i = 0; i < labels.size(); ++i) {
 					Rect bg = locations.get(i).getRectBounds();
-					renderVerticalText(g, labels.get(i).getLabel(), b.x() + bg.x(), b.y(), bg.width(), textSize);
+					renderVerticalText(g, labels.get(i).getLabel(), b.x() + bg.x(), b.y(), bg.width(), textSize, false);
 				}
 			} else {
 				Node first = getNode(false);
@@ -725,10 +730,13 @@ public class LinearBlock extends AbstractCollection<Node> {
 		return sortCriteria.get(0).getFirst();
 	}
 
-	private static void renderVerticalText(GLGraphics g, String text, float x, float y, float w, float textSize) {
+	private static void renderVerticalText(GLGraphics g, String text, float x, float y, float w, float textSize,
+			boolean alone) {
 		float tw = g.text.getTextWidth(text, textSize);
 		if (tw < w) {
 			g.drawText(text, x, y - textSize - 10, w, textSize, VAlign.CENTER);
+		} else if (alone) {
+			g.drawText(text, x - 100, y - textSize - 10, w + 200, textSize, VAlign.CENTER);
 		} else {
 			// shift it
 			float angle = 45f; // TODO find out

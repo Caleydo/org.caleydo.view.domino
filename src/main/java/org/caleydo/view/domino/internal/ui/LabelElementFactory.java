@@ -467,8 +467,11 @@ public class LabelElementFactory implements IGLElementFactory2 {
 		private void renderSelection(GLGraphics g, float w, float h, BitSet mouseOvers, BitSet selected) {
 			final float hi = h / data.size();
 			selected.andNot(mouseOvers);
-			renderSelection(g, w, h, hi, selected, SelectionType.SELECTION);
-			renderSelection(g, w, h, hi, mouseOvers, SelectionType.MOUSE_OVER);
+			boolean showOutline = hi > 5;
+			g.lineWidth(3);
+			renderSelection(g, w, h, hi, selected, SelectionType.SELECTION, !showOutline);
+			renderSelection(g, w, h, hi, mouseOvers, SelectionType.MOUSE_OVER, !showOutline);
+			g.lineWidth(1);
 		}
 
 		private static void renderPointingBox(GLGraphics g, boolean mouseOver, float y, float h, float y2, float h2,
@@ -497,13 +500,21 @@ public class LabelElementFactory implements IGLElementFactory2 {
 		}
 
 
-		private static void renderSelection(GLGraphics g, float w, float h, float hi, BitSet set, SelectionType type) {
-			g.color(type.getColor().brighter());
+		private static void renderSelection(GLGraphics g, float w, float h, float hi, BitSet set, SelectionType type,
+				boolean fill) {
+			Color c = type.getColor();
+			if (fill)
+				g.color(c.r, c.g, c.b, 0.5f);
+			else
+				g.color(c);
 			for (int i = set.nextSetBit(0); i != -1; i = set.nextSetBit(i + 1)) {
 				int start = i;
 				while (set.get(i + 1))
 					i++;
-				g.fillRect(0, start * hi, w, hi * (i + 1 - start));
+				if (fill)
+					g.fillRect(0, start * hi, w, hi * (i + 1 - start));
+				else
+					g.drawRect(0, start * hi, w, hi * (i + 1 - start));
 			}
 		}
 
