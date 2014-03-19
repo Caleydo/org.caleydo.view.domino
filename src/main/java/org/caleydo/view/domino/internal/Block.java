@@ -815,7 +815,7 @@ public class Block extends GLElementContainer implements IGLLayout2, IPickingLis
 		ShearedRect ra = la.getShearedBounds();
 		ShearedRect rb = lb.getShearedBounds();
 
-		String label = la.getNode(true).getLabel() + " x " + lb.getNode(false).getLabel();
+		Pair<String, String> label = Pair.make(la.getNode(true).getLabel(), lb.getNode(false).getLabel());
 
 		INodeLocator sNodeLocator = la.getNodeLocator(true); // left one
 		INodeLocator tNodeLocator = lb.getNodeLocator(false); // right one
@@ -1051,11 +1051,11 @@ public class Block extends GLElementContainer implements IGLLayout2, IPickingLis
 
 		ShearedRect ra = new ShearedRect(s.getRectBounds());
 		ShearedRect rb = new ShearedRect(t.getRectBounds());
-		String label = s.getLabel() + " x " + s.getLabel();
 		final INodeLocator sNodeLocator = s.getNodeLocator(d);
 		final INodeLocator tNodeLocator = t.getNodeLocator(d);
 		BandIdentifier id = new BandIdentifier(b, true, b, false);
-		ABand band = BandFactory.create(label, sData, tData, ra, rb, sNodeLocator, tNodeLocator, d, d, id);
+		ABand band = BandFactory.create(Pair.make(s.getLabel(), t.getLabel()), sData, tData, ra, rb, sNodeLocator,
+				tNodeLocator, d, d, id);
 		return band;
 	}
 

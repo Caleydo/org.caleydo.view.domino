@@ -20,9 +20,12 @@ import java.util.Set;
 
 import javax.media.opengl.GL2ES1;
 
+import org.apache.commons.lang.StringUtils;
 import org.caleydo.core.data.collection.EDimension;
 import org.caleydo.core.data.selection.SelectionType;
+import org.caleydo.core.id.IDMappingManagerRegistry;
 import org.caleydo.core.id.IDType;
+import org.caleydo.core.id.IIDTypeMapper;
 import org.caleydo.core.util.base.ILabeled;
 import org.caleydo.core.util.collection.Pair;
 import org.caleydo.core.util.color.Color;
@@ -54,6 +57,7 @@ public abstract class ABand implements ILabeled, IHasMiniMap {
 
 	protected final MultiTypedSet shared;
 
+	protected final String sLabel, tLabel;
 	protected final TypedGroupList sData;
 	protected final TypedGroupList tData;
 
@@ -72,9 +76,11 @@ public abstract class ABand implements ILabeled, IHasMiniMap {
 
 	private int pickingOffset;
 
+	private final IIDTypeMapper<Integer, String> s2Label, t2Label;
+
 	public ABand(MultiTypedSet shared, TypedGroupList sData, TypedGroupList tData,
  INodeLocator sLocator,
-			INodeLocator tLocator, EDirection sDim, EDirection tDim, BandIdentifier id) {
+			INodeLocator tLocator, EDirection sDim, EDirection tDim, BandIdentifier id, Pair<String, String> labels) {
 		this.shared = shared;
 		this.sData = sData;
 		this.tData = tData;
@@ -83,6 +89,19 @@ public abstract class ABand implements ILabeled, IHasMiniMap {
 		this.sDir = sDim;
 		this.tDir = tDim;
 		this.id = id;
+		this.sLabel = labels.getFirst();
+		this.tLabel = labels.getSecond();
+
+		s2Label = id2Label(sData.getIdType());
+		if (sData.getIdType().equals(tData.getIdType()))
+			t2Label = s2Label;
+		else
+			t2Label = id2Label(tData.getIdType());
+	}
+
+	private static IIDTypeMapper<Integer, String> id2Label(final IDType idType) {
+		return IDMappingManagerRegistry.get().getIDMappingManager(idType)
+				.getIDTypeMapper(idType, idType.getIDCategory().getHumanReadableIDType());
 	}
 
 	/**
@@ -98,6 +117,40 @@ public abstract class ABand implements ILabeled, IHasMiniMap {
 	 */
 	public int getPickingOffset() {
 		return pickingOffset;
+	}
+
+	protected static String toIntersectionLabel(String a, int asize, String b, int bsize, TypedSet ashared,
+			TypedSet bshared) {
+		StringBuilder s = new StringBuilder(String.format("%s \u2229 %s\n", a, b));
+		s.append(String.format("|%d| \u2229 |%d| = ", asize, bsize));
+		if (ashared == bshared)
+			s.append(String.format("|%d| (%.2f%%, %.2f%%)", ashared.size(), 100 * ashared.size() / (float) asize, 100
+					* bshared.size()
+					/ (float) bsize));
+		else
+			s.append(String.format("|%d| (%.2f%%) |%d| (%.2f%%)", ashared.size(), 100 * ashared.size() / (float) asize,
+					bshared, 100 * bshared.size()
+					/ (float) bsize));
+		return s.toString();
+	}
+
+	protected String toItemLabel(TypedSet idsA, TypedSet idsB) {
+		if (idsA.equals(idsB)) {
+			return toLabels(idsA, s2Label);
+		}
+		return toLabels(idsA, s2Label) + " / " + toLabels(idsB, t2Label);
+	}
+
+	private String toLabels(TypedSet idsA, IIDTypeMapper<Integer, String> toLabel) {
+		if (idsA.size() < 3)
+			return StringUtils.join(toLabel.apply(idsA), ", ");
+		else
+			return String.format("|%d| (%s,...)", StringUtils.join(toLabel.apply(idsA.asList().subList(0, 3)), ", "));
+	}
+
+	protected static String toNotMappedLabel(String a, int asize, String b, int bsize, TypedSet notMapped) {
+		return String.format("%s \u2216 %s\n|%d| \u2216 |%d| = |%d| (%.2f%%)", a, b, asize, bsize, notMapped, 100
+				* notMapped.size() / (float) asize);
 	}
 
 	protected GLLocation locS(EBandMode mode, int id) {
@@ -374,9 +427,20 @@ public abstract class ABand implements ILabeled, IHasMiniMap {
 		return r == null ? overviewRoute().asSet(type) : r.asSet(type);
 	}
 
-	public String getLabel(int subIndex) {
+	public String getTooltip(int subIndex) {
 		IBandRenderAble r = getRoute(subIndex);
 		return r == null ? "" : r.getLabel();
+	}
+
+	public String getLabel(int subIndex) {
+		IBandRenderAble r = getRoute(subIndex);
+		if (r == null)
+			return "";
+		String l = r.getLabel();
+		int i = l.indexOf('\n');
+		if (i < 0)
+			return l;
+		return l.substring(0, i);
 	}
 
 	private IBandRenderAble getRoute(int subIndex) {

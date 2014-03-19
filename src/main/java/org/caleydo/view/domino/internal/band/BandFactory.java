@@ -8,6 +8,7 @@ package org.caleydo.view.domino.internal.band;
 import gleem.linalg.Vec2f;
 
 import org.caleydo.core.data.collection.EDimension;
+import org.caleydo.core.util.collection.Pair;
 import org.caleydo.view.domino.api.model.EDirection;
 import org.caleydo.view.domino.api.model.typed.MultiTypedSet;
 import org.caleydo.view.domino.api.model.typed.TypedGroupList;
@@ -20,7 +21,7 @@ import org.caleydo.view.domino.internal.INodeLocator;
  */
 public class BandFactory {
 
-	public static ABand create(String label, TypedGroupList sData, TypedGroupList tData, ShearedRect ra,
+	public static ABand create(Pair<String, String> labels, TypedGroupList sData, TypedGroupList tData, ShearedRect ra,
 			ShearedRect rb,
 			final INodeLocator sNodeLocator, final INodeLocator tNodeLocator, final EDimension sDim,
 			final EDimension tDim, BandIdentifier id) {
@@ -35,13 +36,13 @@ public class BandFactory {
 					Vec2f sLoc = ra.x2y();
 					Vec2f tLoc = rb.xy();
 					id = id.with(true, false);
-					return new ParaBand(label, shared, sData, tData, sLoc, tLoc, sNodeLocator, tNodeLocator,
+					return new ParaBand(labels, shared, sData, tData, sLoc, tLoc, sNodeLocator, tNodeLocator,
 							primary.opposite(), primary, id);
 				} else if (rb.x2() < ra.x() - minDistance) {
 					Vec2f sLoc = ra.xy();
 					Vec2f tLoc = rb.x2y();
 					id = id.with(false, true);
-					return new ParaBand(label, shared, tData, sData, tLoc, sLoc, tNodeLocator, sNodeLocator,
+					return new ParaBand(labels, shared, tData, sData, tLoc, sLoc, tNodeLocator, sNodeLocator,
 							primary.opposite(), primary, id);
 				}
 				return null;
@@ -51,13 +52,13 @@ public class BandFactory {
 					Vec2f sLoc = ra.xy2();
 					Vec2f tLoc = rb.xy();
 					id = id.with(true, false);
-					return new ParaBand(label, shared, sData, tData, sLoc, tLoc, sNodeLocator, tNodeLocator,
+					return new ParaBand(labels, shared, sData, tData, sLoc, tLoc, sNodeLocator, tNodeLocator,
 							primary.opposite(), primary, id);
 				} else if (rb.y2() < ra.y() - minDistance) {
 					Vec2f sLoc = ra.xy();
 					Vec2f tLoc = rb.xy2();
 					id = id.with(false, true);
-					return new ParaBand(label, shared, tData, sData, tLoc, sLoc, tNodeLocator, sNodeLocator,
+					return new ParaBand(labels, shared, tData, sData, tLoc, sLoc, tNodeLocator, sNodeLocator,
 							primary.opposite(), primary, id);
 				}
 				return null;
@@ -78,7 +79,7 @@ public class BandFactory {
 				if (tDir == EDirection.NORTH)
 					t = rb.xy2();
 				id = id.with(sDir != EDirection.EAST, tDir != EDirection.NORTH);
-				return new CrossBand(label, shared, sData, tData, sNodeLocator, tNodeLocator, s, t, sDir, tDir,
+				return new CrossBand(labels, shared, sData, tData, sNodeLocator, tNodeLocator, s, t, sDir, tDir,
 						id);
 			} else {
 				id = id.swap();
@@ -96,7 +97,7 @@ public class BandFactory {
 				if (tDir == EDirection.NORTH)
 					t = ra.xy2();
 				id.with(sDir != EDirection.EAST, tDir != EDirection.NORTH);
-				return new CrossBand(label, shared, tData, sData, tNodeLocator, sNodeLocator, s, t, sDir, tDir,
+				return new CrossBand(labels, shared, tData, sData, tNodeLocator, sNodeLocator, s, t, sDir, tDir,
 						id);
 			}
 		}

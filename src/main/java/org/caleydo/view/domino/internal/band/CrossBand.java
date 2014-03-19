@@ -18,7 +18,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import org.apache.commons.lang.StringUtils;
 import org.caleydo.core.data.selection.SelectionType;
 import org.caleydo.core.id.IDType;
 import org.caleydo.core.util.collection.Pair;
@@ -53,10 +52,10 @@ public class CrossBand extends ABand {
 
 	private Vec2f sLoc, tLoc;
 
-	public CrossBand(String label, MultiTypedSet shared, TypedGroupList sData, TypedGroupList tData,
+	public CrossBand(Pair<String, String> labels, MultiTypedSet shared, TypedGroupList sData, TypedGroupList tData,
 			INodeLocator sLocator, INodeLocator tLocator, Vec2f s, Vec2f t, EDirection sDir, EDirection tDir,
 			BandIdentifier identifier) {
-		super(shared, sData, tData, sLocator, tLocator, sDir, tDir, identifier);
+		super(shared, sData, tData, sLocator, tLocator, sDir, tDir, identifier, labels);
 
 		assert sDir.asDim().isHorizontal();
 		this.sLoc = s;
@@ -73,22 +72,24 @@ public class CrossBand extends ABand {
 			final float htotal = (float) locS(EBandMode.OVERVIEW, 0).getSize();
 			Rect bounds = new Rect(tLoc.x() + (t_left ? ((1 - tr) * wtotal) : 0), sLoc.y()
 					+ (!s_top ? 0 : (1 - sr) * htotal), tr * wtotal, sr * htotal);
+			String label = toIntersectionLabel(sLabel, sData.size(), tLabel, tData.size(), sShared, tShared);
 			this.overview = new Disc(label, bounds, sShared, tShared, sLoc.x(), tLoc.y());
 
 			overviewRoutes.add(this.overview);
 
-			String[] split = label.split(" x ");
 			if (sr < 1) {
 				// add a non-mapped indicator
 				TypedSet sNotMapped = sData.asSet().difference(sShared);
 				Pair<Vec4f, Vec4f> r = notMappedConnectors(SOURCE, sr);
-				overviewRoutes.add(new NotMapped(split[0] + " x Not Mapped", sNotMapped, TypedCollections.empty(tData
+				label = toNotMappedLabel(sLabel, sData.size(), tLabel, tData.size(), sNotMapped);
+				overviewRoutes.add(new NotMapped(label, sNotMapped, TypedCollections.empty(tData
 						.getIdType()), SOURCE, r.getFirst(), r.getSecond(), sDir, EBandMode.OVERVIEW));
 			}
 			if (tr < 1) {
 				TypedSet tNotMapped = tData.asSet().difference(tShared);
 				Pair<Vec4f, Vec4f> r = notMappedConnectors(TARGET, tr);
-				overviewRoutes.add(new NotMapped("Not Mapped x " + split[1], TypedCollections.empty(sData.getIdType()),
+				label = toNotMappedLabel(tLabel, tData.size(), sLabel, sData.size(), tNotMapped);
+				overviewRoutes.add(new NotMapped(label, TypedCollections.empty(sData.getIdType()),
 						tNotMapped, TARGET, r.getFirst(), r.getSecond(), tDir, EBandMode.OVERVIEW));
 			}
 		}
@@ -367,8 +368,8 @@ public class CrossBand extends ABand {
 
 				TypedSet sShared = shared.slice(sData.getIdType());
 				TypedSet tShared = shared.slice(tData.getIdType());
-				String label = sgroup.getLabel() + " x " + tgroup.getLabel();
-
+				String label = toIntersectionLabel(sgroup.getLabel(), sgroup.size(), tgroup.getLabel(), tgroup.size(),
+						sShared, tShared);
 				final double tFactor = tgroupLocation.getSize() / tgroup.size();
 				double h = sShared.size() * sFactor;
 				double w = tShared.size() * tFactor;
@@ -387,7 +388,9 @@ public class CrossBand extends ABand {
 				float s1 = (float) (y + sinneracc * sFactor);
 				Pair<Vec4f, Vec4f> r = notMappedConnectors(SourceTarget.SOURCE, s1, (float) (sgroupLocation.getSize())
 						- s1, wtotal);
-				groupRoutes.add(new NotMapped(sgroup.getLabel() + " x Not Mapped", notMappedIds, tEmpty,
+				String label = toNotMappedLabel(sgroup.getLabel(), sgroup.size(), tLabel, tData.size(),
+ notMappedIds);
+				groupRoutes.add(new NotMapped(label, notMappedIds, tEmpty,
 						SourceTarget.SOURCE, r.getFirst(), r.getSecond(), sDir, EBandMode.GROUPS));
 			}
 		}
@@ -404,7 +407,8 @@ public class CrossBand extends ABand {
 			float s1 = (float) (x + tinneracc[i] * tFactor);
 			Pair<Vec4f, Vec4f> r = notMappedConnectors(SourceTarget.TARGET, s1,
 					(float) (tgroupLocation.getSize()) - s1, htotal);
-			groupRoutes.add(new NotMapped("Not Mapped x " + tgroup.getLabel(), sEmpty, notMappedIds,
+			String label = toNotMappedLabel(tgroup.getLabel(), tgroup.size(), sLabel, sData.size(), notMappedIds);
+			groupRoutes.add(new NotMapped(label, sEmpty, notMappedIds,
 					SourceTarget.SOURCE, r.getFirst(), r.getSecond(), tDir, EBandMode.GROUPS));
 		}
 
@@ -527,13 +531,15 @@ public class CrossBand extends ABand {
 		}
 
 		public MosaicRect create(IDType s, IDType t, EBandMode mode) {
-			String label = StringUtils.join(sIds, ", ") + " x " + StringUtils.join(tIds, ", ");
 			double x = tLoc.x() + tloc.getOffset();
 			double y = sLoc.y() + sloc.getOffset();
 			double w = tloc.getSize();
 			double h = sloc.getSize();
 			Rect bounds = new Rect((float) x, (float) y, (float) w, (float) h);
-			return new MosaicRect(label, bounds, new TypedSet(sIds, s), new TypedSet(tIds, t), mode);
+			final TypedSet sIds2 = new TypedSet(sIds, s);
+			final TypedSet tIds2 = new TypedSet(tIds, t);
+			String label = toItemLabel(sIds2, tIds2);
+			return new MosaicRect(label, bounds, sIds2, tIds2, mode);
 		}
 	}
 

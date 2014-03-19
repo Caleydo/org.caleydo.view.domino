@@ -22,9 +22,9 @@ import java.util.NavigableSet;
 import java.util.Set;
 import java.util.TreeSet;
 
-import org.apache.commons.lang.StringUtils;
 import org.caleydo.core.data.selection.SelectionType;
 import org.caleydo.core.id.IDType;
+import org.caleydo.core.util.collection.Pair;
 import org.caleydo.core.util.color.Color;
 import org.caleydo.core.view.opengl.layout2.GLGraphics;
 import org.caleydo.core.view.opengl.layout2.geom.Rect;
@@ -59,11 +59,11 @@ public class ParaBand extends ABand {
 
 	private final Vec2f s, t;
 
-	public ParaBand(String label, MultiTypedSet shared, TypedGroupList sData, TypedGroupList tData,
+	public ParaBand(Pair<String, String> labels, MultiTypedSet shared, TypedGroupList sData, TypedGroupList tData,
  Vec2f sLoc,
 			Vec2f tLoc, INodeLocator sLocator, INodeLocator tLocator, EDirection sDim, EDirection tDim,
 			BandIdentifier identifier) {
-		super(shared, sData, tData, sLocator, tLocator, sDim, tDim, identifier);
+		super(shared, sData, tData, sLocator, tLocator, sDim, tDim, identifier, labels);
 		this.s = sLoc;
 		this.t = tLoc;
 		{
@@ -73,22 +73,25 @@ public class ParaBand extends ABand {
 			float tr = ((float) tShared.size()) / tData.size();
 			Vec4f sv = toVec3(sLoc, SOURCE, sr, 0);
 			Vec4f tv = toVec3(tLoc, TARGET, tr, 0);
+			String label = toIntersectionLabel(sLabel, sData.size(), tLabel, tData.size(),
+ sShared, tShared);
 			this.overview = new Band(label, sShared, tShared, sv, tv, EBandMode.OVERVIEW);
 
 			EDirection which = sDim.isHorizontal() ? tDim : sDim;
 			overviewRoutes.add(this.overview);
-			String[] split = label.split(" x ");
 			if (sr < 1) {
 				// add a non-mapped indicator
 				TypedSet sNotMapped = sData.asSet().difference(sShared);
 				sv = toVec3(sLoc, SOURCE, (1 - sr), sr);
-				overviewRoutes.add(new NotMapped(split[0] + " x Not Mapped", sNotMapped, TypedCollections.empty(tData
+				label = toNotMappedLabel(sLabel, sData.size(), tLabel, tData.size(), sNotMapped);
+				overviewRoutes.add(new NotMapped(label, sNotMapped, TypedCollections.empty(tData
 						.getIdType()), SOURCE, sv, toVec3(t, TARGET, 1, 0), which, EBandMode.OVERVIEW));
 			}
 			if (tr < 1) {
 				TypedSet tNotMapped = tData.asSet().difference(tShared);
 				tv = toVec3(tLoc, TARGET, (1 - tr), tr);
-				overviewRoutes.add(new NotMapped("Not Mapped x " + split[1], TypedCollections.empty(sData.getIdType()),
+				label = toNotMappedLabel(tLabel, tData.size(), sLabel, sData.size(), tNotMapped);
+				overviewRoutes.add(new NotMapped(label, TypedCollections.empty(sData.getIdType()),
 						tNotMapped, TARGET, toVec3(s, SOURCE, 1, 0), tv, which, EBandMode.OVERVIEW));
 			}
 		}
@@ -215,7 +218,8 @@ public class ParaBand extends ABand {
 				double s2 = s1 + sShared.size() * sFactor;
 				double t1 = (tgroupLocation.getOffset() + tinneracc[j] * tFactor);
 				double t2 = t1 + tShared.size() * tFactor;
-				String label = sgroup.getLabel() + " x " + tgroup.getLabel();
+				String label = toIntersectionLabel(sgroup.getLabel(), sgroup.size(), tgroup.getLabel(), tgroup.size(),
+						sShared, tShared);
 				Vec4f sg, tg;
 				if (horizontal) {
 					sg = new Vec4f(this.s.x(), this.s.y() + (float) s1, (float) (s2 - s1), 0);
@@ -238,7 +242,9 @@ public class ParaBand extends ABand {
 					s = new Vec4f(this.s.x(), this.s.y() + (float) s1, (float) (sgroupLocation.getOffset2() - s1), 0);
 				else
 					s = new Vec4f(this.s.x() + (float) s1, this.s.y(), (float) (sgroupLocation.getOffset2() - s1), 0);
-				groupRoutes.add(new NotMapped(sgroup.getLabel() + " x Not Mapped", notMappedIds, tEmpty,
+				String label = toNotMappedLabel(sgroup.getLabel(), sgroup.size(), tLabel, tData.size(),
+ notMappedIds);
+				groupRoutes.add(new NotMapped(label, notMappedIds, tEmpty,
 						SourceTarget.SOURCE, s, tTotal, which, EBandMode.GROUPS));
 			}
 		}
@@ -258,7 +264,8 @@ public class ParaBand extends ABand {
 				s = new Vec4f(this.t.x(), this.t.y() + (float) s1, (float) (tgroupLocation.getOffset2() - s1), 0);
 			else
 				s = new Vec4f(this.t.x() + (float) s1, this.t.y(), (float) (tgroupLocation.getOffset2() - s1), 0);
-			groupRoutes.add(new NotMapped("Not Mapped x " + tgroup.getLabel(), sEmpty, notMappedIds,
+			String label = toNotMappedLabel(tgroup.getLabel(), tgroup.size(), sLabel, sData.size(), notMappedIds);
+			groupRoutes.add(new NotMapped(label, sEmpty, notMappedIds,
 					SourceTarget.TARGET, sTotal, s, which, EBandMode.GROUPS));
 		}
 
@@ -438,7 +445,7 @@ public class ParaBand extends ABand {
 			ss = new Vec4f(this.s.x() + acc.s.x(), this.s.y(), sh, acc.sGroupOffset);
 			tt = new Vec4f(this.t.x() + acc.t.x(), this.t.y(), th, acc.tGroupOffset);
 		}
-		String label = StringUtils.join(acc.sIds, ", ") + " x " + StringUtils.join(acc.tIds, ", ");
+		String label = toItemLabel(sData, tData);
 
 		if (mode.compareTo(EBandMode.GROUPED_DETAIL) >= 0) {// sh <= Constants.PARALLEL_LINE_SIZE && th <=
 															// Constants.PARALLEL_LINE_SIZE) {

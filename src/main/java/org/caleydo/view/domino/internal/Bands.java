@@ -184,7 +184,11 @@ public class Bands extends ABands implements IDragGLSource, ICallback<SelectionT
 			return null;
 		ABand route = getRoute(split[0]);
 		TypedSet ids = route.getIds(SourceTarget.SOURCE, split[1]);
-		return new SetDragInfo(route.getLabel(), ids, route.getDimension(SourceTarget.SOURCE));
+		final String label = route.getLabel(split[1]);
+		if (!ids.isEmpty())
+			return new SetDragInfo(label, ids, route.getDimension(SourceTarget.SOURCE));
+		ids = route.getIds(SourceTarget.TARGET, split[1]);
+		return new SetDragInfo(label, ids, route.getDimension(SourceTarget.TARGET));
 	}
 
 

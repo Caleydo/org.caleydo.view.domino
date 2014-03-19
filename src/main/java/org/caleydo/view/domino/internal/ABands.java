@@ -106,7 +106,7 @@ public abstract class ABands extends GLElement implements MultiSelectionManagerM
 		ABand route = getRoute(split[0]);
 		if (route == null)
 			return "";
-		return route.getLabel(split[1]);
+		return route.getTooltip(split[1]);
 	}
 
 	@Override
@@ -349,7 +349,7 @@ public abstract class ABands extends GLElement implements MultiSelectionManagerM
 		ABand band = getRoute(identifier);
 		if (band != null)
 			band.changeLevel(increase);
-
+		repaintAll();
 	}
 
 }
