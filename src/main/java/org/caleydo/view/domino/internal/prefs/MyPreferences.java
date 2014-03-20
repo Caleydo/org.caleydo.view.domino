@@ -28,6 +28,7 @@ public class MyPreferences extends AbstractPreferenceInitializer {
 		IPreferenceStore store = prefs();
 		store.setDefault("autoselect", true);
 		store.setDefault("blockLabelInGroup", false);
+		store.setDefault("toolbar.dynamic", true);
 
 		PreferenceConverter.setDefault(store, "numerical.color.min", new RGB(250, 250, 250));
 		PreferenceConverter.setDefault(store, "numerical.color.max", new RGB(0, 0, 0));
@@ -36,6 +37,10 @@ public class MyPreferences extends AbstractPreferenceInitializer {
 
 	public static boolean isAutoSelectItems() {
 		return prefs().getBoolean("autoselect");
+	}
+
+	public static boolean isShowDynamicToolBar() {
+		return prefs().getBoolean("toolbar.dynamic");
 	}
 
 	public static Color getNumericalMappingMinColor() {

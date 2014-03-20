@@ -24,6 +24,7 @@ import org.caleydo.core.view.opengl.picking.Pick;
 import org.caleydo.view.domino.internal.NodeGroup;
 import org.caleydo.view.domino.internal.NodeSelections;
 import org.caleydo.view.domino.internal.UndoStack;
+import org.caleydo.view.domino.internal.prefs.MyPreferences;
 
 /**
  * a toolbar which sticks to the single node which is hovered
@@ -47,13 +48,17 @@ public class DynamicToolBar extends GLElementDecorator implements ICallback<Sele
 		this.selections = selections;
 		this.selections.onNodeGroupSelectionChanges(this);
 		setzDelta(2.f);
-		setVisibility(EVisibility.PICKABLE);
+		setVisibility(EVisibility.HIDDEN);
 		setPicker(null);
 		onPick(this);
 	}
 
 	@Override
 	public void on(SelectionType type) {
+		if (!MyPreferences.isShowDynamicToolBar()) {
+			setVisibility(EVisibility.HIDDEN);
+			return;
+		}
 		Set<NodeGroup> s = new HashSet<>(selections.getSelection(SelectionType.MOUSE_OVER));
 		if (s.isEmpty()) {
 			if (!mouseOver) {

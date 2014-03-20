@@ -34,8 +34,10 @@ public class MyPreferencePage extends FieldEditorPreferencePage implements IWork
 	public void createFieldEditors() {
 		final Composite parent = getFieldEditorParent();
 
-		addField(new BooleanFieldEditor("autoselect", "Auto Select Items", parent));
-		addField(new BooleanFieldEditor("blockLabelInGroup", "Show Block Label in Groups", parent));
+		addGroup(parent, "General");
+		addField(new BooleanFieldEditor("autoselect", "Auto select items", parent));
+		addField(new BooleanFieldEditor("blockLabelInGroup", "Show slock label in groups", parent));
+		addField(new BooleanFieldEditor("toolbar.dynamic", "Show dynamic block toolbar", parent));
 
 		addGroup(parent, "Numerical Block");
 		addField(new ColorFieldEditor("numerical.color.min", "Color used for encoding 0.f", parent));
