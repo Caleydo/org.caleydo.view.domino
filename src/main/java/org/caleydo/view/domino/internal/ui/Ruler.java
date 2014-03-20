@@ -16,9 +16,7 @@ import org.caleydo.core.data.selection.SelectionType;
 import org.caleydo.core.id.IDCategory;
 import org.caleydo.core.id.IDMappingManagerRegistry;
 import org.caleydo.core.id.IDType;
-import org.caleydo.core.util.color.Color;
 import org.caleydo.core.view.opengl.canvas.IGLMouseListener.IMouseEvent;
-import org.caleydo.core.view.opengl.layout.Column.VAlign;
 import org.caleydo.core.view.opengl.layout2.GLElement;
 import org.caleydo.core.view.opengl.layout2.GLElementContainer;
 import org.caleydo.core.view.opengl.layout2.GLGraphics;
@@ -123,14 +121,9 @@ public class Ruler extends GLElementContainer implements IDragGLSource, IPicking
 		float max = dim.select(w, h);
 		float f = max / maxElements;
 
-		g.color("ecb942").fillRect(0, 0, w, h);
-		if (hovered)
-			g.color(Color.BLACK).drawRect(0, 0, w, h);
-		else
-			g.color("ad8730").drawRect(0, 0, w, h);
 		renderSelection(g, w, h, f);
 		renderBaseAxis(g, w, h);
-		renderMarkers(g, w, h, f);
+		// renderMarkers(g, w, h, f);
 
 		super.renderImpl(g, w, h);
 	}
@@ -157,57 +150,68 @@ public class Ruler extends GLElementContainer implements IDragGLSource, IPicking
 
 	private void updateSize() {
 		float new_ = scaleFactor * maxElements;
-		setSize(dim.select(new_, 30), dim.select(30, new_));
+		if (dim.isHorizontal())
+			setSize(new_, 20);
+		else
+			setSize(20, new_);
 		relayout();
 	}
 
-	private void renderMarkers(GLGraphics g, float w, float h, float f) {
-		int markerDelta = determineMarkerStep(maxElements, dim.select(w, h));
-		for (int i = 0; i <= maxElements; i += markerDelta) {
-			float v = f * i;
-			if (dim.isHorizontal()) {
-				g.drawLine(v, 0, v, h*0.5f);
-			} else {
-				g.drawLine(0, v, w*0.5f, v);
-			}
-		}
-		if (dim.isHorizontal()) {
-			g.drawLine(w, 0, w, h * 0.5f);
-		} else {
-			g.drawLine(0, h, w * 0.5f, h);
-		}
-		renderMarkerLabels(g, w, h, f, markerDelta);
-	}
+	// private void renderMarkers(GLGraphics g, float w, float h, float f) {
+	// int markerDelta = determineMarkerStep(maxElements, dim.select(w, h));
+	// for (int i = 0; i <= maxElements; i += markerDelta) {
+	// float v = f * i;
+	// if (dim.isHorizontal()) {
+	// g.drawLine(v, 0, v, h*0.5f);
+	// } else {
+	// g.drawLine(0, v, w*0.5f, v);
+	// }
+	// }
+	// if (dim.isHorizontal()) {
+	// g.drawLine(w, 0, w, h * 0.5f);
+	// } else {
+	// g.drawLine(0, h, w * 0.5f, h);
+	// }
+	// renderMarkerLabels(g, w, h, f, markerDelta);
+	// }
 
-	private void renderMarkerLabels(GLGraphics g, float w, float h, float f, int markerDelta) {
-		int drawLabelsDelta = markerDelta * Math.round((float) Math.ceil(dim.select(30, 10) / (f * markerDelta)));
-		final float hi = dim.isHorizontal() ? Math.min(h * 0.5f, 10) : Math.min(f * drawLabelsDelta, 10);
-		for (int i = 0; i < maxElements; i += drawLabelsDelta) {
-			float v = f * i;
-			if (dim.isHorizontal()) {
-				g.drawText(i + "", v + 2, h * 0.5f, f * drawLabelsDelta, hi);
-			} else {
-				g.drawText(i + "", 3, v + 1, w - 3, hi);
-			}
-		}
-		if (dim.isHorizontal()) {
-			g.drawText(maxElements + "", w - f * drawLabelsDelta - 2, h * 0.5f, f * drawLabelsDelta, hi, VAlign.RIGHT);
-		} else {
-			g.drawText(maxElements + "", 3, h - hi - 2, w - 3, hi);
-		}
-	}
+	// private void renderMarkerLabels(GLGraphics g, float w, float h, float f, int markerDelta) {
+	// int drawLabelsDelta = markerDelta * Math.round((float) Math.ceil(dim.select(30, 10) / (f * markerDelta)));
+	// final float hi = dim.isHorizontal() ? Math.min(h * 0.5f, 10) : Math.min(f * drawLabelsDelta, 10);
+	// for (int i = 0; i < maxElements; i += drawLabelsDelta) {
+	// float v = f * i;
+	// if (dim.isHorizontal()) {
+	// g.drawText(i + "", v + 2, h * 0.5f, f * drawLabelsDelta, hi);
+	// } else {
+	// g.drawText(i + "", 3, v + 1, w - 3, hi);
+	// }
+	// }
+	// if (dim.isHorizontal()) {
+	// g.drawText(maxElements + "", w - f * drawLabelsDelta - 2, h * 0.5f, f * drawLabelsDelta, hi, VAlign.RIGHT);
+	// } else {
+	// g.drawText(maxElements + "", 3, h - hi - 2, w - 3, hi);
+	// }
+	// }
 
 	private void renderBaseAxis(GLGraphics g, float w, float h) {
-		final String label = getLabel(manager);
+		final String label = getMaxElements() + " " + getLabel(manager);
+		if (hovered)
+			g.lineWidth(3);
+		// g.drawRect(0, 0, w, h);
+		final int stitch = 12;
 		if (dim.isHorizontal()) {
-			g.drawLine(0, 0, w, 0);
-			g.drawText(label, 0, -14, 300, 12);
+			// g.drawText(label, -306, h - 14, 300, stitch, VAlign.RIGHT);
+			g.drawText(label, w + 6, h - 14, 300, stitch);
+			g.drawLine(0, h, w, h);
+			g.drawLine(0, h, 0, h - stitch);
+			g.drawLine(w, h, w, h - stitch);
 		} else {
+			g.drawText(label, 0, -16, 300, stitch);
 			g.drawLine(0, 0, 0, h);
-			g.save().gl.glRotatef(-90, 0, 0, 1);
-			g.drawText(label, -h, -14, 300, 12);
-			g.restore();
+			g.drawLine(0, 0, stitch, 0);
+			g.drawLine(0, h, stitch, h);
 		}
+		g.lineWidth(1);
 	}
 
 	private void renderSelection(GLGraphics g, float w, float h, float f) {
@@ -215,25 +219,25 @@ public class Ruler extends GLElementContainer implements IDragGLSource, IPicking
 		if (items > 0) {
 			g.color(SelectionType.SELECTION.getColor());
 			if (dim.isHorizontal()) {
-				g.fillRect(0, 1, items * f, h - 1);
+				g.fillRect(2, h - 12, items * f, 10);
 			} else {
-				g.fillRect(1, 0, w - 1, items * f);
+				g.fillRect(2, 2, 10, items * f);
 			}
 		}
 	}
 
-	private static int determineMarkerStep(int maxElements, float size) {
-		if (maxElements <= 100)
-			return 10; // 10x
-		if (maxElements <= 250)
-			return 25; // 10x
-		if (maxElements <= 500)
-			return 50; // 10x
-		if (maxElements <= 1000)
-			return 100;
-		return 250;
-		// return Math.max(maxElements / 10, 1);
-	}
+	// private static int determineMarkerStep(int maxElements, float size) {
+	// if (maxElements <= 100)
+	// return 10; // 10x
+	// if (maxElements <= 250)
+	// return 25; // 10x
+	// if (maxElements <= 500)
+	// return 50; // 10x
+	// if (maxElements <= 1000)
+	// return 100;
+	// return 250;
+	// // return Math.max(maxElements / 10, 1);
+	// }
 
 	@Override
 	public void pick(Pick pick) {

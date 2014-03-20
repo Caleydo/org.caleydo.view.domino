@@ -149,7 +149,8 @@ public abstract class ABand implements ILabeled, IHasMiniMap {
 	}
 
 	protected static String toNotMappedLabel(String a, int asize, String b, int bsize, TypedSet notMapped) {
-		return String.format("%s \u2216 %s\n|%d| \u2216 |%d| = |%d| (%.2f%%)", a, b, asize, bsize, notMapped, 100
+		return String.format("%s \u2216 %s\n|%d| \u2216 |%d| = |%d| (%.2f%%)", a, b, asize, bsize, notMapped.size(),
+				100
 				* notMapped.size() / (float) asize);
 	}
 
