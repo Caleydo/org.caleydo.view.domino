@@ -58,18 +58,6 @@ public abstract class ADataDomainDataValues implements IDataValues, Function2<In
 		return d.getTable();
 	}
 
-	public Color getColor(Integer dimensionID, Integer recordID) {
-		Table table = getTable();
-		if (dimensionID == null || dimensionID < 0 || dimensionID >= dims)
-			return Color.NOT_A_NUMBER_COLOR;
-		if (recordID == null || recordID < 0 || recordID >= records)
-			return Color.NOT_A_NUMBER_COLOR;
-		float[] c = table.getColor(dimensionID, recordID);
-		if (c == null)
-			return Color.NOT_A_NUMBER_COLOR;
-		return new Color(c);
-	}
-
 	public Object getRaw(Integer dimensionID, Integer recordID) {
 		Table table = getTable();
 		if (dimensionID == null || dimensionID < 0 || dimensionID >= dims)
@@ -103,6 +91,10 @@ public abstract class ADataDomainDataValues implements IDataValues, Function2<In
 	public Color apply(Integer recordID, Integer dimensionID) {
 		if (isInvalid(recordID) || isInvalid(dimensionID))
 			return Color.NOT_A_NUMBER_COLOR;
+		// float vs = getNormalized(dimensionID, recordID);
+		// if (Float.isNaN(vs))
+		// return Color.NOT_A_NUMBER_COLOR;
+		// return new Color(1 - vs);
 		// get value
 		float[] color = d.getTable().getColor(dimensionID, recordID);
 		// to a color

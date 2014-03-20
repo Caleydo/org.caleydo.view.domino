@@ -25,7 +25,7 @@ import com.google.common.collect.Sets;
 public final class TypedGroups {
 	private static final String UNMAPPED = "Unmapped";
 	private static final String UNGROUPED = "Ungrouped";
-	private static final Color COLOr = Color.NEUTRAL_GREY;
+	private static final Color COLOR = Color.NEUTRAL_GREY;
 
 	private TypedGroups() {
 
@@ -33,20 +33,20 @@ public final class TypedGroups {
 
 	public static TypedListGroup createUnmappedGroup(IDType idType, int size) {
 		return new TypedListGroup(new TypedList(RepeatingList.repeat(TypedCollections.INVALID_ID, size), idType),
-				UNMAPPED, COLOr);
+				UNMAPPED, COLOR);
 	}
 
 	public static TypedListGroup createUngroupedGroup(IDType idType, int size) {
 		return new TypedListGroup(new TypedList(RepeatingList.repeat(TypedCollections.INVALID_ID, size), idType),
-				UNGROUPED, COLOr);
+				UNGROUPED, COLOR);
 	}
 
 	public static TypedListGroup createUngroupedGroup(TypedList list) {
-		return new TypedListGroup(list, UNGROUPED, COLOr);
+		return new TypedListGroup(list, UNGROUPED, COLOR);
 	}
 
 	public static TypedSetGroup createUngroupedGroup(TypedSet set) {
-		return new TypedSetGroup(set, UNGROUPED, COLOr);
+		return new TypedSetGroup(set, UNGROUPED, COLOR);
 	}
 
 	public static boolean isUngrouped(ITypedGroup group) {

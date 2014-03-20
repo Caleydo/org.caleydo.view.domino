@@ -23,6 +23,8 @@ import org.caleydo.view.domino.api.model.typed.TypedList;
 import org.caleydo.view.domino.api.model.typed.TypedSet;
 import org.caleydo.view.domino.api.model.typed.TypedSetGroup;
 import org.caleydo.view.domino.api.model.typed.util.BitSetSet;
+import org.caleydo.view.domino.internal.Constants;
+import org.caleydo.view.domino.internal.prefs.MyPreferences;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
@@ -83,6 +85,16 @@ public class Numerical2DDataDomainValues extends ADataDomainDataValues {
 		if (r instanceof Number)
 			return ((Number) r).floatValue();
 		return Float.NaN;
+	}
+
+	@Override
+	public Color apply(Integer recordID, Integer dimensionID) {
+		if (!MyPreferences.isUseNumericalColorMapping())
+			return super.apply(recordID, dimensionID);
+		if (isInvalid(recordID) || isInvalid(dimensionID))
+			return Color.NOT_A_NUMBER_COLOR;
+		float vs = getNormalized(dimensionID, recordID);
+		return Constants.colorMapping(vs);
 	}
 
 	/**

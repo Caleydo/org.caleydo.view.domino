@@ -18,6 +18,7 @@ import org.caleydo.core.util.function.DoubleStatistics;
 import org.caleydo.core.view.opengl.layout2.manage.GLElementFactoryContext.Builder;
 import org.caleydo.view.domino.api.model.typed.TypedGroupSet;
 import org.caleydo.view.domino.api.model.typed.TypedList;
+import org.caleydo.view.domino.internal.Constants;
 
 /**
  * @author Samuel Gratzl
@@ -89,13 +90,7 @@ public class Numerical1DDataDomainValues extends A1DDataDomainValues implements 
 		if (isInvalid(recordID) || isInvalid(dimensionID))
 			return Color.NOT_A_NUMBER_COLOR;
 		float vs = getNormalized(dimensionID, recordID);
-		if (Float.isNaN(vs))
-			return Color.NOT_A_NUMBER_COLOR;
-		return new Color(1 - vs);
-		// // get value
-		// float[] color = d.getTable().getColor(dimensionID, recordID);
-		// // to a color
-		// return new Color(color[0], color[1], color[2], 1.0f);
+		return Constants.colorMapping(vs);
 	}
 
 	@Override

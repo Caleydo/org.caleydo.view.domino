@@ -19,6 +19,7 @@ import org.caleydo.view.domino.api.model.typed.TypedCollections;
 import org.caleydo.view.domino.api.model.typed.TypedGroupSet;
 import org.caleydo.view.domino.api.model.typed.TypedList;
 import org.caleydo.view.domino.api.model.typed.TypedSet;
+import org.caleydo.view.domino.internal.Constants;
 
 import com.google.common.base.Function;
 import com.jogamp.common.util.IntObjectHashMap;
@@ -170,9 +171,6 @@ public class ProjectedDataValues implements IDataValues, INumerical1DContainer,F
 		if (ADataDomainDataValues.isInvalid(id))
 			return Color.NOT_A_NUMBER_COLOR;
 		float v = getNormalized(id);
-
-		float[] color = wrappee.getDataDomain().getTable().getColorMapper().getColor(v);
-		// to a color
-		return new Color(color[0], color[1], color[2], 1.0f);
+		return Constants.colorMapping(v);
 	}
 }
