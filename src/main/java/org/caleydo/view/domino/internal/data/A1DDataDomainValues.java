@@ -28,6 +28,12 @@ public abstract class A1DDataDomainValues extends ADataDomainDataValues implemen
 	protected final TypedID id;
 	protected final TypedGroupSet singleGroup;
 
+	private final Function<Integer, String> id2Label = new Function<Integer, String>() {
+		@Override
+		public String apply(Integer input2) {
+			return getLabel(input2);
+		}
+	};
 	/**
 	 * @param t
 	 */
@@ -41,6 +47,7 @@ public abstract class A1DDataDomainValues extends ADataDomainDataValues implemen
 		this.singleGroup = TypedGroupSet.createUngrouped(TypedCollections.singleton(id.getId(),
 				TypedCollections.INVALID_IDTYPE));
 	}
+
 
 	protected abstract TypedGroupSet getGroups();
 
@@ -81,6 +88,7 @@ public abstract class A1DDataDomainValues extends ADataDomainDataValues implemen
 		b.put(IDType.class, data.getIdType());
 		b.put("idType", data.getIdType());
 		b.put("id2color", this);
+		b.put("id2label", id2Label);
 	}
 
 	@Override
@@ -94,6 +102,13 @@ public abstract class A1DDataDomainValues extends ADataDomainDataValues implemen
 
 	public Object getRaw(int id) {
 		return getRaw(main.select(id, this.id.getId()), main.select(this.id.getId(), id));
+	}
+
+	protected String getLabel(Integer id) {
+		if (isInvalid(id))
+			return "";
+		Object raw = getRaw(id);
+		return raw2string(raw);
 	}
 
 	@Override

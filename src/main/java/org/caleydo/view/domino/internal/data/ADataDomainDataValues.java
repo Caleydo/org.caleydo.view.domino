@@ -13,6 +13,7 @@ import org.caleydo.core.event.EventPublisher;
 import org.caleydo.core.event.data.DataSetSelectedEvent;
 import org.caleydo.core.id.IDType;
 import org.caleydo.core.util.color.Color;
+import org.caleydo.core.util.format.Formatter;
 import org.caleydo.core.util.function.Function2;
 import org.caleydo.core.view.opengl.layout2.manage.GLElementFactoryContext.Builder;
 import org.caleydo.view.domino.api.model.typed.TypedList;
@@ -35,9 +36,17 @@ public abstract class ADataDomainDataValues implements IDataValues, Function2<In
 	private final IntObjectHashMap dimFullCompareCache = new IntObjectHashMap();
 	private final IntObjectHashMap recFullCompareCache = new IntObjectHashMap();
 
+	private final Function2<Integer, Integer, String> cell2Label = new Function2<Integer, Integer, String>() {
+		@Override
+		public String apply(Integer input1, Integer input2) {
+			return getLabel(input1, input2);
+		}
+	};
+
 	public ADataDomainDataValues(String label, TablePerspective t) {
 		this(label, t.getDataDomain());
 	}
+
 
 	/**
 	 * @param dataDomain
@@ -60,11 +69,23 @@ public abstract class ADataDomainDataValues implements IDataValues, Function2<In
 
 	public Object getRaw(Integer dimensionID, Integer recordID) {
 		Table table = getTable();
-		if (dimensionID == null || dimensionID < 0 || dimensionID >= dims)
-			return null;
-		if (recordID == null || recordID < 0 || recordID >= records)
+		if (isInvalid(dimensionID) || isInvalid(recordID))
 			return null;
 		return table.getRaw(dimensionID, recordID);
+	}
+
+	protected String getLabel(Integer recordID, Integer dimensionID) {
+		Object raw = getRaw(dimensionID, recordID);
+		return raw2string(raw);
+	}
+
+
+	protected static String raw2string(Object raw) {
+		if (raw == null)
+			return "";
+		if (raw instanceof Number)
+			return Formatter.formatNumber(((Number) raw).doubleValue());
+		return raw.toString();
 	}
 
 	public float getNormalized(Integer dimensionID, Integer recordID) {
@@ -161,8 +182,13 @@ public abstract class ADataDomainDataValues implements IDataValues, Function2<In
 		b.put("records.idType", recData.getIdType());
 		if (dimData.getIdType() != getIDType(EDimension.DIMENSION)) { // swapped
 			b.put(Function2.class, Functions2s.swap(this));
-		} else
+			b.put("cell2color", Functions2s.swap(this));
+			b.put("cell2label", Functions2s.swap(this.cell2Label));
+		} else {
 			b.put(Function2.class, this);
+			b.put("cell2color", this);
+			b.put("cell2label", this.cell2Label);
+		}
 	}
 
 	@Override
