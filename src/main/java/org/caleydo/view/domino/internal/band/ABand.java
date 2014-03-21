@@ -145,7 +145,8 @@ public abstract class ABand implements ILabeled, IHasMiniMap {
 		if (idsA.size() < 3)
 			return StringUtils.join(toLabel.apply(idsA), ", ");
 		else
-			return String.format("|%d| (%s,...)", StringUtils.join(toLabel.apply(idsA.asList().subList(0, 3)), ", "));
+			return String.format("|%d| (%s,...)", idsA.size(),
+					StringUtils.join(toLabel.apply(idsA.asList().subList(0, 3)), ", "));
 	}
 
 	protected static String toNotMappedLabel(String a, int asize, String b, int bsize, TypedSet notMapped) {

@@ -751,7 +751,7 @@ public class LinearBlock extends AbstractCollection<Node> {
 		} else {
 			// shift it
 			float angle = 45f; // TODO find out
-			g.drawRotatedText(text, x + 10, y + textSize - 10, tw, textSize, VAlign.RIGHT, ETextStyle.PLAIN, angle);
+			g.drawRotatedText(text, x + 10, y + textSize - 30, tw + 20, textSize, VAlign.RIGHT, ETextStyle.PLAIN, angle);
 		}
 	}
 
