@@ -355,6 +355,15 @@ public class Blocks extends GLElementContainer implements ICallback<SelectionTyp
 		DoubleStatistics stats = getScaleFactorsStats(idCategory);
 		if (stats.getN() > 0) {
 			ruler.zoom((float) stats.getMean());
+		} else {
+			Vec2f size = findParent(MiniMapCanvas.class).getSize();
+			if (ruler.getDim().isHorizontal()) {
+				final Vec2f v = Node.initialScaleFactors(size, ruler.getMaxElements(), 1);
+				ruler.zoom(v.x());
+			} else {
+				final Vec2f v = Node.initialScaleFactors(size, 1, ruler.getMaxElements());
+				ruler.zoom(v.y());
+			}
 		}
 	}
 

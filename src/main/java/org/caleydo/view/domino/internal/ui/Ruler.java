@@ -64,6 +64,13 @@ public class Ruler extends GLElementContainer implements IDragGLSource, IPicking
 	}
 
 	/**
+	 * @return the dim, see {@link #dim}
+	 */
+	public EDimension getDim() {
+		return dim;
+	}
+
+	/**
 	 * @return
 	 */
 	private GLElement createToolBar(UndoStack undo) {
@@ -99,7 +106,7 @@ public class Ruler extends GLElementContainer implements IDragGLSource, IPicking
 	 * @param idCategory
 	 * @return
 	 */
-	private int getTotalMax(IDCategory category) {
+	public static int getTotalMax(IDCategory category) {
 		return IDMappingManagerRegistry.get().getIDMappingManager(category)
 				.getAllMappedIDs(category.getPrimaryMappingType()).size();
 	}
