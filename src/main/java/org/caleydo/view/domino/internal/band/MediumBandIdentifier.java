@@ -5,38 +5,23 @@
  *******************************************************************************/
 package org.caleydo.view.domino.internal.band;
 
-import org.caleydo.view.domino.internal.LinearBlock;
+import org.caleydo.view.domino.internal.Node;
 
 /**
  * @author Samuel Gratzl
  *
  */
-public class BandIdentifier extends ABandIdentifier {
-	private final LinearBlock bS, bT;
+public class MediumBandIdentifier extends ABandIdentifier {
+	private final Node bS, bT;
 
-	public static BandIdentifier id(LinearBlock bS, boolean leftS, LinearBlock bT, boolean leftT) {
-		return new BandIdentifier(bS, leftS, bT, leftT);
+	public static MediumBandIdentifier id(Node bS, boolean leftS, Node bT, boolean leftT) {
+		return new MediumBandIdentifier(bS, leftS, bT, leftT);
 	}
 
-	public BandIdentifier(LinearBlock bS, boolean leftS, LinearBlock bT, boolean leftT) {
+	public MediumBandIdentifier(Node bS, boolean leftS, Node bT, boolean leftT) {
 		super(leftS, leftT);
 		this.bS = bS;
 		this.bT = bT;
-	}
-
-	/**
-	 *
-	 */
-	public void updateBandInfo() {
-		if (leftS)
-			bS.setHasRightBand(true);
-		else
-			bS.setHasLeftBand(true);
-
-		if (leftT)
-			bT.setHasRightBand(true);
-		else
-			bT.setHasLeftBand(true);
 	}
 
 	@Override
@@ -58,7 +43,7 @@ public class BandIdentifier extends ABandIdentifier {
 			return false;
 		if (getClass() != obj.getClass())
 			return false;
-		BandIdentifier other = (BandIdentifier) obj;
+		MediumBandIdentifier other = (MediumBandIdentifier) obj;
 		if (leftS != other.leftS)
 			return false;
 		if (leftT != other.leftT)
@@ -69,15 +54,15 @@ public class BandIdentifier extends ABandIdentifier {
 	/**
 	 * @return
 	 */
-	public BandIdentifier swap() {
-		return new BandIdentifier(bT, leftT, bS, leftS);
+	public MediumBandIdentifier swap() {
+		return new MediumBandIdentifier(bT, leftT, bS, leftS);
 	}
 
 	/**
 	 * @param b
 	 * @param c
 	 */
-	public BandIdentifier with(boolean leftS, boolean leftT) {
-		return new BandIdentifier(bS, leftS, bT, leftT);
+	public MediumBandIdentifier with(boolean leftS, boolean leftT) {
+		return new MediumBandIdentifier(bS, leftS, bT, leftT);
 	}
 }

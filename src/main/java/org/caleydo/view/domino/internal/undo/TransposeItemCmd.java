@@ -6,36 +6,29 @@
 package org.caleydo.view.domino.internal.undo;
 
 import org.caleydo.view.domino.internal.Domino;
-import org.caleydo.view.domino.internal.band.ABandIdentifier;
+import org.caleydo.view.domino.internal.ui.AItem;
 
 /**
  * @author Samuel Gratzl
  *
  */
-public class ChangeBandLevelCmd implements ICmd {
+public class TransposeItemCmd implements ICmd {
+	private final AItem item;
 
-	private final ABandIdentifier bandIdentifier;
-	private final boolean increase;
-
-	/**
-	 * @param identifier
-	 * @param b
-	 */
-	public ChangeBandLevelCmd(ABandIdentifier identifier, boolean increase) {
-		this.bandIdentifier = identifier;
-		this.increase = increase;
-
+	public TransposeItemCmd(AItem item) {
+		this.item = item;
 	}
 
 	@Override
 	public String getLabel() {
-		return "Change Band Details";
+		return "Transpose";
 	}
 
 	@Override
 	public ICmd run(Domino domino) {
-		domino.getBands().changeLevel(bandIdentifier, increase);
-		return new ChangeBandLevelCmd(bandIdentifier, !increase);
+		item.transpose();
+		domino.getBands().relayout();
+		return this;
 	}
 
 }

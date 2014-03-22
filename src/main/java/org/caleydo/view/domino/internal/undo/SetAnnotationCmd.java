@@ -6,28 +6,30 @@
 package org.caleydo.view.domino.internal.undo;
 
 import org.caleydo.view.domino.internal.Domino;
-import org.caleydo.view.domino.internal.ui.Separator;
+import org.caleydo.view.domino.internal.ui.AnnotationItem;
 
 /**
  * @author Samuel Gratzl
  *
  */
-public class RemoveSeparatorCmd implements ICmd {
-	private final Separator separator;
+public class SetAnnotationCmd implements ICmd {
+	private final AnnotationItem item;
+	private final String text;
 
-	public RemoveSeparatorCmd(Separator separator) {
-		this.separator = separator;
+	public SetAnnotationCmd(AnnotationItem item, String text) {
+		this.item = item;
+		this.text = text;
 	}
 
 	@Override
 	public String getLabel() {
-		return "Remove Separator";
+		return "Edit text of annotation";
 	}
 
 	@Override
 	public ICmd run(Domino domino) {
-		domino.getOutlerBlocks().removeSeparator(separator);
-		return new AddSeparatorCmd(separator);
+		String bak = item.getText();
+		item.setText(text);
+		return new SetAnnotationCmd(item, bak);
 	}
-
 }

@@ -33,6 +33,7 @@ import org.caleydo.view.domino.internal.UndoStack;
 import org.caleydo.view.domino.internal.tourguide.DataTourGuideAdapter;
 import org.caleydo.view.domino.internal.tourguide.StratifiationTourGuideAdapter;
 import org.caleydo.view.domino.internal.tourguide.ui.EntityTypeSelector;
+import org.caleydo.view.domino.internal.ui.DragAnnotationButton;
 import org.caleydo.view.domino.internal.ui.DragLabelButton;
 import org.caleydo.view.domino.internal.ui.DragRulerButton;
 import org.caleydo.view.domino.internal.ui.DragSelectionButton;
@@ -63,11 +64,11 @@ public class LeftToolBar extends GLElementContainer implements IGLLayout2, ISele
 		setLayout(this);
 
 		addToolButtons();
-		this.add(new GLElement());
+		this.add(new Separator());
 
 		addUndoRedoButtons();
 
-		this.add(new GLElement());
+		this.add(new Separator());
 
 		for (IDCategory cat : EntityTypeSelector.findAllUsedIDCategories()) {
 			addDragLabelsButton(cat);
@@ -82,7 +83,7 @@ public class LeftToolBar extends GLElementContainer implements IGLLayout2, ISele
 			selections.add(manager);
 		}
 
-		this.add(new GLElement());
+		this.add(new Separator());
 		addExtraButtons();
 	}
 
@@ -185,7 +186,6 @@ public class LeftToolBar extends GLElementContainer implements IGLLayout2, ISele
 				}
 			}
 		};
-
 		GLButton b = new GLButton();
 		b.setRenderer(GLRenderers.fillImage(Resources.ICON_MINI_MAP));
 		b.setTooltip("Show/Hide Mini Map");
@@ -217,6 +217,7 @@ public class LeftToolBar extends GLElementContainer implements IGLLayout2, ISele
 		this.add(b);
 
 		this.add(new DragSeparatorButton());
+		this.add(new DragAnnotationButton());
 	}
 
 	/**
@@ -304,8 +305,14 @@ public class LeftToolBar extends GLElementContainer implements IGLLayout2, ISele
 			int deltaTimeMs) {
 		float y = 0;
 		for (IGLLayoutElement child : children) {
-			child.setBounds(0, y, w, w);
-			y += w + 3;
+			if (child.asElement() instanceof Separator) {
+				child.setBounds(0, y - 1, w, 10);
+				y += 9;
+			} else {
+				child.setBounds(0, y, w, w);
+				y += w + 3;
+			}
+
 		}
 		return false;
 	}
@@ -343,5 +350,17 @@ public class LeftToolBar extends GLElementContainer implements IGLLayout2, ISele
 				}
 			}
 		};
+	}
+
+	private final static class Separator extends GLElement {
+		public Separator() {
+			setSize(-1, 10);
+		}
+
+		@Override
+		protected void renderImpl(GLGraphics g, float w, float h) {
+			g.lineWidth(2).color(Color.LIGHT_GRAY).drawLine(0, h * 0.5f, w, h * 0.5f).lineWidth(1);
+			super.renderImpl(g, w, h);
+		}
 	}
 }

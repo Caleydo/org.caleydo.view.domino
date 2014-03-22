@@ -62,7 +62,7 @@ public class ParaBand extends ABand {
 	public ParaBand(Pair<String, String> labels, MultiTypedSet shared, TypedGroupList sData, TypedGroupList tData,
  Vec2f sLoc,
 			Vec2f tLoc, INodeLocator sLocator, INodeLocator tLocator, EDirection sDim, EDirection tDim,
-			BandIdentifier identifier) {
+			ABandIdentifier identifier) {
 		super(shared, sData, tData, sLocator, tLocator, sDim, tDim, identifier, labels);
 		this.s = sLoc;
 		this.t = tLoc;

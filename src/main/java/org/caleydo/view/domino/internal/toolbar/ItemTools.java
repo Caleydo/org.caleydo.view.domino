@@ -11,24 +11,24 @@ import org.caleydo.core.view.opengl.layout2.basic.GLButton;
 import org.caleydo.core.view.opengl.layout2.renderer.RoundedRectRenderer;
 import org.caleydo.view.domino.internal.Resources;
 import org.caleydo.view.domino.internal.UndoStack;
-import org.caleydo.view.domino.internal.ui.Separator;
-import org.caleydo.view.domino.internal.undo.RemoveSeparatorCmd;
-import org.caleydo.view.domino.internal.undo.TransposeSeparatorCmd;
+import org.caleydo.view.domino.internal.ui.AItem;
+import org.caleydo.view.domino.internal.undo.RemoveItemCmd;
+import org.caleydo.view.domino.internal.undo.TransposeItemCmd;
 
 /**
  * @author Samuel Gratzl
  *
  */
-public class SeparatorTools extends AItemTools {
+public class ItemTools extends AItemTools {
 
-	private final Separator separator;
+	private final AItem item;
 
 	/**
 	 * @param undo
 	 */
-	public SeparatorTools(UndoStack undo, Separator separator) {
+	public ItemTools(UndoStack undo, AItem item) {
 		super(undo);
-		this.separator = separator;
+		this.item = item;
 
 		addButton("Transpose", Resources.ICON_TRANSPOSE);
 		addButton("Remove", Resources.ICON_DELETE);
@@ -47,10 +47,10 @@ public class SeparatorTools extends AItemTools {
 	public void onSelectionChanged(GLButton button, boolean selected) {
 		switch (button.getTooltip()) {
 		case "Transpose":
-			undo.push(new TransposeSeparatorCmd(separator));
+			undo.push(new TransposeItemCmd(item));
 			break;
 		case "Remove":
-			undo.push(new RemoveSeparatorCmd(separator));
+			undo.push(new RemoveItemCmd(item));
 			break;
 		default:
 			break;

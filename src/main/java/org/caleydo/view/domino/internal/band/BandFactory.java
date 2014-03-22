@@ -24,7 +24,7 @@ public class BandFactory {
 	public static ABand create(Pair<String, String> labels, TypedGroupList sData, TypedGroupList tData, ShearedRect ra,
 			ShearedRect rb,
 			final INodeLocator sNodeLocator, final INodeLocator tNodeLocator, final EDimension sDim,
-			final EDimension tDim, BandIdentifier id) {
+			final EDimension tDim, ABandIdentifier id) {
 		MultiTypedSet shared = TypedSets.intersect(sData.asSet(), tData.asSet());
 		if (shared.isEmpty())
 			return null;

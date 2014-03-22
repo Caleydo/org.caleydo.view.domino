@@ -12,14 +12,14 @@ import org.caleydo.view.domino.internal.UndoStack;
  * @author Samuel Gratzl
  *
  */
-public class DragSeparatorButton extends ADragItemButton {
+public class DragAnnotationButton extends ADragItemButton {
 
-	public DragSeparatorButton() {
-		super(Resources.ICON_SEPARATOR, "Add Separator Line");
+	public DragAnnotationButton() {
+		super(Resources.ICON_ANNOTATION, "Add Annotation Text Field");
 	}
 
 	@Override
 	protected AItem createInstance(UndoStack undo) {
-		return new SeparatorItem(undo);
+		return new AnnotationItem(undo);
 	}
 }

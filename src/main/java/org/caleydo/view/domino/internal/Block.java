@@ -48,10 +48,12 @@ import org.caleydo.view.domino.api.model.typed.MappingCaches;
 import org.caleydo.view.domino.api.model.typed.TypedGroupList;
 import org.caleydo.view.domino.internal.LinearBlock.ESortingMode;
 import org.caleydo.view.domino.internal.band.ABand;
+import org.caleydo.view.domino.internal.band.ABandIdentifier;
 import org.caleydo.view.domino.internal.band.BandFactory;
 import org.caleydo.view.domino.internal.band.BandIdentifier;
 import org.caleydo.view.domino.internal.band.EBandMode;
 import org.caleydo.view.domino.internal.band.IBandHost.SourceTarget;
+import org.caleydo.view.domino.internal.band.MediumBandIdentifier;
 import org.caleydo.view.domino.internal.band.ShearedRect;
 import org.caleydo.view.domino.internal.data.VisualizationTypeOracle;
 import org.caleydo.view.domino.internal.dnd.ADragInfo;
@@ -822,7 +824,7 @@ public class Block extends GLElementContainer implements IGLLayout2, IPickingLis
 		final EDimension sDir = la.getDim().opposite();
 		final EDimension tDir = lb.getDim().opposite();
 
-		BandIdentifier id = new BandIdentifier(la, true, lb, false);
+		ABandIdentifier id = new BandIdentifier(la, true, lb, false);
 		ABand band = BandFactory.create(label, sData, tData, ra, rb, sNodeLocator, tNodeLocator, sDir, tDir, id);
 		if (band == null)
 			return;
@@ -1053,9 +1055,11 @@ public class Block extends GLElementContainer implements IGLLayout2, IPickingLis
 		ShearedRect rb = new ShearedRect(t.getRectBounds());
 		final INodeLocator sNodeLocator = s.getNodeLocator(d);
 		final INodeLocator tNodeLocator = t.getNodeLocator(d);
-		BandIdentifier id = new BandIdentifier(b, true, b, false);
+		ABandIdentifier id = new MediumBandIdentifier(s, true, t, false);
 		ABand band = BandFactory.create(Pair.make(s.getLabel(), t.getLabel()), sData, tData, ra, rb, sNodeLocator,
 				tNodeLocator, d, d, id);
+		if (band != null)
+			band.setLevel(EBandMode.OVERVIEW);
 		return band;
 	}
 

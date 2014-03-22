@@ -10,11 +10,9 @@ import gleem.linalg.Vec2f;
 import java.util.List;
 
 import org.caleydo.core.data.collection.EDimension;
-import org.caleydo.core.util.color.Color;
 import org.caleydo.core.view.opengl.canvas.IGLMouseListener.IMouseEvent;
 import org.caleydo.core.view.opengl.layout2.GLElement;
 import org.caleydo.core.view.opengl.layout2.GLElementContainer;
-import org.caleydo.core.view.opengl.layout2.GLGraphics;
 import org.caleydo.core.view.opengl.layout2.dnd.IDnDItem;
 import org.caleydo.core.view.opengl.layout2.dnd.IDragGLSource;
 import org.caleydo.core.view.opengl.layout2.dnd.IDragInfo;
@@ -26,30 +24,25 @@ import org.caleydo.view.domino.internal.Domino;
 import org.caleydo.view.domino.internal.ScaleLogic;
 import org.caleydo.view.domino.internal.UndoStack;
 import org.caleydo.view.domino.internal.dnd.ADragInfo;
-import org.caleydo.view.domino.internal.dnd.SeparatorDragInfo;
-import org.caleydo.view.domino.internal.toolbar.SeparatorTools;
-import org.caleydo.view.domino.internal.undo.ZoomSeparatorCmd;
+import org.caleydo.view.domino.internal.dnd.ItemDragInfo;
+import org.caleydo.view.domino.internal.toolbar.ItemTools;
+import org.caleydo.view.domino.internal.undo.ZoomItemCmd;
 
 /**
  * @author Samuel Gratzl
  *
  */
-public class Separator extends GLElementContainer implements IDragGLSource, IPickingListener, IGLLayout2 {
-	private EDimension dim = EDimension.RECORD;
-	private boolean hovered = false;
+public class AItem extends GLElementContainer implements IDragGLSource, IPickingListener, IGLLayout2 {
+	protected EDimension dim = EDimension.RECORD;
+	protected boolean hovered = false;
 
-	public Separator(UndoStack undo) {
+	public AItem(UndoStack undo) {
 		setLayout(this);
 
 		setVisibility(EVisibility.PICKABLE);
 		onPick(this);
 
 		this.add(createToolBar(undo));
-
-		if (dim.isHorizontal())
-			setSize(200, 20);
-		else
-			setSize(20, 200);
 	}
 
 	/**
@@ -63,7 +56,7 @@ public class Separator extends GLElementContainer implements IDragGLSource, IPic
 	 * @return
 	 */
 	private GLElement createToolBar(UndoStack undo) {
-		SeparatorTools tools = new SeparatorTools(undo, this);
+		ItemTools tools = new ItemTools(undo, this);
 		tools.setSize(tools.getWidth(24), 24);
 		return tools;
 	}
@@ -91,24 +84,6 @@ public class Separator extends GLElementContainer implements IDragGLSource, IPic
 	}
 
 	@Override
-	protected void renderImpl(GLGraphics g, float w, float h) {
-		renderBaseAxis(g, w, h);
-		super.renderImpl(g, w, h);
-	}
-
-
-	private void renderBaseAxis(GLGraphics g, float w, float h) {
-		g.color(Color.LIGHT_GRAY);
-		g.lineWidth(hovered ? 4 : 2);
-		if (dim.isHorizontal()) {
-			g.drawLine(0, h * 0.5f, w, h * 0.5f);
-		} else {
-			g.drawLine(w * 0.5f, 0, w * 0.5f, h);
-		}
-		g.lineWidth(1);
-	}
-
-	@Override
 	public void pick(Pick pick) {
 		switch (pick.getPickingMode()) {
 		case MOUSE_WHEEL:
@@ -118,7 +93,7 @@ public class Separator extends GLElementContainer implements IDragGLSource, IPic
 			if (change == 0)
 				return;
 			UndoStack undo = findParent(Domino.class).getUndo();
-			undo.push(new ZoomSeparatorCmd(this, change));
+			undo.push(new ZoomItemCmd(this, change));
 			break;
 		case MOUSE_OVER:
 			context.getMouseLayer().addDragSource(this);
@@ -131,7 +106,7 @@ public class Separator extends GLElementContainer implements IDragGLSource, IPic
 			relayout();
 			break;
 		case RIGHT_CLICKED:
-			context.getSWTLayer().showContextMenu(((SeparatorTools) get(0)).asContextMenu());
+			context.getSWTLayer().showContextMenu(((ItemTools) get(0)).asContextMenu());
 			break;
 		default:
 			break;
@@ -146,7 +121,7 @@ public class Separator extends GLElementContainer implements IDragGLSource, IPic
 
 	@Override
 	public IDragInfo startSWTDrag(IDragEvent event) {
-		return new SeparatorDragInfo(event.getMousePos(), this);
+		return new ItemDragInfo(event.getMousePos(), this);
 	}
 
 	@Override

@@ -28,11 +28,12 @@ import org.caleydo.core.view.opengl.picking.Pick;
 import org.caleydo.view.domino.api.model.typed.TypedSet;
 import org.caleydo.view.domino.internal.MiniMapCanvas.IManuallyShifted;
 import org.caleydo.view.domino.internal.band.ABand;
+import org.caleydo.view.domino.internal.band.ABandIdentifier;
 import org.caleydo.view.domino.internal.band.BandIdentifier;
 import org.caleydo.view.domino.internal.dnd.ADragInfo;
 import org.caleydo.view.domino.internal.dnd.SetDragInfo;
 import org.caleydo.view.domino.internal.ui.Ruler;
-import org.caleydo.view.domino.internal.ui.Separator;
+import org.caleydo.view.domino.internal.ui.SeparatorItem;
 import org.caleydo.view.domino.internal.undo.ChangeBandLevelCmd;
 
 import com.google.common.base.Function;
@@ -69,9 +70,9 @@ public class Bands extends ABands implements IDragGLSource, ICallback<SelectionT
 
 	@Override
 	public void update() {
-		Map<BandIdentifier, ABand> bak = Maps.uniqueIndex(bands, new Function<ABand, BandIdentifier>() {
+		Map<ABandIdentifier, ABand> bak = Maps.uniqueIndex(bands, new Function<ABand, ABandIdentifier>() {
 			@Override
-			public BandIdentifier apply(ABand input) {
+			public ABandIdentifier apply(ABand input) {
 				return input.getId();
 			}
 		});
@@ -125,7 +126,7 @@ public class Bands extends ABands implements IDragGLSource, ICallback<SelectionT
 			if (bak.containsKey(band.getId())) {
 				band.initFrom(bak.get(band.getId()));
 			}
-			BandIdentifier id = band.getId();
+			BandIdentifier id = (BandIdentifier) band.getId();
 			id.updateBandInfo();
 		}
 
@@ -142,7 +143,7 @@ public class Bands extends ABands implements IDragGLSource, ICallback<SelectionT
 		Collection<Rectangle2D> bounds = new ArrayList<Rectangle2D>();
 		for (Ruler r : blocks.rulers())
 			bounds.add(r.getRectangleBounds());
-		for (Separator s : blocks.separators())
+		for (SeparatorItem s : blocks.separators())
 			bounds.add(s.getRectangleBounds());
 
 		if (bounds.isEmpty())

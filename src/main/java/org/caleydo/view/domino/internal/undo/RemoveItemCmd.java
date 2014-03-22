@@ -6,29 +6,28 @@
 package org.caleydo.view.domino.internal.undo;
 
 import org.caleydo.view.domino.internal.Domino;
-import org.caleydo.view.domino.internal.ui.Separator;
+import org.caleydo.view.domino.internal.ui.AItem;
 
 /**
  * @author Samuel Gratzl
  *
  */
-public class TransposeSeparatorCmd implements ICmd {
-	private final Separator separator;
+public class RemoveItemCmd implements ICmd {
+	private final AItem item;
 
-	public TransposeSeparatorCmd(Separator separator) {
-		this.separator = separator;
+	public RemoveItemCmd(AItem item) {
+		this.item = item;
 	}
 
 	@Override
 	public String getLabel() {
-		return "Transpose";
+		return "Remove " + item.getClass().getSimpleName();
 	}
 
 	@Override
 	public ICmd run(Domino domino) {
-		separator.transpose();
-		domino.getBands().relayout();
-		return this;
+		domino.getOutlerBlocks().removeItem(item);
+		return new AddItemCmd(item);
 	}
 
 }

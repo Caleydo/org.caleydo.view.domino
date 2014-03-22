@@ -16,7 +16,7 @@ import org.caleydo.core.id.IDType;
 import org.caleydo.core.view.opengl.canvas.IGLMouseListener.IMouseEvent;
 import org.caleydo.core.view.opengl.picking.Pick;
 import org.caleydo.view.domino.internal.band.ABand;
-import org.caleydo.view.domino.internal.band.BandIdentifier;
+import org.caleydo.view.domino.internal.band.ABandIdentifier;
 
 import com.google.common.base.Function;
 import com.google.common.collect.Maps;
@@ -29,9 +29,9 @@ public class BlockBands extends ABands {
 
 	@Override
 	protected void update() {
-		Map<BandIdentifier, ABand> bak = Maps.uniqueIndex(bands, new Function<ABand, BandIdentifier>() {
+		Map<ABandIdentifier, ABand> bak = Maps.uniqueIndex(bands, new Function<ABand, ABandIdentifier>() {
 			@Override
-			public BandIdentifier apply(ABand input) {
+			public ABandIdentifier apply(ABand input) {
 				return input.getId();
 			}
 		});

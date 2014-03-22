@@ -5,46 +5,50 @@
  *******************************************************************************/
 package org.caleydo.view.domino.internal.undo;
 
-import gleem.linalg.Vec2f;
-
 import org.caleydo.view.domino.internal.Domino;
-import org.caleydo.view.domino.internal.ui.Separator;
+import org.caleydo.view.domino.internal.ui.AItem;
 
 /**
  * @author Samuel Gratzl
  *
  */
-public class MoveSeparatorCmd implements IMergeAbleCmd {
-	private final Separator separator;
-	private final Vec2f shift;
+public class ZoomItemCmd implements IMergeAbleCmd {
 
-	public MoveSeparatorCmd(Separator separator, Vec2f shift) {
-		this.separator = separator;
+	private final AItem item;
+	private float shift;
+
+	public ZoomItemCmd(AItem separator, float shift) {
+		this.item = separator;
 		this.shift = shift;
 	}
 
 	@Override
 	public String getLabel() {
-		return "Move Separator";
+		return "Zoom " + item.getClass().getSimpleName();
 	}
 
 	@Override
 	public ICmd run(Domino domino) {
-		separator.shiftLocation(shift);
+		item.zoom(shift);
 		domino.getBands().relayout();
-		return new MoveSeparatorCmd(separator, shift.times(-1));
+		return new ZoomItemCmd(item, -shift);
 	}
 
+	/**
+	 * @param undo
+	 * @return
+	 */
 	@Override
 	public boolean merge(ICmd cmd) {
-		if (cmd instanceof MoveSeparatorCmd) {
-			final MoveSeparatorCmd m = (MoveSeparatorCmd) cmd;
-			if (m.separator.equals(separator)) {
-				shift.add(m.shift);
-				return true;
-			}
+		if (!(cmd instanceof ZoomItemCmd))
+			return false;
+		ZoomItemCmd undo = (ZoomItemCmd) cmd;
+		if (undo.item == this.item) {
+			this.shift += undo.shift;
+			return true;
 		}
 		return false;
 	}
 
 }
+

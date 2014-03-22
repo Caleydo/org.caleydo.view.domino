@@ -7,34 +7,34 @@ package org.caleydo.view.domino.internal.dnd;
 
 import gleem.linalg.Vec2f;
 
-import org.caleydo.view.domino.internal.ui.Separator;
+import org.caleydo.view.domino.internal.ui.AItem;
 
 /**
  * @author Samuel Gratzl
  *
  */
-public class SeparatorDragInfo extends ADragInfo {
-	private final Separator separator;
+public class ItemDragInfo extends ADragInfo {
+	private final AItem item;
 
-	public SeparatorDragInfo(Vec2f mousePos, Separator separator) {
+	public ItemDragInfo(Vec2f mousePos, AItem separator) {
 		super(mousePos);
-		this.separator = separator;
+		this.item = separator;
 	}
 
 	/**
-	 * @return the separator, see {@link #separator}
+	 * @return the separator, see {@link #item}
 	 */
-	public Separator getSeparator() {
-		return separator;
+	public AItem getItem() {
+		return item;
 	}
 
 	@Override
 	public String getLabel() {
-		return "Separator";
+		return item.getClass().getSimpleName();
 	}
 
 	@Override
 	protected Vec2f getSize() {
-		return separator.getSize();
+		return item.getSize();
 	}
 }

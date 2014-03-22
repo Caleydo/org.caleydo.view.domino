@@ -34,7 +34,7 @@ import org.caleydo.view.domino.api.model.typed.TypedList;
 import org.caleydo.view.domino.api.model.typed.TypedSet;
 import org.caleydo.view.domino.internal.MiniMapCanvas.IHasMiniMap;
 import org.caleydo.view.domino.internal.band.ABand;
-import org.caleydo.view.domino.internal.band.BandIdentifier;
+import org.caleydo.view.domino.internal.band.ABandIdentifier;
 import org.caleydo.view.domino.internal.band.IBandHost;
 
 /**
@@ -200,7 +200,7 @@ public abstract class ABands extends GLElement implements MultiSelectionManagerM
 	 * @param identifier
 	 * @return
 	 */
-	private ABand getRoute(BandIdentifier identifier) {
+	private ABand getRoute(ABandIdentifier identifier) {
 		for (ABand band : bands)
 			if (identifier.equals(band.getId()))
 				return band;
@@ -345,7 +345,7 @@ public abstract class ABands extends GLElement implements MultiSelectionManagerM
 	 * @param bandIdentifier
 	 * @param increase
 	 */
-	public void changeLevel(BandIdentifier identifier, boolean increase) {
+	public void changeLevel(ABandIdentifier identifier, boolean increase) {
 		ABand band = getRoute(identifier);
 		if (band != null)
 			band.changeLevel(increase);

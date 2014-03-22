@@ -30,8 +30,9 @@ import org.caleydo.core.view.opengl.layout2.layout.IGLLayoutElement;
 import org.caleydo.view.domino.api.model.typed.util.BitSetSet;
 import org.caleydo.view.domino.internal.MiniMapCanvas.IHasMiniMap;
 import org.caleydo.view.domino.internal.dnd.DragElement;
+import org.caleydo.view.domino.internal.ui.AItem;
 import org.caleydo.view.domino.internal.ui.Ruler;
-import org.caleydo.view.domino.internal.ui.Separator;
+import org.caleydo.view.domino.internal.ui.SeparatorItem;
 
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
@@ -140,8 +141,8 @@ public class Blocks extends GLElementContainer implements ICallback<SelectionTyp
 		return Iterables.filter(this, Ruler.class);
 	}
 
-	public Iterable<Separator> separators() {
-		return Iterables.filter(this, Separator.class);
+	public Iterable<SeparatorItem> separators() {
+		return Iterables.filter(this, SeparatorItem.class);
 	}
 
 	/**
@@ -355,7 +356,7 @@ public class Blocks extends GLElementContainer implements ICallback<SelectionTyp
 	 * @param separator
 	 * @return
 	 */
-	public boolean hasSeparator(Separator separator) {
+	public boolean hasItem(AItem separator) {
 		return this.asList().contains(separator);
 	}
 
@@ -380,12 +381,12 @@ public class Blocks extends GLElementContainer implements ICallback<SelectionTyp
 	/**
 	 * @param ruler
 	 */
-	public void addSeparator(Separator separator) {
-		add(separator);
+	public void addItem(AItem item) {
+		add(item);
 	}
 
-	public void removeSeparator(Separator separator) {
-		remove(separator);
+	public void removeItem(AItem item) {
+		remove(item);
 	}
 
 	private DoubleStatistics getScaleFactorsStats(final IDCategory idCategory) {
