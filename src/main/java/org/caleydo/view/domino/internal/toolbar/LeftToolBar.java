@@ -36,6 +36,7 @@ import org.caleydo.view.domino.internal.tourguide.ui.EntityTypeSelector;
 import org.caleydo.view.domino.internal.ui.DragLabelButton;
 import org.caleydo.view.domino.internal.ui.DragRulerButton;
 import org.caleydo.view.domino.internal.ui.DragSelectionButton;
+import org.caleydo.view.domino.internal.ui.DragSeparatorButton;
 
 import com.google.common.collect.Iterables;
 
@@ -214,6 +215,8 @@ public class LeftToolBar extends GLElementContainer implements IGLLayout2, ISele
 		b.setTooltip("Show/Hide Group Labels");
 		b.setCallback(callback);
 		this.add(b);
+
+		this.add(new DragSeparatorButton());
 	}
 
 	/**

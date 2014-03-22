@@ -31,6 +31,8 @@ import org.caleydo.view.domino.internal.band.ABand;
 import org.caleydo.view.domino.internal.band.BandIdentifier;
 import org.caleydo.view.domino.internal.dnd.ADragInfo;
 import org.caleydo.view.domino.internal.dnd.SetDragInfo;
+import org.caleydo.view.domino.internal.ui.Ruler;
+import org.caleydo.view.domino.internal.ui.Separator;
 import org.caleydo.view.domino.internal.undo.ChangeBandLevelCmd;
 
 import com.google.common.base.Function;
@@ -113,14 +115,16 @@ public class Bands extends ABands implements IDragGLSource, ICallback<SelectionT
 						continue outer;
 					}
 				}
-
-				if (bak.containsKey(band.getId())) {
-					band.initFrom(bak.get(band.getId()));
-				}
 			}
 		}
 
+		// remove rulers and separators
+		removeExtraObstacles(domino.getOutlerBlocks());
+
 		for(ABand band : bands) {
+			if (bak.containsKey(band.getId())) {
+				band.initFrom(bak.get(band.getId()));
+			}
 			BandIdentifier id = band.getId();
 			id.updateBandInfo();
 		}
@@ -129,6 +133,30 @@ public class Bands extends ABands implements IDragGLSource, ICallback<SelectionT
 		pickingBandPool.ensure(0, bands.size());
 		pickingBandDetailPool.ensure(0, bands.size());
 
+	}
+
+	/**
+	 * @param blocks
+	 */
+	private void removeExtraObstacles(Blocks blocks) {
+		Collection<Rectangle2D> bounds = new ArrayList<Rectangle2D>();
+		for (Ruler r : blocks.rulers())
+			bounds.add(r.getRectangleBounds());
+		for (Separator s : blocks.separators())
+			bounds.add(s.getRectangleBounds());
+
+		if (bounds.isEmpty())
+			return;
+		outer: for (Iterator<ABand> it = bands.iterator(); it.hasNext();) {
+			ABand band = it.next();
+			for (Rectangle2D bound : bounds) {
+				if (band.intersects(bound)) {
+					// if (!band.stubify())
+					it.remove();
+					continue outer;
+				}
+			}
+		}
 	}
 
 	/**

@@ -83,6 +83,7 @@ public class Resources {
 
 	public static final URL ICON_RULER = icon("measure.png");
 	public static final URL ICON_RULER_DISABLED = icon("measure_disabled.png");
+	public static final URL ICON_SEPARATOR = ICON_MISSING; // icon("measure.png");
 
 	public static final URL ICON_MINI_MAP = icon("map_magnify.png");
 	public static final URL ICON_SHOW_HIDE_DEBUG = icon("text_large_cap.png");

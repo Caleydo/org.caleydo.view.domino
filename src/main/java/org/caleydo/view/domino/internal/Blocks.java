@@ -31,6 +31,7 @@ import org.caleydo.view.domino.api.model.typed.util.BitSetSet;
 import org.caleydo.view.domino.internal.MiniMapCanvas.IHasMiniMap;
 import org.caleydo.view.domino.internal.dnd.DragElement;
 import org.caleydo.view.domino.internal.ui.Ruler;
+import org.caleydo.view.domino.internal.ui.Separator;
 
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
@@ -137,6 +138,10 @@ public class Blocks extends GLElementContainer implements ICallback<SelectionTyp
 
 	public Iterable<Ruler> rulers() {
 		return Iterables.filter(this, Ruler.class);
+	}
+
+	public Iterable<Separator> separators() {
+		return Iterables.filter(this, Separator.class);
 	}
 
 	/**
@@ -347,8 +352,13 @@ public class Blocks extends GLElementContainer implements ICallback<SelectionTyp
 	}
 
 	/**
-	 * @param ruler
+	 * @param separator
+	 * @return
 	 */
+	public boolean hasSeparator(Separator separator) {
+		return this.asList().contains(separator);
+	}
+
 	public void addRuler(Ruler ruler) {
 		add(ruler);
 		final IDCategory idCategory = ruler.getIDCategory();
@@ -365,6 +375,17 @@ public class Blocks extends GLElementContainer implements ICallback<SelectionTyp
 				ruler.zoom(v.y());
 			}
 		}
+	}
+
+	/**
+	 * @param ruler
+	 */
+	public void addSeparator(Separator separator) {
+		add(separator);
+	}
+
+	public void removeSeparator(Separator separator) {
+		remove(separator);
 	}
 
 	private DoubleStatistics getScaleFactorsStats(final IDCategory idCategory) {
@@ -451,4 +472,5 @@ public class Blocks extends GLElementContainer implements ICallback<SelectionTyp
 		}
 		return null;
 	}
+
 }

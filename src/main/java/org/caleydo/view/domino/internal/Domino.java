@@ -45,18 +45,22 @@ import org.caleydo.view.domino.internal.dnd.MultiNodeGroupDragInfo;
 import org.caleydo.view.domino.internal.dnd.NodeDragInfo;
 import org.caleydo.view.domino.internal.dnd.NodeGroupDragInfo;
 import org.caleydo.view.domino.internal.dnd.RulerDragInfo;
+import org.caleydo.view.domino.internal.dnd.SeparatorDragInfo;
 import org.caleydo.view.domino.internal.dnd.TablePerspectiveRemoveDragCreator;
 import org.caleydo.view.domino.internal.event.HideNodeEvent;
 import org.caleydo.view.domino.internal.toolbar.DynamicToolBar;
 import org.caleydo.view.domino.internal.toolbar.LeftToolBar;
 import org.caleydo.view.domino.internal.toolbar.ToolBar;
 import org.caleydo.view.domino.internal.ui.Ruler;
+import org.caleydo.view.domino.internal.ui.Separator;
 import org.caleydo.view.domino.internal.undo.AddLazyBlockCmd;
 import org.caleydo.view.domino.internal.undo.AddLazyMultiBlockCmd;
 import org.caleydo.view.domino.internal.undo.AddRulerCmd;
+import org.caleydo.view.domino.internal.undo.AddSeparatorCmd;
 import org.caleydo.view.domino.internal.undo.CmdComposite;
 import org.caleydo.view.domino.internal.undo.MoveBlockCmd;
 import org.caleydo.view.domino.internal.undo.MoveRulerCmd;
+import org.caleydo.view.domino.internal.undo.MoveSeparatorCmd;
 import org.caleydo.view.domino.internal.undo.RemoveNodeCmd;
 import org.caleydo.view.domino.internal.undo.RemoveNodeGroupCmd;
 import org.caleydo.view.domino.internal.undo.ZoomCmd;
@@ -299,6 +303,8 @@ public class Domino extends GLElementContainer implements IDropGLTarget, IPickin
 		final Vec2f pos = toDropPosition(item);
 		if (info instanceof RulerDragInfo) {
 			dropRuler(pos, ((RulerDragInfo) info).getRuler());
+		} else if (info instanceof SeparatorDragInfo) {
+			dropSeparator(pos, ((SeparatorDragInfo) info).getSeparator());
 		} else if (info instanceof NodeGroupDragInfo) {
 			NodeGroupDragInfo g = (NodeGroupDragInfo) info;
 			dropNode(pos, g.getGroup().toNode(), item.getType() == EDnDType.MOVE ? g.getGroup() : null);
@@ -332,8 +338,18 @@ public class Domino extends GLElementContainer implements IDropGLTarget, IPickin
 			undo.push(new MoveRulerCmd(ruler.getIDCategory(), shift));
 	}
 
+	private void dropSeparator(Vec2f pos, Separator separator) {
+		Vec2f shift = pos.minus(separator.getLocation());
+		if (!blocks.hasSeparator(separator)) {
+			separator.setLocation(pos.x(), pos.y());
+			undo.push(new AddSeparatorCmd(separator));
+		} else
+			undo.push(new MoveSeparatorCmd(separator, shift));
+	}
+
 	public void moveRuler(IDCategory category, Vec2f shift) {
 		blocks.moveRuler(category, shift);
+		bands.relayout();
 	}
 
 	private Block dropNode(Vec2f pos, Node node, NodeGroup groupToRemove) {
@@ -551,6 +567,10 @@ public class Domino extends GLElementContainer implements IDropGLTarget, IPickin
 	 */
 	public List<Block> getBlocks() {
 		return ImmutableList.copyOf(blocks.getBlocks());
+	}
+
+	public Blocks getOutlerBlocks() {
+		return blocks;
 	}
 
 	/**
