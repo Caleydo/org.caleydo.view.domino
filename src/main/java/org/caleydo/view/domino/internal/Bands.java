@@ -116,10 +116,10 @@ public class Bands extends ABands implements IDragGLSource, ICallback<SelectionT
 					}
 				}
 			}
-		}
 
-		// remove rulers and separators
-		removeExtraObstacles(domino.getOutlerBlocks());
+			// remove rulers and separators
+			removeExtraObstacles(domino.getOutlerBlocks());
+		}
 
 		for(ABand band : bands) {
 			if (bak.containsKey(band.getId())) {
