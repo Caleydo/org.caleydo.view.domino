@@ -39,6 +39,7 @@ import org.caleydo.view.domino.internal.band.IBandHost.SourceTarget;
 
 import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.ImmutableMultimap.Builder;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
 
@@ -104,34 +105,36 @@ public class CrossBand extends ABand {
 		final float wtotal = (float) locT(EBandMode.OVERVIEW, 0).getSize();
 		final float htotal = (float) locS(EBandMode.OVERVIEW, 0).getSize();
 		if (source == SourceTarget.SOURCE) {
-			return notMappedConnectors(source, (1 - ratio) * htotal, (ratio * htotal), wtotal);
+			return notMappedConnectors(source, (1 - ratio) * htotal, htotal, 0, wtotal);
 		} else {
-			return notMappedConnectors(source, (1 - ratio) * wtotal, (ratio * wtotal), htotal);
+			return notMappedConnectors(source, (1 - ratio) * wtotal, wtotal, 0, htotal);
 		}
 	}
 
-	private Pair<Vec4f, Vec4f> notMappedConnectors(SourceTarget source, float offset, float size, float otherTotal) {
+	private Pair<Vec4f, Vec4f> notMappedConnectors(SourceTarget source, float notMappedSize, float totalSize,
+			float shift,
+			float otherTotal) {
 		boolean s_top = this.tDir == EDirection.SOUTH;
 		boolean t_left = this.sDir == EDirection.EAST;
 
 		Vec4f sv, tv;
 		if (source == SourceTarget.SOURCE) {
-			final float s_y = sLoc.y() + (s_top ? 0 : size);
+			final float s_y = sLoc.y() + shift + (s_top ? 0 : (totalSize - notMappedSize));
 			if (this.sDir == EDirection.WEST) {
-				sv = new Vec4f(tLoc.x(), s_y, offset, 0);
+				sv = new Vec4f(tLoc.x(), s_y, notMappedSize, 0);
 				tv = new Vec4f(tLoc.x() + otherTotal, s_y, 0, 0);
 			} else {
-				sv = new Vec4f(tLoc.x() + otherTotal, s_y, offset, 0);
+				sv = new Vec4f(tLoc.x() + otherTotal, s_y, notMappedSize, 0);
 				tv = new Vec4f(tLoc.x(), s_y, 0, 0);
 			}
 		} else {
-			final float t_x = tLoc.x() + (t_left ? 0 : size);
-			if (this.tDir == EDirection.SOUTH) {
-				sv = new Vec4f(t_x, sLoc.y(), 0, 0);
-				tv = new Vec4f(t_x, sLoc.y() + otherTotal, offset, 0);
-			} else {
+			final float t_x = tLoc.x() + shift + (t_left ? 0 : (totalSize - notMappedSize));
+			if (this.tDir == EDirection.NORTH) {
 				sv = new Vec4f(t_x, sLoc.y() + otherTotal, 0, 0);
-				tv = new Vec4f(t_x, sLoc.y(), offset, 0);
+				tv = new Vec4f(t_x, sLoc.y(), notMappedSize, 0);
+			} else {
+				sv = new Vec4f(t_x, sLoc.y(), 0, 0);
+				tv = new Vec4f(t_x, sLoc.y() + otherTotal, notMappedSize, 0);
 			}
 		}
 		return Pair.make(sv, tv);
@@ -335,6 +338,9 @@ public class CrossBand extends ABand {
 		// starting points for right side groups
 		int[] tinneracc = new int[tgroups.size()];
 		Arrays.fill(tinneracc, 0);
+		List<List<MosaicRect>> tgroupss = new ArrayList<>(tgroups.size());
+		for (int i = 0; i < tinneracc.length; ++i)
+			tgroupss.add(new ArrayList<MosaicRect>());
 
 		final TypedSet tEmpty = TypedCollections.empty(tData.getIdType());
 		final TypedSet sEmpty = TypedCollections.empty(sData.getIdType());
@@ -351,7 +357,7 @@ public class CrossBand extends ABand {
 			int sinneracc = 0;
 			final double sFactor = sgroupLocation.getSize() / sgroup.size();
 			double y = sLoc.y() + sgroupLocation.getOffset();
-
+			int sGroupStart = groupRoutes.size();
 			for (int j = 0; j < tgroups.size(); ++j) {
 				TypedListGroup tgroup = tgroups.get(j);
 				TypedSet tset = tSets.get(j);
@@ -376,7 +382,9 @@ public class CrossBand extends ABand {
 
 				Rect bounds = new Rect((float) (x + tinneracc[j] * tFactor), (float) (y + sinneracc * sFactor),
 						(float) w, (float) h);
-				groupRoutes.add(new MosaicRect(label, bounds, sShared, tShared, EBandMode.GROUPS));
+				final MosaicRect m = new MosaicRect(label, bounds, sShared, tShared, EBandMode.GROUPS);
+				groupRoutes.add(m);
+				tgroupss.get(j).add(m);
 
 				sinneracc += sShared.size();
 				tinneracc[j] += tShared.size();
@@ -385,13 +393,22 @@ public class CrossBand extends ABand {
 			final int notMapped = sgroup.size() - sinneracc;
 			if (notMapped > 0) {
 				TypedSet notMappedIds = sgroup.asSet().difference(overview.sShared);
-				float s1 = (float) (y + sinneracc * sFactor);
-				Pair<Vec4f, Vec4f> r = notMappedConnectors(SourceTarget.SOURCE, s1, (float) (sgroupLocation.getSize())
-						- s1, wtotal);
+				final float notMappedSize = (float) (notMapped * sFactor);
+				Pair<Vec4f, Vec4f> r = notMappedConnectors(SourceTarget.SOURCE, notMappedSize,
+						(float) sgroupLocation.getSize(), (float) sgroupLocation.getOffset(),
+						wtotal);
 				String label = toNotMappedLabel(sgroup.getLabel(), sgroup.size(), tLabel, tData.size(),
  notMappedIds);
 				groupRoutes.add(new NotMapped(label, notMappedIds, tEmpty,
 						SourceTarget.SOURCE, r.getFirst(), r.getSecond(), sDir, EBandMode.GROUPS));
+
+				boolean s_top = this.tDir == EDirection.SOUTH;
+				if (s_top) {
+					for (MosaicRect bb : Iterables.filter(groupRoutes.subList(sGroupStart, groupRoutes.size() - 1),
+							MosaicRect.class)) {
+						bb.bounds.y(bb.bounds.y()+notMappedSize);
+					}
+				}
 			}
 		}
 
@@ -403,13 +420,18 @@ public class CrossBand extends ABand {
 			GLLocation tgroupLocation = locT(EBandMode.GROUPS, i);
 			final double tFactor = tgroupLocation.getSize() / tgroup.size();
 			TypedSet notMappedIds = tgroup.asSet().difference(overview.tShared);
-			double x = tLoc.x() + tgroupLocation.getOffset();
-			float s1 = (float) (x + tinneracc[i] * tFactor);
-			Pair<Vec4f, Vec4f> r = notMappedConnectors(SourceTarget.TARGET, s1,
-					(float) (tgroupLocation.getSize()) - s1, htotal);
+			final float notMappedSize = (float) (notMapped * tFactor);
+			Pair<Vec4f, Vec4f> r = notMappedConnectors(SourceTarget.TARGET, notMappedSize,
+					(float) (tgroupLocation.getSize()), (float) (tgroupLocation.getOffset()), htotal);
 			String label = toNotMappedLabel(tgroup.getLabel(), tgroup.size(), sLabel, sData.size(), notMappedIds);
 			groupRoutes.add(new NotMapped(label, sEmpty, notMappedIds,
-					SourceTarget.SOURCE, r.getFirst(), r.getSecond(), tDir, EBandMode.GROUPS));
+ SourceTarget.TARGET, r.getFirst(),
+					r.getSecond(), tDir, EBandMode.GROUPS));
+			boolean t_left = this.sDir == EDirection.EAST;
+			if (t_left) {
+				for (MosaicRect bb : tgroupss.get(i))
+					bb.bounds.x(bb.bounds.x() + notMappedSize);
+			}
 		}
 
 		return groupRoutes;

@@ -559,7 +559,8 @@ public abstract class ABand implements ILabeled, IHasMiniMap {
 			this.fz = type.select(s, t).z();
 			float a = 0.3f;
 			if (dir.isHorizontal()) {
-				float sh = dir == EDirection.WEST ? +SHIFT : -SHIFT;
+				float shi = Math.min(SHIFT, Math.abs(t.x() - s.x()) * 0.3f);
+				float sh = dir == EDirection.WEST ? +shi : -shi;
 				if (type == SourceTarget.SOURCE) {
 					addPoint(s.x(), s.y());
 					addPoint(s.x() + sh, s.y());
@@ -574,7 +575,8 @@ public abstract class ABand implements ILabeled, IHasMiniMap {
 					addPoint(t.x(), t.y());
 				}
 			} else {
-				float sh = dir == EDirection.NORTH ? -SHIFT : +SHIFT;
+				float shi = Math.min(SHIFT, Math.abs(t.y() - s.y()) * 0.3f);
+				float sh = dir == EDirection.NORTH ? -shi : +shi;
 				if (type == SourceTarget.SOURCE) {
 					addPoint(s.x(), s.y());
 					addPoint(s.x(), s.y() + sh);

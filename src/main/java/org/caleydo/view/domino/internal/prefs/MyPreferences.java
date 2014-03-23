@@ -26,7 +26,7 @@ public class MyPreferences extends AbstractPreferenceInitializer {
 	@Override
 	public void initializeDefaultPreferences() {
 		IPreferenceStore store = prefs();
-		store.setDefault("autoselect", true);
+		store.setDefault("autoselect", false);
 		store.setDefault("blockLabelInGroup", false);
 		store.setDefault("toolbar.dynamic", true);
 
