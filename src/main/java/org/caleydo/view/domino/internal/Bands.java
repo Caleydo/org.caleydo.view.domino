@@ -32,8 +32,8 @@ import org.caleydo.view.domino.internal.band.ABandIdentifier;
 import org.caleydo.view.domino.internal.band.BandIdentifier;
 import org.caleydo.view.domino.internal.dnd.ADragInfo;
 import org.caleydo.view.domino.internal.dnd.SetDragInfo;
+import org.caleydo.view.domino.internal.ui.AnnotationItem;
 import org.caleydo.view.domino.internal.ui.Ruler;
-import org.caleydo.view.domino.internal.ui.SeparatorItem;
 import org.caleydo.view.domino.internal.undo.ChangeBandLevelCmd;
 
 import com.google.common.base.Function;
@@ -143,7 +143,7 @@ public class Bands extends ABands implements IDragGLSource, ICallback<SelectionT
 		Collection<Rectangle2D> bounds = new ArrayList<Rectangle2D>();
 		for (Ruler r : blocks.rulers())
 			bounds.add(r.getRectangleBounds());
-		for (SeparatorItem s : blocks.separators())
+		for (AnnotationItem s : blocks.separators())
 			bounds.add(s.getRectangleBounds());
 
 		if (bounds.isEmpty())

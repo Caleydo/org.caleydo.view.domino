@@ -25,6 +25,7 @@ import org.caleydo.view.domino.api.model.typed.TypedList;
 import org.caleydo.view.domino.api.model.typed.TypedSet;
 import org.caleydo.view.domino.api.model.typed.TypedSetGroup;
 import org.caleydo.view.domino.api.model.typed.util.BitSetSet;
+import org.caleydo.view.domino.internal.Constants;
 
 import com.google.common.base.Function;
 import com.google.common.base.Functions;
@@ -110,7 +111,7 @@ public class Numerical1DMixin {
 		Color[] r = new Color[hist.size()];
 		float f = 1.f / (r.length - 1);
 		for (int i = 0; i < r.length; ++i) {
-			r[i] = new Color(i * f);
+			r[i] = Constants.colorMapping(i * f);
 		}
 		return r;
 	}

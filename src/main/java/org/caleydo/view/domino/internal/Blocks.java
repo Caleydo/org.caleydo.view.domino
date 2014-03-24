@@ -31,8 +31,8 @@ import org.caleydo.view.domino.api.model.typed.util.BitSetSet;
 import org.caleydo.view.domino.internal.MiniMapCanvas.IHasMiniMap;
 import org.caleydo.view.domino.internal.dnd.DragElement;
 import org.caleydo.view.domino.internal.ui.AItem;
+import org.caleydo.view.domino.internal.ui.AnnotationItem;
 import org.caleydo.view.domino.internal.ui.Ruler;
-import org.caleydo.view.domino.internal.ui.SeparatorItem;
 
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
@@ -141,8 +141,8 @@ public class Blocks extends GLElementContainer implements ICallback<SelectionTyp
 		return Iterables.filter(this, Ruler.class);
 	}
 
-	public Iterable<SeparatorItem> separators() {
-		return Iterables.filter(this, SeparatorItem.class);
+	public Iterable<AnnotationItem> separators() {
+		return Iterables.filter(this, AnnotationItem.class);
 	}
 
 	/**
@@ -309,6 +309,9 @@ public class Blocks extends GLElementContainer implements ICallback<SelectionTyp
 			float hi = Math.min(10, bounds.height());
 			g.drawText(ruler.getIDCategory().getCategoryName(), bounds.x(), bounds.y() + (bounds.height() - hi) * 0.5f,
 					bounds.width(), hi, VAlign.CENTER);
+		}
+		for (AnnotationItem item : separators()) {
+			g.color(Color.LIGHT_GRAY).fillRect(item.getRectBounds());
 		}
 	}
 
