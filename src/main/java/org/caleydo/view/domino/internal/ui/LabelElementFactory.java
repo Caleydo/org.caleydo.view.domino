@@ -455,12 +455,12 @@ public class LabelElementFactory implements IGLElementFactory2 {
 		private void renderUniform(GLGraphics g, float w, float h) {
 			final int size = data.size();
 			float hi = h / size;
-			float ti = Math.min(hi - 1, MAX_TEXT_SIZE);
+			float ti = Math.min(hi - 2, MAX_TEXT_SIZE);
 			float x = align == VAlign.RIGHT ? 0 : PADDING;
 			float wi = w - x - (align == VAlign.LEFT ? 0 : PADDING);
 			for (int i = 0; i < size; ++i) {
 				String l = labels.get(i);
-				g.drawText(l, x, i * hi + (hi - ti) * 0.5f, wi, ti, align);
+				g.drawText(l, x, i * hi + (hi - ti) * 0.5f - 2, wi, ti, align);
 			}
 		}
 

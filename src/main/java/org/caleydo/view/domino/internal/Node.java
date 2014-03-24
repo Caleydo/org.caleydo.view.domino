@@ -27,7 +27,6 @@ import org.caleydo.core.util.base.ILabeled;
 import org.caleydo.core.util.base.IUniqueObject;
 import org.caleydo.core.util.color.Color;
 import org.caleydo.core.view.opengl.canvas.IGLMouseListener.IMouseEvent;
-import org.caleydo.core.view.opengl.layout.Column.VAlign;
 import org.caleydo.core.view.opengl.layout2.GLElement;
 import org.caleydo.core.view.opengl.layout2.GLElementContainer;
 import org.caleydo.core.view.opengl.layout2.GLGraphics;
@@ -257,10 +256,10 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 	@Override
 	protected void renderImpl(GLGraphics g, float w, float h) {
 		final Block b = findBlock();
-		if (mouseOver) {
-			g.drawText(b.getStateString(this, EDimension.RECORD), 0, -12, w - 2, 10, VAlign.RIGHT);
-			g.drawText(b.getStateString(this, EDimension.DIMENSION), w + 2, h - 12, 100, 10);
-		}
+		// if (mouseOver) {
+		// g.drawText(b.getStateString(this, EDimension.RECORD), 0, -12, w - 2, 10, VAlign.RIGHT);
+		// g.drawText(b.getStateString(this, EDimension.DIMENSION), w + 2, h - 12, 100, 10);
+		// }
 
 		if (dropSetOperation == null) {
 			super.renderImpl(g, w, h);

@@ -728,6 +728,8 @@ public class Block extends GLElementContainer implements IGLLayout2, IPickingLis
 	 */
 	public void resort(Node node, EDimension dim) {
 		LinearBlock block = getBlock(node, dim.opposite());
+		if (block == null)
+			return;
 		block.update();
 		block.apply();
 		updateBlock();
