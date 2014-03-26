@@ -88,7 +88,8 @@ public class NodeTools extends AItemTools {
 			if (blocks.size() == 1) // a single node with a single block
 				addBlockActions(blocks);
 			if (node.groupCount() == selection.size()) {
-				addButton("Transpose View", Resources.ICON_TRANSPOSE);
+				if (blocks.size() == 0)
+					addButton("Transpose View", Resources.ICON_TRANSPOSE);
 				addButton("Remove Node", Resources.ICON_DELETE_ALL);
 			}
 		} else if (!nodes.isEmpty() && blocks.isEmpty()) {
@@ -214,17 +215,24 @@ public class NodeTools extends AItemTools {
 	private void createSingle(NodeGroup group) {
 		Node node = group.getNode();
 		addSingleNode(node);
+		final int ngroups = node.groupCount();
+		final int nnodes = node.getBlock().size();
+
+		if (nnodes > 1 && ngroups == 1)
+			addButton("Transpose View", Resources.ICON_TRANSPOSE);
 
 		if (group.canBeRemoved())
 			addButton("Remove Group", Resources.ICON_DELETE);
 		else
 			addButton("Remove Node", Resources.ICON_DELETE_ALL);
 
-		if (node.groupCount() > 1) {
+		if (ngroups > 1) {
 			addButton("Select All In Node", Resources.ICON_SELECT_ALL);
 		}
-		if (node.getBlock().size() > 1)
+
+		if (nnodes > 1) {
 			addButton("Select All In Block", Resources.ICON_SELECT_ALL);
+		}
 
 		if (group.getNeighbor(EDirection.WEST) != null || group.getNeighbor(EDirection.EAST) != null)
 			addButton("Select Hor", Resources.ICON_SELECT_DIM);
