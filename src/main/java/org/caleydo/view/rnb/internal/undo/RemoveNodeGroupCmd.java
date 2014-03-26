@@ -5,16 +5,15 @@
  *******************************************************************************/
 package org.caleydo.view.rnb.internal.undo;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import org.caleydo.core.data.collection.EDimension;
-import org.caleydo.view.rnb.api.model.typed.TypedGroupList;
 import org.caleydo.view.rnb.api.model.typed.TypedGroupSet;
 import org.caleydo.view.rnb.api.model.typed.TypedListGroup;
-import org.caleydo.view.rnb.internal.RnB;
+import org.caleydo.view.rnb.internal.LinearBlock;
 import org.caleydo.view.rnb.internal.Node;
 import org.caleydo.view.rnb.internal.NodeGroup;
+import org.caleydo.view.rnb.internal.RnB;
 
 /**
  * @author Samuel Gratzl
@@ -38,12 +37,10 @@ public class RemoveNodeGroupCmd implements ICmd {
 	public ICmd run(RnB rnb) {
 		EDimension dim = node.getSingleGroupingDimension();
 		TypedGroupSet bak = node.getUnderlyingData(dim);
-		List<TypedListGroup> d = new ArrayList<>(node.getData(dim).getGroups());
-		final TypedListGroup toRemove = group.getData(dim);
-		d.remove(toRemove);
+		final List<TypedListGroup> gropus = node.getData(dim).getGroups();
+		int index = gropus.indexOf(group.getData(dim));
 
-		TypedGroupList l = new TypedGroupList(d);
-		node.setUnderlyingData(dim, l.asSet());
+		node.setUnderlyingData(dim, LinearBlock.clean(gropus, index));
 
 		// group.prepareRemoveal();
 		return new UndoRemoveGroupCmd(dim, bak);

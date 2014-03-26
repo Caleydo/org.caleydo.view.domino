@@ -215,7 +215,7 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 			float f = Math.min(fw, fh);
 			return new Vec2f(f, f);
 		}
-		if (d > maxw && r > maxh) {
+		if (d > maxw || r > maxh) {
 			float fw = maxw / d;
 			float fh = maxh / r;
 			float f = Math.min(fw, fh);
@@ -772,12 +772,16 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 	 * @param l
 	 */
 	public void setUnderlyingData(EDimension dim, TypedGroupSet data) {
+		setUnderlyingDataImpl(dim, data);
+		triggerResort(dim);
+
+	}
+
+	public void setUnderlyingDataImpl(EDimension dim, TypedGroupSet data) {
 		if (dim.isDimension())
 			dimUnderlying = data;
 		else
 			recUnderlying = data;
-		triggerResort(dim);
-
 	}
 
 	private void triggerResort(EDimension dim) {
@@ -1171,14 +1175,6 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 		setData(dimData, recData);
 
 		return this;
-	}
-
-	/**
-	 * @param selection
-	 */
-	public void removeSlice(Set<NodeGroup> selection) {
-		// TODO Auto-generated method stub
-
 	}
 
 	@ListenTo(sendToMe = true)

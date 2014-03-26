@@ -217,14 +217,30 @@ public class NodeTools extends AItemTools {
 		addSingleNode(node);
 		final int ngroups = node.groupCount();
 		final int nnodes = node.getBlock().size();
+		final boolean dimngroups = node.getData(EDimension.DIMENSION).getGroups().size() > 1;
+		final boolean recngroups = node.getData(EDimension.RECORD).getGroups().size() > 1;
 
 		if (nnodes > 1 && ngroups == 1)
 			addButton("Transpose View", Resources.ICON_TRANSPOSE);
 
-		if (group.canBeRemoved())
-			addButton("Remove Group", Resources.ICON_DELETE);
-		else
-			addButton("Remove Node", Resources.ICON_DELETE_ALL);
+		if (group.canBeRemoved()) {
+			if (nnodes == 1)
+				addButton("Remove Group", Resources.ICON_DELETE);
+			else {
+				EDimension dim = node.getSingleGroupingDimension();
+				addButton("Remove " + dim.select("Dim", "Rec") + " Slice", Resources.ICON_DELETE);
+			}
+		} else {
+			if (dimngroups && recngroups) {
+				addButton("Remove Dim Slice", Resources.ICON_DELETE);
+				addButton("Remove Rec Slice", Resources.ICON_DELETE);
+			} else if (dimngroups)
+				addButton("Remove Dim Slice", Resources.ICON_DELETE);
+			else if (recngroups)
+				addButton("Remove Rec Slice", Resources.ICON_DELETE);
+			else
+				addButton("Remove Node", Resources.ICON_DELETE_ALL);
+		}
 
 		if (ngroups > 1) {
 			addButton("Select All In Node", Resources.ICON_SELECT_ALL);
@@ -324,8 +340,9 @@ public class NodeTools extends AItemTools {
 		case "Remove Nodes":
 			undo.push(RemoveNodeCmd.multi(NodeSelections.getFullNodes(selection)));
 			break;
-		case "Remove Slice":
-			undo.push(new RemoveSliceCmd(node.getNode(), selection));
+		case "Remove Rec Slice":
+		case "Remove Dim Slice":
+			undo.push(new RemoveSliceCmd(dim, node));
 			break;
 		case "Remove Group":
 			undo.push(new RemoveNodeGroupCmd(node));

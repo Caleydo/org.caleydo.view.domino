@@ -11,9 +11,11 @@ import java.util.AbstractCollection;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.caleydo.core.data.collection.EDimension;
 import org.caleydo.core.id.IDType;
@@ -33,6 +35,7 @@ import org.caleydo.view.rnb.api.model.typed.MultiTypedList;
 import org.caleydo.view.rnb.api.model.typed.MultiTypedSet;
 import org.caleydo.view.rnb.api.model.typed.TypedCollections;
 import org.caleydo.view.rnb.api.model.typed.TypedGroupList;
+import org.caleydo.view.rnb.api.model.typed.TypedGroupSet;
 import org.caleydo.view.rnb.api.model.typed.TypedGroups;
 import org.caleydo.view.rnb.api.model.typed.TypedList;
 import org.caleydo.view.rnb.api.model.typed.TypedListGroup;
@@ -422,7 +425,7 @@ public class LinearBlock extends AbstractCollection<Node> {
 			return Collections.singletonList(ungrouped(data.size()));
 		final Node sortedBy = getFirstSortingCriteria();
 		// FIXME
-		final ESortingMode sortingMode = sortCriteria.get(0).getSecond();
+		// final ESortingMode sortingMode = sortCriteria.get(0).getSecond();
 		final Node selected = dataSelection;
 
 		List<TypedSetGroup> groups = sortedBy.getUnderlyingData(dim.opposite()).getGroups();
@@ -801,6 +804,56 @@ public class LinearBlock extends AbstractCollection<Node> {
 			}
 			bounds = n.getDetachedRectBounds();
 		}
+	}
+
+
+	public List<TypedGroupSet> removeSlice(NodeGroup toRemove) {
+		if (!isStratisfied())
+			return Collections.emptyList();
+		final EDimension d = dim.opposite();
+		int index = findIndex(toRemove, d);
+		if (index < 0)
+			return Collections.emptyList();
+		List<TypedGroupSet> r = new ArrayList<TypedGroupSet>();
+		for (Node node : nodes) {
+			r.add(node.getUnderlyingData(d));
+			TypedGroupSet d2 = clean(node.getData(d).getGroups(), index);
+			node.setUnderlyingDataImpl(d, d2);
+		}
+		update();
+		apply();
+		return r;
+	}
+
+	public static TypedGroupSet clean(List<TypedListGroup> groups, int index) {
+		List<TypedSetGroup> r = new ArrayList<TypedSetGroup>(groups.size() - 1);
+		for (int i = 0; i < groups.size(); ++i) {
+			if (i == index)
+				continue;
+			TypedListGroup g = groups.get(i);
+			Set<Integer> s = new HashSet<>(g);
+			s.remove(-1);
+			r.add(new TypedSetGroup(new TypedSet(s, g.getIdType()), g.getLabel(), g.getColor()));
+		}
+		return new TypedGroupSet(r);
+	}
+
+	/**
+	 * @param toRemove
+	 * @return
+	 */
+	private static int findIndex(NodeGroup toRemove, EDimension dim) {
+		Node node = toRemove.getNode();
+		return node.getData(dim).getGroups().indexOf(toRemove.getData(dim));
+	}
+
+	public void restoreSlice(List<TypedGroupSet> ori) {
+		for (int i = 0; i < nodes.size(); ++i) {
+			nodes.get(i).setUnderlyingData(dim.opposite(), ori.get(i));
+		}
+		update();
+		apply();
+		return;
 	}
 
 }

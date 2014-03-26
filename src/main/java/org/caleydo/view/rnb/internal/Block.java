@@ -46,6 +46,7 @@ import org.caleydo.core.view.opengl.util.spline.TesselatedPolygons;
 import org.caleydo.view.rnb.api.model.EDirection;
 import org.caleydo.view.rnb.api.model.typed.MappingCaches;
 import org.caleydo.view.rnb.api.model.typed.TypedGroupList;
+import org.caleydo.view.rnb.api.model.typed.TypedGroupSet;
 import org.caleydo.view.rnb.internal.LinearBlock.ESortingMode;
 import org.caleydo.view.rnb.internal.band.ABand;
 import org.caleydo.view.rnb.internal.band.ABandIdentifier;
@@ -1074,6 +1075,27 @@ public class Block extends GLElementContainer implements IGLLayout2, IPickingLis
 		return b == null ? false : b.isStratisfied(node);
 	}
 
+	public List<TypedGroupSet> removeSlice(Node node, EDimension dim, NodeGroup toRemove) {
+		LinearBlock b = getBlock(node, dim.opposite());
+		if (b == null)
+			return Collections.emptyList();
+		List<TypedGroupSet> bak = b.removeSlice(toRemove);
+		realign();
+		updateBlock();
+		return bak;
+	}
+
+	public void restoreSlice(Node node, EDimension dim, List<TypedGroupSet> ori) {
+		if (ori == null || ori.isEmpty())
+			return;
+		LinearBlock b = getBlock(node, dim.opposite());
+		if (b == null)
+			return;
+		b.restoreSlice(ori);
+		realign();
+		updateBlock();
+	}
+
 	/**
 	 * @param node
 	 * @param id
@@ -1303,4 +1325,6 @@ public class Block extends GLElementContainer implements IGLLayout2, IPickingLis
 			b.setHasRightBand(false);
 		}
 	}
+
+
 }
