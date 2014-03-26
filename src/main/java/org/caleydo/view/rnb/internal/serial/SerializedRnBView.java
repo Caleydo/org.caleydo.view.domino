@@ -18,15 +18,15 @@ import org.caleydo.view.rnb.internal.plugin.RnBView;
  */
 @XmlRootElement
 @XmlType
-public class SerializedDominoView extends ASerializedMultiTablePerspectiveBasedView {
+public class SerializedRnBView extends ASerializedMultiTablePerspectiveBasedView {
 
 	/**
 	 * Default constructor with default initialization
 	 */
-	public SerializedDominoView() {
+	public SerializedRnBView() {
 	}
 
-	public SerializedDominoView(IMultiTablePerspectiveBasedView view) {
+	public SerializedRnBView(IMultiTablePerspectiveBasedView view) {
 		super(view);
 	}
 

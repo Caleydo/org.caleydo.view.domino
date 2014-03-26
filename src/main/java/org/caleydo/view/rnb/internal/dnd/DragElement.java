@@ -27,7 +27,7 @@ public class DragElement extends GLElement implements IGLRenderer {
 
 	private final String label;
 
-	private final RnB domino;
+	private final RnB rnb;
 
 	private final IDragInfo info;
 
@@ -37,17 +37,17 @@ public class DragElement extends GLElement implements IGLRenderer {
 
 	private Vec2f hintSizes;
 
-	public DragElement(String label, Vec2f size, RnB domino, IDragInfo info) {
-		this(label, size, domino, info, null);
+	public DragElement(String label, Vec2f size, RnB rnb, IDragInfo info) {
+		this(label, size, rnb, info, null);
 	}
 
 	/**
 	 * @param label
 	 * @param info
 	 */
-	public DragElement(String label, Vec2f size, RnB domino, IDragInfo info, IGLRenderer renderer) {
+	public DragElement(String label, Vec2f size, RnB rnb, IDragInfo info, IGLRenderer renderer) {
 		this.label = label;
-		this.domino = domino;
+		this.rnb = rnb;
 		this.info = info;
 		size = fixSize(size);
 		this.initialSize = size;
@@ -75,12 +75,12 @@ public class DragElement extends GLElement implements IGLRenderer {
 	@Override
 	protected void init(IGLElementContext context) {
 		super.init(context);
-		domino.setCurrentlyDragged(this);
+		rnb.setCurrentlyDragged(this);
 	}
 
 	@Override
 	protected void takeDown() {
-		domino.setCurrentlyDragged(null);
+		rnb.setCurrentlyDragged(null);
 		super.takeDown();
 	}
 

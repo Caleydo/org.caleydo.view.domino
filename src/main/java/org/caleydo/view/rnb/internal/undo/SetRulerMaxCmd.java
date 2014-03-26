@@ -19,7 +19,7 @@ public class SetRulerMaxCmd implements ICmd {
 	}
 
 	@Override
-	public ICmd run(RnB domino) {
+	public ICmd run(RnB rnb) {
 		int bak = ruler.getMaxElements();
 		ruler.setMaxElements(max);
 		return new SetRulerMaxCmd(ruler, bak);

@@ -19,13 +19,13 @@ import org.caleydo.view.rnb.internal.RnB;
  */
 public class TablePerspectiveRemoveDragCreator implements IRemoteDragInfoUICreator {
 
-	private RnB domino;
+	private RnB rnb;
 
 	/**
-	 * @param domino
+	 * @param rnb
 	 */
-	public TablePerspectiveRemoveDragCreator(RnB domino) {
-		this.domino = domino;
+	public TablePerspectiveRemoveDragCreator(RnB rnb) {
+		this.rnb = rnb;
 	}
 
 	@Override
@@ -38,21 +38,21 @@ public class TablePerspectiveRemoveDragCreator implements IRemoteDragInfoUICreat
 			boolean isSingle = tp.getNrDimensions() == 1 || tp.getNrRecords() == 1;
 			if (isSingle)
 				size = new Vec2f(100, 100);
-			return new DragElement(p.getLabel(), size, this.domino, info);
+			return new DragElement(p.getLabel(), size, this.rnb, info);
 		}
 		if (info instanceof PerspectiveDragInfo) {
 			PerspectiveDragInfo p = (PerspectiveDragInfo) info;
 			// EDimension dim = p.getDim();
 			// int s = p.getPerspective().getVirtualArray().size();
 			// Vec2f size = new Vec2f(dim.select(s, 10), dim.select(10, s));
-			return new DragElement(p.getLabel(), new Vec2f(100, 100), this.domino, info);
+			return new DragElement(p.getLabel(), new Vec2f(100, 100), this.rnb, info);
 		}
 		if (info instanceof SetDragInfo) {
 			SetDragInfo p = (SetDragInfo) info;
 			// EDimension dim = p.getDim();
 			// int s = p.getSet().size();
 			// Vec2f size = new Vec2f(dim.select(s, 10), dim.select(10, s));
-			return new DragElement(p.getLabel(), new Vec2f(100, 100), this.domino, info);
+			return new DragElement(p.getLabel(), new Vec2f(100, 100), this.rnb, info);
 		}
 		return null;
 	}

@@ -17,8 +17,8 @@ public class AddRulerCmd implements ICmd {
 	}
 
 	@Override
-	public ICmd run(RnB domino) {
-		domino.addRuler(ruler);
+	public ICmd run(RnB rnb) {
+		rnb.addRuler(ruler);
 		return new RemoveRulerCmd(ruler);
 	}
 }

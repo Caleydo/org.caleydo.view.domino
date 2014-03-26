@@ -33,11 +33,11 @@ public abstract class ADragInfo implements IDragInfo {
 
 
 	/**
-	 * @param findDomino
+	 * @param rnb
 	 * @return
 	 */
-	public GLElement createUI(RnB domino) {
+	public GLElement createUI(RnB rnb) {
 		Vec2f size = getSize();
-		return new DragElement(getLabel(), size, domino, this);
+		return new DragElement(getLabel(), size, rnb, this);
 	}
 }

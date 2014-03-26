@@ -42,7 +42,7 @@ public class LimitToNodeCmd implements ICmd {
 	}
 
 	@Override
-	public ICmd run(RnB domino) {
+	public ICmd run(RnB rnb) {
 		Block b = node.getBlock();
 		Node old = b.limitTo(node, dim);
 		if (old == null)

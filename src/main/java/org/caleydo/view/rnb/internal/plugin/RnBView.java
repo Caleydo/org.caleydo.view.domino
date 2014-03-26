@@ -20,7 +20,7 @@ import org.caleydo.core.view.opengl.layout2.GLElement;
 import org.caleydo.core.view.opengl.layout2.GLElementDecorator;
 import org.caleydo.core.view.opengl.layout2.view.AMultiTablePerspectiveElementView;
 import org.caleydo.view.rnb.internal.RnB;
-import org.caleydo.view.rnb.internal.serial.SerializedDominoView;
+import org.caleydo.view.rnb.internal.serial.SerializedRnBView;
 
 /**
  * basic view based on {@link GLElement} with a {@link AMultiTablePerspectiveElementView}
@@ -29,19 +29,19 @@ import org.caleydo.view.rnb.internal.serial.SerializedDominoView;
  *
  */
 public class RnBView extends AMultiTablePerspectiveElementView {
-	public static final String VIEW_TYPE = "org.caleydo.view.domino";
-	public static final String VIEW_NAME = "Domino";
+	public static final String VIEW_TYPE = "org.caleydo.view.rnb";
+	public static final String VIEW_NAME = "RnB";
 
-	private final RnB domino;
+	private final RnB rnb;
 
 	@DeepScan
 	private final IGLKeyListener keyAdapter;
 
 	public RnBView(IGLCanvas glCanvas) {
 		super(glCanvas, VIEW_TYPE, VIEW_NAME);
-		domino = new RnB();
+		rnb = new RnB();
 
-		keyAdapter = GLThreadListenerWrapper.wrap(domino);
+		keyAdapter = GLThreadListenerWrapper.wrap(rnb);
 	}
 
 	@Override
@@ -58,12 +58,12 @@ public class RnBView extends AMultiTablePerspectiveElementView {
 
 	@Override
 	public ASerializedView getSerializableRepresentation() {
-		return new SerializedDominoView(this);
+		return new SerializedRnBView(this);
 	}
 
 	@Override
 	protected GLElement createContent() {
-		return domino;
+		return rnb;
 	}
 
 	@Override
@@ -74,8 +74,8 @@ public class RnBView extends AMultiTablePerspectiveElementView {
 	@Override
 	protected void applyTablePerspectives(GLElementDecorator root, List<TablePerspective> all,
 			List<TablePerspective> added, List<TablePerspective> removed) {
-		// domino.removeAll(removed);
-		// domino.addAll(added);
+		// rnb.removeAll(removed);
+		// rnb.addAll(added);
 	}
 
 	public void replaceTablePerspectiveInternally(TablePerspective from, TablePerspective to) {

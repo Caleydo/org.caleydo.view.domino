@@ -55,9 +55,9 @@ public class Blocks extends GLElementContainer implements ICallback<SelectionTyp
 
 	@Override
 	public void on(SelectionType data) {
-		final RnB domino = findParent(RnB.class);
-		if (data == SelectionType.SELECTION && domino.getTool() == EToolState.BANDS) {
-			Set<Block> s = domino.getSelections().getBlockSelection(SelectionType.SELECTION);
+		final RnB rnb = findParent(RnB.class);
+		if (data == SelectionType.SELECTION && rnb.getTool() == EToolState.BANDS) {
+			Set<Block> s = rnb.getSelections().getBlockSelection(SelectionType.SELECTION);
 			if (s.isEmpty()) {
 				for (Block b : getBlocks())
 					b.setFadeOut(false);
@@ -93,7 +93,7 @@ public class Blocks extends GLElementContainer implements ICallback<SelectionTyp
 	void updateAccordingToMiniMap() {
 		// MiniMapCanvas c = (MiniMapCanvas) getParent();
 		// Rectangle2D r = c.getClippingRect().asRectangle2D();
-		// EVisibility ifVisible = findParent(Domino.class).getTool() == EToolState.BANDS ? EVisibility.PICKABLE
+		// EVisibility ifVisible = findParent(RnB.class).getTool() == EToolState.BANDS ? EVisibility.PICKABLE
 		// : EVisibility.VISIBLE;
 		// Vec2f loc = getLocation();
 		// for (Block elem : getBlocks()) {
@@ -125,9 +125,9 @@ public class Blocks extends GLElementContainer implements ICallback<SelectionTyp
 	public void addBlock(Block b) {
 
 		this.add(b);
-		final RnB domino = findParent(RnB.class);
-		if (domino.getTool() == EToolState.BANDS) {
-			Set<Block> s = domino.getSelections().getBlockSelection(SelectionType.SELECTION);
+		final RnB rnb = findParent(RnB.class);
+		if (rnb.getTool() == EToolState.BANDS) {
+			Set<Block> s = rnb.getSelections().getBlockSelection(SelectionType.SELECTION);
 			b.setFadeOut((s.size() >= 2 && !s.contains(b)) || (s.size() == 1 && !canHaveBands(s.iterator().next(), b)));
 		}
 	}

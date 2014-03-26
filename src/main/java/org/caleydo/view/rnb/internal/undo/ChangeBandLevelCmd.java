@@ -33,8 +33,8 @@ public class ChangeBandLevelCmd implements ICmd {
 	}
 
 	@Override
-	public ICmd run(RnB domino) {
-		domino.getBands().changeLevel(bandIdentifier, increase);
+	public ICmd run(RnB rnb) {
+		rnb.getBands().changeLevel(bandIdentifier, increase);
 		return new ChangeBandLevelCmd(bandIdentifier, !increase);
 	}
 

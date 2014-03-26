@@ -25,7 +25,7 @@ public class RemoveSliceCmd implements ICmd {
 	}
 
 	@Override
-	public ICmd run(RnB domino) {
+	public ICmd run(RnB rnb) {
 		node.removeSlice(selection);
 		return null; // FIXME undo can't undo
 	}

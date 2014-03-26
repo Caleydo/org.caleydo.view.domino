@@ -25,8 +25,8 @@ public class CombineSlicesCmd implements ICmd {
 	}
 
 	@Override
-	public ICmd run(RnB domino) {
-		Block block = domino.combine(blocks, dim);
+	public ICmd run(RnB rnb) {
+		Block block = rnb.combine(blocks, dim);
 		return CmdComposite.chain(new RemoveBlockCmd(block), AddBlockCmd.multi(blocks));
 	}
 

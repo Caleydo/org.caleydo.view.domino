@@ -77,18 +77,18 @@ public class Bands extends ABands implements IDragGLSource, ICallback<SelectionT
 			}
 		});
 		bands.clear();
-		RnB domino = findParent(RnB.class);
-		EToolState tool = domino.getTool();
+		RnB rnb = findParent(RnB.class);
+		EToolState tool = rnb.getTool();
 		List<Block> blocks;
 
-		for(Block block : domino.getBlocks()) {
+		for(Block block : rnb.getBlocks()) {
 			block.resetHasBands();
 		}
 
 		if (tool != EToolState.BANDS)
-			blocks = domino.getBlocks();
+			blocks = rnb.getBlocks();
 		else {
-			blocks = ImmutableList.copyOf(domino.getSelections().getBlockSelection(SelectionType.SELECTION));
+			blocks = ImmutableList.copyOf(rnb.getSelections().getBlockSelection(SelectionType.SELECTION));
 		}
 
 		final int length = blocks.size();
@@ -119,7 +119,7 @@ public class Bands extends ABands implements IDragGLSource, ICallback<SelectionT
 			}
 
 			// remove rulers and separators
-			removeExtraObstacles(domino.getOutlerBlocks());
+			removeExtraObstacles(rnb.getOutlerBlocks());
 		}
 
 		for(ABand band : bands) {

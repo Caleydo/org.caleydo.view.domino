@@ -47,7 +47,7 @@ public class SortByNodesCmd implements ICmd {
 	}
 
 	@Override
-	public ICmd run(RnB domino) {
+	public ICmd run(RnB rnb) {
 		Block b = node.getBlock();
 		List<Pair<Node, ESortingMode>> r;
 		if (stratify)
@@ -72,7 +72,7 @@ public class SortByNodesCmd implements ICmd {
 		}
 
 		@Override
-		public ICmd run(RnB domino) {
+		public ICmd run(RnB rnb) {
 			Block b = node.getBlock();
 			List<Pair<Node, ESortingMode>> r = b.restoreSorting(node, dim, sortCriteria);
 			if (r == null)

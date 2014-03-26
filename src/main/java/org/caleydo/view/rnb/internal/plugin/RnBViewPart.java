@@ -8,7 +8,7 @@ package org.caleydo.view.rnb.internal.plugin;
 import org.caleydo.core.view.ARcpGLElementViewPart;
 import org.caleydo.core.view.opengl.canvas.IGLCanvas;
 import org.caleydo.core.view.opengl.layout2.AGLElementView;
-import org.caleydo.view.rnb.internal.serial.SerializedDominoView;
+import org.caleydo.view.rnb.internal.serial.SerializedRnBView;
 
 /**
  *
@@ -21,7 +21,7 @@ public class RnBViewPart extends ARcpGLElementViewPart {
 	 * Constructor.
 	 */
 	public RnBViewPart() {
-		super(SerializedDominoView.class);
+		super(SerializedRnBView.class);
 	}
 
 	@Override

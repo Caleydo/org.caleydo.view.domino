@@ -31,8 +31,8 @@ public class MoveBlockCmd implements IMergeAbleCmd {
 	}
 
 	@Override
-	public ICmd run(RnB domino) {
-		domino.moveBlocks(blocks, shift);
+	public ICmd run(RnB rnb) {
+		rnb.moveBlocks(blocks, shift);
 		return new MoveBlockCmd(blocks, shift.times(-1));
 	}
 

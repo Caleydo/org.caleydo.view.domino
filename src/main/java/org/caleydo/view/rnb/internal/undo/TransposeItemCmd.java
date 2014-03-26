@@ -25,9 +25,9 @@ public class TransposeItemCmd implements ICmd {
 	}
 
 	@Override
-	public ICmd run(RnB domino) {
+	public ICmd run(RnB rnb) {
 		item.transpose();
-		domino.getBands().relayout();
+		rnb.getBands().relayout();
 		return this;
 	}
 

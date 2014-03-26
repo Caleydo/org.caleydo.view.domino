@@ -37,8 +37,8 @@ public class ExplodeSlicesCmd implements ICmd {
 	}
 
 	@Override
-	public ICmd run(RnB domino) {
-		List<Block> blocks = domino.explode(block, dim);
+	public ICmd run(RnB rnb) {
+		List<Block> blocks = rnb.explode(block, dim);
 		return CmdComposite.chain(RemoveBlockCmd.multi(blocks), new AddBlockCmd(block));
 	}
 

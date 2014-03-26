@@ -163,7 +163,7 @@ public class FocusOverlay extends GLElementContainer implements IPickingListener
 		b.set("heatmap.blurNotSelected");
 		b.set("heatmap.forceTextures");
 		ImmutableList<GLElementSupplier> extensions = GLElementFactories.getExtensions(b.build(),
-				"domino." + data.getExtensionID(), data);
+				"rnb." + data.getExtensionID(), data);
 		GLElementFactorySwitcher s = new GLElementFactorySwitcher(extensions, ELazyiness.DESTROY);
 		return s;
 	}

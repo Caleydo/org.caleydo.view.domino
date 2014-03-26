@@ -94,7 +94,7 @@ public class Block extends GLElementContainer implements IGLLayout2, IPickingLis
 	private final IDragGLSource source = new IDragGLSource() {
 		@Override
 		public IDragInfo startSWTDrag(IDragEvent event) {
-			return findDomino().startSWTDrag(event,Block.this);
+			return findRnB().startSWTDrag(event,Block.this);
 		}
 
 		@Override
@@ -108,7 +108,7 @@ public class Block extends GLElementContainer implements IGLLayout2, IPickingLis
 		@Override
 		public GLElement createUI(IDragInfo info) {
 			if (info instanceof ADragInfo)
-				return ((ADragInfo) info).createUI(findDomino());
+				return ((ADragInfo) info).createUI(findRnB());
 			return null;
 		}
 	};
@@ -133,17 +133,17 @@ public class Block extends GLElementContainer implements IGLLayout2, IPickingLis
 
 	@Override
 	public void pick(Pick pick) {
-		final NodeSelections domino = findDomino().getSelections();
+		final NodeSelections rnb = findRnB().getSelections();
 		IMouseEvent event = (IMouseEvent) pick;
 		boolean ctrl = event.isCtrlDown();
 		switch (pick.getPickingMode()) {
 		case MOUSE_OVER:
-			domino.select(SelectionType.MOUSE_OVER, this, false);
+			rnb.select(SelectionType.MOUSE_OVER, this, false);
 			context.getMouseLayer().addDragSource(source);
 			repaint();
 			break;
 		case MOUSE_OUT:
-			domino.clear(SelectionType.MOUSE_OVER, (Block) null);
+			rnb.clear(SelectionType.MOUSE_OVER, (Block) null);
 			context.getMouseLayer().removeDragSource(source);
 			repaint();
 			break;
@@ -152,10 +152,10 @@ public class Block extends GLElementContainer implements IGLLayout2, IPickingLis
 			break;
 		case MOUSE_RELEASED:
 			if (armed) {
-				if (domino.isSelected(SelectionType.SELECTION, this))
-					domino.clear(SelectionType.SELECTION, ctrl ? this : null);
+				if (rnb.isSelected(SelectionType.SELECTION, this))
+					rnb.clear(SelectionType.SELECTION, ctrl ? this : null);
 				else
-					domino.select(SelectionType.SELECTION, this, ctrl);
+					rnb.select(SelectionType.SELECTION, this, ctrl);
 				repaint();
 				armed = false;
 			}
@@ -165,7 +165,7 @@ public class Block extends GLElementContainer implements IGLLayout2, IPickingLis
 		}
 	}
 
-	RnB findDomino() {
+	RnB findRnB() {
 		return findParent(RnB.class);
 	}
 
@@ -208,11 +208,11 @@ public class Block extends GLElementContainer implements IGLLayout2, IPickingLis
 
 		super.renderImpl(g, w, h);
 
-		RnB domino = findDomino();
+		RnB rnb = findRnB();
 
-		if (domino.isShowDebugInfos())
+		if (rnb.isShowDebugInfos())
 			g.color(Color.BLUE).drawRect(0, 0, w, h);
-		if (domino.isShowBlockLabels() || domino.isShowGroupLabels()) {
+		if (rnb.isShowBlockLabels() || rnb.isShowGroupLabels()) {
 			Vec2f xy = new Vec2f(0, 0);
 			Vec2f xy2 = new Vec2f(w, h);
 			for (Vec2f v : outline) {
@@ -227,19 +227,19 @@ public class Block extends GLElementContainer implements IGLLayout2, IPickingLis
 			}
 			Rect bb = new Rect(xy.x(), xy.y(), xy2.x() - xy.x(), xy2.y() - xy.y());
 
-			if (domino.isShowBlockLabels()) {
+			if (rnb.isShowBlockLabels()) {
 				for (LinearBlock b : linearBlocks) {
 					b.renderNodeLabels(g, bb);
 				}
 			}
-			if (domino.isShowGroupLabels()) {
+			if (rnb.isShowGroupLabels()) {
 				for (LinearBlock b : linearBlocks) {
 					b.renderGroupLabels(g, bb);
 				}
 			}
 		}
 
-		NodeSelections selections = domino.getSelections();
+		NodeSelections selections = rnb.getSelections();
 		final boolean selected = selections.isSelected(SelectionType.SELECTION, this);
 		final boolean mouseOver = selections.isSelected(SelectionType.MOUSE_OVER, this);
 		if (selected || mouseOver) {
@@ -405,7 +405,7 @@ public class Block extends GLElementContainer implements IGLLayout2, IPickingLis
 
 		this.remove(node);
 		if (node != with)
-			findDomino().cleanup(node);
+			findRnB().cleanup(node);
 		linearBlocks.clear();
 		addFirstNode(with);
 		updateBands();
@@ -744,7 +744,7 @@ public class Block extends GLElementContainer implements IGLLayout2, IPickingLis
 
 
 	private void updateBands() {
-		final RnB d = findDomino();
+		final RnB d = findRnB();
 		if (d != null)
 			d.updateBands();
 		bands.relayout();
@@ -940,11 +940,11 @@ public class Block extends GLElementContainer implements IGLLayout2, IPickingLis
 	 *
 	 */
 	private void selectMe() {
-		final NodeSelections domino = findDomino().getSelections();
+		final NodeSelections rnb = findRnB().getSelections();
 		if (partOfGroup()) {
-			selectAllBlocksInGroup(domino);
-		} else if (!domino.isSelected(SelectionType.SELECTION, this))
-			domino.select(SelectionType.SELECTION, this, true);
+			selectAllBlocksInGroup(rnb);
+		} else if (!rnb.isSelected(SelectionType.SELECTION, this))
+			rnb.select(SelectionType.SELECTION, this, true);
 	}
 
 	/**
@@ -972,7 +972,7 @@ public class Block extends GLElementContainer implements IGLLayout2, IPickingLis
 	 *
 	 */
 	public void showAgain() {
-		setVisibility(findDomino().getTool() == EToolState.BANDS ? EVisibility.PICKABLE : EVisibility.VISIBLE);
+		setVisibility(findRnB().getTool() == EToolState.BANDS ? EVisibility.PICKABLE : EVisibility.VISIBLE);
 	}
 
 	@ListenTo(sendToMe = true)

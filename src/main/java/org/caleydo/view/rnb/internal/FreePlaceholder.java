@@ -85,7 +85,7 @@ public class FreePlaceholder extends APlaceholder {
 
 	@Override
 	protected void dropNode(Node node) {
-		RnB domino = findParent(RnB.class);
+		RnB rnb = findParent(RnB.class);
 		if (transpose) {
 			node.transposeMe();
 		}
@@ -102,7 +102,7 @@ public class FreePlaceholder extends APlaceholder {
 			break;
 		}
 		b.setLocation(loc.x(), loc.y());
-		domino.addBlock(b);
+		rnb.addBlock(b);
 		updatedPreview(node);
 	}
 }

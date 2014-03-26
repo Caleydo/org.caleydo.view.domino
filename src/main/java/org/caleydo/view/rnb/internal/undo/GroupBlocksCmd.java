@@ -27,7 +27,7 @@ public class GroupBlocksCmd implements ICmd {
 	}
 
 	@Override
-	public ICmd run(RnB domino) {
+	public ICmd run(RnB rnb) {
 		if (doGrouping) {
 			group.group();
 		} else {

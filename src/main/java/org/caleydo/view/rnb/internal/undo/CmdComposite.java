@@ -34,10 +34,10 @@ public class CmdComposite implements ICmd {
 	}
 
 	@Override
-	public ICmd run(RnB domino) {
+	public ICmd run(RnB rnb) {
 		ICmd[] u = new ICmd[cmds.length];
 		for (int i = 0; i < cmds.length; ++i) {
-			u[u.length - 1 - i] = cmds[i].run(domino);
+			u[u.length - 1 - i] = cmds[i].run(rnb);
 		}
 		return chain(u);
 	}

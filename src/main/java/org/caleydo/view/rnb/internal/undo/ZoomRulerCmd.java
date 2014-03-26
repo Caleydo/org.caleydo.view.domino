@@ -30,8 +30,8 @@ public class ZoomRulerCmd implements IMergeAbleCmd {
 	}
 
 	@Override
-	public ICmd run(RnB domino) {
-		domino.zoom(category, scale);
+	public ICmd run(RnB rnb) {
+		rnb.zoom(category, scale);
 		return new ZoomRulerCmd(category, old, scale);
 	}
 

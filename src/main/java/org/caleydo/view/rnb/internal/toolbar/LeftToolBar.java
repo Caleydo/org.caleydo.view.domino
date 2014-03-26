@@ -163,7 +163,7 @@ public class LeftToolBar extends GLElementContainer implements IGLLayout2, ISele
 		final ISelectionCallback callback = new ISelectionCallback() {
 			@Override
 			public void onSelectionChanged(GLButton button, boolean selected) {
-				RnB domino = findParent(RnB.class);
+				RnB rnb = findParent(RnB.class);
 				switch (button.getTooltip()) {
 				case "Show Tour Guides":
 					DataTourGuideAdapter.show();
@@ -172,16 +172,16 @@ public class LeftToolBar extends GLElementContainer implements IGLLayout2, ISele
 					DataTourGuideAdapter.show();
 					break;
 				case "Show/Hide Debug Infos":
-					domino.setShowDebugInfos(!domino.isShowDebugInfos());
+					rnb.setShowDebugInfos(!rnb.isShowDebugInfos());
 					break;
 				case "Show/Hide Block Labels":
-					domino.setShowBlockLabels(!domino.isShowBlockLabels());
+					rnb.setShowBlockLabels(!rnb.isShowBlockLabels());
 					break;
 				case "Show/Hide Group Labels":
-					domino.setShowGroupLabels(!domino.isShowGroupLabels());
+					rnb.setShowGroupLabels(!rnb.isShowGroupLabels());
 					break;
 				case "Show/Hide Mini Map":
-					domino.toggleShowMiniMap();
+					rnb.toggleShowMiniMap();
 					break;
 				}
 			}

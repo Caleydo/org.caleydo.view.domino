@@ -25,13 +25,13 @@ import org.caleydo.view.tourguide.spi.adapter.ITourGuideDataMode;
  *
  */
 public class StratifiationTourGuideAdapter extends ATourGuideAdapter implements ICallback<IDCategory> {
-	private static final String SECONDARY_ID = "domino.stratifications";
+	private static final String SECONDARY_ID = "rnb.stratifications";
 	private final StratificationTourGuideDataMode mode = new StratificationTourGuideDataMode();
 	private IDCategory activeCategory;
 
 	@Override
 	public String getLabel() {
-		return "Domino Partitioned Blocks";
+		return "RnB Partitioned Blocks";
 	}
 
 	public static void show() {

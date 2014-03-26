@@ -30,7 +30,7 @@ import org.eclipse.ui.IWorkbenchPart;
  *
  */
 public abstract class ATourGuideAdapter implements ITourGuideAdapter {
-	protected RnBView domino;
+	protected RnBView rnb;
 	protected ITourGuideView vis;
 	private IDragGLSource dragSource;
 
@@ -124,16 +124,16 @@ public abstract class ATourGuideAdapter implements ITourGuideAdapter {
 	@Override
 	public final boolean isRepresenting(IWorkbenchPart part, boolean isBoundTo) {
 		if (part instanceof RnBViewPart)
-			return !isBoundTo || ((RnBViewPart) part).getView() == domino;
+			return !isBoundTo || ((RnBViewPart) part).getView() == rnb;
 		return false;
 	}
 
 	@Override
 	public final void bindTo(IViewPart part) {
 		if (part instanceof RnBViewPart)
-			this.domino = ((RnBViewPart)part).getView();
+			this.rnb = ((RnBViewPart)part).getView();
 		else
-			this.domino = null;
+			this.rnb = null;
 		if (vis != null)
 			vis.updateBound2ViewState();
 	}
@@ -145,6 +145,6 @@ public abstract class ATourGuideAdapter implements ITourGuideAdapter {
 
 	@Override
 	public final boolean isBound2View() {
-		return this.domino != null;
+		return this.rnb != null;
 	}
 }

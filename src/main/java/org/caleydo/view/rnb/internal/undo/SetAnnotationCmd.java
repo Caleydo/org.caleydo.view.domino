@@ -27,7 +27,7 @@ public class SetAnnotationCmd implements ICmd {
 	}
 
 	@Override
-	public ICmd run(RnB domino) {
+	public ICmd run(RnB rnb) {
 		String bak = item.getText();
 		item.setText(text);
 		return new SetAnnotationCmd(item, bak);
