@@ -264,8 +264,10 @@ public class LinearBlock extends AbstractCollection<Node> {
 			nodes.get(index - 1).setNeighbor(dir.opposite(), last);
 			last.setNeighbor(dir, nodes.get(index - 1));
 		}
+		int i = getSortPriority(node);
+		if (i >= 0)
+			sortCriteria.remove(i);
 
-		sortCriteria.remove(node);
 		if (dataSelection == node) {
 			dataSelection = nodes.size() == 1 ? nodes.get(0) : null;
 		}

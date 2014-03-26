@@ -150,7 +150,7 @@ public class Numerical1DMixin {
 		// b.put("hbar.id2color", new AlternatingColors(Color.BLACK, Color.LIGHT_GRAY, even(data)));
 		b.put("hbar.id2color", Functions.constant(Color.BLACK));
 		b.put("hbar.outline", Color.WHITE);
-		// b.set("kaplanmaier.fillCurve");
+		// b.set("kaplanmeier.fillCurve");
 
 		b.set("boxandwhiskers.showOutliers");
 		b.set("boxandwhiskers.showMinMax");

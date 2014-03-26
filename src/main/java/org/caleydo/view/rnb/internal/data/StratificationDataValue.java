@@ -201,7 +201,7 @@ public class StratificationDataValue implements IDataValues, Function<Integer, C
 
 	@Override
 	public boolean apply(String input) {
-		return !Arrays.asList("labels", "distribution.bar", "kaplanmaier", "boxandwhiskers").contains(input);
+		return !Arrays.asList("labels", "distribution.bar", "kaplanmeier", "boxandwhiskers").contains(input);
 	}
 
 	@Override
