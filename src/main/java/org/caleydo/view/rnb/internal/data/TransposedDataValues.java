@@ -52,8 +52,8 @@ public class TransposedDataValues implements IDataValues {
 	}
 
 	@Override
-	public void fill(Builder b, TypedList dimData, TypedList recData, boolean[] existNeigbhor) {
-		wrappee.fill(b, dimData, recData, existNeigbhor);
+	public void fill(Builder b, TypedList dimData, TypedList recData, boolean[] existNeigbhor, boolean mediumTranspose) {
+		wrappee.fill(b, dimData, recData, existNeigbhor, mediumTranspose);
 	}
 
 	@Override

@@ -82,12 +82,16 @@ public class StratificationDataValue implements IDataValues, Function<Integer, C
 	}
 
 	@Override
-	public void fill(Builder b, TypedList dimData, TypedList recData, boolean[] existNeigbhor) {
+	public void fill(Builder b, TypedList dimData, TypedList recData, boolean[] existNeigbhor, boolean mediumTranspose) {
 		final boolean swapped = dimData.getIdType() != getDefaultGroups(EDimension.DIMENSION).getIdType();
 
-		final EDimension dir = swapped ? main.opposite() : main;
-		b.put(EDimension.class, dir);
-		final TypedList data = dir.select(dimData, recData);
+		final EDimension dim = swapped ? main.opposite() : main;
+		b.put(EDimension.class, dim);
+
+		b.set("boxandwhiskers.vertical", mediumTranspose ? dim.isHorizontal() : dim.isVertical());
+		b.set("distribution.hist.vertical", mediumTranspose ? dim.isHorizontal() : dim.isVertical());
+
+		final TypedList data = dim.select(dimData, recData);
 		fill(b, data);
 	}
 

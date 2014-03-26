@@ -50,8 +50,8 @@ public class String1DDataDomainValues extends A1DDataDomainValues {
 	}
 
 	@Override
-	public void fill(Builder b, TypedList dimData, TypedList recData, boolean[] existNeigbhor) {
-		super.fill(b, dimData, recData, existNeigbhor);
+	public void fill(Builder b, TypedList dimData, TypedList recData, boolean[] existNeigbhor, boolean mediumTranspose) {
+		super.fill(b, dimData, recData, existNeigbhor, mediumTranspose);
 		EDimension dim = main;
 		TypedList data = main.select(dimData, recData);
 		boolean transposed = data.getIdType() == this.singleGroup.getIdType();

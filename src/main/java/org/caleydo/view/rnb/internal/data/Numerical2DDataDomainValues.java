@@ -62,7 +62,7 @@ public class Numerical2DDataDomainValues extends ADataDomainDataValues {
 	}
 
 	@Override
-	public void fill(Builder b, TypedList dimData, TypedList recData, boolean[] existNeigbhor) {
+	public void fill(Builder b, TypedList dimData, TypedList recData, boolean[] existNeigbhor, boolean mediumTranspose) {
 		super.fillHeatMap(b, dimData, recData);
 
 		if (dimData.getIdType() != getIDType(EDimension.DIMENSION)) { // swapped

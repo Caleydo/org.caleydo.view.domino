@@ -66,7 +66,7 @@ public abstract class A1DDataDomainValues extends ADataDomainDataValues implemen
 	}
 
 	@Override
-	public void fill(Builder b, TypedList dimData, TypedList recData, boolean[] existNeigbhor) {
+	public void fill(Builder b, TypedList dimData, TypedList recData, boolean[] existNeigbhor, boolean mediumTranspose) {
 		EDimension dim = main;
 		TypedList data = main.select(dimData, recData);
 		boolean transposed = data.getIdType() == this.singleGroup.getIdType();
@@ -75,6 +75,8 @@ public abstract class A1DDataDomainValues extends ADataDomainDataValues implemen
 			data = main.opposite().select(dimData, recData);
 		}
 		b.put(EDimension.class, dim);
+		b.set("boxandwhiskers.vertical", mediumTranspose ? dim.isHorizontal() : dim.isVertical());
+		b.set("distribution.hist.vertical", mediumTranspose ? dim.isHorizontal() : dim.isVertical());
 		fill(b, data, dim, existNeigbhor);
 	}
 

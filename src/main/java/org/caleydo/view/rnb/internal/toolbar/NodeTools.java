@@ -36,6 +36,7 @@ import org.caleydo.view.rnb.internal.undo.RemoveNodeGroupCmd;
 import org.caleydo.view.rnb.internal.undo.RemoveSliceCmd;
 import org.caleydo.view.rnb.internal.undo.SortByNodesCmd;
 import org.caleydo.view.rnb.internal.undo.TransposeBlocksCmd;
+import org.caleydo.view.rnb.internal.undo.TransposeNodeViewCmd;
 
 import com.google.common.collect.HashMultiset;
 import com.google.common.collect.ImmutableSet;
@@ -87,6 +88,7 @@ public class NodeTools extends AItemTools {
 			if (blocks.size() == 1) // a single node with a single block
 				addBlockActions(blocks);
 			if (node.groupCount() == selection.size()) {
+				addButton("Transpose View", Resources.ICON_TRANSPOSE);
 				addButton("Remove Node", Resources.ICON_DELETE_ALL);
 			}
 		} else if (!nodes.isEmpty() && blocks.isEmpty()) {
@@ -348,6 +350,9 @@ public class NodeTools extends AItemTools {
 			break;
 		case "Transpose Blocks":
 			undo.push(new TransposeBlocksCmd(NodeSelections.getFullBlocks(selection)));
+			break;
+		case "Transpose View":
+			undo.push(new TransposeNodeViewCmd(node.getNode()));
 			break;
 		case "Open Details":
 			node.getNode().showInFocus();

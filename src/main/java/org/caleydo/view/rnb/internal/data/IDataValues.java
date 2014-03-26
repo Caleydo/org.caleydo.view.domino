@@ -36,8 +36,9 @@ public interface IDataValues extends ILabeled, IColored, Predicate<String> {
 	 * @param b
 	 * @param dimData
 	 * @param recData
+	 * @param mediumTranspose TODO
 	 */
-	void fill(Builder b, TypedList dimData, TypedList recData, boolean[] existNeigbhor);
+	void fill(Builder b, TypedList dimData, TypedList recData, boolean[] existNeigbhor, boolean mediumTranspose);
 
 	Collection<String> getDefaultVisualization();
 

@@ -114,7 +114,7 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 	private boolean mouseOver;
 
 	private boolean isPreviewing = false;
-
+	private boolean dependentTranspose = false;
 
 	public Node(IDataValues data) {
 		this(null, data, data.getLabel(), data.getDefaultGroups(EDimension.DIMENSION), data
@@ -147,6 +147,12 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 		init();
 	}
 
+	/**
+	 * @return the dependentTranspose, see {@link #dependentTranspose}
+	 */
+	public boolean isDependentTranspose() {
+		return dependentTranspose;
+	}
 	/**
 	 * @param isPreviewing
 	 *            setter, see {@link isPreviewing}
@@ -1143,9 +1149,11 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 	/**
 	 *
 	 */
-	public void transpose() {
-		transposeMe();
-		findBlock().tranposedNode(this);
+	public void transposeView() {
+		dependentTranspose = !dependentTranspose;
+		setData(dimData, recData);
+		final float n = getDetachedOffset();
+		findBlock().updatedNode(this, n, n);
 	}
 
 	public Node transposeMe() {

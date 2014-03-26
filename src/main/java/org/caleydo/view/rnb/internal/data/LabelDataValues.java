@@ -65,7 +65,7 @@ public class LabelDataValues implements IDataValues {
 	}
 
 	@Override
-	public void fill(Builder b, TypedList dimData, TypedList recData, boolean[] existNeigbhor) {
+	public void fill(Builder b, TypedList dimData, TypedList recData, boolean[] existNeigbhor, boolean mediumTranspose) {
 		TypedList g = TypedCollections.isInvalid(dimData.getIdType()) ? recData : dimData;
 		EDimension dim = EDimension.get(g == dimData);
 		b.put(TypedList.class, g);

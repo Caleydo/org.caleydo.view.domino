@@ -92,7 +92,11 @@ public class NodeGroup extends GLElementDecorator implements ILabeled, IDragGLSo
 		Builder b = GLElementFactoryContext.builder();
 		final Node parent = getNode();
 		final IDataValues data = parent.getDataValues();
-		data.fill(b, dimData, recData, getNeighborExistence());
+		final boolean[] neighbors = getNeighborExistence();
+		boolean transpose = parent.isDependentTranspose();
+		if (!neighbors[0] && !neighbors[1] && !neighbors[2] && !neighbors[3])
+			transpose = false;
+		data.fill(b, dimData, recData, neighbors, transpose);
 		// if free high else medium
 		initContext(b, parent);
 

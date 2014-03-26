@@ -157,7 +157,7 @@ public class FocusOverlay extends GLElementContainer implements IPickingListener
 
 	private GLElementFactorySwitcher build(IDataValues data, TypedList dimData, TypedList recData) {
 		Builder b = GLElementFactoryContext.builder();
-		data.fill(b, dimData, recData, new boolean[4]);
+		data.fill(b, dimData, recData, new boolean[4], false);
 		// if free high else medium
 		b.put(EDetailLevel.class, EDetailLevel.HIGH);
 		b.set("heatmap.blurNotSelected");
