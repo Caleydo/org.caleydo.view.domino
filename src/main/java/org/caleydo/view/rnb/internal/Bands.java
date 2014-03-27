@@ -97,12 +97,15 @@ public class Bands extends ABands implements IDragGLSource, ICallback<SelectionT
 			return;
 
 		// create bands
-		Collection<Rectangle2D> bounds = new ArrayList<>();
+		List<Rectangle2D> bounds = new ArrayList<>();
 		for (int i = 0; i < length; ++i) {
 			final Block block = blocks.get(i);
 			block.createBandsTo(blocks.subList(i + 1, length), bands);
 			for (LinearBlock b : block.getLinearBlocks())
-				bounds.add(shrink(b.getBounds().asRectangle2D()));
+				b.addBounds(bounds);
+		}
+		for (int i = 0; i < bounds.size(); ++i) {
+			bounds.set(i, shrink(bounds.get(i)));
 		}
 
 		// collected the bounds check what we have to stubify

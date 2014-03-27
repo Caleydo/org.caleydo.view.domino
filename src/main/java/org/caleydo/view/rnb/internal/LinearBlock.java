@@ -7,6 +7,7 @@ package org.caleydo.view.rnb.internal;
 
 import gleem.linalg.Vec2f;
 
+import java.awt.geom.Rectangle2D;
 import java.util.AbstractCollection;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -150,14 +151,45 @@ public class LinearBlock extends AbstractCollection<Node> {
 	}
 
 	public Rect getBounds() {
-		assert nodes.size() > 0;
-		Vec2f shift = nodes.get(0).getBlock().getLocation();
-		Rect r = nodes.get(0).getDetachedRectBounds();
-		for (Node elem : nodes) {
-			r = Rect.union(r, elem.getDetachedRectBounds());
-		}
+		final List<Node> n = nodes;
+		assert n.size() > 0;
+		Vec2f shift = n.get(0).getBlock().getLocation();
+		Rect r = getBounds(n);
 		r.xy(shift.plus(r.xy()));
 		return r;
+	}
+
+	private Rect getBounds(final List<Node> n) {
+		Rect r = n.get(0).getDetachedRectBounds();
+		for (Node elem : n) {
+			r = Rect.union(r, elem.getDetachedRectBounds());
+		}
+		return r;
+	}
+
+	/**
+	 * @param bounds
+	 */
+	public void addBounds(List<Rectangle2D> bounds) {
+		Vec2f shift = nodes.get(0).getBlock().getLocation();
+		List<Node> acc = new ArrayList<Node>();
+		for (Node elem : nodes) {
+			if (elem.getDetachedOffset() > 0) {
+				if (!acc.isEmpty()) {
+					Rect r = getBounds(acc);
+					r.xy(shift.plus(r.xy()));
+					bounds.add(r.asRectangle2D());
+					acc.clear();
+				}
+			}
+			acc.add(elem);
+		}
+		if (!acc.isEmpty()) {
+			Rect r = getBounds(acc);
+			r.xy(shift.plus(r.xy()));
+			bounds.add(r.asRectangle2D());
+			acc.clear();
+		}
 	}
 
 	/**
@@ -490,7 +522,7 @@ public class LinearBlock extends AbstractCollection<Node> {
 		return getFirstSortingCriteria().getData(dim.opposite());
 	}
 
-	Node getNode(boolean first) {
+	public Node getNode(boolean first) {
 		return first ? nodes.get(0) : nodes.get(nodes.size() - 1);
 	}
 
@@ -855,5 +887,6 @@ public class LinearBlock extends AbstractCollection<Node> {
 		apply();
 		return;
 	}
+
 
 }
