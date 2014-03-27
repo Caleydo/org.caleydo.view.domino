@@ -803,7 +803,7 @@ public class Block extends GLElementContainer implements IGLLayout2, IPickingLis
 	}
 
 	public List<Pair<Node, ESortingMode>> stratifyBy(Node node, EDimension dim) {
-		return sortByImpl(node, dim, ESortingMode.STRATIFY);
+		return sortByImpl(node, dim, ESortingMode.STRATIFY_INC);
 	}
 
 	public Node limitTo(Node node, EDimension dim) {

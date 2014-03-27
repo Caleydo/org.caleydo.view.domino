@@ -961,7 +961,7 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 		return dim.select(dimUnderlying, recUnderlying);
 	}
 
-	public int compare(EDimension dim, int a, int b) {
+	public int compare(EDimension dim, int a, int b, boolean reverse) {
 		// check existence
 		TypedGroupSet groups = getUnderlyingData(dim);
 		if (!groups.isEmpty()) {
@@ -969,20 +969,21 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 			boolean hasB = b >= 0 && groups.contains(b);
 			int r;
 			if ((r = Boolean.compare(!hasA, !hasB)) != 0)
-				return r;
+				return reverse ? -r : r;
 			if (!hasA && !hasB)
 				return 0;
 			// check groups
 			int groupA = indexOf(groups, a);
 			int groupB = indexOf(groups, b);
 			if ((r = Integer.compare(groupA, groupB)) != 0)
-				return r;
+				return reverse ? -r : r;
 		}
 		// check values
-		return this.data.compare(dim, a, b, getUnderlyingData(dim.opposite()));
+		int r = this.data.compare(dim, a, b, getUnderlyingData(dim.opposite()));
+		return reverse ? -r : r;
 	}
 
-	public ITypedComparator getComparator(final EDimension dim) {
+	public ITypedComparator getComparator(final EDimension dim, final boolean reverse) {
 		return new ITypedComparator() {
 			@Override
 			public IDType getIdType() {
@@ -991,7 +992,7 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 
 			@Override
 			public int compare(Integer o1, Integer o2) {
-				return Node.this.compare(dim, o1, o2);
+				return Node.this.compare(dim, o1, o2, reverse);
 			}
 		};
 	}

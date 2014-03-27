@@ -51,6 +51,7 @@ import com.google.common.base.Function;
 import com.google.common.collect.Collections2;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
 
 /**
  * @author Samuel Gratzl
@@ -61,7 +62,7 @@ public class LinearBlock extends AbstractCollection<Node> {
 	private final List<Node> nodes = new ArrayList<>();
 
 	public enum ESortingMode {
-		INC, DEC, STRATIFY;
+		INC, DEC, STRATIFY_INC, STRATIFY_DEC;
 
 		/**
 		 * @return
@@ -72,7 +73,9 @@ public class LinearBlock extends AbstractCollection<Node> {
 				return DEC;
 			case DEC:
 				return null;
-			case STRATIFY:
+			case STRATIFY_INC:
+				return STRATIFY_DEC;
+			case STRATIFY_DEC:
 				return INC;
 			}
 			throw new IllegalStateException();
@@ -89,7 +92,7 @@ public class LinearBlock extends AbstractCollection<Node> {
 	public LinearBlock(EDimension dim, Node node) {
 		this.dim = dim;
 		this.nodes.add(node);
-		this.sortCriteria.add(Pair.make(node, stratifyByDefault(node) ? ESortingMode.STRATIFY : ESortingMode.INC));
+		this.sortCriteria.add(Pair.make(node, stratifyByDefault(node) ? ESortingMode.STRATIFY_INC : ESortingMode.INC));
 		this.dataSelection = node.getData(dim.opposite()).size() <= 1 ? null : node;
 		update();
 		apply();
@@ -129,7 +132,8 @@ public class LinearBlock extends AbstractCollection<Node> {
 	}
 
 	public boolean isStratisfied() {
-		return sortCriteria.get(0).getSecond() == ESortingMode.STRATIFY;
+		final ESortingMode m = sortCriteria.get(0).getSecond();
+		return m == ESortingMode.STRATIFY_DEC || m == ESortingMode.STRATIFY_INC;
 	}
 
 	public boolean isStratisfied(Node node) {
@@ -424,9 +428,11 @@ public class LinearBlock extends AbstractCollection<Node> {
 				new Function<Pair<Node, ESortingMode>, ITypedComparator>() {
 			@Override
 					public ITypedComparator apply(Pair<Node, ESortingMode> input) {
-						ITypedComparator c = input.getFirst().getComparator(dim);
-						if (input.getSecond() == ESortingMode.DEC)
-							c = TypedCollections.reverseOrder(c);
+						boolean reverse = input.getSecond() == ESortingMode.DEC
+								|| input.getSecond() == ESortingMode.STRATIFY_DEC;
+						ITypedComparator c = input.getFirst().getComparator(dim, reverse);
+						//
+						// c = TypedCollections.reverseOrder(c);
 						return c;
 			}
 		}));
@@ -457,12 +463,13 @@ public class LinearBlock extends AbstractCollection<Node> {
 			return Collections.singletonList(ungrouped(data.size()));
 		final Node sortedBy = getFirstSortingCriteria();
 		// FIXME
-		// final ESortingMode sortingMode = sortCriteria.get(0).getSecond();
+		final ESortingMode sortingMode = sortCriteria.get(0).getSecond();
 		final Node selected = dataSelection;
 
 		List<TypedSetGroup> groups = sortedBy.getUnderlyingData(dim.opposite()).getGroups();
-		if (selected == sortedBy) // 1:1 mapping
-			return groups;
+		if (selected == sortedBy) {// 1:1 mapping
+			return (sortingMode == ESortingMode.STRATIFY_DEC ? Lists.reverse(groups) : groups);
+		}
 		List<ITypedGroup> g = new ArrayList<>(groups.size() + 1);
 		if (selected == null) {
 			int sum = 0;
@@ -499,6 +506,8 @@ public class LinearBlock extends AbstractCollection<Node> {
 			if (sum < data.size())
 				g.add(unmapped(data.size() - sum));
 		}
+		if (sortingMode == ESortingMode.STRATIFY_DEC)
+			return Lists.reverse(g);
 		return g;
 	}
 
@@ -559,7 +568,7 @@ public class LinearBlock extends AbstractCollection<Node> {
 			return act;
 		}
 
-		if (mode == ESortingMode.STRATIFY) {
+		if (mode == ESortingMode.STRATIFY_DEC) {
 			// reset first
 			sortCriteria.set(0, Pair.make(getFirstSortingCriteria(), ESortingMode.INC));
 		}
