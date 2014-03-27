@@ -202,8 +202,8 @@ public class LabelElementFactory implements IGLElementFactory2 {
 		}
 
 		private void update(SelectionManager manager, float a, float b, boolean toggle) {
-			int min = (int) (Math.min(a, b) * (data.size() - 1));
-			int max = (int) (Math.max(a, b) * (data.size() - 1));
+			int min = Math.max(0, Math.min((int) (Math.min(a, b) * (data.size())), data.size() - 1));
+			int max = Math.max(0, Math.min((int) (Math.max(a, b) * (data.size())), data.size() - 1));
 			for (int i = min; i <= max; ++i) {
 				final Integer id = data.get(i);
 				boolean add = !toggle || !manager.checkStatus(SelectionType.SELECTION, id);

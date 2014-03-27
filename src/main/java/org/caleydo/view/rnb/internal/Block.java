@@ -282,12 +282,15 @@ public class Block extends GLElementContainer implements IGLLayout2, IPickingLis
 			Rect r1 = b.getNode(true).getRectBounds();
 			Rect r2 = b.getNode(false).getRectBounds();
 			r.add(r1.xy());
-			if (b.getDim().isHorizontal())
-				r.add(r1.x2y());
-			else
+			if (b.getDim().isHorizontal()) {
 				r.add(r2.x2y());
-			r.add(r2.x2y2());
-			r.add(r2.xy2());
+				r.add(r2.x2y2());
+				r.add(r1.xy2());
+			} else {
+				r.add(r1.x2y());
+				r.add(r2.x2y2());
+				r.add(r2.xy2());
+			}
 			return r;
 		}
 
@@ -842,7 +845,7 @@ public class Block extends GLElementContainer implements IGLLayout2, IPickingLis
 		final EDimension sDir = la.getDim().opposite();
 		final EDimension tDir = lb.getDim().opposite();
 
-		ABandIdentifier id = new BandIdentifier(la, true, lb, false);
+		ABandIdentifier id = BandIdentifier.id(la, true, lb, false);
 		ABand band = BandFactory.create(label, sData, tData, ra, rb, sNodeLocator, tNodeLocator, sDir, tDir, id);
 		if (band == null)
 			return;

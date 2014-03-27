@@ -81,7 +81,7 @@ public class Numerical1DMixin {
 		// FIXME hack
 		if (c.getLabel().contains("Death"))
 			return Arrays.asList("kaplanmeier", "boxandwhiskers", "heatmap");
-		return Arrays.asList("boxandwhiskers", "kaplanmeier", "heatmap");
+		return Arrays.asList("axis", "boxandwhiskers", "kaplanmeier", "heatmap");
 	}
 
 	public Histogram createHist(ITypedCollection data) {
