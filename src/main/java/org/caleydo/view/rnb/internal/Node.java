@@ -607,10 +607,14 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 	@Override
 	protected void init(IGLElementContext context) {
 		super.init(context);
-		if (!scaleFactors.containsKey(DATA_SCALE_FACTOR)) {
+		{
+			Vec2f bak = scaleFactors.get(DATA_SCALE_FACTOR);
 			Vec2f size = findParent(MiniMapCanvas.class).getSize();
 			final Vec2f v = initialScaleFactors(size, dimData.size(), recData.size());
-
+			if (bak != null && !Float.isNaN(bak.x()))
+				v.setX(bak.x());
+			if (bak != null && !Float.isNaN(bak.y()))
+				v.setY(bak.y());
 			scaleFactors.put(DATA_SCALE_FACTOR, v);
 			Blocks blocks = findParent(Blocks.class);
 			final float sx = blocks.getRulerScale(this.dimUnderlying.getIdType());
@@ -669,14 +673,17 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 			scale = this.scaleFactors.get(type);
 		else
 			scale = new Vec2f(1, 1);
-		return scale;
+		Vec2f f = new Vec2f(Float.isNaN(scale.x()) ? 1 : scale.x(), Float.isNaN(scale.y()) ? 1 : scale.y());
+		return f;
 	}
 
 	public void copyScaleFactors(Node node, EDimension dim) {
 		for (Map.Entry<String, Vec2f> entry : node.scaleFactors.entrySet()) {
 			Vec2f old = scaleFactors.get(entry.getKey());
 			if (old == null)
-				old = new Vec2f(1, 1);
+				old = new Vec2f(Float.NaN, Float.NaN);
+			if (DATA_SCALE_FACTOR.equals(entry.getKey()) && !node.has(dim))
+				continue;
 			if (dim.isHorizontal())
 				old.setX(entry.getValue().x());
 			else
@@ -711,10 +718,12 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 	}
 
 	public float getDataScaleFactor(EDimension dim) {
-		if (this.scaleFactors.containsKey(DATA_SCALE_FACTOR))
-			return dim.select(this.scaleFactors.get(DATA_SCALE_FACTOR));
-		else
-			return 1;
+		if (this.scaleFactors.containsKey(DATA_SCALE_FACTOR)) {
+			float v = dim.select(this.scaleFactors.get(DATA_SCALE_FACTOR));
+			if (!Float.isNaN(v))
+				return v;
+		}
+		return 1;
 	}
 
 	private float[] getSizes(EDimension dim) {

@@ -14,9 +14,9 @@ import org.caleydo.core.view.opengl.layout2.geom.Rect;
 
 /**
  * renders and handles a selection rectangle
- * 
+ *
  * @author Samuel Gratzl
- * 
+ *
  */
 public class SelectLayer extends GLElement {
 
@@ -34,7 +34,9 @@ public class SelectLayer extends GLElement {
 	protected void renderImpl(GLGraphics g, float w, float h) {
 		g.lineStippled(4, 0xAAAA);
 		Rect r = unifyRect();
-		g.color(Color.LIGHT_GRAY).drawRect(r.x(), r.y(), r.width(), r.height());
+		g.incZ(2);
+		g.color(Color.GRAY).drawRect(r.x(), r.y(), r.width(), r.height());
+		g.incZ(-2);
 		g.lineStippled(false);
 		super.renderImpl(g, w, h);
 	}

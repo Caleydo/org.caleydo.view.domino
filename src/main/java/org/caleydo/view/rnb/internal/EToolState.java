@@ -7,7 +7,6 @@ package org.caleydo.view.rnb.internal;
 
 import java.net.URL;
 
-import org.apache.commons.lang.WordUtils;
 import org.caleydo.core.util.base.ILabeled;
 import org.caleydo.core.util.color.Color;
 import org.caleydo.core.view.opengl.util.gleem.IColored;
@@ -33,7 +32,15 @@ public enum EToolState implements ILabeled, IColored {
 
 	@Override
 	public String getLabel() {
-		return WordUtils.capitalizeFully(name());
+		switch (this) {
+		case MOVE:
+			return "Block Mode";
+		case SELECT:
+			return "Item Mode";
+		case BANDS:
+			return "Relationship Mode";
+		}
+		throw new IllegalStateException();
 	}
 
 	@Override

@@ -67,6 +67,7 @@ import com.google.common.collect.ImmutableSet.Builder;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Iterators;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Multiset;
 
 /**
  *
@@ -77,7 +78,7 @@ public class Block extends GLElementContainer implements IGLLayout2, IPickingLis
 	/**
 	 *
 	 */
-	static final float DETACHED_OFFSET = 50.f;
+	static final float DETACHED_OFFSET = 50f;
 	private static final float EXPLODE_SPACE = 50f;
 
 	private final List<LinearBlock> linearBlocks = new ArrayList<>();
@@ -590,6 +591,20 @@ public class Block extends GLElementContainer implements IGLLayout2, IPickingLis
 			for (Node n : l) {
 				builder.add(n.getDataScaleFactor(l.getDim().opposite()));
 			}
+		}
+	}
+
+
+
+	/**
+	 * @param idCategory
+	 * @param count
+	 */
+	public void directions(IDCategory category, Multiset<EDimension> count) {
+		for (LinearBlock l : linearBlocks) {
+			if (!category.isOfCategory(l.getIdType()))
+				continue;
+			count.add(l.getDim().opposite());
 		}
 	}
 

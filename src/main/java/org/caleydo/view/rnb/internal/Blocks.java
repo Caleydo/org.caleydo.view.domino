@@ -33,6 +33,7 @@ import org.caleydo.view.rnb.internal.dnd.DragElement;
 import org.caleydo.view.rnb.internal.ui.AItem;
 import org.caleydo.view.rnb.internal.ui.Ruler;
 
+import com.google.common.collect.EnumMultiset;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
 
@@ -378,6 +379,14 @@ public class Blocks extends GLElementContainer implements ICallback<SelectionTyp
 				ruler.zoom(v.y());
 			}
 		}
+
+		EnumMultiset<EDimension> count = EnumMultiset.create(EDimension.class);
+		for (Block block : getBlocks()) {
+			block.directions(idCategory, count);
+		}
+		if (count.count(EDimension.DIMENSION) > count.count(EDimension.RECORD))
+			ruler.transpose();
+
 	}
 
 	/**
