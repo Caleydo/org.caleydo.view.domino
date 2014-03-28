@@ -10,9 +10,9 @@ import java.util.Collection;
 import org.caleydo.core.data.collection.EDimension;
 import org.caleydo.core.util.color.Color;
 import org.caleydo.core.view.opengl.layout2.manage.GLElementFactoryContext.Builder;
+import org.caleydo.view.rnb.api.model.typed.ITypedCollection;
 import org.caleydo.view.rnb.api.model.typed.TypedGroupSet;
 import org.caleydo.view.rnb.api.model.typed.TypedList;
-import org.caleydo.view.rnb.api.model.typed.TypedSet;
 
 /**
  * @author Samuel Gratzl
@@ -42,7 +42,7 @@ public class TransposedDataValues implements IDataValues {
 	}
 
 	@Override
-	public int compare(EDimension dim, int a, int b, TypedSet otherData) {
+	public int compare(EDimension dim, int a, int b, ITypedCollection otherData) {
 		return wrappee.compare(dim.opposite(), a, b, otherData);
 	}
 

@@ -11,9 +11,9 @@ import org.caleydo.core.data.collection.EDimension;
 import org.caleydo.core.util.base.ILabeled;
 import org.caleydo.core.view.opengl.layout2.manage.GLElementFactoryContext.Builder;
 import org.caleydo.core.view.opengl.util.gleem.IColored;
+import org.caleydo.view.rnb.api.model.typed.ITypedCollection;
 import org.caleydo.view.rnb.api.model.typed.TypedGroupSet;
 import org.caleydo.view.rnb.api.model.typed.TypedList;
-import org.caleydo.view.rnb.api.model.typed.TypedSet;
 
 import com.google.common.base.Predicate;
 
@@ -25,7 +25,7 @@ public interface IDataValues extends ILabeled, IColored, Predicate<String> {
 
 	TypedGroupSet getDefaultGroups(EDimension dim);
 
-	int compare(EDimension dim, int a, int b, TypedSet otherData);
+	int compare(EDimension dim, int a, int b, ITypedCollection otherData);
 
 	/**
 	 * @return

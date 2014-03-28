@@ -16,8 +16,8 @@ import org.caleydo.core.util.color.Color;
 import org.caleydo.core.util.format.Formatter;
 import org.caleydo.core.util.function.Function2;
 import org.caleydo.core.view.opengl.layout2.manage.GLElementFactoryContext.Builder;
+import org.caleydo.view.rnb.api.model.typed.ITypedCollection;
 import org.caleydo.view.rnb.api.model.typed.TypedList;
-import org.caleydo.view.rnb.api.model.typed.TypedSet;
 
 import com.google.common.primitives.Floats;
 import com.jogamp.common.util.IntObjectHashMap;
@@ -83,8 +83,12 @@ public abstract class ADataDomainDataValues implements IDataValues, Function2<In
 	protected static String raw2string(Object raw) {
 		if (raw == null)
 			return "";
-		if (raw instanceof Number)
-			return Formatter.formatNumber(((Number) raw).doubleValue());
+		if (raw instanceof Number) {
+			double value = ((Number) raw).doubleValue();
+			if (Double.isNaN(value))
+				return "NaN";
+			return Formatter.formatNumber(value);
+		}
 		return raw.toString();
 	}
 
@@ -127,7 +131,7 @@ public abstract class ADataDomainDataValues implements IDataValues, Function2<In
 	}
 
 	@Override
-	public int compare(EDimension dim, int a, int b, TypedSet otherData) {
+	public int compare(EDimension dim, int a, int b, ITypedCollection otherData) {
 		switch(otherData.size()) {
 		case 0 :
 			return a - b;
@@ -143,7 +147,7 @@ public abstract class ADataDomainDataValues implements IDataValues, Function2<In
 	}
 
 
-	private float getCached(EDimension dim, int a, TypedSet otherData) {
+	private float getCached(EDimension dim, int a, ITypedCollection otherData) {
 		IntObjectHashMap cache = dim.select(dimFullCompareCache, recFullCompareCache);
 		int size = getDefaultGroups(dim.opposite()).size();
 		if (otherData.size() != size)
@@ -155,7 +159,7 @@ public abstract class ADataDomainDataValues implements IDataValues, Function2<In
 		return sum;
 	}
 
-	private float sum(EDimension dim, int a, TypedSet otherData) {
+	private float sum(EDimension dim, int a, ITypedCollection otherData) {
 		// mean values
 		float a_sum = 0;
 		for (Integer other : otherData) {

@@ -15,10 +15,10 @@ import org.caleydo.core.util.function.DoubleFunctions;
 import org.caleydo.core.util.function.DoubleStatistics;
 import org.caleydo.core.util.function.IInvertableDoubleFunction;
 import org.caleydo.core.view.opengl.layout2.manage.GLElementFactoryContext.Builder;
+import org.caleydo.view.rnb.api.model.typed.ITypedCollection;
 import org.caleydo.view.rnb.api.model.typed.TypedCollections;
 import org.caleydo.view.rnb.api.model.typed.TypedGroupSet;
 import org.caleydo.view.rnb.api.model.typed.TypedList;
-import org.caleydo.view.rnb.api.model.typed.TypedSet;
 import org.caleydo.view.rnb.internal.Constants;
 
 import com.google.common.base.Function;
@@ -105,7 +105,7 @@ public class ProjectedDataValues implements IDataValues, INumerical1DContainer,F
 	}
 
 	@Override
-	public int compare(EDimension dim, int a, int b, TypedSet otherData) {
+	public int compare(EDimension dim, int a, int b, ITypedCollection otherData) {
 		if (dim == this.along)
 			return 0;
 

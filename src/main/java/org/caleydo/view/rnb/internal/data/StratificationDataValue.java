@@ -20,6 +20,7 @@ import org.caleydo.core.util.color.Color;
 import org.caleydo.core.util.function.IDoubleList;
 import org.caleydo.core.util.function.MappedDoubleList;
 import org.caleydo.core.view.opengl.layout2.manage.GLElementFactoryContext.Builder;
+import org.caleydo.view.rnb.api.model.typed.ITypedCollection;
 import org.caleydo.view.rnb.api.model.typed.TypedCollections;
 import org.caleydo.view.rnb.api.model.typed.TypedGroupSet;
 import org.caleydo.view.rnb.api.model.typed.TypedList;
@@ -185,7 +186,7 @@ public class StratificationDataValue implements IDataValues, Function<Integer, C
 	}
 
 	@Override
-	public int compare(EDimension dim, int a, int b, TypedSet otherData) {
+	public int compare(EDimension dim, int a, int b, ITypedCollection otherData) {
 		return indexOf(a) - indexOf(b);
 	}
 

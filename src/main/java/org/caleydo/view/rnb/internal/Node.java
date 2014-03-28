@@ -979,7 +979,7 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 				return reverse ? -r : r;
 		}
 		// check values
-		int r = this.data.compare(dim, a, b, getUnderlyingData(dim.opposite()));
+		int r = this.data.compare(dim, a, b, getData(dim.opposite()));
 		return reverse ? -r : r;
 	}
 

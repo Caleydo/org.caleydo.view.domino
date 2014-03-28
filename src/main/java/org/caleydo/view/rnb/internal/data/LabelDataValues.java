@@ -19,10 +19,10 @@ import org.caleydo.core.util.color.Color;
 import org.caleydo.core.view.opengl.layout.Column.VAlign;
 import org.caleydo.core.view.opengl.layout2.manage.GLElementFactoryContext.Builder;
 import org.caleydo.view.rnb.api.model.EDirection;
+import org.caleydo.view.rnb.api.model.typed.ITypedCollection;
 import org.caleydo.view.rnb.api.model.typed.TypedCollections;
 import org.caleydo.view.rnb.api.model.typed.TypedGroupSet;
 import org.caleydo.view.rnb.api.model.typed.TypedList;
-import org.caleydo.view.rnb.api.model.typed.TypedSet;
 
 /**
  * @author Samuel Gratzl
@@ -53,7 +53,7 @@ public class LabelDataValues implements IDataValues {
 	}
 
 	@Override
-	public int compare(EDimension dim, int a, int b, TypedSet otherData) {
+	public int compare(EDimension dim, int a, int b, ITypedCollection otherData) {
 		String av = get(a);
 		String bv = get(b);
 		return Objects.compare(av, bv, String.CASE_INSENSITIVE_ORDER);

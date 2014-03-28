@@ -15,6 +15,7 @@ import org.caleydo.core.data.perspective.variable.Perspective;
 import org.caleydo.core.view.opengl.layout.Column.VAlign;
 import org.caleydo.core.view.opengl.layout2.manage.GLElementFactoryContext.Builder;
 import org.caleydo.view.rnb.api.model.EDirection;
+import org.caleydo.view.rnb.api.model.typed.ITypedCollection;
 import org.caleydo.view.rnb.api.model.typed.TypedGroupSet;
 import org.caleydo.view.rnb.api.model.typed.TypedList;
 import org.caleydo.view.rnb.api.model.typed.TypedSet;
@@ -89,7 +90,7 @@ public class String1DDataDomainValues extends A1DDataDomainValues {
 	}
 
 	@Override
-	public int compare(EDimension dim, int a, int b, TypedSet otherData) {
+	public int compare(EDimension dim, int a, int b, ITypedCollection otherData) {
 		if (dim != main)
 			return 0;
 		return Objects.compare(getRaw(a), getRaw(b), String.CASE_INSENSITIVE_ORDER);
