@@ -10,12 +10,15 @@ import gleem.linalg.Vec2f;
 import java.util.List;
 import java.util.Set;
 
+import org.apache.commons.lang.StringUtils;
 import org.caleydo.core.data.collection.EDimension;
 import org.caleydo.core.data.selection.SelectionManager;
 import org.caleydo.core.data.selection.SelectionType;
 import org.caleydo.core.id.IDCategory;
+import org.caleydo.core.id.IDMappingManager;
 import org.caleydo.core.id.IDMappingManagerRegistry;
 import org.caleydo.core.id.IDType;
+import org.caleydo.core.id.IIDTypeMapper;
 import org.caleydo.core.view.opengl.canvas.IGLMouseListener.IMouseEvent;
 import org.caleydo.core.view.opengl.layout2.GLElement;
 import org.caleydo.core.view.opengl.layout2.GLElementContainer;
@@ -28,8 +31,8 @@ import org.caleydo.core.view.opengl.layout2.layout.IGLLayoutElement;
 import org.caleydo.core.view.opengl.picking.IPickingListener;
 import org.caleydo.core.view.opengl.picking.Pick;
 import org.caleydo.view.rnb.api.model.typed.TypedSet;
-import org.caleydo.view.rnb.internal.RnB;
 import org.caleydo.view.rnb.internal.Node;
+import org.caleydo.view.rnb.internal.RnB;
 import org.caleydo.view.rnb.internal.ScaleLogic;
 import org.caleydo.view.rnb.internal.UndoStack;
 import org.caleydo.view.rnb.internal.data.StratificationDataValue;
@@ -38,6 +41,8 @@ import org.caleydo.view.rnb.internal.dnd.NodeDragInfo;
 import org.caleydo.view.rnb.internal.dnd.RulerDragInfo;
 import org.caleydo.view.rnb.internal.toolbar.RulerTools;
 import org.caleydo.view.rnb.internal.undo.ZoomRulerCmd;
+
+import com.google.common.collect.ImmutableSortedSet;
 
 /**
  * @author Samuel Gratzl
@@ -312,8 +317,30 @@ public class Ruler extends GLElementContainer implements IDragGLSource, IPicking
 	protected Node createNode() {
 		Set<Integer> elements = manager.getElements(SelectionType.SELECTION);
 		TypedSet data = new TypedSet(elements, manager.getIDType());
-		StratificationDataValue d = new StratificationDataValue(getLabel(manager), data, this.dim);
+
+		String label = getLabel(elements, manager.getIDType());
+		StratificationDataValue d = new StratificationDataValue(label, data, this.dim);
 		return new Node(d);
+	}
+
+	public static String getLabel(Set<Integer> elements, IDType idType) {
+		String label = idType.getIDCategory().getCategoryName();
+		IDMappingManager manager = IDMappingManagerRegistry.get().getIDMappingManager(idType);
+		IIDTypeMapper<Integer, String> id2label = manager.getIDTypeMapper(idType, idType.getIDCategory()
+				.getHumanReadableIDType());
+		if (id2label != null) {
+			Set<String> r = id2label.apply(elements);
+			if (r != null) {
+				ImmutableSortedSet<String> b = ImmutableSortedSet.orderedBy(String.CASE_INSENSITIVE_ORDER).addAll(r)
+						.build();
+				if (b.size() < 3) {
+					label = StringUtils.join(b, ", ");
+				} else {
+					label = StringUtils.join(b.asList().subList(0, 3), ", ") + " ...";
+				}
+			}
+		}
+		return label;
 	}
 
 	@Override
