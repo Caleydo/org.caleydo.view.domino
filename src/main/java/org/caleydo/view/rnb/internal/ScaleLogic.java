@@ -39,12 +39,20 @@ public class ScaleLogic {
 			return 10;
 		if (x < 1000)
 			return 20;
-		return 50;
+		if (x < 2000)
+			return 50;
+		if (x < 5000)
+			return 100;
+		if (x < 10000)
+			return 250;
+		if (x < 10000)
+			return 250;
+		return 10000;
 	}
 
 	/**
 	 * convert a {@link IMouseEvent} to a direction information
-	 * 
+	 *
 	 * @param event
 	 * @param dim
 	 * @return -1 smaller, +1 larger, and 0 nothing

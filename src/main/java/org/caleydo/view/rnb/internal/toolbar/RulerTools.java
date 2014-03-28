@@ -16,8 +16,8 @@ import org.caleydo.core.view.opengl.layout2.basic.GLComboBox.ISelectionCallback;
 import org.caleydo.core.view.opengl.layout2.renderer.GLRenderers;
 import org.caleydo.core.view.opengl.layout2.renderer.IGLRenderer;
 import org.caleydo.core.view.opengl.layout2.renderer.RoundedRectRenderer;
-import org.caleydo.view.rnb.internal.RnB;
 import org.caleydo.view.rnb.internal.Resources;
+import org.caleydo.view.rnb.internal.RnB;
 import org.caleydo.view.rnb.internal.UndoStack;
 import org.caleydo.view.rnb.internal.ui.Ruler;
 import org.caleydo.view.rnb.internal.undo.RemoveRulerCmd;
@@ -39,7 +39,9 @@ public class RulerTools extends AItemTools implements ISelectionCallback<Integer
 		super(undo);
 		this.ruler = ruler;
 
-		GLComboBox<Integer> items = new GLComboBox<Integer>(Arrays.asList(0, 5, 10, 50, 100, 1000, Integer.MAX_VALUE),
+		GLComboBox<Integer> items = new GLComboBox<Integer>(Arrays.asList(0, 5, 10, 50, 100, 250, 500, 1000, 5000,
+				10000,
+				Integer.MAX_VALUE),
 				new IGLRenderer() {
 
 			@Override

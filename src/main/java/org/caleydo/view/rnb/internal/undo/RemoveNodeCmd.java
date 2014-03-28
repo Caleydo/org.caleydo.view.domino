@@ -9,8 +9,8 @@ import java.util.Collection;
 
 import org.caleydo.view.rnb.api.model.EDirection;
 import org.caleydo.view.rnb.internal.Block;
-import org.caleydo.view.rnb.internal.RnB;
 import org.caleydo.view.rnb.internal.Node;
+import org.caleydo.view.rnb.internal.RnB;
 
 /**
  * @author Samuel Gratzl
@@ -50,11 +50,13 @@ public class RemoveNodeCmd implements ICmd {
 				break;
 			}
 		}
-		if (dir == null)
-			throw new IllegalStateException();
-		assert neighbor != null && dir != null;
 		b.removeNode(node);
 		rnb.cleanup(node);
+		if (dir == null) {
+			// throw new IllegalStateException();
+			return null;
+		}
+		assert neighbor != null && dir != null;
 		return new PlaceNodeAtCmd(node, neighbor, dir.opposite());
 	}
 
