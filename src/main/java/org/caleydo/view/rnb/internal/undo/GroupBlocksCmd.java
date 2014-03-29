@@ -6,7 +6,7 @@
 package org.caleydo.view.rnb.internal.undo;
 
 import org.caleydo.view.rnb.internal.BlockGroup;
-import org.caleydo.view.rnb.internal.RnB;
+import org.caleydo.view.rnb.internal.Domino;
 
 /**
  * @author Samuel Gratzl
@@ -27,7 +27,7 @@ public class GroupBlocksCmd implements ICmd {
 	}
 
 	@Override
-	public ICmd run(RnB rnb) {
+	public ICmd run(Domino rnb) {
 		if (doGrouping) {
 			group.group();
 		} else {

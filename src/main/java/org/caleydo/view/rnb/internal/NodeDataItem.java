@@ -46,7 +46,7 @@ public class NodeDataItem implements IDataSetItem {
 	@Override
 	public ExpandItem create(ExpandBar expandBar) {
 		this.item = new ExpandItem(expandBar, SWT.WRAP);
-		item.setText("RnB Block Infos");
+		item.setText("Domino Block Infos");
 		item.setExpanded(false);
 		Composite c = new Composite(expandBar, SWT.NONE);
 		c.setLayout(new GridLayout(1, false));

@@ -11,7 +11,7 @@ import org.caleydo.core.data.perspective.table.TablePerspective;
 import org.caleydo.core.view.opengl.layout2.GLElement;
 import org.caleydo.core.view.opengl.layout2.dnd.IDragInfo;
 import org.caleydo.core.view.opengl.layout2.dnd.IRemoteDragInfoUICreator;
-import org.caleydo.view.rnb.internal.RnB;
+import org.caleydo.view.rnb.internal.Domino;
 
 /**
  * @author Samuel Gratzl
@@ -19,12 +19,12 @@ import org.caleydo.view.rnb.internal.RnB;
  */
 public class TablePerspectiveRemoveDragCreator implements IRemoteDragInfoUICreator {
 
-	private RnB rnb;
+	private Domino rnb;
 
 	/**
 	 * @param rnb
 	 */
-	public TablePerspectiveRemoveDragCreator(RnB rnb) {
+	public TablePerspectiveRemoveDragCreator(Domino rnb) {
 		this.rnb = rnb;
 	}
 

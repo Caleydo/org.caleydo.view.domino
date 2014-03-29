@@ -9,7 +9,7 @@ import gleem.linalg.Vec2f;
 
 import org.caleydo.core.view.opengl.layout2.GLElement;
 import org.caleydo.core.view.opengl.layout2.dnd.IDragInfo;
-import org.caleydo.view.rnb.internal.RnB;
+import org.caleydo.view.rnb.internal.Domino;
 
 /**
  * @author Samuel Gratzl
@@ -36,7 +36,7 @@ public abstract class ADragInfo implements IDragInfo {
 	 * @param rnb
 	 * @return
 	 */
-	public GLElement createUI(RnB rnb) {
+	public GLElement createUI(Domino rnb) {
 		Vec2f size = getSize();
 		return new DragElement(getLabel(), size, rnb, this);
 	}

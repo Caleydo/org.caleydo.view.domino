@@ -19,8 +19,8 @@ import org.caleydo.core.view.opengl.canvas.IGLKeyListener;
 import org.caleydo.core.view.opengl.layout2.GLElement;
 import org.caleydo.core.view.opengl.layout2.GLElementDecorator;
 import org.caleydo.core.view.opengl.layout2.view.AMultiTablePerspectiveElementView;
-import org.caleydo.view.rnb.internal.RnB;
-import org.caleydo.view.rnb.internal.serial.SerializedRnBView;
+import org.caleydo.view.rnb.internal.Domino;
+import org.caleydo.view.rnb.internal.serial.SerializedDominoView;
 
 /**
  * basic view based on {@link GLElement} with a {@link AMultiTablePerspectiveElementView}
@@ -28,18 +28,18 @@ import org.caleydo.view.rnb.internal.serial.SerializedRnBView;
  * @author Samuel Gratzl
  *
  */
-public class RnBView extends AMultiTablePerspectiveElementView {
+public class DominoView extends AMultiTablePerspectiveElementView {
 	public static final String VIEW_TYPE = "org.caleydo.view.rnb";
-	public static final String VIEW_NAME = "RnB";
+	public static final String VIEW_NAME = "Domino";
 
-	private final RnB rnb;
+	private final Domino rnb;
 
 	@DeepScan
 	private final IGLKeyListener keyAdapter;
 
-	public RnBView(IGLCanvas glCanvas) {
+	public DominoView(IGLCanvas glCanvas) {
 		super(glCanvas, VIEW_TYPE, VIEW_NAME);
-		rnb = new RnB();
+		rnb = new Domino();
 
 		keyAdapter = GLThreadListenerWrapper.wrap(rnb);
 	}
@@ -58,7 +58,7 @@ public class RnBView extends AMultiTablePerspectiveElementView {
 
 	@Override
 	public ASerializedView getSerializableRepresentation() {
-		return new SerializedRnBView(this);
+		return new SerializedDominoView(this);
 	}
 
 	@Override

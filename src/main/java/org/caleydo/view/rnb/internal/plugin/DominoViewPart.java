@@ -8,29 +8,29 @@ package org.caleydo.view.rnb.internal.plugin;
 import org.caleydo.core.view.ARcpGLElementViewPart;
 import org.caleydo.core.view.opengl.canvas.IGLCanvas;
 import org.caleydo.core.view.opengl.layout2.AGLElementView;
-import org.caleydo.view.rnb.internal.serial.SerializedRnBView;
+import org.caleydo.view.rnb.internal.serial.SerializedDominoView;
 
 /**
  *
  * @author Samuel Gratzl
  *
  */
-public class RnBViewPart extends ARcpGLElementViewPart {
+public class DominoViewPart extends ARcpGLElementViewPart {
 
 	/**
 	 * Constructor.
 	 */
-	public RnBViewPart() {
-		super(SerializedRnBView.class);
+	public DominoViewPart() {
+		super(SerializedDominoView.class);
 	}
 
 	@Override
 	protected AGLElementView createView(IGLCanvas canvas) {
-		return new RnBView(canvas);
+		return new DominoView(canvas);
 	}
 
 	@Override
-	public RnBView getView() {
-		return (RnBView) super.getView();
+	public DominoView getView() {
+		return (DominoView) super.getView();
 	}
 }

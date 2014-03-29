@@ -8,7 +8,7 @@ package org.caleydo.view.rnb.internal.undo;
 import gleem.linalg.Vec2f;
 
 import org.caleydo.core.id.IDCategory;
-import org.caleydo.view.rnb.internal.RnB;
+import org.caleydo.view.rnb.internal.Domino;
 
 /**
  * @author Samuel Gratzl
@@ -29,7 +29,7 @@ public class MoveRulerCmd implements IMergeAbleCmd {
 	}
 
 	@Override
-	public ICmd run(RnB rnb) {
+	public ICmd run(Domino rnb) {
 		rnb.moveRuler(category, shift);
 		return new MoveRulerCmd(category, shift.times(-1));
 	}

@@ -26,7 +26,7 @@ import org.caleydo.core.view.opengl.layout2.layout.IGLLayout2;
 import org.caleydo.core.view.opengl.layout2.layout.IGLLayoutElement;
 import org.caleydo.core.view.opengl.layout2.renderer.GLRenderers;
 import org.caleydo.core.view.opengl.layout2.renderer.IGLRenderer;
-import org.caleydo.view.rnb.internal.RnB;
+import org.caleydo.view.rnb.internal.Domino;
 import org.caleydo.view.rnb.internal.EToolState;
 import org.caleydo.view.rnb.internal.Resources;
 import org.caleydo.view.rnb.internal.UndoStack;
@@ -90,7 +90,7 @@ public class LeftToolBar extends GLElementContainer implements IGLLayout2, ISele
 
 	@Override
 	protected void renderImpl(GLGraphics g, float w, float h) {
-		g.color(findParent(RnB.class).getTool().getColor()).fillRect(0, 0, w, h);
+		g.color(findParent(Domino.class).getTool().getColor()).fillRect(0, 0, w, h);
 		super.renderImpl(g, w, h);
 	}
 
@@ -163,7 +163,7 @@ public class LeftToolBar extends GLElementContainer implements IGLLayout2, ISele
 		final ISelectionCallback callback = new ISelectionCallback() {
 			@Override
 			public void onSelectionChanged(GLButton button, boolean selected) {
-				RnB rnb = findParent(RnB.class);
+				Domino rnb = findParent(Domino.class);
 				switch (button.getTooltip()) {
 				case "Show Tour Guides":
 					DataTourGuideAdapter.show();
@@ -319,7 +319,7 @@ public class LeftToolBar extends GLElementContainer implements IGLLayout2, ISele
 
 	@Override
 	public void onSelectionChanged(GLButton button, boolean selected) {
-		findParent(RnB.class).setTool(button.getLayoutDataAs(EToolState.class, null));
+		findParent(Domino.class).setTool(button.getLayoutDataAs(EToolState.class, null));
 	}
 
 

@@ -16,7 +16,7 @@ import org.caleydo.core.view.opengl.layout2.GLGraphics;
 import org.caleydo.core.view.opengl.layout2.ISWTLayer.ISWTLayerRunnable;
 import org.caleydo.core.view.opengl.picking.Pick;
 import org.caleydo.core.view.opengl.util.text.ETextStyle;
-import org.caleydo.view.rnb.internal.RnB;
+import org.caleydo.view.rnb.internal.Domino;
 import org.caleydo.view.rnb.internal.UndoStack;
 import org.caleydo.view.rnb.internal.undo.SetAnnotationCmd;
 import org.eclipse.swt.widgets.Composite;
@@ -93,7 +93,7 @@ public class AnnotationItem extends AItem {
 
 	@ListenTo(sendToMe = true)
 	private void onSetTextEvent(SetTextEvent event) {
-		findParent(RnB.class).getUndo().push(new SetAnnotationCmd(this, event.getText()));
+		findParent(Domino.class).getUndo().push(new SetAnnotationCmd(this, event.getText()));
 	}
 
 	public static class SetTextEvent extends ADirectedEvent {

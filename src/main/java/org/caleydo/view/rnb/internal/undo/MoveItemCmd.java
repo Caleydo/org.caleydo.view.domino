@@ -7,7 +7,7 @@ package org.caleydo.view.rnb.internal.undo;
 
 import gleem.linalg.Vec2f;
 
-import org.caleydo.view.rnb.internal.RnB;
+import org.caleydo.view.rnb.internal.Domino;
 import org.caleydo.view.rnb.internal.ui.AItem;
 
 /**
@@ -29,7 +29,7 @@ public class MoveItemCmd implements IMergeAbleCmd {
 	}
 
 	@Override
-	public ICmd run(RnB rnb) {
+	public ICmd run(Domino rnb) {
 		item.shiftLocation(shift);
 		rnb.getBands().relayout();
 		return new MoveItemCmd(item, shift.times(-1));

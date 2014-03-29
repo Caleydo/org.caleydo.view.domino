@@ -10,7 +10,7 @@ import javax.xml.bind.annotation.XmlType;
 
 import org.caleydo.core.serialize.ASerializedMultiTablePerspectiveBasedView;
 import org.caleydo.core.view.IMultiTablePerspectiveBasedView;
-import org.caleydo.view.rnb.internal.plugin.RnBView;
+import org.caleydo.view.rnb.internal.plugin.DominoView;
 
 /**
  *
@@ -18,20 +18,20 @@ import org.caleydo.view.rnb.internal.plugin.RnBView;
  */
 @XmlRootElement
 @XmlType
-public class SerializedRnBView extends ASerializedMultiTablePerspectiveBasedView {
+public class SerializedDominoView extends ASerializedMultiTablePerspectiveBasedView {
 
 	/**
 	 * Default constructor with default initialization
 	 */
-	public SerializedRnBView() {
+	public SerializedDominoView() {
 	}
 
-	public SerializedRnBView(IMultiTablePerspectiveBasedView view) {
+	public SerializedDominoView(IMultiTablePerspectiveBasedView view) {
 		super(view);
 	}
 
 	@Override
 	public String getViewType() {
-		return RnBView.VIEW_TYPE;
+		return DominoView.VIEW_TYPE;
 	}
 }

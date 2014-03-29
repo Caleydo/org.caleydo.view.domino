@@ -1,7 +1,7 @@
 org.caleydo.view.rnb
 ==========================
 
-Caleydo RnB View
+Caleydo Domino View
 
 latest daily-build:
  * [Linux x86](http://dev.caleydo.org/jenkins/job/caleydo.super/lastSuccessfulBuild/artifact/org.caleydo.rcp/target/products/rnb-linux.gtk.x86.tar.gz)

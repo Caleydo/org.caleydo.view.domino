@@ -57,7 +57,7 @@ public class Bands extends ABands implements IDragGLSource, ICallback<SelectionT
 
 	@Override
 	public void on(SelectionType data) {
-		if (data == SelectionType.SELECTION && findParent(RnB.class).getTool() == EToolState.BANDS)
+		if (data == SelectionType.SELECTION && findParent(Domino.class).getTool() == EToolState.BANDS)
 			relayout();
 	}
 
@@ -77,7 +77,7 @@ public class Bands extends ABands implements IDragGLSource, ICallback<SelectionT
 			}
 		});
 		bands.clear();
-		RnB rnb = findParent(RnB.class);
+		Domino rnb = findParent(Domino.class);
 		EToolState tool = rnb.getTool();
 		List<Block> blocks;
 
@@ -170,7 +170,7 @@ public class Bands extends ABands implements IDragGLSource, ICallback<SelectionT
 	protected void onBandPick(Pick pick) {
 		switch (pick.getPickingMode()) {
 		case RIGHT_CLICKED:
-			UndoStack undo = findParent(RnB.class).getUndo();
+			UndoStack undo = findParent(Domino.class).getUndo();
 			ABand band = getRoute(pick.getObjectID());
 			undo.push(new ChangeBandLevelCmd(band.getId(), !((IMouseEvent) pick).isCtrlDown()));
 			repaint();
@@ -200,7 +200,7 @@ public class Bands extends ABands implements IDragGLSource, ICallback<SelectionT
 	@Override
 	public GLElement createUI(IDragInfo info) {
 		if (info instanceof ADragInfo)
-			return ((ADragInfo) info).createUI(findParent(RnB.class));
+			return ((ADragInfo) info).createUI(findParent(Domino.class));
 		return null;
 	}
 

@@ -9,7 +9,7 @@ import java.util.List;
 
 import org.caleydo.core.data.collection.EDimension;
 import org.caleydo.view.rnb.internal.Block;
-import org.caleydo.view.rnb.internal.RnB;
+import org.caleydo.view.rnb.internal.Domino;
 
 /**
  * @author Samuel Gratzl
@@ -25,7 +25,7 @@ public class CombineSlicesCmd implements ICmd {
 	}
 
 	@Override
-	public ICmd run(RnB rnb) {
+	public ICmd run(Domino rnb) {
 		Block block = rnb.combine(blocks, dim);
 		return CmdComposite.chain(new RemoveBlockCmd(block), AddBlockCmd.multi(blocks));
 	}

@@ -16,7 +16,7 @@ import org.caleydo.core.view.opengl.layout2.GLElement;
 import org.caleydo.core.view.opengl.layout2.GLGraphics;
 import org.caleydo.core.view.opengl.layout2.renderer.IGLRenderer;
 import org.caleydo.view.rnb.internal.Block;
-import org.caleydo.view.rnb.internal.RnB;
+import org.caleydo.view.rnb.internal.Domino;
 
 /**
  * @author Samuel Gratzl
@@ -66,7 +66,7 @@ public class BlockDragInfo extends ADragInfo {
 	 * @return
 	 */
 	@Override
-	public GLElement createUI(RnB rnb) {
+	public GLElement createUI(Domino rnb) {
 		if (blocks.size() == 1)
 			return super.createUI(rnb);
 		Vec2f size = getSize();

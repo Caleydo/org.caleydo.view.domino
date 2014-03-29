@@ -6,7 +6,7 @@
 package org.caleydo.view.rnb.internal.undo;
 
 import org.caleydo.view.rnb.internal.Node;
-import org.caleydo.view.rnb.internal.RnB;
+import org.caleydo.view.rnb.internal.Domino;
 
 /**
  * @author Samuel Gratzl
@@ -25,7 +25,7 @@ public class TransposeNodeViewCmd implements ICmd {
 	}
 
 	@Override
-	public ICmd run(RnB rnb) {
+	public ICmd run(Domino rnb) {
 		node.transposeView();
 		return this;
 	}

@@ -5,7 +5,7 @@
  *******************************************************************************/
 package org.caleydo.view.rnb.internal.undo;
 
-import org.caleydo.view.rnb.internal.RnB;
+import org.caleydo.view.rnb.internal.Domino;
 import org.caleydo.view.rnb.internal.band.ABandIdentifier;
 
 /**
@@ -33,7 +33,7 @@ public class ChangeBandLevelCmd implements ICmd {
 	}
 
 	@Override
-	public ICmd run(RnB rnb) {
+	public ICmd run(Domino rnb) {
 		rnb.getBands().changeLevel(bandIdentifier, increase);
 		return new ChangeBandLevelCmd(bandIdentifier, !increase);
 	}

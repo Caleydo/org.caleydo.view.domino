@@ -9,7 +9,7 @@ import java.util.Collection;
 
 import org.caleydo.core.data.collection.EDimension;
 import org.caleydo.view.rnb.internal.Block;
-import org.caleydo.view.rnb.internal.RnB;
+import org.caleydo.view.rnb.internal.Domino;
 import org.caleydo.view.rnb.internal.Node;
 
 /**
@@ -42,7 +42,7 @@ public class LimitToNodeCmd implements ICmd {
 	}
 
 	@Override
-	public ICmd run(RnB rnb) {
+	public ICmd run(Domino rnb) {
 		Block b = node.getBlock();
 		Node old = b.limitTo(node, dim);
 		if (old == null)

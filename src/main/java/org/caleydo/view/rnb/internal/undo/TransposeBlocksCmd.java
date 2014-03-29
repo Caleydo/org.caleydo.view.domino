@@ -8,7 +8,7 @@ package org.caleydo.view.rnb.internal.undo;
 import java.util.Set;
 
 import org.caleydo.view.rnb.internal.Block;
-import org.caleydo.view.rnb.internal.RnB;
+import org.caleydo.view.rnb.internal.Domino;
 
 /**
  * @author Samuel Gratzl
@@ -27,7 +27,7 @@ public class TransposeBlocksCmd implements ICmd {
 	}
 
 	@Override
-	public ICmd run(RnB rnb) {
+	public ICmd run(Domino rnb) {
 		for (Block b : blocks)
 			b.transpose();
 		return this;

@@ -12,7 +12,7 @@ import org.caleydo.core.view.opengl.layout2.dnd.IDnDItem;
 import org.caleydo.core.view.opengl.layout2.dnd.IDragGLSource;
 import org.caleydo.core.view.opengl.layout2.dnd.IDragInfo;
 import org.caleydo.core.view.opengl.picking.Pick;
-import org.caleydo.view.rnb.internal.RnB;
+import org.caleydo.view.rnb.internal.Domino;
 import org.caleydo.view.rnb.internal.dnd.ADragInfo;
 
 /**
@@ -77,7 +77,7 @@ public abstract class ADragButton extends AGLButton implements IDragGLSource {
 	@Override
 	public GLElement createUI(IDragInfo info) {
 		if (info instanceof ADragInfo)
-			return ((ADragInfo) info).createUI(findParent(RnB.class));
+			return ((ADragInfo) info).createUI(findParent(Domino.class));
 		return null;
 	}
 }

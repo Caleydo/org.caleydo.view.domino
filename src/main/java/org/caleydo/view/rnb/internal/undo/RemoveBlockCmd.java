@@ -8,7 +8,7 @@ package org.caleydo.view.rnb.internal.undo;
 import java.util.Collection;
 
 import org.caleydo.view.rnb.internal.Block;
-import org.caleydo.view.rnb.internal.RnB;
+import org.caleydo.view.rnb.internal.Domino;
 
 /**
  * @author Samuel Gratzl
@@ -38,7 +38,7 @@ public class RemoveBlockCmd implements ICmd {
 	}
 
 	@Override
-	public ICmd run(RnB rnb) {
+	public ICmd run(Domino rnb) {
 		rnb.removeBlock(block);
 		return new AddBlockCmd(block);
 	}

@@ -56,7 +56,7 @@ public class Placeholder extends APlaceholder {
 
 	@Override
 	protected void dropNode(Node node) {
-		RnB rnb = findParent(RnB.class);
+		Domino rnb = findParent(Domino.class);
 		if (transpose) {
 			node.transposeMe();
 		}

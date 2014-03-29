@@ -6,7 +6,7 @@
 package org.caleydo.view.rnb.internal.undo;
 
 import org.caleydo.core.id.IDCategory;
-import org.caleydo.view.rnb.internal.RnB;
+import org.caleydo.view.rnb.internal.Domino;
 
 /**
  * @author Samuel Gratzl
@@ -30,7 +30,7 @@ public class ZoomRulerCmd implements IMergeAbleCmd {
 	}
 
 	@Override
-	public ICmd run(RnB rnb) {
+	public ICmd run(Domino rnb) {
 		rnb.zoom(category, scale);
 		return new ZoomRulerCmd(category, old, scale);
 	}

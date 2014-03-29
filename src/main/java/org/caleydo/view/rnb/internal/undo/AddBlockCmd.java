@@ -3,7 +3,7 @@ package org.caleydo.view.rnb.internal.undo;
 import java.util.Collection;
 
 import org.caleydo.view.rnb.internal.Block;
-import org.caleydo.view.rnb.internal.RnB;
+import org.caleydo.view.rnb.internal.Domino;
 
 
 public class AddBlockCmd implements ICmd {
@@ -30,7 +30,7 @@ public class AddBlockCmd implements ICmd {
 	}
 
 	@Override
-	public ICmd run(RnB rnb) {
+	public ICmd run(Domino rnb) {
 		rnb.addBlock(block);
 		return new RemoveBlockCmd(block);
 	}

@@ -19,10 +19,10 @@ import org.caleydo.view.rnb.internal.undo.IMergeAbleCmd;
 public class UndoStack {
 	private final Deque<ICmd> undo = new ArrayDeque<>();
 	private final Deque<ICmd> redo = new ArrayDeque<>();
-	private final RnB rnb;
+	private final Domino rnb;
 	private ICallback<UndoStack> onChanged;
 
-	public UndoStack(RnB rnb) {
+	public UndoStack(Domino rnb) {
 		this.rnb = rnb;
 	}
 

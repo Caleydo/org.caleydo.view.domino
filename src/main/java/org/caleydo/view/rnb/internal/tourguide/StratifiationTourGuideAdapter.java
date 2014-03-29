@@ -31,7 +31,7 @@ public class StratifiationTourGuideAdapter extends ATourGuideAdapter implements 
 
 	@Override
 	public String getLabel() {
-		return "RnB Partitioned Blocks";
+		return "Domino Partitioned Blocks";
 	}
 
 	public static void show() {

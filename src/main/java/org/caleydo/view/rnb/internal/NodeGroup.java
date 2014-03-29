@@ -76,7 +76,7 @@ public class NodeGroup extends GLElementDecorator implements ILabeled, IDragGLSo
 	@Override
 	protected void init(IGLElementContext context) {
 		super.init(context);
-		RnB rnb = findRnB();
+		Domino rnb = findDomino();
 		setContentPickable(rnb.getTool() == EToolState.SELECT);
 		if (dimData != null && recData != null)
 			build();
@@ -153,7 +153,7 @@ public class NodeGroup extends GLElementDecorator implements ILabeled, IDragGLSo
 
 	@Override
 	public void pick(Pick pick) {
-		final NodeSelections rnb = findRnB().getSelections();
+		final NodeSelections rnb = findDomino().getSelections();
 		IMouseEvent event = (IMouseEvent) pick;
 		boolean ctrl = event.isCtrlDown();
 		switch (pick.getPickingMode()) {
@@ -197,7 +197,7 @@ public class NodeGroup extends GLElementDecorator implements ILabeled, IDragGLSo
 				selectItems(SelectionType.SELECTION, ctrl);
 			}
 			repaint();
-			context.getSWTLayer().showContextMenu(findRnB().getToolBar().asContextMenu());
+			context.getSWTLayer().showContextMenu(findDomino().getToolBar().asContextMenu());
 			break;
 		default:
 			break;
@@ -215,7 +215,7 @@ public class NodeGroup extends GLElementDecorator implements ILabeled, IDragGLSo
 	}
 
 	boolean autoSelectItems() {
-		return MyPreferences.isAutoSelectItems() && findRnB().getTool() == EToolState.MOVE;
+		return MyPreferences.isAutoSelectItems() && findDomino().getTool() == EToolState.MOVE;
 	}
 
 	private void clearItems(SelectionType type, boolean additional) {
@@ -230,7 +230,7 @@ public class NodeGroup extends GLElementDecorator implements ILabeled, IDragGLSo
 
 
 	public void selectMe() {
-		final NodeSelections rnb = findRnB().getSelections();
+		final NodeSelections rnb = findDomino().getSelections();
 		if (!rnb.isSelected(SelectionType.SELECTION, this))
 			rnb.select(SelectionType.SELECTION, this, true);
 		repaint();
@@ -280,7 +280,7 @@ public class NodeGroup extends GLElementDecorator implements ILabeled, IDragGLSo
 	protected void renderImpl(GLGraphics g, float w, float h) {
 		// Color c = recData.getColor();
 		// g.color(c).fillRect(0, 0, w, h);
-		final RnB rnb = findRnB();
+		final Domino rnb = findDomino();
 
 		if (rnb.isShowDebugInfos()) {
 			g.drawText(getLabel(), -100, h * 0.5f - 5, w + 200, 10, VAlign.CENTER);
@@ -313,7 +313,7 @@ public class NodeGroup extends GLElementDecorator implements ILabeled, IDragGLSo
 
 	@Override
 	public IDragInfo startSWTDrag(IDragEvent event) {
-		final RnB rnb = findRnB();
+		final Domino rnb = findDomino();
 		return rnb.startSWTDrag(event, this);
 	}
 
@@ -324,8 +324,8 @@ public class NodeGroup extends GLElementDecorator implements ILabeled, IDragGLSo
 		return g;
 	}
 
-	private RnB findRnB() {
-		return findParent(RnB.class);
+	private Domino findDomino() {
+		return findParent(Domino.class);
 	}
 
 	@Override
@@ -342,9 +342,9 @@ public class NodeGroup extends GLElementDecorator implements ILabeled, IDragGLSo
 	@Override
 	public GLElement createUI(IDragInfo info) {
 		if (info instanceof NodeDragInfo || info instanceof NodeGroupDragInfo)
-			findRnB().addPlaceholdersFor(getNode());
+			findDomino().addPlaceholdersFor(getNode());
 		if (info instanceof ADragInfo)
-			return ((ADragInfo) info).createUI(findRnB());
+			return ((ADragInfo) info).createUI(findDomino());
 		return null;
 	}
 
@@ -381,7 +381,7 @@ public class NodeGroup extends GLElementDecorator implements ILabeled, IDragGLSo
 		this.dimData = null;
 		this.recData = null;
 
-		RnB d = findRnB();
+		Domino d = findDomino();
 		if (d == null)
 			return;
 		d.getSelections().clear(SelectionType.MOUSE_OVER, (NodeGroup) null);

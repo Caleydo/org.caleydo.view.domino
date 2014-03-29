@@ -9,7 +9,7 @@ import org.caleydo.core.data.collection.EDimension;
 import org.caleydo.view.rnb.api.model.typed.TypedGroupList;
 import org.caleydo.view.rnb.api.model.typed.TypedGroupSet;
 import org.caleydo.view.rnb.api.model.typed.TypedGroups;
-import org.caleydo.view.rnb.internal.RnB;
+import org.caleydo.view.rnb.internal.Domino;
 import org.caleydo.view.rnb.internal.ESetOperation;
 import org.caleydo.view.rnb.internal.Node;
 import org.caleydo.view.rnb.internal.data.IDataValues;
@@ -36,7 +36,7 @@ public class MergeNodesCmd implements ICmd {
 	}
 
 	@Override
-	public ICmd run(RnB rnb) {
+	public ICmd run(Domino rnb) {
 		ICmd readd = null;
 		if (rnb.containsNode(with))
 			readd = new RemoveNodeCmd(with).run(rnb);
@@ -88,7 +88,7 @@ public class MergeNodesCmd implements ICmd {
 		}
 
 		@Override
-		public ICmd run(RnB rnb) {
+		public ICmd run(Domino rnb) {
 			node.setDataValues(data);
 			node.setUnderlyingData(dim, ori);
 			node.setLabel(label);

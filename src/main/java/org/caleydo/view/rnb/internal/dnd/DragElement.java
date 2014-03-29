@@ -15,7 +15,7 @@ import org.caleydo.core.view.opengl.layout2.IGLElementContext;
 import org.caleydo.core.view.opengl.layout2.dnd.IDragInfo;
 import org.caleydo.core.view.opengl.layout2.layout.GLLayouts;
 import org.caleydo.core.view.opengl.layout2.renderer.IGLRenderer;
-import org.caleydo.view.rnb.internal.RnB;
+import org.caleydo.view.rnb.internal.Domino;
 
 import com.google.common.base.Objects;
 
@@ -27,7 +27,7 @@ public class DragElement extends GLElement implements IGLRenderer {
 
 	private final String label;
 
-	private final RnB rnb;
+	private final Domino rnb;
 
 	private final IDragInfo info;
 
@@ -37,7 +37,7 @@ public class DragElement extends GLElement implements IGLRenderer {
 
 	private Vec2f hintSizes;
 
-	public DragElement(String label, Vec2f size, RnB rnb, IDragInfo info) {
+	public DragElement(String label, Vec2f size, Domino rnb, IDragInfo info) {
 		this(label, size, rnb, info, null);
 	}
 
@@ -45,7 +45,7 @@ public class DragElement extends GLElement implements IGLRenderer {
 	 * @param label
 	 * @param info
 	 */
-	public DragElement(String label, Vec2f size, RnB rnb, IDragInfo info, IGLRenderer renderer) {
+	public DragElement(String label, Vec2f size, Domino rnb, IDragInfo info, IGLRenderer renderer) {
 		this.label = label;
 		this.rnb = rnb;
 		this.info = info;

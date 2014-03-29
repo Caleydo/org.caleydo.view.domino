@@ -5,7 +5,7 @@
  *******************************************************************************/
 package org.caleydo.view.rnb.internal.undo;
 
-import org.caleydo.view.rnb.internal.RnB;
+import org.caleydo.view.rnb.internal.Domino;
 import org.caleydo.view.rnb.internal.ui.AnnotationItem;
 
 /**
@@ -27,7 +27,7 @@ public class SetAnnotationCmd implements ICmd {
 	}
 
 	@Override
-	public ICmd run(RnB rnb) {
+	public ICmd run(Domino rnb) {
 		String bak = item.getText();
 		item.setText(text);
 		return new SetAnnotationCmd(item, bak);

@@ -18,7 +18,7 @@ import org.caleydo.view.rnb.api.model.typed.TypedGroupSet;
 import org.caleydo.view.rnb.api.model.typed.TypedListGroup;
 import org.caleydo.view.rnb.api.model.typed.TypedSet;
 import org.caleydo.view.rnb.api.model.typed.TypedSetGroup;
-import org.caleydo.view.rnb.internal.RnB;
+import org.caleydo.view.rnb.internal.Domino;
 import org.caleydo.view.rnb.internal.Node;
 import org.caleydo.view.rnb.internal.NodeGroup;
 
@@ -43,7 +43,7 @@ public class MergeGroupsCmd implements ICmd {
 	}
 
 	@Override
-	public ICmd run(RnB rnb) {
+	public ICmd run(Domino rnb) {
 		EDimension dim = node.getSingleGroupingDimension();
 		TypedGroupSet bak = node.getUnderlyingData(dim);
 		List<TypedListGroup> d = new ArrayList<>(node.getData(dim).getGroups());
@@ -97,7 +97,7 @@ public class MergeGroupsCmd implements ICmd {
 		}
 
 		@Override
-		public ICmd run(RnB rnb) {
+		public ICmd run(Domino rnb) {
 			node.setUnderlyingData(dim, ori);
 			return MergeGroupsCmd.this;
 		}

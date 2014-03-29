@@ -11,7 +11,7 @@ import java.util.List;
 import org.caleydo.core.data.collection.EDimension;
 import org.caleydo.core.util.collection.Pair;
 import org.caleydo.view.rnb.internal.Block;
-import org.caleydo.view.rnb.internal.RnB;
+import org.caleydo.view.rnb.internal.Domino;
 import org.caleydo.view.rnb.internal.Node;
 import org.caleydo.view.rnb.internal.LinearBlock.ESortingMode;
 
@@ -47,7 +47,7 @@ public class SortByNodesCmd implements ICmd {
 	}
 
 	@Override
-	public ICmd run(RnB rnb) {
+	public ICmd run(Domino rnb) {
 		Block b = node.getBlock();
 		List<Pair<Node, ESortingMode>> r;
 		if (stratify)
@@ -72,7 +72,7 @@ public class SortByNodesCmd implements ICmd {
 		}
 
 		@Override
-		public ICmd run(RnB rnb) {
+		public ICmd run(Domino rnb) {
 			Block b = node.getBlock();
 			List<Pair<Node, ESortingMode>> r = b.restoreSorting(node, dim, sortCriteria);
 			if (r == null)

@@ -5,7 +5,7 @@
  *******************************************************************************/
 package org.caleydo.view.rnb.internal.undo;
 
-import org.caleydo.view.rnb.internal.RnB;
+import org.caleydo.view.rnb.internal.Domino;
 import org.caleydo.view.rnb.internal.ui.AItem;
 
 /**
@@ -28,7 +28,7 @@ public class ZoomItemCmd implements IMergeAbleCmd {
 	}
 
 	@Override
-	public ICmd run(RnB rnb) {
+	public ICmd run(Domino rnb) {
 		item.zoom(shift);
 		rnb.getBands().relayout();
 		return new ZoomItemCmd(item, -shift);

@@ -10,7 +10,7 @@ import java.util.Collection;
 import org.caleydo.view.rnb.api.model.EDirection;
 import org.caleydo.view.rnb.internal.Block;
 import org.caleydo.view.rnb.internal.Node;
-import org.caleydo.view.rnb.internal.RnB;
+import org.caleydo.view.rnb.internal.Domino;
 
 /**
  * @author Samuel Gratzl
@@ -35,7 +35,7 @@ public class RemoveNodeCmd implements ICmd {
 	}
 
 	@Override
-	public ICmd run(RnB rnb) {
+	public ICmd run(Domino rnb) {
 		Block b = node.getBlock();
 		if (b.nodeCount() == 1) // remove the whole block
 			return new RemoveBlockCmd(b).run(rnb);

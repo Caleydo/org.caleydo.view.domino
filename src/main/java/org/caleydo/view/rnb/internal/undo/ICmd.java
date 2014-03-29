@@ -6,7 +6,7 @@
 package org.caleydo.view.rnb.internal.undo;
 
 import org.caleydo.core.util.base.ILabeled;
-import org.caleydo.view.rnb.internal.RnB;
+import org.caleydo.view.rnb.internal.Domino;
 
 /**
  * @author Samuel Gratzl
@@ -18,5 +18,5 @@ public interface ICmd extends ILabeled {
 	 *
 	 * @return
 	 */
-	ICmd run(RnB rnb);
+	ICmd run(Domino rnb);
 }

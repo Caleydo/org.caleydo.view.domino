@@ -3,7 +3,7 @@ package org.caleydo.view.rnb.internal.undo;
 import gleem.linalg.Vec2f;
 
 import org.caleydo.view.rnb.internal.Block;
-import org.caleydo.view.rnb.internal.RnB;
+import org.caleydo.view.rnb.internal.Domino;
 import org.caleydo.view.rnb.internal.Node;
 
 
@@ -22,7 +22,7 @@ public class AddLazyBlockCmd implements ICmd {
 	}
 
 	@Override
-	public ICmd run(RnB rnb) {
+	public ICmd run(Domino rnb) {
 		Block b = new Block(node);
 		b.setLocation(loc.x(), loc.y());
 		rnb.addBlock(b);

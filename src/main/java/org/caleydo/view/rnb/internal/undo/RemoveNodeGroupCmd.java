@@ -13,7 +13,7 @@ import org.caleydo.view.rnb.api.model.typed.TypedListGroup;
 import org.caleydo.view.rnb.internal.LinearBlock;
 import org.caleydo.view.rnb.internal.Node;
 import org.caleydo.view.rnb.internal.NodeGroup;
-import org.caleydo.view.rnb.internal.RnB;
+import org.caleydo.view.rnb.internal.Domino;
 
 /**
  * @author Samuel Gratzl
@@ -34,7 +34,7 @@ public class RemoveNodeGroupCmd implements ICmd {
 	}
 
 	@Override
-	public ICmd run(RnB rnb) {
+	public ICmd run(Domino rnb) {
 		EDimension dim = node.getSingleGroupingDimension();
 		TypedGroupSet bak = node.getUnderlyingData(dim);
 		final List<TypedListGroup> gropus = node.getData(dim).getGroups();
@@ -56,7 +56,7 @@ public class RemoveNodeGroupCmd implements ICmd {
 		}
 
 		@Override
-		public ICmd run(RnB rnb) {
+		public ICmd run(Domino rnb) {
 			node.setUnderlyingData(dim, ori);
 			return RemoveNodeGroupCmd.this;
 		}

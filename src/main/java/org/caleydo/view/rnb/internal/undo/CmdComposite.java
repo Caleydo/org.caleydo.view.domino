@@ -9,7 +9,7 @@ import java.util.Arrays;
 
 import org.apache.commons.lang.StringUtils;
 import org.caleydo.core.util.base.Labels;
-import org.caleydo.view.rnb.internal.RnB;
+import org.caleydo.view.rnb.internal.Domino;
 
 import com.google.common.collect.Collections2;
 
@@ -34,7 +34,7 @@ public class CmdComposite implements ICmd {
 	}
 
 	@Override
-	public ICmd run(RnB rnb) {
+	public ICmd run(Domino rnb) {
 		ICmd[] u = new ICmd[cmds.length];
 		for (int i = 0; i < cmds.length; ++i) {
 			u[u.length - 1 - i] = cmds[i].run(rnb);

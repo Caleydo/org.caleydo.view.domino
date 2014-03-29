@@ -32,7 +32,7 @@ import org.caleydo.core.view.opengl.picking.IPickingListener;
 import org.caleydo.core.view.opengl.picking.Pick;
 import org.caleydo.view.rnb.api.model.typed.TypedSet;
 import org.caleydo.view.rnb.internal.Node;
-import org.caleydo.view.rnb.internal.RnB;
+import org.caleydo.view.rnb.internal.Domino;
 import org.caleydo.view.rnb.internal.ScaleLogic;
 import org.caleydo.view.rnb.internal.UndoStack;
 import org.caleydo.view.rnb.internal.data.StratificationDataValue;
@@ -264,7 +264,7 @@ public class Ruler extends GLElementContainer implements IDragGLSource, IPicking
 			float new_ = Math.max(ori + change, 1);
 			float scale = new_ / maxElements;
 
-			UndoStack undo = findParent(RnB.class).getUndo();
+			UndoStack undo = findParent(Domino.class).getUndo();
 			undo.push(new ZoomRulerCmd(getIDCategory(), scale, this.scaleFactor));
 			break;
 		case MOUSE_OVER:
@@ -351,7 +351,7 @@ public class Ruler extends GLElementContainer implements IDragGLSource, IPicking
 	@Override
 	public GLElement createUI(IDragInfo info) {
 		if (info instanceof ADragInfo) {
-			return ((ADragInfo) info).createUI(findParent(RnB.class));
+			return ((ADragInfo) info).createUI(findParent(Domino.class));
 		}
 		return null;
 	}

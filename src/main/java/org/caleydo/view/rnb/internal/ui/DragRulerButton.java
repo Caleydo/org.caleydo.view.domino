@@ -16,7 +16,7 @@ import org.caleydo.core.view.opengl.layout2.dnd.IDragGLSource;
 import org.caleydo.core.view.opengl.layout2.dnd.IDragInfo;
 import org.caleydo.core.view.opengl.layout2.renderer.GLRenderers;
 import org.caleydo.core.view.opengl.picking.Pick;
-import org.caleydo.view.rnb.internal.RnB;
+import org.caleydo.view.rnb.internal.Domino;
 import org.caleydo.view.rnb.internal.Resources;
 import org.caleydo.view.rnb.internal.dnd.ADragInfo;
 import org.caleydo.view.rnb.internal.dnd.RulerDragInfo;
@@ -59,7 +59,7 @@ public class DragRulerButton extends AGLButton implements IDragGLSource {
 
 	@Override
 	public IDragInfo startSWTDrag(IDragEvent event) {
-		return new RulerDragInfo(event.getMousePos(), new Ruler(manager, findParent(RnB.class).getUndo()));
+		return new RulerDragInfo(event.getMousePos(), new Ruler(manager, findParent(Domino.class).getUndo()));
 	}
 
 	@Override
@@ -91,7 +91,7 @@ public class DragRulerButton extends AGLButton implements IDragGLSource {
 	protected void onMouseReleased(Pick pick) {
 		if (dragMode)
 			return;
-		findParent(RnB.class).scrollRulerIntoView(getIDCategory());
+		findParent(Domino.class).scrollRulerIntoView(getIDCategory());
 	}
 
 	/**
@@ -115,7 +115,7 @@ public class DragRulerButton extends AGLButton implements IDragGLSource {
 	@Override
 	public GLElement createUI(IDragInfo info) {
 		if (info instanceof ADragInfo)
-			return ((ADragInfo) info).createUI(findParent(RnB.class));
+			return ((ADragInfo) info).createUI(findParent(Domino.class));
 		return null;
 	}
 }

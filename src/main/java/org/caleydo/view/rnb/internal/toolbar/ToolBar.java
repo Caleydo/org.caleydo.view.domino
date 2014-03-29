@@ -23,7 +23,7 @@ import org.caleydo.core.view.opengl.layout2.GLGraphics;
 import org.caleydo.core.view.opengl.layout2.layout.GLLayouts;
 import org.caleydo.core.view.opengl.layout2.layout.GLPadding;
 import org.caleydo.core.view.opengl.layout2.renderer.GLRenderers;
-import org.caleydo.view.rnb.internal.RnB;
+import org.caleydo.view.rnb.internal.Domino;
 import org.caleydo.view.rnb.internal.NodeGroup;
 import org.caleydo.view.rnb.internal.NodeSelections;
 import org.caleydo.view.rnb.internal.UndoStack;
@@ -91,7 +91,7 @@ public class ToolBar extends GLElementContainer implements ICallback<SelectionTy
 
 	@Override
 	protected void renderImpl(GLGraphics g, float w, float h) {
-		g.color(findParent(RnB.class).getTool().getColor()).fillRect(0, 0, w, h);
+		g.color(findParent(Domino.class).getTool().getColor()).fillRect(0, 0, w, h);
 		super.renderImpl(g, w, h);
 	}
 

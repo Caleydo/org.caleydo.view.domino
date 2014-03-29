@@ -18,7 +18,7 @@ import org.caleydo.core.view.opengl.layout2.dnd.IDnDItem;
 import org.caleydo.core.view.opengl.layout2.dnd.IDragInfo;
 import org.caleydo.core.view.opengl.layout2.layout.IGLLayoutElement;
 import org.caleydo.core.view.opengl.picking.Pick;
-import org.caleydo.view.rnb.internal.RnB;
+import org.caleydo.view.rnb.internal.Domino;
 import org.caleydo.view.rnb.internal.ScaleLogic;
 import org.caleydo.view.rnb.internal.UndoStack;
 import org.caleydo.view.rnb.internal.dnd.ADragInfo;

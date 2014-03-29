@@ -72,7 +72,7 @@ import com.google.common.collect.ImmutableList;
  * @author Samuel Gratzl
  *
  */
-public class RnB extends GLElementContainer implements IDropGLTarget, IPickingListener, IGLLayout2, IGLKeyListener {
+public class Domino extends GLElementContainer implements IDropGLTarget, IPickingListener, IGLLayout2, IGLKeyListener {
 	private GLElementContainer placeholders;
 	private final Bands bands;
 	private final Blocks blocks;
@@ -95,7 +95,7 @@ public class RnB extends GLElementContainer implements IDropGLTarget, IPickingLi
 	/**
 	 *
 	 */
-	public RnB() {
+	public Domino() {
 		setLayout(this);
 
 		this.toolBar = new ToolBar(undo, selections);

@@ -14,8 +14,8 @@ import org.caleydo.core.view.opengl.layout2.IMouseLayer;
 import org.caleydo.core.view.opengl.layout2.dnd.IDragGLSource;
 import org.caleydo.core.view.opengl.picking.PickingMode;
 import org.caleydo.view.rnb.internal.Resources;
-import org.caleydo.view.rnb.internal.plugin.RnBView;
-import org.caleydo.view.rnb.internal.plugin.RnBViewPart;
+import org.caleydo.view.rnb.internal.plugin.DominoView;
+import org.caleydo.view.rnb.internal.plugin.DominoViewPart;
 import org.caleydo.view.tourguide.api.model.ADataDomainQuery;
 import org.caleydo.view.tourguide.api.model.AScoreRow;
 import org.caleydo.view.tourguide.api.vis.ITourGuideView;
@@ -30,7 +30,7 @@ import org.eclipse.ui.IWorkbenchPart;
  *
  */
 public abstract class ATourGuideAdapter implements ITourGuideAdapter {
-	protected RnBView rnb;
+	protected DominoView rnb;
 	protected ITourGuideView vis;
 	private IDragGLSource dragSource;
 
@@ -123,15 +123,15 @@ public abstract class ATourGuideAdapter implements ITourGuideAdapter {
 
 	@Override
 	public final boolean isRepresenting(IWorkbenchPart part, boolean isBoundTo) {
-		if (part instanceof RnBViewPart)
-			return !isBoundTo || ((RnBViewPart) part).getView() == rnb;
+		if (part instanceof DominoViewPart)
+			return !isBoundTo || ((DominoViewPart) part).getView() == rnb;
 		return false;
 	}
 
 	@Override
 	public final void bindTo(IViewPart part) {
-		if (part instanceof RnBViewPart)
-			this.rnb = ((RnBViewPart)part).getView();
+		if (part instanceof DominoViewPart)
+			this.rnb = ((DominoViewPart)part).getView();
 		else
 			this.rnb = null;
 		if (vis != null)

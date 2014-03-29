@@ -9,7 +9,7 @@ import gleem.linalg.Vec2f;
 
 import java.util.Objects;
 
-import org.caleydo.view.rnb.internal.RnB;
+import org.caleydo.view.rnb.internal.Domino;
 import org.caleydo.view.rnb.internal.Node;
 
 /**
@@ -37,7 +37,7 @@ public class ZoomCmd implements IMergeAbleCmd {
 	}
 
 	@Override
-	public ICmd run(RnB rnb) {
+	public ICmd run(Domino rnb) {
 		if (node != null)
 			node.getBlock().zoom(shift, node);
 		else

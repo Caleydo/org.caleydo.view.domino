@@ -12,7 +12,7 @@ import org.caleydo.view.rnb.api.model.typed.TypedGroupSet;
 import org.caleydo.view.rnb.internal.Block;
 import org.caleydo.view.rnb.internal.Node;
 import org.caleydo.view.rnb.internal.NodeGroup;
-import org.caleydo.view.rnb.internal.RnB;
+import org.caleydo.view.rnb.internal.Domino;
 
 /**
  * @author Samuel Gratzl
@@ -28,7 +28,7 @@ public class RemoveSliceCmd implements ICmd {
 	}
 
 	@Override
-	public ICmd run(RnB rnb) {
+	public ICmd run(Domino rnb) {
 		final Node node = toRemove.getNode();
 		Block block = node.getBlock();
 		List<TypedGroupSet> bak = block.removeSlice(node, dim, toRemove);
@@ -44,7 +44,7 @@ public class RemoveSliceCmd implements ICmd {
 		}
 
 		@Override
-		public ICmd run(RnB rnb) {
+		public ICmd run(Domino rnb) {
 			final Node node = toRemove.getNode();
 			Block block = node.getBlock();
 			block.restoreSlice(node, dim, ori);

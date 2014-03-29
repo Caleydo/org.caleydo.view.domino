@@ -9,6 +9,6 @@ import org.caleydo.core.gui.command.AOpenViewHandler;
 
 public class OpenViewHandler extends AOpenViewHandler {
 	public OpenViewHandler() {
-		super(RnBView.VIEW_TYPE, SINGLE);
+		super(DominoView.VIEW_TYPE, SINGLE);
 	}
 }

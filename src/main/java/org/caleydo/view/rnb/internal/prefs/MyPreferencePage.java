@@ -72,6 +72,6 @@ public class MyPreferencePage extends FieldEditorPreferencePage implements IWork
 	@Override
 	public void init(IWorkbench workbench) {
 		setPreferenceStore(MyPreferences.prefs());
-		setDescription("RnB settings");
+		setDescription("Domino settings");
 	}
 }

@@ -10,7 +10,7 @@ import gleem.linalg.Vec2f;
 import java.util.Set;
 
 import org.caleydo.view.rnb.internal.Block;
-import org.caleydo.view.rnb.internal.RnB;
+import org.caleydo.view.rnb.internal.Domino;
 
 /**
  * @author Samuel Gratzl
@@ -31,7 +31,7 @@ public class MoveBlockCmd implements IMergeAbleCmd {
 	}
 
 	@Override
-	public ICmd run(RnB rnb) {
+	public ICmd run(Domino rnb) {
 		rnb.moveBlocks(blocks, shift);
 		return new MoveBlockCmd(blocks, shift.times(-1));
 	}

@@ -5,7 +5,7 @@
  *******************************************************************************/
 package org.caleydo.view.rnb.internal.undo;
 
-import org.caleydo.view.rnb.internal.RnB;
+import org.caleydo.view.rnb.internal.Domino;
 import org.caleydo.view.rnb.internal.Node;
 
 /**
@@ -28,7 +28,7 @@ public class PersistNodeCmd implements ICmd {
 	}
 
 	@Override
-	public ICmd run(RnB rnb) {
+	public ICmd run(Domino rnb) {
 		rnb.persistPreview(preview);
 
 		ICmd readd = null;
@@ -49,7 +49,7 @@ public class PersistNodeCmd implements ICmd {
 		}
 
 		@Override
-		public ICmd run(RnB rnb) {
+		public ICmd run(Domino rnb) {
 			ICmd del = null;
 			if (readd != null)
 				del = readd.run(rnb);

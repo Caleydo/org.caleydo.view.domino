@@ -5,10 +5,10 @@
          point="org.eclipse.ui.views">
       <view
             category="org.caleydo.core.views"
-            class="org.caleydo.view.rnb.internal.plugin.RnBViewPart"
+            class="org.caleydo.view.rnb.internal.plugin.DominoViewPart"
             icon="resources/icons/icon.png"
             id="org.caleydo.view.rnb"
-            name="RnB">
+            name="Domino">
       </view>
    </extension>
    <extension
@@ -27,7 +27,7 @@
       <command
             defaultHandler="org.caleydo.view.rnb.internal.plugin.OpenViewHandler"
             id="org.caleydo.view.rnb.command.open"
-            name="RnB">
+            name="Domino">
       </command>
    </extension>
    <extension
@@ -94,7 +94,7 @@
             category="org.caleydo.core.gui.preferences.views"
             class="org.caleydo.view.rnb.internal.prefs.MyPreferencePage"
             id="org.caleydo.view.rnb"
-            name="RnB">
+            name="Domino">
       </page>
    </extension>
 </plugin>

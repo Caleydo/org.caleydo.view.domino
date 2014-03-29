@@ -382,7 +382,7 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 			break;
 		case MOUSE_WHEEL:
 			Vec2f shift = ScaleLogic.shiftLogic((IMouseEvent) pick, getSize());
-			findParent(RnB.class).getUndo().push(new ZoomCmd(this, shift, null));
+			findParent(Domino.class).getUndo().push(new ZoomCmd(this, shift, null));
 			break;
 		default:
 			break;
@@ -427,7 +427,7 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 			this.dropSetOperation = type;
 			repaint();
 		}
-		final RnB rnb = findParent(RnB.class);
+		final Domino rnb = findParent(Domino.class);
 		if (rnb == null)
 			return;
 		DragElement current = rnb.getCurrentlyDraggedVis();
@@ -483,7 +483,7 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 	 */
 	private void mergeNode(Node node, Vec2f mousePos, NodeGroup groupToRemove) {
 		final ESetOperation type = toSetType(mousePos);
-		RnB rnb = findParent(RnB.class);
+		Domino rnb = findParent(Domino.class);
 		final UndoStack undo = rnb.getUndo();
 		final MergeNodesCmd cmd = new MergeNodesCmd(this, type, node);
 		if (groupToRemove != null) {

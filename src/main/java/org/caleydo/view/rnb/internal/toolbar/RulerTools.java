@@ -17,7 +17,7 @@ import org.caleydo.core.view.opengl.layout2.renderer.GLRenderers;
 import org.caleydo.core.view.opengl.layout2.renderer.IGLRenderer;
 import org.caleydo.core.view.opengl.layout2.renderer.RoundedRectRenderer;
 import org.caleydo.view.rnb.internal.Resources;
-import org.caleydo.view.rnb.internal.RnB;
+import org.caleydo.view.rnb.internal.Domino;
 import org.caleydo.view.rnb.internal.UndoStack;
 import org.caleydo.view.rnb.internal.ui.Ruler;
 import org.caleydo.view.rnb.internal.undo.RemoveRulerCmd;
@@ -96,7 +96,7 @@ public class RulerTools extends AItemTools implements ISelectionCallback<Integer
 	private int toSize(Integer item) {
 		switch (item.intValue()) {
 		case 0:
-			return findParent(RnB.class).getVisibleItemCount(ruler.getIDCategory());
+			return findParent(Domino.class).getVisibleItemCount(ruler.getIDCategory());
 		case Integer.MAX_VALUE:
 			return Ruler.getTotalMax(ruler.getIDCategory());
 		default:

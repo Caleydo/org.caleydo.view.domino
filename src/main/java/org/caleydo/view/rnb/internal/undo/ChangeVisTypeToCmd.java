@@ -9,7 +9,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 
 import org.caleydo.core.util.collection.Pair;
-import org.caleydo.view.rnb.internal.RnB;
+import org.caleydo.view.rnb.internal.Domino;
 import org.caleydo.view.rnb.internal.Node;
 
 /**
@@ -36,7 +36,7 @@ public class ChangeVisTypeToCmd implements ICmd {
 	}
 
 	@Override
-	public ICmd run(RnB rnb) {
+	public ICmd run(Domino rnb) {
 		Collection<Pair<Node, String>> r = new ArrayList<>(visTypes.size());
 		for (Pair<Node, String> p : visTypes) {
 			Node node = p.getFirst();

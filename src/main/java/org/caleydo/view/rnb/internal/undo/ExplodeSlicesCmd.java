@@ -10,7 +10,7 @@ import java.util.List;
 
 import org.caleydo.core.data.collection.EDimension;
 import org.caleydo.view.rnb.internal.Block;
-import org.caleydo.view.rnb.internal.RnB;
+import org.caleydo.view.rnb.internal.Domino;
 
 /**
  * @author Samuel Gratzl
@@ -37,7 +37,7 @@ public class ExplodeSlicesCmd implements ICmd {
 	}
 
 	@Override
-	public ICmd run(RnB rnb) {
+	public ICmd run(Domino rnb) {
 		List<Block> blocks = rnb.explode(block, dim);
 		return CmdComposite.chain(RemoveBlockCmd.multi(blocks), new AddBlockCmd(block));
 	}

@@ -1,6 +1,6 @@
 package org.caleydo.view.rnb.internal.undo;
 
-import org.caleydo.view.rnb.internal.RnB;
+import org.caleydo.view.rnb.internal.Domino;
 import org.caleydo.view.rnb.internal.ui.Ruler;
 
 
@@ -19,7 +19,7 @@ public class SetRulerMaxCmd implements ICmd {
 	}
 
 	@Override
-	public ICmd run(RnB rnb) {
+	public ICmd run(Domino rnb) {
 		int bak = ruler.getMaxElements();
 		ruler.setMaxElements(max);
 		return new SetRulerMaxCmd(ruler, bak);

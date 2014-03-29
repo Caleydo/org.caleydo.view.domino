@@ -20,7 +20,7 @@ import org.caleydo.core.view.opengl.layout2.layout.IGLLayout2;
 import org.caleydo.core.view.opengl.layout2.layout.IGLLayoutElement;
 import org.caleydo.core.view.opengl.picking.IPickingListener;
 import org.caleydo.core.view.opengl.picking.Pick;
-import org.caleydo.view.rnb.internal.RnB;
+import org.caleydo.view.rnb.internal.Domino;
 import org.caleydo.view.rnb.internal.ScaleLogic;
 import org.caleydo.view.rnb.internal.UndoStack;
 import org.caleydo.view.rnb.internal.dnd.ADragInfo;
@@ -92,7 +92,7 @@ public class AItem extends GLElementContainer implements IDragGLSource, IPicking
 			float change = dim.select(shift);
 			if (change == 0)
 				return;
-			UndoStack undo = findParent(RnB.class).getUndo();
+			UndoStack undo = findParent(Domino.class).getUndo();
 			undo.push(new ZoomItemCmd(this, change));
 			break;
 		case MOUSE_OVER:
@@ -132,7 +132,7 @@ public class AItem extends GLElementContainer implements IDragGLSource, IPicking
 	@Override
 	public GLElement createUI(IDragInfo info) {
 		if (info instanceof ADragInfo) {
-			return ((ADragInfo) info).createUI(findParent(RnB.class));
+			return ((ADragInfo) info).createUI(findParent(Domino.class));
 		}
 		return null;
 	}

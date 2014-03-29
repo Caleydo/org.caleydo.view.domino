@@ -5,7 +5,7 @@
  *******************************************************************************/
 package org.caleydo.view.rnb.internal.undo;
 
-import org.caleydo.view.rnb.internal.RnB;
+import org.caleydo.view.rnb.internal.Domino;
 import org.caleydo.view.rnb.internal.ui.AItem;
 
 /**
@@ -25,7 +25,7 @@ public class TransposeItemCmd implements ICmd {
 	}
 
 	@Override
-	public ICmd run(RnB rnb) {
+	public ICmd run(Domino rnb) {
 		item.transpose();
 		rnb.getBands().relayout();
 		return this;

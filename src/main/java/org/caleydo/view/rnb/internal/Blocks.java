@@ -56,7 +56,7 @@ public class Blocks extends GLElementContainer implements ICallback<SelectionTyp
 
 	@Override
 	public void on(SelectionType data) {
-		final RnB rnb = findParent(RnB.class);
+		final Domino rnb = findParent(Domino.class);
 		if (data == SelectionType.SELECTION && rnb.getTool() == EToolState.BANDS) {
 			Set<Block> s = rnb.getSelections().getBlockSelection(SelectionType.SELECTION);
 			if (s.isEmpty()) {
@@ -94,7 +94,7 @@ public class Blocks extends GLElementContainer implements ICallback<SelectionTyp
 	void updateAccordingToMiniMap() {
 		// MiniMapCanvas c = (MiniMapCanvas) getParent();
 		// Rectangle2D r = c.getClippingRect().asRectangle2D();
-		// EVisibility ifVisible = findParent(RnB.class).getTool() == EToolState.BANDS ? EVisibility.PICKABLE
+		// EVisibility ifVisible = findParent(Domino.class).getTool() == EToolState.BANDS ? EVisibility.PICKABLE
 		// : EVisibility.VISIBLE;
 		// Vec2f loc = getLocation();
 		// for (Block elem : getBlocks()) {
@@ -126,7 +126,7 @@ public class Blocks extends GLElementContainer implements ICallback<SelectionTyp
 	public void addBlock(Block b) {
 
 		this.add(b);
-		final RnB rnb = findParent(RnB.class);
+		final Domino rnb = findParent(Domino.class);
 		if (rnb.getTool() == EToolState.BANDS) {
 			Set<Block> s = rnb.getSelections().getBlockSelection(SelectionType.SELECTION);
 			b.setFadeOut((s.size() >= 2 && !s.contains(b)) || (s.size() == 1 && !canHaveBands(s.iterator().next(), b)));
@@ -438,7 +438,7 @@ public class Blocks extends GLElementContainer implements ICallback<SelectionTyp
 	public List<Block> explode(Block block, EDimension dim) {
 		List<Block> blocks = block.explode(dim);
 		remove(block);
-		findParent(RnB.class).getSelections().cleanup(block);
+		findParent(Domino.class).getSelections().cleanup(block);
 		for (Block b : blocks) {
 			addBlock(b);
 		}
@@ -446,7 +446,7 @@ public class Blocks extends GLElementContainer implements ICallback<SelectionTyp
 	}
 
 	public Block combine(List<Block> blocks, EDimension dim) {
-		final NodeSelections selections = findParent(RnB.class).getSelections();
+		final NodeSelections selections = findParent(Domino.class).getSelections();
 
 		Block first = blocks.get(0);
 		Block new_ = first.combine(blocks.subList(1, blocks.size()), dim);

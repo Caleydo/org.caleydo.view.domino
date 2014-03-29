@@ -15,7 +15,7 @@ import org.caleydo.core.view.opengl.layout2.dnd.IDragGLSource;
 import org.caleydo.core.view.opengl.layout2.dnd.IDragInfo;
 import org.caleydo.core.view.opengl.layout2.renderer.GLRenderers;
 import org.caleydo.core.view.opengl.picking.Pick;
-import org.caleydo.view.rnb.internal.RnB;
+import org.caleydo.view.rnb.internal.Domino;
 import org.caleydo.view.rnb.internal.UndoStack;
 import org.caleydo.view.rnb.internal.dnd.ADragInfo;
 import org.caleydo.view.rnb.internal.dnd.ItemDragInfo;
@@ -43,7 +43,7 @@ public abstract class ADragItemButton extends AGLButton implements IDragGLSource
 
 	@Override
 	public IDragInfo startSWTDrag(IDragEvent event) {
-		return new ItemDragInfo(event.getMousePos(), createInstance(findParent(RnB.class).getUndo()));
+		return new ItemDragInfo(event.getMousePos(), createInstance(findParent(Domino.class).getUndo()));
 	}
 
 	protected abstract AItem createInstance(UndoStack undo);
@@ -69,7 +69,7 @@ public abstract class ADragItemButton extends AGLButton implements IDragGLSource
 	@Override
 	public GLElement createUI(IDragInfo info) {
 		if (info instanceof ADragInfo)
-			return ((ADragInfo) info).createUI(findParent(RnB.class));
+			return ((ADragInfo) info).createUI(findParent(Domino.class));
 		return null;
 	}
 

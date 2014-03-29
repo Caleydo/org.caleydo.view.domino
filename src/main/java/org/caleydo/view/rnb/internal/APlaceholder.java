@@ -67,7 +67,7 @@ public abstract class APlaceholder extends PickableGLElement implements IDropGLT
 	@Override
 	public void onDrop(IDnDItem item) {
 		if (preview != null) {
-			final RnB rnb = findParent(RnB.class);
+			final Domino rnb = findParent(Domino.class);
 			if (rnb == null)
 				return;
 			Node toRemove = null;
@@ -107,7 +107,7 @@ public abstract class APlaceholder extends PickableGLElement implements IDropGLT
 
 	@Override
 	public void onItemChanged(IDnDItem item) {
-		final RnB rnb = findParent(RnB.class);
+		final Domino rnb = findParent(Domino.class);
 		if (rnb == null)
 			return;
 		DragElement current = rnb.getCurrentlyDraggedVis();
@@ -161,7 +161,7 @@ public abstract class APlaceholder extends PickableGLElement implements IDropGLT
 	private void deletePreview() {
 		if (preview == null)
 			return;
-		RnB rnb = findParent(RnB.class);
+		Domino rnb = findParent(Domino.class);
 		rnb.removePreview(preview);
 		preview = null;
 	}
