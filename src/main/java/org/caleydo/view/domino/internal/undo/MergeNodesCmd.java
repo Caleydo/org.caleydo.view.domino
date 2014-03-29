@@ -36,10 +36,10 @@ public class MergeNodesCmd implements ICmd {
 	}
 
 	@Override
-	public ICmd run(Domino rnb) {
+	public ICmd run(Domino domino) {
 		ICmd readd = null;
-		if (rnb.containsNode(with))
-			readd = new RemoveNodeCmd(with).run(rnb);
+		if (domino.containsNode(with))
+			readd = new RemoveNodeCmd(with).run(domino);
 
 		EDimension dim = node.getSingleGroupingDimension();
 		TypedGroupSet a = node.getUnderlyingData(dim);
@@ -88,12 +88,12 @@ public class MergeNodesCmd implements ICmd {
 		}
 
 		@Override
-		public ICmd run(Domino rnb) {
+		public ICmd run(Domino domino) {
 			node.setDataValues(data);
 			node.setUnderlyingData(dim, ori);
 			node.setLabel(label);
 			if (readd != null)
-				readd.run(rnb);
+				readd.run(domino);
 			return MergeNodesCmd.this;
 		}
 

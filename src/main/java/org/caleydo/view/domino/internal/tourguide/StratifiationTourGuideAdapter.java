@@ -25,7 +25,7 @@ import org.caleydo.view.tourguide.spi.adapter.ITourGuideDataMode;
  *
  */
 public class StratifiationTourGuideAdapter extends ATourGuideAdapter implements ICallback<IDCategory> {
-	private static final String SECONDARY_ID = "rnb.stratifications";
+	private static final String SECONDARY_ID = "domino.stratifications";
 	private final StratificationTourGuideDataMode mode = new StratificationTourGuideDataMode();
 	private IDCategory activeCategory;
 

@@ -36,7 +36,7 @@ public class ChangeVisTypeToCmd implements ICmd {
 	}
 
 	@Override
-	public ICmd run(Domino rnb) {
+	public ICmd run(Domino domino) {
 		Collection<Pair<Node, String>> r = new ArrayList<>(visTypes.size());
 		for (Pair<Node, String> p : visTypes) {
 			Node node = p.getFirst();

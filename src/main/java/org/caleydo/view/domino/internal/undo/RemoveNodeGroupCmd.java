@@ -34,7 +34,7 @@ public class RemoveNodeGroupCmd implements ICmd {
 	}
 
 	@Override
-	public ICmd run(Domino rnb) {
+	public ICmd run(Domino domino) {
 		EDimension dim = node.getSingleGroupingDimension();
 		TypedGroupSet bak = node.getUnderlyingData(dim);
 		final List<TypedListGroup> gropus = node.getData(dim).getGroups();
@@ -56,7 +56,7 @@ public class RemoveNodeGroupCmd implements ICmd {
 		}
 
 		@Override
-		public ICmd run(Domino rnb) {
+		public ICmd run(Domino domino) {
 			node.setUnderlyingData(dim, ori);
 			return RemoveNodeGroupCmd.this;
 		}

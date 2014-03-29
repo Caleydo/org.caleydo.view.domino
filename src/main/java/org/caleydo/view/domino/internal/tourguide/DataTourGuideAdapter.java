@@ -18,7 +18,7 @@ import org.caleydo.view.tourguide.spi.adapter.ITourGuideDataMode;
  *
  */
 public class DataTourGuideAdapter extends ATourGuideAdapter {
-	private static final String SECONDARY_ID = "rnb.datasets";
+	private static final String SECONDARY_ID = "domino.datasets";
 	private final DataTourGuideDataMode mode = new DataTourGuideDataMode();
 
 	@Override

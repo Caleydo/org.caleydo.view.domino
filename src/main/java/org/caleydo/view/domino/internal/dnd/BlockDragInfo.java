@@ -62,16 +62,16 @@ public class BlockDragInfo extends ADragInfo {
 	}
 
 	/**
-	 * @param rnb
+	 * @param domino
 	 * @return
 	 */
 	@Override
-	public GLElement createUI(Domino rnb) {
+	public GLElement createUI(Domino domino) {
 		if (blocks.size() == 1)
-			return super.createUI(rnb);
+			return super.createUI(domino);
 		Vec2f size = getSize();
 		final Vec2f shift = start.getLocation();
-		return new DragElement(getLabel(), size, rnb, this, new IGLRenderer() {
+		return new DragElement(getLabel(), size, domino, this, new IGLRenderer() {
 
 			@Override
 			public void render(GLGraphics g, float w, float h, GLElement parent) {

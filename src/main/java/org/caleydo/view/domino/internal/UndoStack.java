@@ -19,11 +19,11 @@ import org.caleydo.view.domino.internal.undo.IMergeAbleCmd;
 public class UndoStack {
 	private final Deque<ICmd> undo = new ArrayDeque<>();
 	private final Deque<ICmd> redo = new ArrayDeque<>();
-	private final Domino rnb;
+	private final Domino domino;
 	private ICallback<UndoStack> onChanged;
 
-	public UndoStack(Domino rnb) {
-		this.rnb = rnb;
+	public UndoStack(Domino domino) {
+		this.domino = domino;
 	}
 
 	public void onChanged(ICallback<UndoStack> onChanged) {
@@ -31,7 +31,7 @@ public class UndoStack {
 	}
 
 	public void push(ICmd cmd) {
-		ICmd undo = cmd.run(rnb);
+		ICmd undo = cmd.run(domino);
 		if (undo != null) {
 			if (this.undo.peekLast() instanceof IMergeAbleCmd) {
 				IMergeAbleCmd peek = (IMergeAbleCmd) this.undo.peekLast();
@@ -56,7 +56,7 @@ public class UndoStack {
 		if (this.undo.isEmpty())
 			return false;
 		ICmd cmd = this.undo.pollLast();
-		ICmd redo = cmd.run(rnb);
+		ICmd redo = cmd.run(domino);
 		if (redo != null)
 			this.redo.add(redo);
 		fire();
@@ -77,7 +77,7 @@ public class UndoStack {
 		if (this.redo.isEmpty())
 			return false;
 		ICmd cmd = this.redo.pollLast();
-		ICmd redo = cmd.run(rnb);
+		ICmd redo = cmd.run(domino);
 		if (redo != null)
 			this.undo.add(redo);
 		fire();

@@ -56,10 +56,10 @@ public class Placeholder extends APlaceholder {
 
 	@Override
 	protected void dropNode(Node node) {
-		Domino rnb = findParent(Domino.class);
+		Domino domino = findParent(Domino.class);
 		if (transpose) {
 			node.transposeMe();
 		}
-		rnb.addPreview(neighbor, dir, node);
+		domino.addPreview(neighbor, dir, node);
 	}
 }

@@ -25,9 +25,9 @@ public class TransposeRulerCmd implements ICmd {
 	}
 
 	@Override
-	public ICmd run(Domino rnb) {
+	public ICmd run(Domino domino) {
 		ruler.transpose();
-		rnb.getBands().relayout();
+		domino.getBands().relayout();
 		return this;
 	}
 

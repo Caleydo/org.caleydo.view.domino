@@ -31,8 +31,8 @@ public class PlaceNodeAtCmd implements ICmd {
 	}
 
 	@Override
-	public ICmd run(Domino rnb) {
-		rnb.placeAt(neighbor, dir, node);
+	public ICmd run(Domino domino) {
+		domino.placeAt(neighbor, dir, node);
 		return new RemoveNodeCmd(node);
 	}
 

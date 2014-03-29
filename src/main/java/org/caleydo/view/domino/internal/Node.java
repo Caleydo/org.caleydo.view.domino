@@ -427,10 +427,10 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 			this.dropSetOperation = type;
 			repaint();
 		}
-		final Domino rnb = findParent(Domino.class);
-		if (rnb == null)
+		final Domino domino = findParent(Domino.class);
+		if (domino == null)
 			return;
-		DragElement current = rnb.getCurrentlyDraggedVis();
+		DragElement current = domino.getCurrentlyDraggedVis();
 		if (current == null)
 			return;
 		current.setVisibility(EVisibility.HIDDEN);
@@ -483,8 +483,8 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 	 */
 	private void mergeNode(Node node, Vec2f mousePos, NodeGroup groupToRemove) {
 		final ESetOperation type = toSetType(mousePos);
-		Domino rnb = findParent(Domino.class);
-		final UndoStack undo = rnb.getUndo();
+		Domino domino = findParent(Domino.class);
+		final UndoStack undo = domino.getUndo();
 		final MergeNodesCmd cmd = new MergeNodesCmd(this, type, node);
 		if (groupToRemove != null) {
 			undo.push(CmdComposite.chain(cmd, new RemoveNodeGroupCmd(groupToRemove)));

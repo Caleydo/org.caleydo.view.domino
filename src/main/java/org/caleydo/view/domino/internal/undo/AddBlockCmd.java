@@ -30,8 +30,8 @@ public class AddBlockCmd implements ICmd {
 	}
 
 	@Override
-	public ICmd run(Domino rnb) {
-		rnb.addBlock(block);
+	public ICmd run(Domino domino) {
+		domino.addBlock(block);
 		return new RemoveBlockCmd(block);
 	}
 }

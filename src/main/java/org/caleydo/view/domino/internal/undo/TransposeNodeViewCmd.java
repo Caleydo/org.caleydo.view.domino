@@ -25,7 +25,7 @@ public class TransposeNodeViewCmd implements ICmd {
 	}
 
 	@Override
-	public ICmd run(Domino rnb) {
+	public ICmd run(Domino domino) {
 		node.transposeView();
 		return this;
 	}

@@ -28,12 +28,12 @@ public class PersistNodeCmd implements ICmd {
 	}
 
 	@Override
-	public ICmd run(Domino rnb) {
-		rnb.persistPreview(preview);
+	public ICmd run(Domino domino) {
+		domino.persistPreview(preview);
 
 		ICmd readd = null;
-		if (toRemove != null && rnb.containsNode(toRemove))
-			readd = new RemoveNodeCmd(toRemove).run(rnb);
+		if (toRemove != null && domino.containsNode(toRemove))
+			readd = new RemoveNodeCmd(toRemove).run(domino);
 
 		return new UndoPersistNodeCmd(readd);
 	}
@@ -49,11 +49,11 @@ public class PersistNodeCmd implements ICmd {
 		}
 
 		@Override
-		public ICmd run(Domino rnb) {
+		public ICmd run(Domino domino) {
 			ICmd del = null;
 			if (readd != null)
-				del = readd.run(rnb);
-			ICmd add = new RemoveNodeCmd(preview).run(rnb);
+				del = readd.run(domino);
+			ICmd add = new RemoveNodeCmd(preview).run(domino);
 			if (del == null)
 				return add;
 			else

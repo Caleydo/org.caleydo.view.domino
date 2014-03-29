@@ -135,17 +135,17 @@ public class Block extends GLElementContainer implements IGLLayout2, IPickingLis
 
 	@Override
 	public void pick(Pick pick) {
-		final NodeSelections rnb = findDomino().getSelections();
+		final NodeSelections domino = findDomino().getSelections();
 		IMouseEvent event = (IMouseEvent) pick;
 		boolean ctrl = event.isCtrlDown();
 		switch (pick.getPickingMode()) {
 		case MOUSE_OVER:
-			rnb.select(SelectionType.MOUSE_OVER, this, false);
+			domino.select(SelectionType.MOUSE_OVER, this, false);
 			context.getMouseLayer().addDragSource(source);
 			repaint();
 			break;
 		case MOUSE_OUT:
-			rnb.clear(SelectionType.MOUSE_OVER, (Block) null);
+			domino.clear(SelectionType.MOUSE_OVER, (Block) null);
 			context.getMouseLayer().removeDragSource(source);
 			repaint();
 			break;
@@ -154,10 +154,10 @@ public class Block extends GLElementContainer implements IGLLayout2, IPickingLis
 			break;
 		case MOUSE_RELEASED:
 			if (armed) {
-				if (rnb.isSelected(SelectionType.SELECTION, this))
-					rnb.clear(SelectionType.SELECTION, ctrl ? this : null);
+				if (domino.isSelected(SelectionType.SELECTION, this))
+					domino.clear(SelectionType.SELECTION, ctrl ? this : null);
 				else
-					rnb.select(SelectionType.SELECTION, this, ctrl);
+					domino.select(SelectionType.SELECTION, this, ctrl);
 				repaint();
 				armed = false;
 			}
@@ -210,11 +210,11 @@ public class Block extends GLElementContainer implements IGLLayout2, IPickingLis
 
 		super.renderImpl(g, w, h);
 
-		Domino rnb = findDomino();
+		Domino domino = findDomino();
 
-		if (rnb.isShowDebugInfos())
+		if (domino.isShowDebugInfos())
 			g.color(Color.BLUE).drawRect(0, 0, w, h);
-		if (rnb.isShowBlockLabels() || rnb.isShowGroupLabels()) {
+		if (domino.isShowBlockLabels() || domino.isShowGroupLabels()) {
 			Vec2f xy = new Vec2f(0, 0);
 			Vec2f xy2 = new Vec2f(w, h);
 			for (Vec2f v : outline) {
@@ -229,19 +229,19 @@ public class Block extends GLElementContainer implements IGLLayout2, IPickingLis
 			}
 			Rect bb = new Rect(xy.x(), xy.y(), xy2.x() - xy.x(), xy2.y() - xy.y());
 
-			if (rnb.isShowBlockLabels()) {
+			if (domino.isShowBlockLabels()) {
 				for (LinearBlock b : linearBlocks) {
 					b.renderNodeLabels(g, bb);
 				}
 			}
-			if (rnb.isShowGroupLabels()) {
+			if (domino.isShowGroupLabels()) {
 				for (LinearBlock b : linearBlocks) {
 					b.renderGroupLabels(g, bb);
 				}
 			}
 		}
 
-		NodeSelections selections = rnb.getSelections();
+		NodeSelections selections = domino.getSelections();
 		final boolean selected = selections.isSelected(SelectionType.SELECTION, this);
 		final boolean mouseOver = selections.isSelected(SelectionType.MOUSE_OVER, this);
 		if (selected || mouseOver) {
@@ -959,11 +959,11 @@ public class Block extends GLElementContainer implements IGLLayout2, IPickingLis
 	 *
 	 */
 	private void selectMe() {
-		final NodeSelections rnb = findDomino().getSelections();
+		final NodeSelections domino = findDomino().getSelections();
 		if (partOfGroup()) {
-			selectAllBlocksInGroup(rnb);
-		} else if (!rnb.isSelected(SelectionType.SELECTION, this))
-			rnb.select(SelectionType.SELECTION, this, true);
+			selectAllBlocksInGroup(domino);
+		} else if (!domino.isSelected(SelectionType.SELECTION, this))
+			domino.select(SelectionType.SELECTION, this, true);
 	}
 
 	/**

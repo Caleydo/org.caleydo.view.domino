@@ -29,19 +29,19 @@ import org.caleydo.view.domino.internal.serial.SerializedDominoView;
  *
  */
 public class DominoView extends AMultiTablePerspectiveElementView {
-	public static final String VIEW_TYPE = "org.caleydo.view.rnb";
+	public static final String VIEW_TYPE = "org.caleydo.view.domino";
 	public static final String VIEW_NAME = "Domino";
 
-	private final Domino rnb;
+	private final Domino domino;
 
 	@DeepScan
 	private final IGLKeyListener keyAdapter;
 
 	public DominoView(IGLCanvas glCanvas) {
 		super(glCanvas, VIEW_TYPE, VIEW_NAME);
-		rnb = new Domino();
+		domino = new Domino();
 
-		keyAdapter = GLThreadListenerWrapper.wrap(rnb);
+		keyAdapter = GLThreadListenerWrapper.wrap(domino);
 	}
 
 	@Override
@@ -63,7 +63,7 @@ public class DominoView extends AMultiTablePerspectiveElementView {
 
 	@Override
 	protected GLElement createContent() {
-		return rnb;
+		return domino;
 	}
 
 	@Override
@@ -74,8 +74,8 @@ public class DominoView extends AMultiTablePerspectiveElementView {
 	@Override
 	protected void applyTablePerspectives(GLElementDecorator root, List<TablePerspective> all,
 			List<TablePerspective> added, List<TablePerspective> removed) {
-		// rnb.removeAll(removed);
-		// rnb.addAll(added);
+		// domino.removeAll(removed);
+		// domino.addAll(added);
 	}
 
 	public void replaceTablePerspectiveInternally(TablePerspective from, TablePerspective to) {

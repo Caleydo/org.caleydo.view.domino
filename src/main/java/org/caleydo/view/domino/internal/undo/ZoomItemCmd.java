@@ -28,9 +28,9 @@ public class ZoomItemCmd implements IMergeAbleCmd {
 	}
 
 	@Override
-	public ICmd run(Domino rnb) {
+	public ICmd run(Domino domino) {
 		item.zoom(shift);
-		rnb.getBands().relayout();
+		domino.getBands().relayout();
 		return new ZoomItemCmd(item, -shift);
 	}
 

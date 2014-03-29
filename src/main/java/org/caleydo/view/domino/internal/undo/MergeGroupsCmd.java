@@ -43,7 +43,7 @@ public class MergeGroupsCmd implements ICmd {
 	}
 
 	@Override
-	public ICmd run(Domino rnb) {
+	public ICmd run(Domino domino) {
 		EDimension dim = node.getSingleGroupingDimension();
 		TypedGroupSet bak = node.getUnderlyingData(dim);
 		List<TypedListGroup> d = new ArrayList<>(node.getData(dim).getGroups());
@@ -97,7 +97,7 @@ public class MergeGroupsCmd implements ICmd {
 		}
 
 		@Override
-		public ICmd run(Domino rnb) {
+		public ICmd run(Domino domino) {
 			node.setUnderlyingData(dim, ori);
 			return MergeGroupsCmd.this;
 		}

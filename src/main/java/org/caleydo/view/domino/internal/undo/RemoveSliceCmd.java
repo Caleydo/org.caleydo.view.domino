@@ -28,7 +28,7 @@ public class RemoveSliceCmd implements ICmd {
 	}
 
 	@Override
-	public ICmd run(Domino rnb) {
+	public ICmd run(Domino domino) {
 		final Node node = toRemove.getNode();
 		Block block = node.getBlock();
 		List<TypedGroupSet> bak = block.removeSlice(node, dim, toRemove);
@@ -44,7 +44,7 @@ public class RemoveSliceCmd implements ICmd {
 		}
 
 		@Override
-		public ICmd run(Domino rnb) {
+		public ICmd run(Domino domino) {
 			final Node node = toRemove.getNode();
 			Block block = node.getBlock();
 			block.restoreSlice(node, dim, ori);

@@ -35,10 +35,10 @@ public class RemoveNodeCmd implements ICmd {
 	}
 
 	@Override
-	public ICmd run(Domino rnb) {
+	public ICmd run(Domino domino) {
 		Block b = node.getBlock();
 		if (b.nodeCount() == 1) // remove the whole block
-			return new RemoveBlockCmd(b).run(rnb);
+			return new RemoveBlockCmd(b).run(domino);
 
 		Node neighbor = null;
 		EDirection dir = null;
@@ -51,7 +51,7 @@ public class RemoveNodeCmd implements ICmd {
 			}
 		}
 		b.removeNode(node);
-		rnb.cleanup(node);
+		domino.cleanup(node);
 		if (dir == null) {
 			// throw new IllegalStateException();
 			return null;

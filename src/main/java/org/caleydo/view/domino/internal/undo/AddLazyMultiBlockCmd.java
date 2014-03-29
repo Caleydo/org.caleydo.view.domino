@@ -30,10 +30,10 @@ public class AddLazyMultiBlockCmd implements ICmd {
 	}
 
 	@Override
-	public ICmd run(Domino rnb) {
+	public ICmd run(Domino domino) {
 		Block b = new Block(node);
 		b.setLocation(loc.x(), loc.y());
-		rnb.addBlock(b);
+		domino.addBlock(b);
 		rebuild(b, node, act, items, null);
 		return new RemoveBlockCmd(b);
 	}

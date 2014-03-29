@@ -25,9 +25,9 @@ public class RemoveItemCmd implements ICmd {
 	}
 
 	@Override
-	public ICmd run(Domino rnb) {
-		rnb.getOutlerBlocks().removeItem(item);
-		rnb.getBands().relayout();
+	public ICmd run(Domino domino) {
+		domino.getOutlerBlocks().removeItem(item);
+		domino.getBands().relayout();
 		return new AddItemCmd(item);
 	}
 

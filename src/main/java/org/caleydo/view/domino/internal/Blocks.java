@@ -56,9 +56,9 @@ public class Blocks extends GLElementContainer implements ICallback<SelectionTyp
 
 	@Override
 	public void on(SelectionType data) {
-		final Domino rnb = findParent(Domino.class);
-		if (data == SelectionType.SELECTION && rnb.getTool() == EToolState.BANDS) {
-			Set<Block> s = rnb.getSelections().getBlockSelection(SelectionType.SELECTION);
+		final Domino domino = findParent(Domino.class);
+		if (data == SelectionType.SELECTION && domino.getTool() == EToolState.BANDS) {
+			Set<Block> s = domino.getSelections().getBlockSelection(SelectionType.SELECTION);
 			if (s.isEmpty()) {
 				for (Block b : getBlocks())
 					b.setFadeOut(false);
@@ -126,9 +126,9 @@ public class Blocks extends GLElementContainer implements ICallback<SelectionTyp
 	public void addBlock(Block b) {
 
 		this.add(b);
-		final Domino rnb = findParent(Domino.class);
-		if (rnb.getTool() == EToolState.BANDS) {
-			Set<Block> s = rnb.getSelections().getBlockSelection(SelectionType.SELECTION);
+		final Domino domino = findParent(Domino.class);
+		if (domino.getTool() == EToolState.BANDS) {
+			Set<Block> s = domino.getSelections().getBlockSelection(SelectionType.SELECTION);
 			b.setFadeOut((s.size() >= 2 && !s.contains(b)) || (s.size() == 1 && !canHaveBands(s.iterator().next(), b)));
 		}
 	}

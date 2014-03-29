@@ -29,9 +29,9 @@ public class MoveItemCmd implements IMergeAbleCmd {
 	}
 
 	@Override
-	public ICmd run(Domino rnb) {
+	public ICmd run(Domino domino) {
 		item.shiftLocation(shift);
-		rnb.getBands().relayout();
+		domino.getBands().relayout();
 		return new MoveItemCmd(item, shift.times(-1));
 	}
 

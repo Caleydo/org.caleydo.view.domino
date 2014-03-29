@@ -37,11 +37,11 @@ public class ZoomCmd implements IMergeAbleCmd {
 	}
 
 	@Override
-	public ICmd run(Domino rnb) {
+	public ICmd run(Domino domino) {
 		if (node != null)
 			node.getBlock().zoom(shift, node);
 		else
-			rnb.zoom(shift, mousePos);
+			domino.zoom(shift, mousePos);
 		return new ZoomCmd(node, shift.times(-1), mousePos);
 	}
 

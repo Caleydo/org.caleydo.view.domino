@@ -18,5 +18,5 @@ public interface ICmd extends ILabeled {
 	 *
 	 * @return
 	 */
-	ICmd run(Domino rnb);
+	ICmd run(Domino domino);
 }

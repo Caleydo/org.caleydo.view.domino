@@ -29,8 +29,8 @@ public class MoveRulerCmd implements IMergeAbleCmd {
 	}
 
 	@Override
-	public ICmd run(Domino rnb) {
-		rnb.moveRuler(category, shift);
+	public ICmd run(Domino domino) {
+		domino.moveRuler(category, shift);
 		return new MoveRulerCmd(category, shift.times(-1));
 	}
 

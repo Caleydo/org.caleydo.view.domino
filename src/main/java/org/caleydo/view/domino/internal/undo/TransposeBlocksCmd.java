@@ -27,7 +27,7 @@ public class TransposeBlocksCmd implements ICmd {
 	}
 
 	@Override
-	public ICmd run(Domino rnb) {
+	public ICmd run(Domino domino) {
 		for (Block b : blocks)
 			b.transpose();
 		return this;

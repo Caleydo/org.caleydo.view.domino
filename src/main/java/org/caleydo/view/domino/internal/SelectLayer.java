@@ -78,7 +78,7 @@ public class SelectLayer extends GLElement {
 	 *
 	 */
 	private void updateSelection(boolean ctrlDown) {
-		Domino rnb = findParent(Domino.class);
-		rnb.selectByBounds(unifyRect(), !ctrlDown);
+		Domino domino = findParent(Domino.class);
+		domino.selectByBounds(unifyRect(), !ctrlDown);
 	}
 }
