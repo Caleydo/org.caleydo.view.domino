@@ -5,7 +5,7 @@
          point="org.eclipse.ui.views">
       <view
             category="org.caleydo.core.views"
-            class="org.caleydo.view.rnb.internal.plugin.DominoViewPart"
+            class="org.caleydo.view.domino.internal.plugin.DominoViewPart"
             icon="resources/icons/icon.png"
             id="org.caleydo.view.rnb"
             name="Domino">
@@ -25,7 +25,7 @@
    <extension
          point="org.eclipse.ui.commands">
       <command
-            defaultHandler="org.caleydo.view.rnb.internal.plugin.OpenViewHandler"
+            defaultHandler="org.caleydo.view.domino.internal.plugin.OpenViewHandler"
             id="org.caleydo.view.rnb.command.open"
             name="Domino">
       </command>
@@ -45,31 +45,31 @@
    <extension
          point="org.caleydo.view.tourguide.adapter">
       <adapter
-            class="org.caleydo.view.rnb.internal.tourguide.DataTourGuideAdapter$Factory">
+            class="org.caleydo.view.domino.internal.tourguide.DataTourGuideAdapter$Factory">
       </adapter>
       <adapter
-            class="org.caleydo.view.rnb.internal.tourguide.StratifiationTourGuideAdapter$Factory">
+            class="org.caleydo.view.domino.internal.tourguide.StratifiationTourGuideAdapter$Factory">
       </adapter>
    </extension>
    <extension
          point="org.caleydo.core.view.dnd.TransferSerializer">
       <serializer
-            class="org.caleydo.view.rnb.internal.dnd.TablePerspectiveDragInfo$Serializer">
+            class="org.caleydo.view.domino.internal.dnd.TablePerspectiveDragInfo$Serializer">
       </serializer>
       <serializer
-            class="org.caleydo.view.rnb.internal.dnd.PerspectiveDragInfo$Serializer">
+            class="org.caleydo.view.domino.internal.dnd.PerspectiveDragInfo$Serializer">
       </serializer>
    </extension>
    <extension
          point="org.caleydo.ui.GLElementFactory">
       <factory
-            factory="org.caleydo.view.rnb.internal.ui.LabelElementFactory"
+            factory="org.caleydo.view.domino.internal.ui.LabelElementFactory"
             icon="resources/icons/icon_infos.png"
             name="Labels"
             scaleType="dataDependent">
       </factory>
       <factory
-            factory="org.caleydo.view.rnb.internal.ui.Info1ElementFactory"
+            factory="org.caleydo.view.domino.internal.ui.Info1ElementFactory"
             icon="resources/icons/icon_infos.png"
             name="1D Infos"
             scaleType="fix">
@@ -78,21 +78,21 @@
    <extension
          point="org.caleydo.view.info.DataSetItem">
       <item
-            class="org.caleydo.view.rnb.internal.NodeDataItem"
+            class="org.caleydo.view.domino.internal.NodeDataItem"
             order="35">
       </item>
    </extension>
    <extension
          point="org.eclipse.core.runtime.preferences">
       <initializer
-            class="org.caleydo.view.rnb.internal.prefs.MyPreferences">
+            class="org.caleydo.view.domino.internal.prefs.MyPreferences">
       </initializer>
    </extension>
    <extension
          point="org.eclipse.ui.preferencePages">
       <page
             category="org.caleydo.core.gui.preferences.views"
-            class="org.caleydo.view.rnb.internal.prefs.MyPreferencePage"
+            class="org.caleydo.view.domino.internal.prefs.MyPreferencePage"
             id="org.caleydo.view.rnb"
             name="Domino">
       </page>
