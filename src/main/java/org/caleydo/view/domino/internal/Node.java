@@ -618,10 +618,10 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 			scaleFactors.put(DATA_SCALE_FACTOR, v);
 			Blocks blocks = findParent(Blocks.class);
 			final float sx = blocks.getRulerScale(this.dimUnderlying.getIdType());
-			if (!Float.isNaN(sx))
+			if (!Float.isNaN(sx) && (bak == null || Float.isNaN(bak.x()))) // ruler scale and not externally set
 				v.setX(sx);
 			final float sy = blocks.getRulerScale(this.recUnderlying.getIdType());
-			if (!Float.isNaN(sy))
+			if (!Float.isNaN(sy) && (bak == null || Float.isNaN(bak.y()))) // ruler scale and not externally set
 				v.setY(sy);
 
 			scaleFactors.put(DATA_SCALE_FACTOR, v);
