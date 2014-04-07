@@ -22,6 +22,7 @@ import org.caleydo.view.domino.api.model.typed.TypedList;
 import org.caleydo.view.domino.internal.Constants;
 
 import com.google.common.base.Function;
+import com.google.common.primitives.Floats;
 import com.jogamp.common.util.IntObjectHashMap;
 
 /**
@@ -37,8 +38,8 @@ public class ProjectedDataValues implements IDataValues, INumerical1DContainer,F
 	private final TypedGroupSet singleGroup = TypedGroupSet.createUngrouped(TypedCollections.INVALID_SINGLETON_SET);
 	private final IInvertableDoubleFunction normalize;
 
-	private ProjectedDataValues(Numerical2DDataDomainValues wrappee, EProjection proj, EDimension along,
-			TypedGroupSet other) {
+	public ProjectedDataValues(Numerical2DDataDomainValues wrappee, EProjection proj, EDimension along,
+			ITypedCollection other) {
 		assert wrappee.getIDType(along) == other.getIdType();
 		this.wrappee = wrappee;
 		this.along = along;
@@ -54,16 +55,16 @@ public class ProjectedDataValues implements IDataValues, INumerical1DContainer,F
 	}
 
 	private static Pair<IntObjectHashMap, DoubleStatistics> project(TypedGroupSet rows,
-			Numerical2DDataDomainValues wrappee, EDimension along, EProjection proj, TypedGroupSet projs) {
+			Numerical2DDataDomainValues wrappee, EDimension along, EProjection proj, Iterable<Integer> ids) {
 		DoubleStatistics.Builder b = DoubleStatistics.builder();
 		IntObjectHashMap r = new IntObjectHashMap(rows.size());
 		for (Integer id : rows) {
 			DoubleStatistics.Builder idb = DoubleStatistics.builder();
 			if (along.isDimension()) {
-				for(Integer col : projs)
+				for (Integer col : ids)
 					idb.add(wrappee.getRaw(col, id));
 			} else {
-				for(Integer row : projs)
+				for (Integer row : ids)
 					idb.add(wrappee.getRaw(id, row));
 			}
 			float v = (float) proj.select(idb.build());
@@ -108,8 +109,7 @@ public class ProjectedDataValues implements IDataValues, INumerical1DContainer,F
 	public int compare(EDimension dim, int a, int b, ITypedCollection otherData) {
 		if (dim == this.along)
 			return 0;
-
-		return 0;
+		return Floats.compare(getNormalized(a), getNormalized(b));
 	}
 
 	@Override

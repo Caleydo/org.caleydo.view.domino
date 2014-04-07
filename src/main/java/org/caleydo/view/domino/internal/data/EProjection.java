@@ -14,7 +14,7 @@ import org.caleydo.core.util.function.DoubleStatistics;
  *
  */
 public enum EProjection implements ILabeled {
-	MEAN, MIN, MAX, SUM;
+	MEAN, MIN, MAX, SUM, VARIANCE, SD;
 
 	@Override
 	public String getLabel() {
@@ -31,6 +31,10 @@ public enum EProjection implements ILabeled {
 			return stats.getMean();
 		case SUM:
 			return stats.getSum();
+		case VARIANCE:
+			return stats.getVar();
+		case SD:
+			return stats.getSd();
 		}
 		throw new IllegalStateException();
 	}

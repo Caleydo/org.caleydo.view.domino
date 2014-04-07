@@ -15,17 +15,21 @@ import org.caleydo.core.data.collection.EDimension;
 import org.caleydo.core.view.opengl.layout2.GLElement;
 import org.caleydo.core.view.opengl.layout2.basic.GLButton;
 import org.caleydo.core.view.opengl.layout2.basic.GLButton.ISelectionCallback;
+import org.caleydo.core.view.opengl.layout2.geom.Rect;
 import org.caleydo.core.view.opengl.layout2.manage.ButtonBarBuilder;
 import org.caleydo.core.view.opengl.layout2.manage.ButtonBarBuilder.EButtonBarLayout;
 import org.caleydo.core.view.opengl.layout2.manage.GLElementFactories.GLElementSupplier;
 import org.caleydo.core.view.opengl.layout2.manage.GLElementFactorySwitcher;
 import org.caleydo.view.domino.api.model.EDirection;
 import org.caleydo.view.domino.internal.Block;
+import org.caleydo.view.domino.internal.Domino;
 import org.caleydo.view.domino.internal.Node;
 import org.caleydo.view.domino.internal.NodeGroup;
 import org.caleydo.view.domino.internal.NodeSelections;
 import org.caleydo.view.domino.internal.Resources;
 import org.caleydo.view.domino.internal.UndoStack;
+import org.caleydo.view.domino.internal.data.Numerical2DDataDomainValues;
+import org.caleydo.view.domino.internal.ui.ProjectPopup;
 import org.caleydo.view.domino.internal.undo.ChangeVisTypeToCmd;
 import org.caleydo.view.domino.internal.undo.ExplodeSlicesCmd;
 import org.caleydo.view.domino.internal.undo.LimitToNodeCmd;
@@ -288,6 +292,10 @@ public class NodeTools extends AItemTools {
 
 		addMultiNodes(Collections.singleton(node));
 
+		if (node.getDataValues() instanceof Numerical2DDataDomainValues) {
+			addButton("Project", Resources.ICON_MISSING);
+		}
+
 		addButton("Open Details", Resources.ICON_FOCUS);
 	}
 
@@ -381,6 +389,11 @@ public class NodeTools extends AItemTools {
 			break;
 		case "Open Details":
 			node.getNode().showInFocus();
+			break;
+		case "Project":
+			context.getPopupLayer().show(new ProjectPopup(node.getNode(), findParent(Domino.class)),
+					new Rect(100, 100, 200, 150));
+			break;
 		}
 	}
 
