@@ -7,18 +7,21 @@ package org.caleydo.view.domino.internal.data;
 
 import static java.lang.Double.isNaN;
 
+import java.util.Arrays;
+
 import org.apache.commons.lang.WordUtils;
 import org.caleydo.core.util.base.ILabeled;
+import org.caleydo.core.util.function.ArrayDoubleList;
 import org.caleydo.core.util.function.IDoubleList;
-import org.caleydo.core.util.function.IDoubleSizedIterable;
 import org.caleydo.core.util.function.IDoubleSizedIterator;
+import org.caleydo.view.domino.internal.util.IndexedSort;
 
 /**
  * @author Samuel Gratzl
  *
  */
 public enum ECorrelation implements ILabeled {
-	PEARSON;
+	PEARSON, SPEARMAN;
 
 	@Override
 	public String getLabel() {
@@ -29,16 +32,18 @@ public enum ECorrelation implements ILabeled {
 		switch(this) {
 		case PEARSON:
 			return pearson(a, b);
+		case SPEARMAN:
+			return spearman(a, b);
 		}
 		throw new IllegalStateException();
 	}
 
-	private double pearson(final IDoubleSizedIterable a, final IDoubleSizedIterable b) {
+	private double pearson(final IDoubleList a, final IDoubleList b) {
 		final double a_mean = mean(a.iterator());
 		final double b_mean = mean(b.iterator());
 
 		final IDoubleSizedIterator a_it = a.iterator();
-		final IDoubleSizedIterator b_it = a.iterator();
+		final IDoubleSizedIterator b_it = b.iterator();
 
 		int n = 0;
 		double sum_sq_x = 0;
@@ -67,9 +72,46 @@ public enum ECorrelation implements ILabeled {
 		return correlation; // convert to similarity measure
 	}
 
-	private double spearman(final IDoubleSizedIterable a, final IDoubleSizedIterable b) {
-		// FIXME
-		return Double.NaN;
+	private double spearman(final IDoubleList a, final IDoubleList b) {
+		double[] a_rank = toRank(a);
+		double[] b_rank = toRank(b);
+		return pearson(new ArrayDoubleList(a_rank), new ArrayDoubleList(b_rank));
+	}
+
+	/**
+	 * @param a
+	 * @return
+	 */
+	private static double[] toRank(IDoubleList a) {
+		final int size = a.size();
+		double[] r = new double[size];
+		int[] indices = IndexedSort.sortIndex(a);
+		// convert entries to their rank position starting with 1 and in case of ties use mean
+		for(int i = 0; i < size; ++i) {
+			int index = indices[i];
+			double v = a.getPrimitive(index);
+			int ilast = i + 1;
+			if (ilast < size) {
+				int in = indices[ilast];
+				double vlast = a.getPrimitive(in);
+				while (vlast == v && ilast < size - 1) {
+					ilast++;
+					in = indices[ilast];
+					vlast = a.getPrimitive(in);
+				}
+			}
+			double rank = (ilast == (i + 1)) ? i + 1 : (ilast + i + 1) / (double) (ilast - i);
+			for (int j = i; j < ilast; ++j)
+				r[indices[j]] = rank;
+			i = ilast - 1;
+		}
+
+		return r;
+	}
+
+	public static void main(String[] args) {
+		// System.err.println(Arrays.toString(toRank(new ArrayDoubleList(new double[] { 1, 2, 3, 4 }))));
+		System.err.println(Arrays.toString(toRank(new ArrayDoubleList(new double[] { 1, 3, 3, 4 }))));
 	}
 
 	private static double mean(IDoubleSizedIterator it) {
