@@ -464,6 +464,11 @@ public class Node extends GLElementContainer implements IGLLayout2, ILabeled, ID
 		repaint();
 	}
 
+	@Override
+	public void onDropLeave() {
+
+	}
+
 	public Set<EDimension> dimensions() {
 		boolean dim = has(EDimension.DIMENSION);
 		boolean rec = has(EDimension.RECORD);

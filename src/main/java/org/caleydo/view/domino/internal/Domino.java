@@ -325,6 +325,11 @@ public class Domino extends GLElementContainer implements IDropGLTarget, IPickin
 		content.stopAutoShift();
 	}
 
+	@Override
+	public void onDropLeave() {
+
+	}
+
 	/**
 	 * @param pos
 	 * @param ruler

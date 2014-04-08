@@ -85,6 +85,11 @@ public abstract class APlaceholder extends PickableGLElement implements IDropGLT
 		}
 		preview = null;
 	}
+
+	@Override
+	public void onDropLeave() {
+
+	}
 	/**
 	 * @param item
 	 * @return
