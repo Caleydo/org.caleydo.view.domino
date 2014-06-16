@@ -8,17 +8,12 @@ package org.caleydo.view.domino.internal.ui;
 import gleem.linalg.Vec2f;
 
 import java.util.List;
-import java.util.Set;
 
-import org.apache.commons.lang.StringUtils;
 import org.caleydo.core.data.collection.EDimension;
 import org.caleydo.core.data.selection.SelectionManager;
-import org.caleydo.core.data.selection.SelectionType;
 import org.caleydo.core.id.IDCategory;
-import org.caleydo.core.id.IDMappingManager;
 import org.caleydo.core.id.IDMappingManagerRegistry;
 import org.caleydo.core.id.IDType;
-import org.caleydo.core.id.IIDTypeMapper;
 import org.caleydo.core.view.opengl.canvas.IGLMouseListener.IMouseEvent;
 import org.caleydo.core.view.opengl.layout2.GLElement;
 import org.caleydo.core.view.opengl.layout2.GLElementContainer;
@@ -30,19 +25,13 @@ import org.caleydo.core.view.opengl.layout2.layout.IGLLayout2;
 import org.caleydo.core.view.opengl.layout2.layout.IGLLayoutElement;
 import org.caleydo.core.view.opengl.picking.IPickingListener;
 import org.caleydo.core.view.opengl.picking.Pick;
-import org.caleydo.view.domino.api.model.typed.TypedSet;
 import org.caleydo.view.domino.internal.Domino;
-import org.caleydo.view.domino.internal.Node;
 import org.caleydo.view.domino.internal.ScaleLogic;
 import org.caleydo.view.domino.internal.UndoStack;
-import org.caleydo.view.domino.internal.data.StratificationDataValue;
 import org.caleydo.view.domino.internal.dnd.ADragInfo;
-import org.caleydo.view.domino.internal.dnd.NodeDragInfo;
 import org.caleydo.view.domino.internal.dnd.RulerDragInfo;
 import org.caleydo.view.domino.internal.toolbar.RulerTools;
 import org.caleydo.view.domino.internal.undo.ZoomRulerCmd;
-
-import com.google.common.collect.ImmutableSortedSet;
 
 /**
  * @author Samuel Gratzl
@@ -131,9 +120,9 @@ public class Ruler extends GLElementContainer implements IDragGLSource, IPicking
 	@Override
 	protected void renderImpl(GLGraphics g, float w, float h) {
 		float max = dim.select(w, h);
-		float f = max / maxElements;
+		// float f = max / maxElements;
 
-		renderSelection(g, w, h, f);
+		// renderSelection(g, w, h, f);
 		renderBaseAxis(g, w, h);
 		// renderMarkers(g, w, h, f);
 
@@ -226,18 +215,6 @@ public class Ruler extends GLElementContainer implements IDragGLSource, IPicking
 		g.lineWidth(1);
 	}
 
-	private void renderSelection(GLGraphics g, float w, float h, float f) {
-		int items = getNumSelectedItems();
-		if (items > 0) {
-			g.color(SelectionType.SELECTION.getColor());
-			if (dim.isHorizontal()) {
-				g.fillRect(2, h - 12, items * f, 10);
-			} else {
-				g.fillRect(2, 2, 10, items * f);
-			}
-		}
-	}
-
 	// private static int determineMarkerStep(int maxElements, float size) {
 	// if (maxElements <= 100)
 	// return 10; // 10x
@@ -293,54 +270,11 @@ public class Ruler extends GLElementContainer implements IDragGLSource, IPicking
 
 	@Override
 	public IDragInfo startSWTDrag(IDragEvent event) {
-		int size = getNumSelectedItems();
-		Vec2f relative = toRelative(event.getMousePos());
-		float total = dim.select(getSize());
-		float pos = dim.select(relative);
-		float selected = total * (size / (float) maxElements);
-		if (pos <= selected)
-			return new NodeDragInfo(event.getMousePos(), createNode());
 		return new RulerDragInfo(event.getMousePos(), this);
-	}
-
-	/**
-	 * @return
-	 */
-	private int getNumSelectedItems() {
-		return manager.getNumberOfElements(SelectionType.SELECTION);
 	}
 
 	private String getLabel(SelectionManager manager) {
 		return manager.getIDType().getIDCategory().getCategoryName();
-	}
-
-	protected Node createNode() {
-		Set<Integer> elements = manager.getElements(SelectionType.SELECTION);
-		TypedSet data = new TypedSet(elements, manager.getIDType());
-
-		String label = getLabel(elements, manager.getIDType());
-		StratificationDataValue d = new StratificationDataValue(label, data, this.dim);
-		return new Node(d);
-	}
-
-	public static String getLabel(Set<Integer> elements, IDType idType) {
-		String label = idType.getIDCategory().getCategoryName();
-		IDMappingManager manager = IDMappingManagerRegistry.get().getIDMappingManager(idType);
-		IIDTypeMapper<Integer, String> id2label = manager.getIDTypeMapper(idType, idType.getIDCategory()
-				.getHumanReadableIDType());
-		if (id2label != null) {
-			Set<String> r = id2label.apply(elements);
-			if (r != null) {
-				ImmutableSortedSet<String> b = ImmutableSortedSet.orderedBy(String.CASE_INSENSITIVE_ORDER).addAll(r)
-						.build();
-				if (b.size() < 3) {
-					label = StringUtils.join(b, ", ");
-				} else {
-					label = StringUtils.join(b.asList().subList(0, 3), ", ") + " ...";
-				}
-			}
-		}
-		return label;
 	}
 
 	@Override

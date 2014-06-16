@@ -53,6 +53,7 @@ import org.caleydo.view.domino.internal.toolbar.LeftToolBar;
 import org.caleydo.view.domino.internal.toolbar.ToolBar;
 import org.caleydo.view.domino.internal.ui.AItem;
 import org.caleydo.view.domino.internal.ui.Ruler;
+import org.caleydo.view.domino.internal.ui.SelectionInfo;
 import org.caleydo.view.domino.internal.undo.AddItemCmd;
 import org.caleydo.view.domino.internal.undo.AddLazyBlockCmd;
 import org.caleydo.view.domino.internal.undo.AddLazyMultiBlockCmd;
@@ -754,10 +755,6 @@ public class Domino extends GLElementContainer implements IDropGLTarget, IPickin
 		leftToolBar.onShowHideRuler(ruler.getIDCategory(), false);
 	}
 
-	public boolean isRulerVisible(IDCategory category) {
-		return blocks.hasRuler(category);
-	}
-
 	/**
 	 * @param idCategory
 	 * @return
@@ -796,5 +793,25 @@ public class Domino extends GLElementContainer implements IDropGLTarget, IPickin
 		if (r == null)
 			return;
 		this.content.scrollInfoView(r.getRectBounds());
+	}
+
+	/**
+	 * @param item
+	 */
+	public void addItem(AItem item) {
+		this.blocks.addItem(item);
+		if (item instanceof SelectionInfo) {
+			leftToolBar.onShowHideSelectionInfo(((SelectionInfo) item).getIDCategory(), true);
+		}
+	}
+
+	/**
+	 * @param item
+	 */
+	public void removeItem(AItem item) {
+		this.blocks.removeItem(item);
+		if (item instanceof SelectionInfo) {
+			leftToolBar.onShowHideSelectionInfo(((SelectionInfo) item).getIDCategory(), false);
+		}
 	}
 }

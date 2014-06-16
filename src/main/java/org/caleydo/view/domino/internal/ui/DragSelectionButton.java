@@ -5,19 +5,13 @@
  *******************************************************************************/
 package org.caleydo.view.domino.internal.ui;
 
-import java.util.Set;
-
 import org.caleydo.core.data.collection.EDimension;
 import org.caleydo.core.data.selection.SelectionManager;
-import org.caleydo.core.data.selection.SelectionType;
 import org.caleydo.core.view.opengl.layout.Column.VAlign;
 import org.caleydo.core.view.opengl.layout2.GLElement;
 import org.caleydo.core.view.opengl.layout2.GLGraphics;
 import org.caleydo.core.view.opengl.layout2.dnd.IDragInfo;
 import org.caleydo.core.view.opengl.layout2.renderer.IGLRenderer;
-import org.caleydo.view.domino.api.model.typed.TypedSet;
-import org.caleydo.view.domino.internal.Node;
-import org.caleydo.view.domino.internal.data.StratificationDataValue;
 import org.caleydo.view.domino.internal.dnd.NodeDragInfo;
 
 /**
@@ -40,15 +34,7 @@ public class DragSelectionButton extends ADragButton implements IGLRenderer {
 	}
 	@Override
 	public IDragInfo startSWTDrag(IDragEvent event) {
-		return new NodeDragInfo(event.getMousePos(), createNode());
-	}
-
-	private Node createNode() {
-		Set<Integer> elements = manager.getElements(SelectionType.SELECTION);
-		TypedSet data = new TypedSet(elements, manager.getIDType());
-		StratificationDataValue d = new StratificationDataValue(Ruler.getLabel(elements, manager.getIDType()), data,
-				EDimension.DIMENSION);
-		return new Node(d);
+		return new NodeDragInfo(event.getMousePos(), SelectionInfo.createNode(manager, EDimension.DIMENSION));
 	}
 
 	@Override
