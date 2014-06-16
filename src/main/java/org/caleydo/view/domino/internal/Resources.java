@@ -52,6 +52,9 @@ public class Resources {
 	public static final URL ICON_LIMIT_DATA_DIM = icon("limit_dim.png");
 	public static final URL ICON_LIMIT_DATA_REC = icon("limit.png");
 
+	public static final URL ICON_PROJECT_M2N = icon("matrix2numerical.png");
+	public static final URL ICON_PROJECT_N2P = icon("numerical2partition.png");
+
 	public static final URL ICON_EXPLODE_REC = icon("dynamite_rec.png");
 	public static final URL ICON_EXPLODE_DIM = icon("dynamite_dim.png");
 

@@ -295,10 +295,10 @@ public class NodeTools extends AItemTools {
 		addMultiNodes(Collections.singleton(node));
 
 		if (node.getDataValues() instanceof Numerical2DDataDomainValues) {
-			addButton("Project to Numerical", Resources.ICON_MISSING);
+			addButton("Project to Numerical", Resources.ICON_PROJECT_M2N);
 		}
 		if (node.getDataValues() instanceof INumerical1DContainer) {
-			addButton("Project to Partitional", Resources.ICON_MISSING);
+			addButton("Project to Partitional", Resources.ICON_PROJECT_N2P);
 		}
 
 		addButton("Open Details", Resources.ICON_FOCUS);
