@@ -5,7 +5,7 @@
  *******************************************************************************/
 package org.caleydo.view.domino.internal.tourguide;
 
-import java.util.EnumMap;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -84,7 +84,7 @@ public class PathwaySetDataDomainQuery extends ADataDomainQuery {
 
 	@Override
 	public void createSpecificColumns(RankTableModel table) {
-		Map<EPathwayDatabaseType, String> metaData = new EnumMap<>(EPathwayDatabaseType.class);
+		Map<EPathwayDatabaseType, String> metaData = new HashMap<>();
 		for (EPathwayDatabaseType type : EPathwayDatabaseType.values()) {
 			metaData.put(type, type.getName());
 		}
