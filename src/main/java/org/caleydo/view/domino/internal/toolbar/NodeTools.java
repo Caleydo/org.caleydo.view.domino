@@ -28,7 +28,9 @@ import org.caleydo.view.domino.internal.NodeGroup;
 import org.caleydo.view.domino.internal.NodeSelections;
 import org.caleydo.view.domino.internal.Resources;
 import org.caleydo.view.domino.internal.UndoStack;
+import org.caleydo.view.domino.internal.data.INumerical1DContainer;
 import org.caleydo.view.domino.internal.data.Numerical2DDataDomainValues;
+import org.caleydo.view.domino.internal.ui.BinPopup;
 import org.caleydo.view.domino.internal.ui.ProjectPopup;
 import org.caleydo.view.domino.internal.undo.ChangeVisTypeToCmd;
 import org.caleydo.view.domino.internal.undo.ExplodeSlicesCmd;
@@ -293,7 +295,10 @@ public class NodeTools extends AItemTools {
 		addMultiNodes(Collections.singleton(node));
 
 		if (node.getDataValues() instanceof Numerical2DDataDomainValues) {
-			addButton("Project", Resources.ICON_MISSING);
+			addButton("Project to Numerical", Resources.ICON_MISSING);
+		}
+		if (node.getDataValues() instanceof INumerical1DContainer) {
+			addButton("Project to Partitional", Resources.ICON_MISSING);
 		}
 
 		addButton("Open Details", Resources.ICON_FOCUS);
@@ -390,9 +395,13 @@ public class NodeTools extends AItemTools {
 		case "Open Details":
 			node.getNode().showInFocus();
 			break;
-		case "Project":
+		case "Project to Numerical":
 			context.getPopupLayer().show(new ProjectPopup(node.getNode(), findParent(Domino.class)),
-					new Rect(100, 100, 200, 150));
+					new Rect(100, 100, 250, 150));
+			break;
+		case "Project to Partitional":
+			context.getPopupLayer().show(BinPopup.create(node.getNode(), findParent(Domino.class)),
+					new Rect(100, 100, 250, 100));
 			break;
 		}
 	}

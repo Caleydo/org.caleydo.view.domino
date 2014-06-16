@@ -12,12 +12,10 @@ import java.util.Set;
 import org.caleydo.core.data.collection.EDimension;
 import org.caleydo.core.data.collection.Histogram;
 import org.caleydo.core.data.perspective.variable.Perspective;
-import org.caleydo.core.util.base.ILabeled;
 import org.caleydo.core.util.color.Color;
 import org.caleydo.core.util.function.IDoubleList;
 import org.caleydo.core.util.function.MappedDoubleList;
 import org.caleydo.core.view.opengl.layout2.manage.GLElementFactoryContext.Builder;
-import org.caleydo.core.view.opengl.util.gleem.IColored;
 import org.caleydo.view.domino.api.model.EDirection;
 import org.caleydo.view.domino.api.model.typed.ITypedCollection;
 import org.caleydo.view.domino.api.model.typed.TypedGroupSet;
@@ -98,7 +96,7 @@ public class Numerical1DMixin {
 		return h;
 	}
 
-	static int toBin(float v, int bins) {
+	public static int toBin(float v, int bins) {
 		// this works because the values in the container are
 		// already normalized
 		int bucketIndex = (int) (v * bins);
@@ -188,21 +186,5 @@ public class Numerical1DMixin {
 			return odd;
 		}
 	}
-
-}
-
-interface INumerical1DContainer extends IColored, ILabeled{
-
-	/**
-	 * @param intValue
-	 * @return
-	 */
-	Float getRaw(int intValue);
-
-	/**
-	 * @param id
-	 * @return
-	 */
-	float getNormalized(int id);
 
 }
