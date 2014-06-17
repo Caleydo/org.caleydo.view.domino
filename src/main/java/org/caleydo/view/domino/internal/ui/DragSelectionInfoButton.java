@@ -45,7 +45,7 @@ public class DragSelectionInfoButton extends AGLButton implements IDragGLSource 
 		if (armed)
 			armedEffect.render(g, w, h, this);
 		if (!dragMode) {
-			g.color(1, 1, 1, 0.25f).fillRoundedRect(0, 0, w, h, Math.min(w, h) * 0.25f);
+			g.color(1, 1, 1, 0.75f).fillRoundedRect(0, 0, w, h, Math.min(w, h) * 0.25f);
 		}
 	}
 
@@ -59,8 +59,7 @@ public class DragSelectionInfoButton extends AGLButton implements IDragGLSource 
 
 	@Override
 	public IDragInfo startSWTDrag(IDragEvent event) {
-		return new ItemDragInfo(event.getMousePos(), new SelectionInfo(manager, findParent(Domino.class)
-				.getUndo()));
+		return new ItemDragInfo(event.getMousePos(), new SelectionInfo(manager, findParent(Domino.class)));
 	}
 
 	@Override

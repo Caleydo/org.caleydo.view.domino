@@ -802,6 +802,17 @@ public class Domino extends GLElementContainer implements IDropGLTarget, IPickin
 		this.blocks.addItem(item);
 		if (item instanceof SelectionInfo) {
 			leftToolBar.onShowHideSelectionInfo(((SelectionInfo) item).getIDCategory(), true);
+			// update scaling
+			float f = ((SelectionInfo) item).getScaleFactor();
+			for (SelectionInfo info : this.blocks.selectionInfos()) {
+				float f2 = info.getScaleFactor();
+				if (f2 < f) {
+					f = f2;
+				}
+			}
+			for (SelectionInfo info : this.blocks.selectionInfos()) {
+				info.setScaleFactor(f);
+			}
 		}
 	}
 

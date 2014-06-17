@@ -92,8 +92,7 @@ public class AItem extends GLElementContainer implements IDragGLSource, IPicking
 			float change = dim.select(shift);
 			if (change == 0)
 				return;
-			UndoStack undo = findParent(Domino.class).getUndo();
-			undo.push(new ZoomItemCmd(this, change));
+			zoomCmd(change);
 			break;
 		case MOUSE_OVER:
 			context.getMouseLayer().addDragSource(this);
@@ -111,6 +110,14 @@ public class AItem extends GLElementContainer implements IDragGLSource, IPicking
 		default:
 			break;
 		}
+	}
+
+	/**
+	 * @param change
+	 */
+	protected void zoomCmd(float change) {
+		UndoStack undo = findParent(Domino.class).getUndo();
+		undo.push(new ZoomItemCmd(this, change));
 	}
 
 	@Override

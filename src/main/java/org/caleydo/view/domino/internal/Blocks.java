@@ -32,6 +32,7 @@ import org.caleydo.view.domino.internal.MiniMapCanvas.IHasMiniMap;
 import org.caleydo.view.domino.internal.dnd.DragElement;
 import org.caleydo.view.domino.internal.ui.AItem;
 import org.caleydo.view.domino.internal.ui.Ruler;
+import org.caleydo.view.domino.internal.ui.SelectionInfo;
 
 import com.google.common.collect.EnumMultiset;
 import com.google.common.collect.Iterables;
@@ -139,6 +140,10 @@ public class Blocks extends GLElementContainer implements ICallback<SelectionTyp
 
 	public Iterable<Ruler> rulers() {
 		return Iterables.filter(this, Ruler.class);
+	}
+
+	public Iterable<SelectionInfo> selectionInfos() {
+		return Iterables.filter(this, SelectionInfo.class);
 	}
 
 	public Iterable<AItem> separators() {
