@@ -43,8 +43,9 @@ import org.caleydo.core.view.opengl.util.text.ETextStyle;
 import org.caleydo.view.domino.api.model.typed.TypedList;
 
 import com.google.common.base.Function;
-import com.google.common.collect.DiscreteDomains;
-import com.google.common.collect.Ranges;
+import com.google.common.collect.ContiguousSet;
+import com.google.common.collect.DiscreteDomain;
+import com.google.common.collect.Range;
 /**
  * @author Samuel Gratzl
  *
@@ -547,7 +548,7 @@ public class LabelElementFactory implements IGLElementFactory2 {
 			float per = size / this.data.size();
 			int start = (int)Math.floor(location.getOffset() / per);
 			int end = (int)Math.ceil(location.getOffset2() / per);
-			return Ranges.closed(start, end).asSet(DiscreteDomains.integers());
+			return ContiguousSet.create(Range.closed(start, end), DiscreteDomain.integers());
 		}
 
 		@Override
