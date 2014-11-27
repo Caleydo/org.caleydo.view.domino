@@ -10,6 +10,7 @@ import java.net.URL;
 import org.caleydo.data.loader.ResourceLoader;
 import org.caleydo.data.loader.ResourceLocators;
 import org.caleydo.data.loader.ResourceLocators.IResourceLocator;
+import org.caleydo.view.domino.internal.plugin.Activator;
 
 /**
  * @author Samuel Gratzl
@@ -37,13 +38,60 @@ public class Resources {
 		return resourceLocator;
 	}
 
-	public static final URL deleteIcon() {
-		return icon("cross.png");
-	}
+	public static final URL ICON = icon("icon.png");
+	public static final URL ICON_MISSING = icon("missing.png");
 
-	public static final URL icon() {
-		return icon("icon.png");
-	}
+	public static final URL ICON_SORT_DIM = icon("sort_columns_dim.png");
+	public static final URL ICON_SORT_REC = icon("sort_columns.png");
+	public static final URL ICON_STRATIFY_DIM = icon("category_dim.png");
+	public static final URL ICON_STRATIFY_REC = icon("category.png");
+	public static final URL ICON_DELETE = icon("cross.png");
+	public static final URL ICON_DELETE_ALL = icon("cross_all.png");
+	public static final URL ICON_MERGE_REC = icon("merge.png");
+	public static final URL ICON_MERGE_DIM = icon("merge_dim.png");
+	public static final URL ICON_LIMIT_DATA_DIM = icon("limit_dim.png");
+	public static final URL ICON_LIMIT_DATA_REC = icon("limit.png");
+
+	public static final URL ICON_PROJECT_M2N = icon("matrix2numerical.png");
+	public static final URL ICON_PROJECT_N2P = icon("numerical2partition.png");
+
+	public static final URL ICON_EXPLODE_REC = icon("dynamite_rec.png");
+	public static final URL ICON_EXPLODE_DIM = icon("dynamite_dim.png");
+
+	public static final URL ICON_STATE_MOVE = icon("transform_move.png");
+	public static final URL ICON_STATE_SELECT = icon("select.png");
+	public static final URL ICON_STATE_BANDS = icon("bandmode.png");
+
+	public static final URL ICON_SELECT_REC = icon("select_rec.png");
+	public static final URL ICON_SELECT_DIM = icon("select_dim.png");
+
+	public static final URL ICON_SELECT_ALL = icon("selectAll.png");
+
+	public static final URL ICON_TRANSPOSE = icon("transform_rotate.png");
+
+	public static final URL ICON_SET_UNION = icon("setop_union.png");
+	public static final URL ICON_SET_INTERSECT = icon("setop_intersection.png");
+	public static final URL ICON_SET_DIFFERENCE = icon("setop_diff.png");
+
+	public static final URL ICON_FOCUS = icon("focus.png");
+	public static final URL ICON_HATCHING = icon("hatching.png");
+
+	public static final URL ICON_UNDO = icon("arrow_undo.png");
+	public static final URL ICON_REDO = icon("arrow_redo.png");
+	public static final URL ICON_UNDO_DISABLED = icon("arrow_undo_disabled.png");
+	public static final URL ICON_REDO_DISABLED = icon("arrow_redo_disabled.png");
+	public static final URL ICON_REPLAY = icon("video.png");
+	public static final URL ICON_UNDO_CLEAR = icon("arrow_undo_clear.png");
+
+
+	public static final URL ICON_RULER = icon("measure.png");
+	public static final URL ICON_RULER_DISABLED = icon("measure_disabled.png");
+	public static final URL ICON_SEPARATOR = icon("add_separator.png");
+	public static final URL ICON_ANNOTATION = icon("add_annotation.png");
+
+	public static final URL ICON_MINI_MAP = icon("map_magnify.png");
+	public static final URL ICON_SHOW_HIDE_DEBUG = icon("text_large_cap.png");
+	public static final URL ICON_SHOW_HIDE_LABELS = icon("text_large_cap.png");
 
 	/**
 	 * @param string

@@ -10,10 +10,12 @@ import java.util.Collection;
 
 import org.caleydo.core.view.opengl.layout2.GLElementContainer;
 import org.caleydo.core.view.opengl.layout2.IGLElementContext;
+import org.caleydo.core.view.opengl.layout2.IMouseLayer;
+import org.caleydo.core.view.opengl.layout2.dnd.IDragGLSource;
 import org.caleydo.core.view.opengl.picking.PickingMode;
-import org.caleydo.view.domino.internal.DominoView;
-import org.caleydo.view.domino.internal.DominoViewPart;
 import org.caleydo.view.domino.internal.Resources;
+import org.caleydo.view.domino.internal.plugin.DominoView;
+import org.caleydo.view.domino.internal.plugin.DominoViewPart;
 import org.caleydo.view.tourguide.api.model.ADataDomainQuery;
 import org.caleydo.view.tourguide.api.model.AScoreRow;
 import org.caleydo.view.tourguide.api.vis.ITourGuideView;
@@ -30,6 +32,7 @@ import org.eclipse.ui.IWorkbenchPart;
 public abstract class ATourGuideAdapter implements ITourGuideAdapter {
 	protected DominoView domino;
 	protected ITourGuideView vis;
+	private IDragGLSource dragSource;
 
 	@Override
 	public void addDefaultColumns(RankTableModel table) {
@@ -38,7 +41,7 @@ public abstract class ATourGuideAdapter implements ITourGuideAdapter {
 
 	@Override
 	public final URL getIcon() {
-		return Resources.icon();
+		return Resources.ICON;
 	}
 
 	@Override
@@ -85,13 +88,31 @@ public abstract class ATourGuideAdapter implements ITourGuideAdapter {
 	@Override
 	public void onRowClick(RankTableModel table, PickingMode pickingMode, AScoreRow row, boolean isSelected,
 			IGLElementContext context) {
-		// TODO Auto-generated method stub
-
+		if (!isSelected)
+			return;
+		IMouseLayer m = context.getMouseLayer();
+		switch (pickingMode) {
+		case MOUSE_OVER:
+			if (dragSource != null) {
+				m.removeDragSource(dragSource);
+				dragSource = null;
+			}
+			m.addDragSource(dragSource = new DragRowSource(row));
+			break;
+		case MOUSE_OUT:
+			if (dragSource != null) {
+				m.removeDragSource(dragSource);
+			}
+			dragSource = null;
+			break;
+		default:
+			break;
+		}
 	}
 
 	@Override
 	public final String getPartName() {
-		return "Domino";
+		return getLabel();
 	}
 
 	@Override

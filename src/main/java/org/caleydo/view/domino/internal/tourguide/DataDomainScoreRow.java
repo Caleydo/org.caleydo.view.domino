@@ -13,16 +13,17 @@ import org.caleydo.core.data.virtualarray.VirtualArray;
 import org.caleydo.core.data.virtualarray.group.Group;
 import org.caleydo.core.id.IDType;
 import org.caleydo.view.tourguide.api.model.AVirtualArrayScoreRow;
+import org.caleydo.view.tourguide.api.model.ITablePerspectiveScoreRow;
 
 import com.google.common.base.Objects;
 
 /**
  * a scorerow for the default table perspective
- * 
+ *
  * @author Samuel Gratzl
- * 
+ *
  */
-public class DataDomainScoreRow extends AVirtualArrayScoreRow {
+public class DataDomainScoreRow extends AVirtualArrayScoreRow implements ITablePerspectiveScoreRow {
 	private final ATableBasedDataDomain dataDomain;
 
 	public DataDomainScoreRow(ATableBasedDataDomain dataDomain) {
@@ -51,12 +52,12 @@ public class DataDomainScoreRow extends AVirtualArrayScoreRow {
 
 	@Override
 	public Iterable<Integer> getDimensionIDs() {
-		return dataDomain.getTable().getDefaultDimensionPerspective(false).getVirtualArray();
+		return dataDomain.getTable().getDefaultDimensionPerspective(true).getVirtualArray();
 	}
 
 	@Override
 	public VirtualArray getVirtualArray() {
-		return dataDomain.getTable().getDefaultRecordPerspective(false).getVirtualArray();
+		return dataDomain.getTable().getDefaultRecordPerspective(true).getVirtualArray();
 	}
 
 	@Override
@@ -76,7 +77,14 @@ public class DataDomainScoreRow extends AVirtualArrayScoreRow {
 
 	@Override
 	public boolean is(Perspective p) {
-		return dataDomain.getTable().getDefaultRecordPerspective(false).equals(p);
+		return dataDomain.getTable().getDefaultRecordPerspective(true).equals(p);
+	}
+
+	@Override
+	public TablePerspective asTablePerspective() {
+		final Perspective r = dataDomain.getTable().getDefaultRecordPerspective(true);
+		final Perspective d = dataDomain.getTable().getDefaultDimensionPerspective(true);
+		return dataDomain.getTablePerspective(r.getPerspectiveID(), d.getPerspectiveID());
 	}
 
 }

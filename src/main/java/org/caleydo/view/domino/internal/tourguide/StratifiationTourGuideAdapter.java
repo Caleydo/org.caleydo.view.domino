@@ -9,11 +9,13 @@ import org.caleydo.core.id.IDCategory;
 import org.caleydo.core.id.IDType;
 import org.caleydo.core.util.base.ICallback;
 import org.caleydo.core.view.opengl.layout2.GLElementContainer;
-import org.caleydo.view.domino.internal.tourguide.vis.EntityTypeSelector;
+import org.caleydo.view.domino.internal.tourguide.ui.EntityTypeSelector;
 import org.caleydo.view.tourguide.api.model.ADataDomainQuery;
 import org.caleydo.view.tourguide.api.model.ASingleIDDataDomainQuery;
+import org.caleydo.view.tourguide.api.model.InhomogenousDataDomainQuery;
 import org.caleydo.view.tourguide.api.model.StratificationDataDomainQuery;
 import org.caleydo.view.tourguide.api.vis.ITourGuideView;
+import org.caleydo.view.tourguide.api.vis.TourGuideUtils;
 import org.caleydo.view.tourguide.spi.adapter.ITourGuideAdapter;
 import org.caleydo.view.tourguide.spi.adapter.ITourGuideAdapterFactory;
 import org.caleydo.view.tourguide.spi.adapter.ITourGuideDataMode;
@@ -29,7 +31,11 @@ public class StratifiationTourGuideAdapter extends ATourGuideAdapter implements 
 
 	@Override
 	public String getLabel() {
-		return "Domino Stratifications";
+		return "Domino Partitioned Blocks";
+	}
+
+	public static void show() {
+		TourGuideUtils.showTourGuide(SECONDARY_ID);
 	}
 
 	@Override
@@ -55,9 +61,13 @@ public class StratifiationTourGuideAdapter extends ATourGuideAdapter implements 
 			return true;
 		IDType idType = null;
 		if (query instanceof ASingleIDDataDomainQuery) {
-			idType = ((ASingleIDDataDomainQuery) query).getSingleIDType();
+			idType = ((ASingleIDDataDomainQuery) query).getStratificationIDType();
 		} else if (query instanceof StratificationDataDomainQuery) {
 			idType = ((StratificationDataDomainQuery) query).getIDType();
+		} else if (query instanceof PathwaySetDataDomainQuery)
+			idType = ((PathwaySetDataDomainQuery) query).getIDType();
+		else if (query instanceof InhomogenousDataDomainQuery) {
+			idType = ((InhomogenousDataDomainQuery) query).getDataDomain().getRecordIDType();
 		}
 		return idType == null ? false : activeCategory.isOfCategory(idType);
 	}

@@ -1,12 +1,13 @@
 Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Domino View
-Bundle-SymbolicName: org.caleydo.view.domino;singleton:=true
-Bundle-Version: 3.1.1
-Require-Bundle: org.caleydo.core;bundle-version="3.1.1",
- org.caleydo.datadomain.mock;bundle-version="3.1.1";resolution:=optional,
- org.caleydo.view.tourguide;bundle-version="3.1.1"
+Bundle-SymbolicName: org.caleydo.view.rnb;singleton:=true
+Bundle-Version: 3.1.5
+Require-Bundle: org.caleydo.core;bundle-version="3.1.5",
+ org.caleydo.view.tourguide;bundle-version="3.1.5",
+ org.caleydo.datadomain.pathway;bundle-version="3.1.5",
+ org.caleydo.view.info.dataset;bundle-version="3.1.5"
 Bundle-RequiredExecutionEnvironment: JavaSE-1.7
 Bundle-Vendor: www.caleydo.org
 Bundle-ActivationPolicy: lazy
-Bundle-Activator: org.caleydo.view.domino.internal.Activator
+Bundle-Activator: org.caleydo.view.domino.internal.plugin.Activator
