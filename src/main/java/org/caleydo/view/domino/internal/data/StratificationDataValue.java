@@ -192,7 +192,7 @@ public class StratificationDataValue implements IDataValues, Function<Integer, C
 
 	@Override
 	public Collection<String> getDefaultVisualization() {
-		return Arrays.asList("distribution.hist", "heatmap");
+		return Arrays.asList("sheatmap", "distribution.hist");
 	}
 
 	@Override

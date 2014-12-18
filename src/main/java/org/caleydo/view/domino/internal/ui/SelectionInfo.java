@@ -106,7 +106,7 @@ public class SelectionInfo extends AItem {
 		TypedSet data = new TypedSet(elements, manager.getIDType());
 
 		String label = getLabel(elements, manager.getIDType());
-		StratificationDataValue d = new StratificationDataValue(label, data, dim);
+		StratificationDataValue d = new StratificationDataValue(label, data, dim.opposite());
 		return new Node(d);
 	}
 

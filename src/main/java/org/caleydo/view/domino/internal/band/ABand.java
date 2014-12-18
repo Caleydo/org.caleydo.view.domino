@@ -203,7 +203,7 @@ public abstract class ABand implements ILabeled, IHasMiniMap {
 	}
 
 	public EDimension getDimension(SourceTarget type) {
-		return type.select(sDir, tDir).asDim();
+		return type.select(sDir, tDir).asDim().opposite();
 	}
 
 	public Pair<TypedSet, TypedSet> intersectingIds(Rectangle2D bounds) {

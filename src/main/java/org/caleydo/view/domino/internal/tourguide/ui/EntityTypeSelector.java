@@ -38,7 +38,7 @@ public class EntityTypeSelector extends GLElementContainer implements ISelection
 	 */
 	public EntityTypeSelector(ICallback<IDCategory> onCategorySelected) {
 		super(GLLayouts.flowVertical(3));
-		setSize(150, -1);
+		setSize(80, -1);
 		this.onCategorySelected = onCategorySelected;
 
 		createEntityNodes();
@@ -54,7 +54,7 @@ public class EntityTypeSelector extends GLElementContainer implements ISelection
 			controller.add(b);
 			b.setLayoutData(cat);
 			b.setRenderer(GLButton.createRadioRenderer(cat.getCategoryName()));
-			b.setSize(-1, 14);
+			b.setSize(-1, 18);
 			this.add(b);
 		}
 		controller.setSelected(0);

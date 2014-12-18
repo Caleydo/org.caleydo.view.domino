@@ -46,6 +46,7 @@ public abstract class ATourGuideAdapter implements ITourGuideAdapter {
 
 	@Override
 	public void setup(ITourGuideView vis, GLElementContainer lineUp) {
+		lineUp.remove(lineUp.size() - 1); // remove pool
 		this.vis = vis;
 	}
 
